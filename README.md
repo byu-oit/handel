@@ -41,5 +41,10 @@ provisioned_throughput:
   write_capacity_units: <number>
 ```
 
-#TODO 
+# Credits
+Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.
+
+# TODO 
 * Figure out how to handle updates - Guiding principle is to not have downtime, so manual restarts may be necessary. NO DATA LOSS SHOULD EVER OCCUR (NO REPLACEMENT)
+* Add unit tests
+* Add acceptance test validating deploy functionality (include teardown)

@@ -1,13 +1,16 @@
 #!/usr/bin/env node
-var awsDeploy = require('../lib/aws-deploy');
-var program = require('commander');
-var fs = require('fs');
-var path = require('path');
+const awsDeploy = require('../lib/aws-deploy');
+const program = require('commander');
+const fs = require('fs');
+const path = require('path');
+const winston = require('winston');
+winston.level = 'info';
 
 program
     .arguments('<file>')
     .option('-c, --account-config-file <configfile>', 'The account config file used by aws-deploy')
-    .option('-s, --deploy-spec-file <deployfile>', 'The deploy specification file provided by the user')
+    .option('-d, --deploy-spec-file <deployfile>', 'The deploy specification file provided by the user')
+    .option('-e, --environment-to-deploy <system>', 'The environment from the deploy spec that you wish to deploy')
     .parse(process.argv);
 
 
@@ -17,28 +20,33 @@ function getAbsoluteConfigFilePath(filePath) {
         absolutePath = path.resolve(filePath);
     }
     if(!absolutePath) {
-        console.log("Invalid file path for config file: " + filePath);
-        process.exit();
+        winston.error(`Invalid file path for config file: ${filePath}`);
+        process.exit(1);
     }
     return absolutePath;
 }
 
 function getAccountConfigFilePath(configFilePath) {
     if (!configFilePath) {
-        console.log("Missing account config file");
-        process.exit();
+        winston.error("Missing account-config-file parameter");
+        process.exit(1);
     }
     return getAbsoluteConfigFilePath(configFilePath);
 }
 
 function getDeploySpecFilePath(deploySpecFilePath) {
     if (!deploySpecFilePath) {
-        console.log("Missing deploy spec file");
-        process.exit();
+        winston.error("Missing deploy-spec-file parameter");
+        process.exit(1);
     }
     return getAbsoluteConfigFilePath(deploySpecFilePath);
 }
 
+if(!program.environmentToDeploy) {
+    winston.error("Missing environment-to-deploy parameter");
+    process.exit(1);
+}
+
 var absoluteConfigFilePath = getAccountConfigFilePath(program.accountConfigFile);
 var absoluteDeploySpecFilePath = getDeploySpecFilePath(program.deploySpecFile);
-awsDeploy.deploy(absoluteConfigFilePath, absoluteDeploySpecFilePath);
+awsDeploy.deploy(absoluteConfigFilePath, absoluteDeploySpecFilePath, program.environmentToDeploy);
