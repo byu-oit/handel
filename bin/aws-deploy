@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+var awsDeploy = require('../lib/aws-deploy');
+var program = require('commander');
+var fs = require('fs');
+var path = require('path');
+
+program
+    .arguments('<file>')
+    .option('-c, --account-config-file <configfile>', 'The account config file used by aws-deploy')
+    .option('-s, --deploy-spec-file <deployfile>', 'The deploy specification file provided by the user')
+    .parse(process.argv);
+
+
+function getAbsoluteConfigFilePath(filePath) {
+    var absolutePath;
+    if( fs.existsSync(filePath) ) {
+        absolutePath = path.resolve(filePath);
+    }
+    if(!absolutePath) {
+        console.log("Invalid file path for config file: " + filePath);
+        process.exit();
+    }
+    return absolutePath;
+}
+
+function getAccountConfigFilePath(configFilePath) {
+    if (!configFilePath) {
+        console.log("Missing account config file");
+        process.exit();
+    }
+    return getAbsoluteConfigFilePath(configFilePath);
+}
+
+function getDeploySpecFilePath(deploySpecFilePath) {
+    if (!deploySpecFilePath) {
+        console.log("Missing deploy spec file");
+        process.exit();
+    }
+    return getAbsoluteConfigFilePath(deploySpecFilePath);
+}
+
+var absoluteConfigFilePath = getAccountConfigFilePath(program.accountConfigFile);
+var absoluteDeploySpecFilePath = getDeploySpecFilePath(program.deploySpecFile);
+awsDeploy.deploy(absoluteConfigFilePath, absoluteDeploySpecFilePath);

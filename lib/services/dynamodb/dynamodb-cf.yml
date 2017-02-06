@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  TableName: 
+    Type: String
+    Description: Name of the table to create
+  PartitionKeyName:
+    Type: String
+  PartitionKeyType:
+    Type: String
+  SortKeyName:
+    Type: String
+  SortKeyType:
+    Type: String
+  ReadCapacityUnits:
+    Type: Number
+    Description: The number of read capacity units to allocate
+  WriteCapacityUnits:
+    Type: Number
+    Description: The number of write capacity units to allocate
+
+Mappings: 
+  KeyTypeToAttributeTypeMap:
+    String:
+      AttributeType: S
+    Number:
+      AttributeType: N
+
+Resources: 
+  DynamoDbTable: 
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: 
+        Ref: TableName
+      AttributeDefinitions:
+      - AttributeName:
+          Ref: PartitionKeyName
+        AttributeType: !FindInMap [KeyTypeToAttributeTypeMap, !Ref "PartitionKeyType", AttributeType]
+      - AttributeName: # NEEDS TO BE OPTIONAL
+          Ref: SortKeyName
+        AttributeType: !FindInMap [KeyTypeToAttributeTypeMap, !Ref "SortKeyType", AttributeType]
+      KeySchema:
+      - AttributeName:
+          Ref: PartitionKeyName
+        KeyType: HASH
+      - AttributeName: # NEEDS TO BE OPTIONAL
+          Ref: SortKeyName
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Ref: ReadCapacityUnits
+        WriteCapacityUnits:
+          Ref: WriteCapacityUnits
