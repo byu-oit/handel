@@ -43,10 +43,15 @@ provisioned_throughput:
   write_capacity_units: <number>
 ```
 
+Updateable parameters:
+None: Updates will take the database out of commission while updating. You must manually change the parameters in DynamoDB at an opportune time for your service.
+
 # Credits
 Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.
 
-# TODO 
+# TODO
+* Add limits on app, environment, and service names (AWS has limits on certain resources)
+* Figure out how to enforce tagging spec
 * Try out the DynamoDB deploy process
 * Figure out how to handle updates - Guiding principle is to not have downtime, so manual restarts may be necessary. NO DATA LOSS SHOULD EVER OCCUR (NO REPLACEMENT)
 * Need to figure out how to handle secrets. How can you get things like WSO2 credentials from DynamoDB? Probably a secured S3 bucket
