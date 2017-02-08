@@ -16,10 +16,12 @@ Here is the schema for the deployment file:
 ```
 name: <application_name>
 
-systems:
-  <system_name>:
+environments:
+  <environment_name>:
     <service_name>:
       type: <service_type>
+      dependencies:
+      - <service_name>
       <service_config_params>
 ```
 
@@ -45,6 +47,10 @@ provisioned_throughput:
 Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.
 
 # TODO 
+* Try out the DynamoDB deploy process
 * Figure out how to handle updates - Guiding principle is to not have downtime, so manual restarts may be necessary. NO DATA LOSS SHOULD EVER OCCUR (NO REPLACEMENT)
+* Need to figure out how to handle secrets. How can you get things like WSO2 credentials from DynamoDB? Probably a secured S3 bucket
+* Make sure that objects are handled well
+* Consider moving deployers into their own object outside of the system context.
 * Add unit tests
 * Add acceptance test validating deploy functionality (include teardown)

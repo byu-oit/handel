@@ -12,6 +12,7 @@
   "author": "David Woodruff",
   "license": "Apache-2.0",
   "dependencies": {
+    "aws-sdk": "^2.9.0",
     "commander": "^2.9.0",
     "debug": "^2.6.0",
     "js-yaml": "3.7.0",

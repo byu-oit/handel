@@ -1,0 +1,44 @@
+version: 1 # Validate in parse deploy spec
+
+name: dsw88-testapp # Validate in parse deploy spec
+
+environments: # Validate in parse deploy spec
+  dev: # Validate in parse deploy
+    F:
+      type: dynamodb
+      something: here
+    A: # Validate in service check
+      type: beanstalk
+      something: here
+      dependencies:
+      - C
+      - D
+    B:
+      type: beanstalk
+      something: here
+      dependencies:
+      - D
+      - E
+      - G
+    C: # Validate in service check
+      type: dynamodb
+      something: here
+      dependencies:
+      - F
+      - G
+    D:
+      type: dynamodb
+      something: here
+      dependencies:
+      - H
+    E:
+      type: dynamodb
+      something: here
+      dependencies:
+      - H
+    G:
+      type: dynamodb
+      something: here
+    H:
+      type: beanstalk
+      something: here
