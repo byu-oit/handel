@@ -46,11 +46,23 @@ provisioned_throughput:
 Updateable parameters:
 None: Updates will take the database out of commission while updating. You must manually change the parameters in DynamoDB at an opportune time for your service.
 
+## Beanstalk
+```
+solution_stack: <beanstalk_solution_stack>
+
+application_path: <path> # Can be a deployable file (such as a WAR file), or a directory that will be zipped up and deployed
+
+
+```
+
 # Credits
 Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.
 
 # TODO
 * Add limits on app, environment, and service names (AWS has limits on certain resources)
+  * App name - 10 character
+  * Environment name - 10 characters
+  * Service name - 10 characters
 * Figure out how to enforce tagging spec
 * Try out the DynamoDB deploy process
 * Figure out how to handle updates - Guiding principle is to not have downtime, so manual restarts may be necessary. NO DATA LOSS SHOULD EVER OCCUR (NO REPLACEMENT)
