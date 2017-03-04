@@ -1,4 +1,4 @@
-# aws-deploy
+# aws-deploy (PROTOTYPE)
 This library provides deployments for applications in AWS based off a declarative specification file.
 
 # Library Usage
