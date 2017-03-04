@@ -1,8 +1,8 @@
-# AWS Deploy
+# aws-deploy
 This library provides deployments for applications in AWS based off a declarative specification file.
 
 # Library Usage
-./appdeploy
+./aws-deploy
 
 # Configuration File
 There are some account-level configurations that you'll need to provide in order for the deployment tool to
@@ -25,35 +25,6 @@ environments:
       <service_config_params>
 ```
 
-# Supported Services
-The following services are supported for deployments:
-
-## DynamoDB
-```
-partition_key: # Required, NOT updateable
-  name: <partition_key>
-  type: Number|String
-
-sort_key: # Optional, NOT updateable
-  name: <sort_key> 
-  type: Number|String
-
-provisioned_throughput:
-  read_capcity_units: <number>
-  write_capacity_units: <number>
-```
-
-Updateable parameters:
-None: Updates will take the database out of commission while updating. You must manually change the parameters in DynamoDB at an opportune time for your service.
-
-## Beanstalk
-```
-solution_stack: <beanstalk_solution_stack>
-
-application_path: <path> # Can be a deployable file (such as a WAR file), or a directory that will be zipped up and deployed
-
-
-```
 
 # Credits
 Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.

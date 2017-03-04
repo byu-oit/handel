@@ -1,0 +1,29 @@
+# Supported Services
+The following services are supported for deployments:
+
+## DynamoDB
+```
+partition_key: # Required, NOT updateable
+  name: <partition_key>
+  type: Number|String
+
+sort_key: # Optional, NOT updateable
+  name: <sort_key> 
+  type: Number|String
+
+provisioned_throughput:
+  read_capcity_units: <number>
+  write_capacity_units: <number>
+```
+
+Updateable parameters:
+None: Updates will take the database out of commission while updating. You must manually change the parameters in DynamoDB at an opportune time for your service.
+
+## Beanstalk
+```
+solution_stack: <beanstalk_solution_stack>
+
+application_path: <path> # Can be a deployable file (such as a WAR file), or a directory that will be zipped up and deployed
+
+
+```
