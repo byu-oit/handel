@@ -1,3 +1,12 @@
+# Limits
+The following limits exist on names in the deploy spec:
+```
+app name: 15 characters
+environment name: 10 characters
+service name: 10 characters
+```
+There may be other service-specific limits. See the "Supported Services" section for information on service-specific limits.
+
 # Supported Services
 The following services are supported for deployments:
 
