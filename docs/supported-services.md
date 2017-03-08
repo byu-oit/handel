@@ -34,5 +34,9 @@ solution_stack: <beanstalk_solution_stack>
 
 application_path: <path> # Can be a deployable file (such as a WAR file), or a directory that will be zipped up and deployed
 
+```
 
+## Elastic File System (EFS)
+```
+performance_mode: <general_purpose|max_io>
 ```
