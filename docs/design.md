@@ -6,8 +6,24 @@ Services are deployed from a declarative specification file. This file specifies
 way for each service to be deployed, as well as how they depend on each other. This
 dependency information provides information to wire together the services.
 
+# Deploy Spec File
+The deploy spec file is of the following structure:
+```
+version: 1
+
+name: <name of the app being deployed>
+
+environments:
+  <environment name>:
+    <service name>:
+      type: <service type>
+      <service_param>: <param_value>
+      dependencies:
+      - <service name>
+```
+
 # Service Deployment Ordering
-Services are deployed in parallel wherever possible. Some services in your deployment 
+Services are deployed in parallel wherever possible. Some services in the deployment 
 specification depend on other services, so those must be deployed serially.
 
 The aws-deploy library orders service dependencies into levels that are deployed in parallel.
@@ -101,7 +117,9 @@ A PreDeployContext provides the following contract:
 A BindContext provides the following contract:
 ```
 {
-  ???
+  serviceName: <name of service that this DeployContext represents>,
+  serviceType: <type of service this DeployContext represents (efs, s3, etc.)>
+  //Not sure what else needs to go here yet
 }
 ```
 
@@ -113,7 +131,8 @@ A DeployContext provides the following contract:
   serviceType: <type of service this DeployContext represents (efs, s3, etc.)>,
   policies: [], //Policies the consuming service can use when creating service roles in order to talk to this service
   credentials: [], //Items intended to be made securely available to the consuming service (via a secure S3 location)
-  outputs: [] //Items intended to be injected as environment variables into the consuming service
+  outputs: [], //Items intended to be injected as environment variables into the consuming service
+  scripts: [] //Scripts intended to be run on startup by the consuming resource. Some services like EFS require running commands on the host to connect them in
 }
 ```
 

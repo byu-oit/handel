@@ -28,15 +28,20 @@ provisioned_throughput:
 Updateable parameters:
 None: Updates will take the database out of commission while updating. You must manually change the parameters in DynamoDB at an opportune time for your service.
 
-## Beanstalk
-```
-solution_stack: <beanstalk_solution_stack>
-
-application_path: <path> # Can be a deployable file (such as a WAR file), or a directory that will be zipped up and deployed
-
-```
 
 ## Elastic File System (EFS)
 ```
 performance_mode: <general_purpose|max_io>
+```
+
+## Elastic Container Service (ECS)
+ECS is not fully supported yet. Many parameters are not supported yet.
+```
+image_name: <the name of the Docker image to pull>
+port_mappings:
+- <port>
+max_memory: <max memory to use in MB>
+cpu_units: <min cpu units>
+environment_variables:
+  <key>: <value>
 ```

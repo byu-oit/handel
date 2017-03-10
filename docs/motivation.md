@@ -4,5 +4,5 @@ Valuable reasons this approach is nice
     -Automated creation keeps free from manual mistakes
     -Free inter-dependency security (security groups, IAM roles)
     -Free application wiring (service location)
-    -Opinionated way of doing things (tagging, etc.)
+    -Opinionated way of doing things (convention over configuration for tagging, etc.)
     -Quick configuration for services, faster than writing CloudFormation
