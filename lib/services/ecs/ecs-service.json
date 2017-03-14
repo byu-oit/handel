@@ -60,6 +60,19 @@
             "Description": "The cooldown time in seconds for the auto-scale group",
             "Type": "Number",
             "Default": "300"
+        },
+        "DesiredCount": {
+            "Description": "The desired count of running tasks",
+            "Type": "Number"
+        },
+        "TaskDefinitionArn": {
+            "Description": "The Task definition to use for the service",
+            "Type": "String"
+        },
+        "MinimumHealthyPercentDeployment": {
+            "Description": "The minimum percent of tasks to keep running during a deployment",
+            "Type": "Number",
+            "Default": 50
         }
     },
     "Resources": {
@@ -168,6 +181,17 @@
             "Type": "AWS::ECS::Cluster",
             "Properties": {
                 "ClusterName": { "Ref": "ClusterName" }
+            }
+        },
+        "EcsService": {
+            "Type": "AWS::ECS::Service",
+            "Properties": {
+                "Cluster": { "Ref": "EcsCluster" },
+                "DesiredCount": { "Ref": "DesiredCount" },
+                "DeploymentConfiguration": {
+                    "MinimumHealthyPercent": { "Ref": "MinimumHealthyPercentDeployment" }
+                },
+                "TaskDefinition": { "Ref": "TaskDefinitionArn" }
             }
         }
     },
