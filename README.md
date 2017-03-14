@@ -14,6 +14,11 @@ Many of these concepts were introduced by the platform engineers at FamilySearch
   * App name - 10 character
   * Environment name - 10 characters
   * Service name - 10 characters
+* Require app, environment, and service name to be alphanumeric
+* Add distinction between consumable and consumer services
+* ECS - Implement scaling policies in ELB
+* ECS - Add scripts from dependencies
+* ECS - Add ELB to template
 * Figure out how to enforce tagging spec
 * Need to figure out how to handle secrets. How can you get things like WSO2 credentials from DynamoDB? Probably a secured S3 bucket
 * Add acceptance test validating deploy functionality (include teardown)

@@ -38,10 +38,10 @@ performance_mode: <general_purpose|max_io>
 ECS is not fully supported yet. Many parameters are not supported yet.
 ```
 image_name: <the name of the Docker image to pull>
+max_mb: <max memory to use in MB>
+cpu_units: <min cpu units>
 port_mappings:
 - <port>
-max_memory: <max memory to use in MB>
-cpu_units: <min cpu units>
 environment_variables:
   <key>: <value>
 ```

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 yum install -y nfs-utils
 
 echo "Mounting EFS filesystem {{EFS_FILE_SYSTEM_ID}} to directory {{EFS_MOUNT_DIR}} ..."
