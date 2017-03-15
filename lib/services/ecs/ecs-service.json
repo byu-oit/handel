@@ -73,6 +73,22 @@
             "Description": "The minimum percent of tasks to keep running during a deployment",
             "Type": "Number",
             "Default": 50
+        },
+        "AlbSubnets": {
+            "Description": "The list of subnet ids to deploy the cluster in",
+            "Type": "CommaDelimitedList"
+        },
+        "ContainerName": {
+            "Description": "The name of the container from the task definition",
+            "Type": "String"
+        },
+        "ContainerPort": {
+            "Description": "The port of your application in the container",
+            "Type": "Number"
+        },
+        "VpcId": {
+            "Description": "The ID of the VPC in which you are running",
+            "Type": "String"
         }
     },
     "Resources": {
@@ -191,7 +207,82 @@
                 "DeploymentConfiguration": {
                     "MinimumHealthyPercent": { "Ref": "MinimumHealthyPercentDeployment" }
                 },
+                "LoadBalancers": [
+                    {
+                        "ContainerName": { "Ref": "ContainerName" },
+                        "ContainerPort": { "Ref": "ContainerPort" },
+                        "TargetGroupArn":{ "Ref": "AlbTargetGroup" }
+                    }
+                ],
+                "Role": "arn:aws:iam::720403456965:role/ecsServiceRole",
                 "TaskDefinition": { "Ref": "TaskDefinitionArn" }
+            }
+        },
+        "Alb":{
+            "Type":"AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": { "Ref": "ClusterName" },
+                "Scheme":"internet-facing",
+                "LoadBalancerAttributes": [
+                    {
+                        "Key":"idle_timeout.timeout_seconds",
+                        "Value":"30"
+                    }
+                ],
+                "Subnets": { "Ref": "AlbSubnets" },
+                "SecurityGroups": [
+                    { "Ref":"EcsSecurityGroup" }
+                ]
+            }
+        },
+        "AlbListener":{
+            "Type":"AWS::ElasticLoadBalancingV2::Listener",
+            "Properties":{
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn":{ "Ref": "AlbTargetGroup" }
+                    }
+                ],
+                "LoadBalancerArn": { "Ref":"Alb" },
+                "Port": "80",
+                "Protocol":"HTTP"
+            }
+        },
+        "AlbListenerRule": {
+            "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "DependsOn": "AlbListener",
+            "Properties": {
+                "Actions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn":{ "Ref": "AlbTargetGroup" }
+                    }
+                ],
+                "Conditions": [
+                    {
+                        "Field": "path-pattern",
+                        "Values": [ "/" ]
+                    }
+                ],
+                "ListenerArn": { "Ref": "AlbListener" },
+                "Priority": 1
+            }
+        },
+        "AlbTargetGroup":{
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "DependsOn": "Alb",
+            "Properties": {
+                "HealthCheckIntervalSeconds": 10,
+                "HealthCheckPath": "/",
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckTimeoutSeconds": 5,
+                "HealthyThresholdCount": 2,
+                "Name": { "Ref": "ClusterName" },
+                "Port": 80,
+                "Protocol": "HTTP",
+                "UnhealthyThresholdCount": 2,
+                "VpcId": { "Ref":"VpcId" }
             }
         }
     },
