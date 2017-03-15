@@ -7,7 +7,7 @@ aws-deploy --environment-to-deploy <env_from_spec_file> --account-config-file <p
 ```
 
 # Credits
-Many of these concepts were introduced by the platform engineers at FamilySearch. In particular, I'd like to recognize Michael Wright and Stephen Kinser, whose deploy lifecycle ideas are adapted to this library.
+Many of these concepts were introduced by the platform engineers at FamilySearch. I'm adapting them and modifying them slightly in this library.
 
 # TODO
 * Add limits on app, environment, and service names (AWS has limits on certain resources)
