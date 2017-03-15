@@ -6,7 +6,7 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha 'test/**/*.js'",
     "test-debug": "./node_modules/mocha/bin/mocha --debug-brk 'test/**/*.js'",
-    "test-coverage": "./node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec test/**/*"
+    "test-coverage": "./node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec 'test/**/*-test.js'"
   },
   "bin": {
     "aws-deploy": "./bin/aws-deploy"

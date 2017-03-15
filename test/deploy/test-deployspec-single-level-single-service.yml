@@ -1,0 +1,9 @@
+version: 1
+
+name: aws-deploy-test
+
+environments:
+  dev:
+    A:
+      type: dynamodb
+      something: here

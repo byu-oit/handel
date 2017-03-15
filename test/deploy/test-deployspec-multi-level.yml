@@ -1,13 +1,13 @@
-version: 1 # Validate in parse deploy spec
+version: 1 
 
-name: dsw88-testapp # Validate in parse deploy spec
+name: aws-deploy-test
 
-environments: # Validate in parse deploy spec
-  dev: # Validate in parse deploy
+environments:
+  dev:
     F:
       type: dynamodb
       something: here
-    A: # Validate in service check
+    A:
       type: beanstalk
       something: here
       dependencies:
@@ -20,7 +20,7 @@ environments: # Validate in parse deploy spec
       - D
       - E
       - G
-    C: # Validate in service check
+    C:
       type: dynamodb
       something: here
       dependencies:
