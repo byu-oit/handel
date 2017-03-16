@@ -1,0 +1,14 @@
+version: 1
+
+name: aws-deploy-test
+
+environments:
+  dev:
+    A:
+      type: ecs
+      something: here
+      dependencies:
+      - B
+    B:
+      type: efs
+      something: else
