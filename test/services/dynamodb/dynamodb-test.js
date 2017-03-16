@@ -10,16 +10,6 @@ const expect = require('chai').expect;
 
 
 describe('dynamodb deployer', function() {
-    let sandbox;
-
-    beforeEach(function() {
-        sandbox = sinon.sandbox.create();
-    });
-
-    afterEach(function() {
-        sandbox.restore();
-    });
-
     describe('check', function() {
         it('should require a partition key section', function() {
             let params = {};
