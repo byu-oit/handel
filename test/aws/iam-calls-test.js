@@ -154,11 +154,11 @@ describe('iam calls', function() {
         });
     });
 
-    describe('attachPolicyToRoleIfNeeded', function() {
+    describe('attachPolicyToRole', function() {
         it('should attach the policy to the role', function() {
             AWS.mock('IAM', 'attachRolePolicy', Promise.resolve({}));
 
-            return iamCalls.attachPolicyToRoleIfNeeded('FakeArn', 'FakeRole')
+            return iamCalls.attachPolicyToRole('FakeArn', 'FakeRole')
                 .then(response => {
                     expect(response).to.deep.equal({});
                     AWS.restore('IAM');
