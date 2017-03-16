@@ -1,13 +1,14 @@
-# AWS Deploy Design
-This document contains information about the architecture of AWS Deploy
+# Orchestra Design
+This document contains information about the architecture of Orchestra
 
 # Service Deployments
-Services are deployed from a declarative specification file. This file specifies the
-way for each service to be deployed, as well as how they depend on each other. This
-dependency information provides information to wire together the services.
+Services are deployed from a declarative specification file called orchestra.yml. 
+This file specifies the way for each service to be deployed, as well as how they 
+depend on each other. This dependency information provides information to wire 
+together the services.
 
-# Deploy Spec File
-The deploy spec file is of the following structure:
+# orchestra.yml
+The orchestra.yml file is of the following structure:
 ```
 version: 1
 
@@ -26,7 +27,7 @@ environments:
 Services are deployed in parallel wherever possible. Some services in the deployment 
 specification depend on other services, so those must be deployed serially.
 
-The aws-deploy library orders service dependencies into levels that are deployed in parallel.
+The orchestra library orders service dependencies into levels that are deployed in parallel.
 The first level deployed contains dependencies for the next level to be deployed, and so on.
 
 # Service Deployer Contract
@@ -137,7 +138,7 @@ A DeployContext provides the following contract:
 ```
 
 # Account Config File
-As part of the parameters to aws-deploy, you must provide a YAML file containing account-level information about the account in which you wish to deploy. It currently is of the following format:
+As part of the parameters to orchestra, you must provide a YAML file containing account-level information about the account in which you wish to deploy. It currently is of the following format:
 ```
 region: <aws region>
 vpc_id: <id for vpc in which to deploy compute resources>
@@ -147,4 +148,6 @@ private_subnets:
 - <id for subnets in which to deploy private resources>
 data_subnets:
 - <id for subnets in which to deploy data resources>
+ecs_ami: <AMI for the ECS agent>
+ssh_bastion_sg: <id for the SSH bastion security group>
 ```

@@ -1,5 +1,5 @@
 const accountConfig = require('../lib/util/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
-const awsDeploy = require('../lib/aws-deploy');
+const orchestra = require('../lib/orchestra');
 const bindLifecycle = require('../lib/lifecycle/bind');
 const deployLifecycle = require('../lib/lifecycle/deploy');
 const preDeployLifecycle = require('../lib/lifecycle/pre-deploy');
@@ -11,7 +11,7 @@ const BindContext = require('../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('aws-deploy module', function() {
+describe('orchestra module', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -32,7 +32,7 @@ describe('aws-deploy module', function() {
             let bindServicesInLevelStub = sandbox.stub(bindLifecycle, 'bindServicesInLevel').returns({});
             let deployServicesInlevelStub = sandbox.stub(deployLifecycle, 'deployServicesInLevel').returns({});
 
-            return awsDeploy.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-deploy-spec.yml`, "dev", "1")
+            return orchestra.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-deploy-spec.yml`, "dev", "1")
                 .then(results => {
                     expect(checkServicesStub.calledOnce).to.be.true;
                     expect(preDeployServicesStub.calledOnce).to.be.true;

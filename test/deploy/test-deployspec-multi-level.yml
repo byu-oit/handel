@@ -1,6 +1,6 @@
 version: 1 
 
-name: aws-deploy-test
+name: orchestra-test
 
 environments:
   dev:
