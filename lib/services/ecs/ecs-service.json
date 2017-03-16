@@ -201,7 +201,7 @@
         },
         "EcsService": {
             "Type": "AWS::ECS::Service",
-            "DependsOn": ["AlbTargetGroup", "AlbListener"],
+            "DependsOn": ["AlbListener", "EcsCluster"],
             "Properties": {
                 "Cluster": { "Ref": "EcsCluster" },
                 "DesiredCount": { "Ref": "DesiredCount" },
@@ -221,6 +221,7 @@
         },
         "Alb":{
             "Type":"AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "DependsOn": "AlbSecurityGroup",
             "Properties": {
                 "Name": { "Ref": "ClusterName" },
                 "Scheme":"internet-facing",
@@ -262,6 +263,7 @@
         },
         "AlbListener":{
             "Type":"AWS::ElasticLoadBalancingV2::Listener",
+            "DependsOn": ["AlbTargetGroup", "Alb"],
             "Properties":{
                 "DefaultActions": [
                     {
@@ -276,7 +278,7 @@
         },
         "AlbListenerRule": {
             "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
-            "DependsOn": "AlbListener",
+            "DependsOn": ["AlbListener", "AlbTargetGroup"],
             "Properties": {
                 "Actions": [
                     {
@@ -296,7 +298,6 @@
         },
         "AlbTargetGroup":{
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-            "DependsOn": "Alb",
             "Properties": {
                 "HealthCheckIntervalSeconds": 10,
                 "HealthCheckPath": "/",
