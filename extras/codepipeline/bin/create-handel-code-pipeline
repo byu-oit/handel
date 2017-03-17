@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+const winston = require('winston');
+const inquirer = require('inquirer');
+
+winston.info("Welcome to the Handel CodePipeline setup wizard");
+
+
+// function getInput(question) {
+//     return new Promise((resolve, reject) => {
+//         const rl = readline.createInterface({
+//             input: process.stdin,
+//             output: process.stdout
+//         });
+//         rl.question(question, (answer) => {
+//             rl.close();
+//             resolve(answer);
+//         });
+//     });
+// }
+
+console.log('Hi, welcome to Node Pizza');
+
+var questions = [
+  {
+    type: 'confirm',
+    name: 'toBeDelivered',
+    message: 'Is this for delivery?',
+    default: false
+  }
+];
+
+inquirer.prompt(questions).then(function (answers) {
+  console.log('\nOrder receipt:');
+  console.log(JSON.stringify(answers, null, '  '));
+});
+
+//Get account configuration for app
+    //ask three times for prod, stage, and test accounts (can be same)
+        //Ask if they want to configure runscope or ghost inspector tests for that pipeline
+
+//Read their deployspec file
+    //'prod*' is a special file name that goes in prod accounts
+    //'stage*' is a special env name that goes in stage accounts
+    //'dev*' is a special env name that goes in dev accounts
+    //Everything else gets ignored (for now)
+
+//Check to see if the Handel action template is there already
+    //If not, create it
+        //Will need to ask for account config
+
+//Check to see if their code pipeline is there already
+    //Error out if it already is
+
+//Create code pipeline
+    //Source phase
+    //Include code build action
+    //Include Handel worker action
+        //This will deploy to all relevant envs in parallel (prod, stage, dev, etc.)
+    //Acceptance tests phase (if requested)

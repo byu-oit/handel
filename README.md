@@ -1,4 +1,4 @@
-# Orchestra
+# Handel
 Orchestrates your AWS deployments so you don't have to.
 
 # Description
@@ -6,7 +6,7 @@ This library provides deployments for applications in AWS based off a declarativ
 
 # Library Usage
 ```
-orchestra --environment-to-deploy <env_from_spec_file> --account-config-file <path_to_account_config_file> --deploy-version <version_being_deployed>
+handel --environment-to-deploy <env_from_spec_file> --account-config-file <path_to_account_config_file> --deploy-version <version_being_deployed>
 ```
 
 # Creating a CodePipeline Deployer

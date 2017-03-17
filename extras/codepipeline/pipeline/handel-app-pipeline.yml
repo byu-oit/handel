@@ -1,0 +1,458 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >-
+  Template to create a code pipeline using the Handel deploy tool. 
+  Adapted from https://github.com/byu-oit-appdev/iac/blob/master/cloudformation/codepipeline/lambda-pipeline-cf.yaml
+
+Parameters: 
+  codeBuildImage:
+    Type: String
+    Description: CodeBuildImage for packaging application dependencies
+    AllowedValues:
+      - aws/codebuild/ubuntu-base:14.04
+      - aws/codebuild/android-java-6:24.4.1
+      - aws/codebuild/android-java-7:24.4.1
+      - aws/codebuild/android-java-8:24.4.1
+      - aws/codebuild/java:openjdk-6
+      - aws/codebuild/java:openjdk-7
+      - aws/codebuild/java:openjdk-8
+      - aws/codebuild/python:2.7.12
+      - aws/codebuild/python:3.3.6
+      - aws/codebuild/python:3.4.5
+      - aws/codebuild/python:3.5.2
+      - aws/codebuild/golang:1.5.4
+      - aws/codebuild/golang:1.6.3
+      - aws/codebuild/golang:1.7.3
+      - aws/codebuild/nodejs:4.3.2
+      - aws/codebuild/nodejs:4.4.4
+      - aws/codebuild/nodejs:5.12.0
+      - aws/codebuild/nodejs:6.3.1
+      - aws/codebuild/nodejs:7.0.0
+      - aws/codebuild/docker:1.11.2
+      - aws/codebuild/docker:1.12.1
+  GitHubUser:
+    Type: String
+    Description: GitHub user name
+  GitHubRepository:
+    Type: String
+    Description: GitHub repository name (not url)
+  GitHubBranch:
+    Type: String
+    Description: GitHub repository branch
+  GitHubToken:
+    Type: String
+    Description: GitHub personal-access-token - see https://help.github.com/articles/creating-an-access-token-for-command-line-use/
+  ## Creates a Runscope step post staging deployment TestID is used for conditional to create resource
+  CreateRunscopeTest:
+    Type: String
+    AllowedValues: 
+      - "true"
+      - "false"
+    Default: "false"
+  RunscopeBucket:
+    Type: String
+    Description: TestProvider TestId
+  RunscopeTestId:
+    Type: String
+    Description: TestProvider TestId
+  RunscopeClientId:
+    Type: String
+    Description: TestProvider ClientId
+  RunscopeClientToken:
+    Type: String
+    Description: TestProvider ClientToken - see https://www.runscope.com/docs/api/client-tokens
+  ## Creates a Ghostinspector step post staging deployment TestID is used for conditional to create resource
+  CreateGhostInspectorTest:
+    Type: String
+    AllowedValues: 
+      - "true"
+      - "false"
+    Default: "false"
+  GhostInspectorTestId:
+    Type: String
+    Description: TestProvider TestId
+  GhostInspectorClientId:
+    Type: String
+    Description: TestProvider ClientId
+  GhostInspectorClientToken:
+    Type: String
+    Description: TestProvider ClientToken - see https://github.com/TryGhost/Ghost/wiki/How-does-oAuth-work-with-Ghost%3F
+  SlackHookURL:
+    Type: String
+    Description: slack webhook
+  # Creates manual notification step before Production Stage when true
+  CreateManualApprovalNotification:
+    Type: String
+    AllowedValues: 
+      - "true"
+      - "false"
+  #Nested Template required parameters
+  endpoint:
+    Type: String
+    Description: Where the notification will be sent - email@byu.edu, +18015555555, lambda arn 
+  protocol:
+    Type: String
+    Description: Type of notification
+    AllowedValues:
+      - email
+      - sms
+      - lambda 
+  EnableProductionStage:
+    Type: String
+    Description: Enables Production Stage and will open RFC then either Reject or Close the RFC depending on final execution state
+    AllowedValues: 
+      - "true"
+      - "false"
+    Default: "false"
+
+Conditions:
+  # Conditionally create codepipeline actions
+  CreateSlackWebhook: !Not [!Equals [ !Ref SlackHookURL, "none" ]]
+  CreateNotification: !Equals [ !Ref CreateManualApprovalNotification, "true" ]
+  CreateRunscopeTest: !Equals [ !Ref CreateRunscopeTest, "true" ]
+  CreateGhostInspectorTest: !Equals [ !Ref CreateGhostInspectorTest, "true" ]
+  EnableProduction: !Equals [ !Ref EnableProductionStage, "true" ]
+
+
+Resources:
+  ### Creates SNS Notification for Maual Approval Step in Pipeline
+  SNSApprovalNotification:
+    Type: AWS::CloudFormation::Stack
+    Condition: CreateNotification
+    Properties:
+      #Uses account level S3 bucket
+      TemplateURL: !Join ["",["https://s3-",!Ref "AWS::Region", ".amazonaws.com/byu-", !Ref "AWS::AccountId", "-", !Ref "AWS::Region", "-cloudformation-templates/iac/cloudformation/sns-topic/sns-topic.yaml"]]
+      #TemplateURL: https://s3-us-west-2.amazonaws.com/byu-cloudformation-templates-us-west-2/sns-topic.yaml
+      #TemplateURL: !Join ["",["https://s3.amazonaws.com/byu-cloudformation-templates", !Ref "AWS::Region", "sns-topic.yaml"]]
+      Parameters:
+        app: !Ref app
+        endpoint: !Ref endpoint
+        protocol: !Ref protocol
+      TimeoutInMinutes: 5
+      Tags:
+        - 
+          Key: team
+          Value: !Ref team
+        - 
+          Key: env
+          Value: !Ref env
+        - 
+          Key: dataSensitivity
+          Value: !Ref dataSensitivity
+        - 
+          Key: app
+          Value: !Ref app
+  
+
+  ### Creates CodeBuild to pull dependencies and package repo resources
+  CodeBuild:
+    Type: "AWS::CodeBuild::Project"
+    Properties: 
+      Artifacts:
+          Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref codeBuildImage
+        Type: LINUX_CONTAINER
+      Name: !Ref GitHubRepository
+      ServiceRole: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodeBuildServiceRole"]]
+      Source:
+        Type: CODEPIPELINE
+      Tags:
+        - 
+          Key: team
+          Value: !Ref team
+        - 
+          Key: env
+          Value: !Ref env
+        - 
+          Key: dataSensitivity
+          Value: !Ref dataSensitivity
+        - 
+          Key: app
+          Value: !Ref app
+      TimeoutInMinutes: 20
+  
+
+  ### Builds CI/CD pipeline Stages and Actions
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore: 
+        Type: S3
+        Location: !Join ["-", ["byu", !Ref "AWS::AccountId", !Ref "AWS::Region", "code-build-artifacts" ]]
+      #RoleArn: !Ref CodePipelineServiceRole
+      RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+      Stages:
+      ### Defines Source repository via params
+      - Name: !Join ["-",["Source", !Ref GitHubBranch, !Ref GitHubRepository]]
+        Actions:
+        - InputArtifacts: []
+          Name: Source
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Version: '1'
+            Provider: GitHub
+          OutputArtifacts:
+          - Name: MyApp
+          Configuration:
+            Owner: !Ref GitHubUser
+            Repo: !Ref GitHubRepository
+            Branch: !Ref GitHubBranch
+            OAuthToken: !Ref GitHubToken
+          RunOrder: 1
+  
+      # Builds code using CodeBuild defined here and buildspec.yaml used to configure the CodeBuild tool
+      - Name: Build
+        Actions:
+        - InputArtifacts:
+          - Name: MyApp
+          Name: CodeBuild
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Version: '1'
+            Provider: CodeBuild
+          OutputArtifacts:
+          - Name: MyAppBuild
+          Configuration:
+            ProjectName: !Ref GitHubRepository
+          RunOrder: 1
+      
+      # Injects built code into CodeUri of CloudFormation template and 
+      # creates, then executes the change-set
+      - Name: Development
+        Actions:
+        ### Creates change_set
+        - InputArtifacts:
+          - Name: MyAppBuild         
+          Name: !Join ["",[!Ref GitHubRepository, "-dev-create"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          OutputArtifacts:
+          - Name: DevChangeSetCreate
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-dev"]]
+            ActionMode: CHANGE_SET_REPLACE
+            Capabilities: CAPABILITY_NAMED_IAM
+            # Uses account level service role
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-dev"]]
+            TemplateConfiguration: MyAppBuild::cfg-dev.json
+            TemplatePath: MyAppBuild::sam_post.yaml
+          RunOrder: 1
+
+        # Slack webhook notification 
+        - !If
+          - CreateSlackWebhook
+          - InputArtifacts: []
+            Name: SlackNotification
+            ActionTypeId:
+              Category: Invoke
+              Owner: AWS
+              Version: '1'
+              Provider: Lambda
+            OutputArtifacts: []
+            Configuration:
+              FunctionName: aws-notify2
+              UserParameters: !Join ["", [
+                              "{\"webhook\":\"", 
+                              !Ref SlackHookURL, 
+                              "\",\"message\":\"", 
+                              !Ref app, " branch ",
+                              !Ref GitHubBranch,
+                              " deploying to Development",
+                              "\"}"]]
+            RunOrder: 1
+          - !Ref AWS::NoValue
+        ## Executes change_set
+        - InputArtifacts:
+          - Name: DevChangeSetCreate
+          Name: !Join ["",[!Ref GitHubRepository, "-dev-deploy"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          OutputArtifacts:
+          - Name: DevChangeSetDeployed
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-dev"]]
+            ActionMode: CHANGE_SET_EXECUTE
+            Capabilities: CAPABILITY_NAMED_IAM
+            # Uses account level service role
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-dev"]]
+          RunOrder: 2
+        # # Create Manual approval and makes use of SNS notification
+        # - !If
+        #   - CreateNotification
+        #   - Name: ManualApproval
+        #     ActionTypeId:
+        #       Category: Approval
+        #       Owner: AWS
+        #       Version: '1'
+        #       Provider: Manual
+        #     Configuration:
+        #       NotificationArn: !GetAtt ["SNSApprovalNotification", "Outputs.SNSTopicArn"]
+        #       ExternalEntityLink: OutputTestUrl
+        #     RunOrder: 3
+        #   - !Ref AWS::NoValue
+        #Create Runscope test action
+        - !If
+          - CreateRunscopeTest
+          - Name: RunscopeTest
+            ActionTypeId:
+              Category: Test
+              Owner: ThirdParty
+              Version: '1'
+              Provider: runscope
+            Configuration:
+              Bucket: !Ref RunscopeBucket
+              TestId: !Ref RunscopeTestId
+              ClientId: !Ref RunscopeClientId
+              ClientToken: !Ref RunscopeClientToken
+            RunOrder: 3
+          - !Ref AWS::NoValue
+        #Create Ghost Inspector test action
+        - !If
+          - CreateGhostInspectorTest
+          - Name: GhostInspectorTest
+            ActionTypeId:
+              Category: Test
+              Owner: ThirdParty
+              Version: '1'
+              Provider: ghostinspector
+            Configuration:
+              TestId: !Ref GhostInspectorTestId
+              ClientId: !Ref GhostInspectorClientId
+              ClientToken: !Ref GhostInspectorClientToken
+            RunOrder: 3
+          - !Ref AWS::NoValue            
+      
+      - Name: Staging
+        Actions:
+        - InputArtifacts:
+          - Name: MyAppBuild
+          Name: !Join ["",[!Ref GitHubRepository, "-stg-create"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          OutputArtifacts:
+          - Name: StgChangeSetCreate
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-stg"]]
+            ActionMode: CHANGE_SET_REPLACE
+            Capabilities: CAPABILITY_NAMED_IAM
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-stg"]]
+            TemplateConfiguration: MyAppBuild::cfg-stg.json
+            TemplatePath: MyAppBuild::sam_post.yaml
+          RunOrder: 1
+          # Might be able to use this and a slack slash command for approval
+        # Slack webhook notification 
+        - !If
+          - CreateSlackWebhook
+          - InputArtifacts: []
+            Name: SlackNotification
+            ActionTypeId:
+              Category: Invoke
+              Owner: AWS
+              Version: '1'
+              Provider: Lambda
+            OutputArtifacts: []
+            Configuration:
+              FunctionName: aws-notify2
+              UserParameters: !Join ["", [
+                              "{\"webhook\":\"", 
+                              !Ref SlackHookURL, 
+                              "\",\"message\":\"", 
+                              !Ref app, " branch ",
+                              !Ref GitHubBranch,
+                              " deploying to Stage",
+                              "\"}"]]
+            RunOrder: 1
+          - !Ref AWS::NoValue
+        - InputArtifacts:
+          - Name: StgChangeSetCreate
+          Name: !Join ["",[!Ref GitHubRepository, "-stg-deploy"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          OutputArtifacts:
+          - Name: StgChangeSetDeployed
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-stg"]]
+            ActionMode: CHANGE_SET_EXECUTE
+            Capabilities: CAPABILITY_NAMED_IAM
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-stg"]]
+          RunOrder: 2
+
+      - Name: Production
+        Actions:
+        - InputArtifacts:
+          - Name: MyAppBuild
+          Name: !Join ["",[!Ref GitHubRepository, "-prd-create"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          OutputArtifacts:
+          - Name: PrdChangeSetCreate
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-prd"]]
+            ActionMode: CHANGE_SET_REPLACE
+            Capabilities: CAPABILITY_NAMED_IAM
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-prd"]]
+            TemplateConfiguration: MyAppBuild::cfg-prd.json
+            TemplatePath: MyAppBuild::sam_post.yaml
+          RunOrder: 1
+          # Might be able to use this and a slack slash command for approval
+        # Slack webhook notification 
+        - !If
+          - CreateSlackWebhook
+          - InputArtifacts: []
+            Name: SlackNotification
+            ActionTypeId:
+              Category: Invoke
+              Owner: AWS
+              Version: '1'
+              Provider: Lambda
+            Configuration:
+              FunctionName: aws-notify2
+              UserParameters: !Join ["", [
+                              "{\"webhook\":\"", 
+                              !Ref SlackHookURL, 
+                              "\",\"message\":\"", 
+                              !Ref app, " branch ",
+                              !Ref GitHubBranch,
+                              " deploying to Production",
+                              "\"}"]]
+            RunOrder: 1
+          - !Ref AWS::NoValue
+        - InputArtifacts:
+          - Name: PrdChangeSetCreate
+          Name: !Join ["",[!Ref GitHubRepository, "-prd-deploy"]]
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          Configuration:
+            StackName: !Join ["",[!Ref GitHubRepository, "-prd"]]
+            ActionMode: CHANGE_SET_EXECUTE
+            Capabilities: CAPABILITY_NAMED_IAM
+            RoleArn: !Join ["",["arn:aws:iam::", !Ref "AWS::AccountId", ":role/CodePipelineServiceRole"]]
+            ChangeSetName: !Join ["",[!Ref GitHubRepository, "-changeset-prd"]]
+          RunOrder: 2
