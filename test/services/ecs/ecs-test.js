@@ -23,14 +23,6 @@ describe('ecs deployer', function() {
     });
 
     describe('check', function() {
-        it('should require the image_name parameter', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                port_mappings: [5000]
-            })
-            let errors = ecs.check(serviceContext);
-            expect(errors[0]).to.include("'image_name' parameter is required");
-        });
-
         it('should require the port_mappings parameter', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 image_name: "SomeImage"
