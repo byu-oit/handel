@@ -33,7 +33,7 @@ describe('parser-v1', function() {
         it('should complain about a name field that is too long', function() {
             let handelFile = {
                 version: 1,
-                name: "thisfieldiswaytolongofanameanditisgettinglonger"
+                name: "thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday"
             }
             try {
                 parserV1.validateHandelFile(handelFile);
