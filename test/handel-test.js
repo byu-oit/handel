@@ -32,7 +32,7 @@ describe('handel module', function() {
             let bindServicesInLevelStub = sandbox.stub(bindLifecycle, 'bindServicesInLevel').returns({});
             let deployServicesInlevelStub = sandbox.stub(deployLifecycle, 'deployServicesInLevel').returns({});
 
-            return handel.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-deploy-spec.yml`, "dev", "1")
+            return handel.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-handel.yml`, "dev", "1")
                 .then(results => {
                     expect(checkServicesStub.calledOnce).to.be.true;
                     expect(preDeployServicesStub.calledOnce).to.be.true;

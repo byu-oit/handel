@@ -20,7 +20,7 @@ function getEnvironmentContextFromYamlFile(filePath) {
 describe('deploy-order-calc', function() {
     describe('getDeployOrder', function() {
         it('should work with a single service environment', function() {
-            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-deployspec-single-level-single-service.yml`);
+            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-single-level-single-service.yml`);
             let deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
             expect(deployOrder).to.deep.equal([
                 ['A']
@@ -28,7 +28,7 @@ describe('deploy-order-calc', function() {
         });
 
         it('should work with a multi-service environment with no dependencies (single level)', function() {
-            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-deployspec-single-level-multi-service.yml`);
+            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-single-level-multi-service.yml`);
             let deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
             expect(deployOrder).to.deep.equal([
                 ['A','B']
@@ -36,7 +36,7 @@ describe('deploy-order-calc', function() {
         });
 
         it('should work with a multi-service environemnt with dependencies (multi-level)', function() {
-            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-deployspec-multi-level.yml`);
+            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-multi-level.yml`);
             let deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
             expect(deployOrder).to.deep.equal([
                 ['F','G', 'H'],
@@ -46,7 +46,7 @@ describe('deploy-order-calc', function() {
         });
 
         it('should check for circular dependencies', function() {
-            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-deployspec-circular-dependencies.yml`);
+            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-circular-dependencies.yml`);
             try {
                 let deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
                 expect(true).to.be.false; //Should not get here
