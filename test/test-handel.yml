@@ -12,3 +12,12 @@ environments:
     B:
       type: efs
       something: else
+  prod:
+    A:
+      type: ecs
+      something: here
+      dependencies:
+      - B
+    B:
+      type: efs
+      something: else

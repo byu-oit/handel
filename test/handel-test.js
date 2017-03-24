@@ -32,17 +32,13 @@ describe('handel module', function() {
             let bindServicesInLevelStub = sandbox.stub(bindLifecycle, 'bindServicesInLevel').returns({});
             let deployServicesInlevelStub = sandbox.stub(deployLifecycle, 'deployServicesInLevel').returns({});
 
-            return handel.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-handel.yml`, "dev", "1")
+            return handel.deploy(`${__dirname}/test-account-config.yml`, `${__dirname}/test-handel.yml`, ["dev", "prod"], "1")
                 .then(results => {
-                    expect(checkServicesStub.calledOnce).to.be.true;
-                    expect(preDeployServicesStub.calledOnce).to.be.true;
-                    expect(bindServicesInLevelStub.calledTwice).to.be.true;
-                    expect(deployServicesInlevelStub.calledTwice).to.be.true;
+                    expect(checkServicesStub.calledTwice).to.be.true;
+                    expect(preDeployServicesStub.calledTwice).to.be.true;
+                    expect(bindServicesInLevelStub.callCount).to.equal(4);
+                    expect(deployServicesInlevelStub.callCount).to.equal(4);
                 });
         });
-
-        // it('should fail if there are any check errors', function() {
-
-        // });
     });
 });
