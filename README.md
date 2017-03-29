@@ -2,7 +2,7 @@
 Orchestrates your AWS deployments so you don't have to.
 
 # Description
-This library provides deployments for applications in AWS based off a declarative specification file.
+This library provides deployments for applications in AWS based off of a declarative specification file.
 
 # Library Usage
 ```
