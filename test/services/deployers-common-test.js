@@ -96,5 +96,56 @@ describe('deployers-common', function() {
                     expect(getRoleStub.calledOnce).to.be.true;
                 });
         });
+
+        it('should create the role with no policies if there are no dependencies exporting policies', function() {
+            //Set up service being deployed
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let ownServiceName = "FakeConsumingService";
+            let ownServiceType = "ecs";
+            let deployVersion = "1";
+
+            let consumedService1Name = "FakeConsumedService1";
+            let consumedService2Name = "FakeConsumedService2";
+            let ownServiceParams = {
+                dependencies: [
+                    consumedService1Name,
+                    consumedService2Name
+                ]
+            }
+            let ownServiceContext = new ServiceContext(appName, envName, ownServiceName, ownServiceType, deployVersion, ownServiceParams);
+            
+            //Set up DeployContexts of one service with no policies to attach
+            let deployContexts = [];
+            let consumedService1Type = "efs";
+            let consumedService1Params = {};
+            let consumedService1DeployContext = new DeployContext(new ServiceContext(appName, envName, consumedService1Name, consumedService1Type, deployVersion, consumedService1Params));
+            deployContexts.push(consumedService1DeployContext);
+
+            //Stub out actual IAM calls
+            let createRoleIfNotExistsStub = sandbox.stub(iamCalls, 'createRoleIfNotExists');
+            createRoleIfNotExistsStub.returns(Promise.resolve({
+                RoleName: "FakeRole"
+            }));
+            let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy');
+            createOrUpdatePolicyStub.returns(Promise.resolve({
+                Arn: "FakeArn"
+            }));
+            let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole');
+            attachPolicyToRoleStub.returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole');
+            getRoleStub.returns(Promise.resolve({
+                RoleName: "FakeRole"
+            }));
+
+            return deployersCommon.createCustomRoleForService(ownServiceContext, deployContexts)
+                .then(role => {
+                    expect(role.RoleName).to.equal("FakeRole");
+                    expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
+                    expect(createOrUpdatePolicyStub.notCalled).to.be.true;
+                    expect(attachPolicyToRoleStub.notCalled).to.be.true;
+                    expect(getRoleStub.calledOnce).to.be.true;
+                });
+        });
     });
 });

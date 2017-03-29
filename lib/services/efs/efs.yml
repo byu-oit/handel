@@ -1,0 +1,52 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EFS File System
+
+Parameters:
+  FileSystemName:
+    Description: The name of the file system
+    Type: String
+  PerformanceMode:
+    Description: The type of performance mode on the file system
+    Type: String
+    AllowedValues:
+    - generalPurpose
+    - maxIO
+    Default: generalPurpose
+  SecurityGroup:
+    Description: The security group to associate with this file system
+    Type: AWS::EC2::SecurityGroup::Id
+  SubnetA:
+    Description: The subnet ID for the A mount target
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Description: The subnet ID for the B mount target
+    Type: AWS::EC2::Subnet::Id
+
+Resources:
+  FileSystem:
+    Type: "AWS::EFS::FileSystem"
+    Properties: 
+      FileSystemTags:
+      - Key: Name
+        Value: !Ref FileSystemName
+      PerformanceMode: !Ref PerformanceMode
+  MountTargetA:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Ref SubnetA
+  MountTargetB:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SecurityGroups:
+      - !Ref SecurityGroup
+      SubnetId: !Ref SubnetB
+
+Outputs:
+  EFSFileSystemId:
+    Description: The ID of the EFS file system
+    Value: !Ref FileSystem

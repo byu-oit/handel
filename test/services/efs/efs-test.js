@@ -1,7 +1,7 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const efs = require('../../../lib/services/efs');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
-const efsCalls = require('../../../lib/aws/efs-calls');
+const cloudfFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -102,16 +102,19 @@ describe('efs deployer', function() {
             });
             let dependenciesDeployContexts = [];
 
-            let getFileSystemStub = sandbox.stub(efsCalls, 'getFileSystem').returns(Promise.resolve(null))
             let fileSystemId = "FakeFileSystemId";
-            let createFileSystemStub = sandbox.stub(efsCalls, 'createFileSystem').returns(Promise.resolve({
-                FileSystemId: fileSystemId
-            }))
+            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: "EFSFileSystemId",
+                    OutputValue: fileSystemId
+                }]
+            }));
 
             return efs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    expect(getFileSystemStub.calledOnce).to.be.true;
-                    expect(createFileSystemStub.calledOnce).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.scripts.length).to.equal(1);
                 });
@@ -128,16 +131,24 @@ describe('efs deployer', function() {
             });
             let dependenciesDeployContexts = [];
 
-            let getFileSystemStub = sandbox.stub(efsCalls, 'getFileSystem').returns(Promise.resolve({}))
             let fileSystemId = "FakeFileSystemId";
-            let createFileSystemStub = sandbox.stub(efsCalls, 'createFileSystem').returns(Promise.resolve({
-                FileSystemId: fileSystemId
-            }))
+            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: "EFSFileSystemId",
+                    OutputValue: fileSystemId
+                }]
+            }));
+            let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: "EFSFileSystemId",
+                    OutputValue: fileSystemId
+                }]
+            }));
 
             return efs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    expect(getFileSystemStub.calledOnce).to.be.true;
-                    expect(createFileSystemStub.notCalled).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.notCalled).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.scripts.length).to.equal(1);
                 });
