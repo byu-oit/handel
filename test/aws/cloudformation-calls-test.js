@@ -140,4 +140,17 @@ describe('cloudformationCalls', function() {
                 });
         });
     });
+
+    describe('getCfStyleStackParameters', function() {
+        it('should take an object of key/value pairs and return them in CloudFormations param format', function() {
+            let object = {
+                SomeParam: "SomeValue"
+            }
+            
+            let cloudFormationParams = cloudformationCalls.getCfStyleStackParameters(object);
+            expect(cloudFormationParams.length).to.equal(1);
+            expect(cloudFormationParams[0].ParameterKey).to.equal("SomeParam");
+            expect(cloudFormationParams[0].ParameterValue).to.equal("SomeValue");
+        });
+    });
 });

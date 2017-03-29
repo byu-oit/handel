@@ -70,4 +70,25 @@ else {
 }
 let absoluteHandelFilePath = getHandelFilePath(program.handelFile);
 let deployVersion = getDeployVersion(program.deployVersion);
-handel.deploy(accountConfig, absoluteHandelFilePath, program.environmentsToDeploy.split(","), deployVersion);
+handel.deploy(accountConfig, absoluteHandelFilePath, program.environmentsToDeploy.split(","), deployVersion)
+    .then(envDeployResults => {
+        let success = true;
+        for(let envDeployResult of envDeployResults) {
+            if(envDeployResult.status !== 'success') {
+                winston.warn(`Error while deploying environment: ${envDeployResult.message}`);
+                winston.warn(envDeployResult.error);
+                success = false;
+            }
+        }
+
+        if(success) {
+            winston.info("Finished deploying everything successfully");
+        }
+        else {
+            winston.warn("Finished deployment with errors");
+        }
+    })
+    .catch(err => {
+        winston.warn(`Error during deploy ${err}`);
+        winston.warn(err);
+    })
