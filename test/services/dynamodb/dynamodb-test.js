@@ -1,5 +1,6 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const dynamodb = require('../../../lib/services/dynamodb');
+const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -10,6 +11,17 @@ const expect = require('chai').expect;
 
 
 describe('dynamodb deployer', function() {
+    let sandbox;
+
+    beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function() {
+        sandbox.restore();
+        AWS.restore('DynamoDB');
+    });
+
     describe('check', function() {
         it('should require a partition key section', function() {
             let params = {};
@@ -84,14 +96,11 @@ describe('dynamodb deployer', function() {
             let ownPreDeployContext = new PreDeployContext(ownServiceContext);
             let dependenciesDeployContexts = [];
 
-            AWS.mock('DynamoDB', 'describeTable', Promise.reject({
-                statusCode: 400,
-                code: "ResourceNotFoundException"
-            }));
-            AWS.mock('DynamoDB', 'createTable', Promise.resolve({}));
             let tableArn = "FakeArn";
             let tableName = "FakeTable";
-            AWS.mock('DynamoDB', 'waitFor', Promise.resolve({
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
+            AWS.mock('DynamoDB', 'describeTable', Promise.resolve({
                 Table: {
                     TableArn: tableArn,
                     TableName: tableName
@@ -105,7 +114,8 @@ describe('dynamodb deployer', function() {
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
                     let tableNameVar = `DYNAMODB_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
                     expect(deployContext.outputs[tableNameVar]).to.equal(tableName);
-                    AWS.restore('DynamoDB');
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.calledOnce).to.be.true;
                 });
         });
 
@@ -127,6 +137,8 @@ describe('dynamodb deployer', function() {
 
             let tableArn = "FakeArn";
             let tableName = "FakeTable";
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
             AWS.mock('DynamoDB', 'describeTable', Promise.resolve({
                 Table: {
                     TableArn: tableArn,
@@ -141,7 +153,8 @@ describe('dynamodb deployer', function() {
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
                     let tableNameVar = `DYNAMODB_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
                     expect(deployContext.outputs[tableNameVar]).to.equal(tableName);
-                    AWS.restore('DynamoDB');
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.notCalled).to.be.true;
                 });
         });
     });

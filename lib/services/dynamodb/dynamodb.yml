@@ -1,0 +1,75 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created DynamoDB Table
+
+Parameters:
+  TableName:
+    Description: The name of the Table
+    Type: String
+  PartitionKeyName:
+    Description: The name of the partition key
+    Type: String
+  PartitionKeyType:
+    Description: The type of the partition key
+    Type: String
+    AllowedValues:
+    - S
+    - N
+    - B
+  SortKeyName:
+    Description: The name of the sort key (optional)
+    Type: String
+    Default: none
+  SortKeyType:
+    Description: The type of the sort key (optional)
+    Type: String
+    AllowedValues:
+    - S
+    - N
+    - B
+    - none
+    Default: none
+  ReadCapacityUnits:
+    Description: The number of read capacity units for the table
+    Type: Number
+    Default: 5
+  WriteCapacityUnits:
+    Description: The number of write capacity units for the table
+    Type: Number
+    Default: 5
+
+Conditions: 
+  CreateSortKey: !Equals [ !Ref SortKeyName, none ]
+
+Resources:
+  Table:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        !If
+        - CreateSortKey
+        - - AttributeName: !Ref PartitionKeyName
+            AttributeType: !Ref PartitionKeyType
+        - - AttributeName: !Ref PartitionKeyName
+            AttributeType: !Ref PartitionKeyType
+          - AttributeName: !Ref SortKeyName
+            AttributeType: !Ref SortKeyType
+      KeySchema:
+        !If
+        - CreateSortKey
+        - - AttributeName: !Ref PartitionKeyName
+            KeyType: HASH
+        - - AttributeName: !Ref PartitionKeyName
+            KeyType: HASH
+          - AttributeName: !Ref SortKeyName
+            KeyType: RANGE
+
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      TableName: !Ref TableName
+
+Outputs:
+  TableName:
+    Description: The name of the Dynamo table
+    Value: !Ref Table
