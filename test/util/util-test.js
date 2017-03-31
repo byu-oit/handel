@@ -63,4 +63,31 @@ describe('util module', function() {
                 });
         });
     });
+
+    describe('zipDirectoryToFile', function() {
+        let zippedPath = `${__dirname}/zipped-test-file.zip`;
+
+        afterEach(function() {
+            if(fs.existsSync(zippedPath)) {
+                fs.unlinkSync(zippedPath); //Ensure created ZIP archive gets deleted
+            }
+        });
+
+        it('should zip the given directory if it exists', function() {
+            return util.zipDirectoryToFile(__dirname, zippedPath)
+                .then(() => {
+                    expect(fs.existsSync(zippedPath)).to.be.true;
+                });
+        });
+
+        it('should throw an error if the given directory doesnt exist', function() {
+            return util.zipDirectoryToFile('${__dirname}/myfakedir/', zippedPath)
+                .then(() => {
+                    expect(true).to.be.false; //Should not get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain('Directory path to be zipped does not exist');
+                });
+        });
+    });
 })

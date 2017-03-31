@@ -112,8 +112,8 @@ describe('dynamodb deployer', function() {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
-                    let tableNameVar = `DYNAMODB_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
-                    expect(deployContext.outputs[tableNameVar]).to.equal(tableName);
+                    let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
+                    expect(deployContext.environment_variables[tableNameVar]).to.equal(tableName);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                 });
@@ -151,8 +151,8 @@ describe('dynamodb deployer', function() {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
-                    let tableNameVar = `DYNAMODB_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
-                    expect(deployContext.outputs[tableNameVar]).to.equal(tableName);
+                    let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
+                    expect(deployContext.environment_variables[tableNameVar]).to.equal(tableName);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.notCalled).to.be.true;
                 });
