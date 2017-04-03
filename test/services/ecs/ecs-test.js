@@ -97,7 +97,7 @@ describe('ecs deployer', function() {
             dependenciesDeployContexts.push(dependency1DeployContext);
             let envVarName = 'DYNAMODB_SOME_VAR';
             let envVarValue = 'SomeValue'
-            dependency1DeployContext.outputs[envVarName] = envVarValue;
+            dependency1DeployContext.environment_variables[envVarName] = envVarValue;
             dependency1DeployContext.policies.push({
                 "Sid": `DynamoAccess`,
                 "Effect": "Allow",

@@ -153,4 +153,29 @@ describe('cloudformationCalls', function() {
             expect(cloudFormationParams[0].ParameterValue).to.equal("SomeValue");
         });
     });
+
+    describe('getOutput', function() {
+        it('should get the given output from the CF stack if present', function() {
+            let key = "FakeKey";
+            let value = "FakeValue";
+            let stack = {
+                Outputs: [{
+                    OutputKey: key,
+                    OutputValue: value
+                }]
+            }
+
+            let output = cloudformationCalls.getOutput(key, stack);
+            expect(output).to.equal(value);
+        });
+
+        it('should return null for the given output if not present', function() {
+            let stack = {
+                Outputs: []
+            }
+
+            let output = cloudformationCalls.getOutput("FakeKey", stack);
+            expect(output).to.be.null;
+        });
+    });
 });

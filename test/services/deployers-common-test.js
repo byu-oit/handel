@@ -2,6 +2,7 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
 const deployersCommon = require('../../lib/services/deployers-common');
 const iamCalls = require('../../lib/aws/iam-calls');
+const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -87,7 +88,7 @@ describe('deployers-common', function() {
                 RoleName: "FakeRole"
             }));
 
-            return deployersCommon.createCustomRoleForService(ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", null, ownServiceContext, deployContexts)
                 .then(role => {
                     expect(role.RoleName).to.equal("FakeRole");
                     expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
@@ -138,13 +139,32 @@ describe('deployers-common', function() {
                 RoleName: "FakeRole"
             }));
 
-            return deployersCommon.createCustomRoleForService(ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", null, ownServiceContext, deployContexts)
                 .then(role => {
                     expect(role.RoleName).to.equal("FakeRole");
                     expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
                     expect(createOrUpdatePolicyStub.notCalled).to.be.true;
                     expect(attachPolicyToRoleStub.notCalled).to.be.true;
                     expect(getRoleStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('uploadFileToHandelBucket', function() {
+        it('should upload the given file to the bucket', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let diskFilePath = "FakePath";
+            let s3FileName = "SomeFileName";
+
+            //Stub out dependent services
+            let createBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').returns(Promise.resolve({}));
+            let uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({})
+
+            return deployersCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName)
+                .then(s3ObjectInfo => {
+                    expect(createBucketStub.calledOnce).to.be.true;
+                    expect(uploadFileStub.calledOnce).to.be.true;
+                    expect(s3ObjectInfo).to.deep.equal({});
                 });
         });
     });
