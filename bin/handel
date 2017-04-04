@@ -89,6 +89,5 @@ handel.deploy(accountConfig, absoluteHandelFilePath, program.environmentsToDeplo
         }
     })
     .catch(err => {
-        winston.warn(`Error during deploy ${err}`);
         winston.warn(err);
     })
