@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ECS Cluster
+Description: Handel-created ECS Cluster
 Parameters:
   ClusterName:
     Description: Name of the cluster to be created
