@@ -197,4 +197,28 @@ describe('ecs deployer', function() {
             });
         });
     });
+
+    describe('consumerEvents', function() {
+        it('should throw an error because ECS cant consume event services', function() {
+            return ecs.consumeEvents(null, null, null, null)
+                .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("ECS service doesn't consume events");
+                });
+        });
+    });
+
+    describe('produceEvents', function() {
+        it('should throw an error because ECS cant produce events for other services', function() {
+            return ecs.produceEvents(null, null, null, null)
+                .then(produceEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("ECS service doesn't produce events");
+                });
+        });
+    });
 });

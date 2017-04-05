@@ -6,12 +6,23 @@ const expect = require('chai').expect;
 
 describe('parser-v1', function() {
     let serviceDeployers = {
+        lambda: {
+            producedDeployOutputTypes: [],
+            consumedDeployOutputTypes: [
+                'environmentVariables',
+                'policies'
+            ],
+            producedEventsSupportedServices: []
+        },
         dynamodb: {
             producedDeployOutputTypes: [
                 'environmentVariables',
                 'policies'
             ],
-            consumedDeployOutputTypes: []        
+            consumedDeployOutputTypes: [],
+            producedEventsSupportedServices: [
+                'lambda'
+            ]
         },
         ecs: {
             producedDeployOutputTypes: [],
@@ -20,7 +31,8 @@ describe('parser-v1', function() {
                 'scripts',
                 'policies',
                 'securityGroups'
-            ]
+            ],
+            producedEventsSupportedServices: []
         },
         efs: {
             producedDeployOutputTypes: [
@@ -28,14 +40,16 @@ describe('parser-v1', function() {
                 'scripts',
                 'securityGroups'
             ],
-            consumedDeployOutputTypes: []
+            consumedDeployOutputTypes: [],
+            producedEventsSupportedServices: []
         },
         apigateway: {
             producedDeployOutputTypes: [],
             consumedDeployOutputTypes: [
                 'environmentVariables',
                 'policies'
-            ]
+            ],
+            producedEventsSupportedServices: []
         }
     }
 
@@ -261,14 +275,55 @@ describe('parser-v1', function() {
             }
         });
 
+        it('should conplain about a service that produces events to a service that cant consume them', function() {
+            let handelFile = {
+                version: 1,
+                name: 'test',
+                environments: {
+                    myenv: {
+                        mydynamo: {
+                            type: 'dynamodb',
+                            event_consumers: [{
+                                type: 'lambda_event',
+                                consuming_service: 'myefs'
+                            }]
+                        },
+                        myefs: {
+                            type: 'efs'
+                        }
+                    }
+                }
+            }
+            try {
+                parserV1.validateHandelFile(handelFile, serviceDeployers);
+                expect(true).to.be.false; //Should not get here
+            }
+            catch(e) {
+                expect(e.message).to.include("service type can't consume events");
+            }
+        });
+
         it('should work on a handel file that has valid top-level information', function() {
             let handelFile = {
                 version: 1,
                 name: 'test',
                 environments: {
-                    valid: {
-                        valid: {
-                            type: 'dynamodb'
+                    dev: {
+                        myapi: {
+                            type: 'apigateway',
+                            dependencies: [
+                                'mydynamo'
+                            ]
+                        },
+                        mydynamo: {
+                            type: 'dynamodb',
+                            event_consumers: [{
+                                type: 'lambda_event',
+                                consuming_service: 'mylambda'
+                            }]
+                        },
+                        mylambda: {
+                            type: 'lambda'
                         }
                     }
                 }

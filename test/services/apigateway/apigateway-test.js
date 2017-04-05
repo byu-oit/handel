@@ -173,4 +173,28 @@ describe('dynamodb deployer', function() {
                 });
         });
     });
+
+    describe('consumerEvents', function() {
+        it('should throw an error because API gateway cant consume event services', function() {
+            return apigateway.consumeEvents(null, null, null, null)
+                .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("API Gateway service doesn't consume events");
+                });
+        });
+    });
+
+    describe('produceEvents', function() {
+        it('should throw an error because our API gateway service doesnt produce events for other services', function() {
+            return apigateway.produceEvents(null, null, null, null)
+                .then(produceEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("API Gateway service doesn't produce events");
+                });
+        });
+    });
 });
