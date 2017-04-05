@@ -158,4 +158,28 @@ describe('dynamodb deployer', function() {
                 });
         });
     });
+
+    describe('consumerEvents', function() {
+        it('should throw an error because DynamoDB cant consume event services', function() {
+            return dynamodb.consumeEvents(null, null, null, null)
+                .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("DynamoDB service doesn't consume events");
+                });
+        });
+    });
+
+    describe('produceEvents', function() {
+        it('should throw an error because DynamoDB doesnt yet produce events for other services', function() {
+            return dynamodb.produceEvents(null, null, null, null)
+                .then(produceEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("DynamoDB service doesn't produce events");
+                });
+        });
+    });
 });

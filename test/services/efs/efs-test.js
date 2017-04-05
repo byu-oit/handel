@@ -154,4 +154,28 @@ describe('efs deployer', function() {
                 });
         });
     });
+
+    describe('consumerEvents', function() {
+        it('should throw an error because EFS cant consume event services', function() {
+            return efs.consumeEvents(null, null, null, null)
+                .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("EFS service doesn't consume events");
+                });
+        });
+    });
+
+    describe('produceEvents', function() {
+        it('should throw an error because EFS cant produce events for other services', function() {
+            return efs.produceEvents(null, null, null, null)
+                .then(produceEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("EFS service doesn't produce events");
+                });
+        });
+    });
 });
