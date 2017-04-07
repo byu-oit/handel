@@ -125,7 +125,7 @@ describe('ecs deployer', function() {
             let deployVersion = "1";
             
             //Set up ServiceContext
-            let ownServiceContext = getOwnServiceContextForDeploy();
+            let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
 
             //Set up PreDeployContext
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
@@ -164,7 +164,7 @@ describe('ecs deployer', function() {
             let deployVersion = "1";
             
             //Set up ServiceContext
-            let ownServiceContext = getOwnServiceContextForDeploy();
+            let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
 
             //Set up PreDeployContext
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
