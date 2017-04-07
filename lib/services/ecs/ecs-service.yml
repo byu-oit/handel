@@ -73,6 +73,9 @@ Parameters:
   VpcId:
     Description: The ID of the VPC in which you are running
     Type: String
+  EcsServiceRole:
+    Description: The ARN of the role the ECS service (not the task) will assume
+    Type: String
 Resources:
   EcsIamRole:
     Type: AWS::IAM::Role
@@ -178,7 +181,8 @@ Resources:
           Ref: ContainerPort
         TargetGroupArn:
           Ref: AlbTargetGroup
-      Role: arn:aws:iam::720403456965:role/ecsServiceRole
+      Role:
+        Ref: EcsServiceRole
       TaskDefinition:
         Ref: TaskDefinitionArn
   Alb:

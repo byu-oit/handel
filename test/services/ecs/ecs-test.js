@@ -3,6 +3,7 @@ const ecs = require('../../../lib/services/ecs');
 const deployersCommon = require('../../../lib/services/deployers-common');
 const ecsCalls = require('../../../lib/aws/ecs-calls');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
+const iamCalls = require('../../../lib/aws/iam-calls');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -134,18 +135,23 @@ describe('ecs deployer', function() {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
 
             //Stub out AWS calls
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService');
-            createCustomRoleForServiceStub.returns(Promise.resolve({
+            let fakeArn = "FakeArn";
+            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 Arn: "FakeRoleArn" 
-            }))
-            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition');
-            registerTaskDefinitionStub.returns(Promise.resolve({
+            }));
+            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition').returns(Promise.resolve({
                 taskDefinitionArn: "FakeTaskDefArn"
             }));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack');
-            getStackStub.returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack');
-            createStackStub.returns(Promise.resolve({}));
+            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
+            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
+                Arn: fakeArn
+            }))
+            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({
+                Arn: fakeArn
+            }))
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
 
             //Run the test
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
@@ -173,18 +179,23 @@ describe('ecs deployer', function() {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
 
             //Stub out AWS calls
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService');
-            createCustomRoleForServiceStub.returns(Promise.resolve({
+            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 Arn: "FakeRoleArn" 
-            }))
-            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition');
-            registerTaskDefinitionStub.returns(Promise.resolve({
+            }));
+            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition').returns(Promise.resolve({
                 taskDefinitionArn: "FakeTaskDefArn"
             }));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack');
-            getStackStub.returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack');
-            updateStackStub.returns(Promise.resolve({}));
+            let fakeArn = "FakeArn";
+            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
+            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
+                Arn: fakeArn
+            }))
+            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({
+                Arn: fakeArn
+            }))
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
 
             //Run the test
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)

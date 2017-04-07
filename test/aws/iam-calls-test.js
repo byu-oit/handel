@@ -188,4 +188,30 @@ describe('iam calls', function() {
                 });
         });
     });
+
+    describe('createPolicyIfNotExists', function() {
+        it('should create the policy when it doesnt exist', function() {
+            let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve(null));
+            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
+
+            return iamCalls.createPolicyIfNotExists('FakePolicy', 'FakeArn', {})
+                .then(policy => {
+                    expect(policy).to.deep.equal({});
+                    expect(getPolicyStub.calledOnce).to.be.true;
+                    expect(createPolicyStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should just return the policy when it exists', function() {
+            let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve({}));
+            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
+
+            return iamCalls.createPolicyIfNotExists('FakePolicy', 'FakeArn', {})
+                .then(policy => {
+                    expect(policy).to.deep.equal({});
+                    expect(getPolicyStub.calledOnce).to.be.true;
+                    expect(createPolicyStub.notCalled).to.be.true;
+                });
+        });
+    });
 });
