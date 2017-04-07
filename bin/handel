@@ -86,8 +86,10 @@ handel.deploy(accountConfig, absoluteHandelFilePath, program.environmentsToDeplo
         }
         else {
             winston.warn("Finished deployment with errors");
+            process.exit(1);
         }
     })
     .catch(err => {
         winston.warn(err);
+        process.exit(1);
     })
