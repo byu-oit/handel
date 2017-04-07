@@ -1,7 +1,6 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
 const deployersCommon = require('../../../lib/services/deployers-common');
-const ecsCalls = require('../../../lib/aws/ecs-calls');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
 const iamCalls = require('../../../lib/aws/iam-calls');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
@@ -139,9 +138,6 @@ describe('ecs deployer', function() {
             let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 Arn: "FakeRoleArn" 
             }));
-            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition').returns(Promise.resolve({
-                taskDefinitionArn: "FakeTaskDefArn"
-            }));
             let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
             let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
                 Arn: fakeArn
@@ -158,7 +154,6 @@ describe('ecs deployer', function() {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
-                    expect(registerTaskDefinitionStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                 });
@@ -182,9 +177,6 @@ describe('ecs deployer', function() {
             let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 Arn: "FakeRoleArn" 
             }));
-            let registerTaskDefinitionStub = sandbox.stub(ecsCalls, 'registerTaskDefinition').returns(Promise.resolve({
-                taskDefinitionArn: "FakeTaskDefArn"
-            }));
             let fakeArn = "FakeArn";
             let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
             let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
@@ -202,7 +194,6 @@ describe('ecs deployer', function() {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
-                    expect(registerTaskDefinitionStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
             });
