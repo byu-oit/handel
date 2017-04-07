@@ -54,9 +54,6 @@ Parameters:
   DesiredCount:
     Description: The desired count of running tasks
     Type: Number
-  TaskDefinitionArn:
-    Description: The Task definition to use for the service
-    Type: String
   MinimumHealthyPercentDeployment:
     Description: The minimum percent of tasks to keep running during a deployment
     Type: Number
@@ -70,11 +67,26 @@ Parameters:
   ContainerPort:
     Description: The port of your application in the container
     Type: Number
+  DockerImage:
+    Description: The Docker image to be deployed (including tag)
+    Type: String
   VpcId:
     Description: The ID of the VPC in which you are running
     Type: String
   EcsServiceRole:
     Description: The ARN of the role the ECS service (not the task) will assume
+    Type: String
+  TaskRole:
+    Description: The ARN of the task role for the ECS tasks in your service
+    Type: String
+  MaxMb:
+    Description: The max amount of memory to allocate for the task
+    Type: Number
+  CpuUnits:
+    Description: The amount of CPU units to allocate for the task
+    Type: Number
+  DeployVersion:
+    Description: The Handel deploy version
     Type: String
 Resources:
   EcsIamRole:
@@ -184,7 +196,59 @@ Resources:
       Role:
         Ref: EcsServiceRole
       TaskDefinition:
-        Ref: TaskDefinitionArn
+        Ref: TaskDefinition
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family:
+        Ref: ClusterName
+      TaskRoleArn:
+        Ref: TaskRole
+      NetworkMode: bridge
+      Volumes:
+      {{#if volumes}}
+      {{#each volumes}} 
+      - Name: {{name}}
+        Host:
+          SourcePath: {{sourcePath}}
+      {{/each}}
+      {{/if}}
+      ContainerDefinitions:
+      - Name:
+          Ref: ClusterName
+        Image:
+          Ref: DockerImage
+        Memory:
+          Ref: MaxMb
+        Cpu:
+          Ref: CpuUnits
+        Essential: true
+        Privileged: false
+        DisableNetworking: false
+        PortMappings:
+        {{#if portMappings}}
+        {{#each portMappings}}
+        - ContainerPort: {{this}}
+          Protocol: tcp
+        {{/each}}
+        {{/if}}
+        Environment:
+        - Name: HANDEL_DEPLOY_VERSION # This is required to force-update the thing
+          Value: 
+            Ref: DeployVersion
+        {{#if environmentVariables}}
+        {{#each environmentVariables}}
+        - Name: {{@key}}
+          Value: {{this}}
+        {{/each}}
+        {{/if}}
+        MountPoints:
+        {{#if mountPoints}}
+        {{#each mountPoints}}
+        - SourceVolume: {{sourceVolume}}
+          ContainerPath: {{containerPath}}
+        {{/each}}
+        {{/if}}
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
