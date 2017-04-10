@@ -271,8 +271,13 @@ Resources:
         Ref: VpcId
       SecurityGroupIngress:
       - IpProtocol: tcp
+        {{#if certificateArn}}
+        FromPort: '443'
+        ToPort: '443'
+        {{else}}
         FromPort: '80'
         ToPort: '80'
+        {{/if}}
         CidrIp: 0.0.0.0/0
   EcsIngressFromAlb:
     Type: AWS::EC2::SecurityGroupIngress
@@ -297,8 +302,15 @@ Resources:
           Ref: AlbTargetGroup
       LoadBalancerArn:
         Ref: Alb
+      {{#if certificateArn}}
+      Port: '443'
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: {{certificateArn}}
+      {{else}}
       Port: '80'
       Protocol: HTTP
+      {{/if}}
   AlbListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     DependsOn:

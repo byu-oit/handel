@@ -25,10 +25,29 @@ describe('ecs deployer', function() {
     describe('check', function() {
         it('should require the port_mappings parameter', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                image_name: "SomeImage"
+                https_certificate: "MyCert"
             })
             let errors = ecs.check(serviceContext);
+            expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("'port_mappings' parameter is required");
+        });
+
+        it("should either require the 'https_certificate' or 'http_only' parameter", function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                port_mappings: [5000]
+            });
+            let errors = ecs.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("You must either specify an HTTPS certificate");
+        });
+
+        it("should return no errors on a successful configuration", function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                port_mappings: [5000],
+                https_certificate: "MyCert"
+            });
+            let errors = ecs.check(serviceContext);
+            expect(errors.length).to.equal(0);
         });
     });
 
