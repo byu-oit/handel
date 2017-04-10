@@ -31,9 +31,6 @@ Parameters:
     - m3.2xlarge
     ConstraintDescription: Must be a valid EC2 instance type
     Default: t2.micro
-  KeyName:
-    Description: The ssh key to assign to the nodes in the cluster.
-    Type: AWS::EC2::KeyPair::KeyName
   EcsSecurityGroup:
     Description: Security Group for the ECS cluster
     Type: String
@@ -135,8 +132,9 @@ Resources:
       - Ref: EcsSecurityGroup
       UserData:
         Ref: UserData
-      KeyName:
-        Ref: KeyName
+      {{#if sshKeyName}}
+      KeyName: {{sshKeyName}}
+      {{/if}}
   EcsAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -332,7 +330,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: "/"
+      HealthCheckPath: "/" # TODO - Allow this to be changed
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
