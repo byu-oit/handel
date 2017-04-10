@@ -203,8 +203,8 @@ Resources:
       TaskRoleArn:
         Ref: TaskRole
       NetworkMode: bridge
-      Volumes:
       {{#if volumes}}
+      Volumes:
       {{#each volumes}} 
       - Name: {{name}}
         Host:
@@ -223,8 +223,8 @@ Resources:
         Essential: true
         Privileged: false
         DisableNetworking: false
-        PortMappings:
         {{#if portMappings}}
+        PortMappings:
         {{#each portMappings}}
         - ContainerPort: {{this}}
           Protocol: tcp
@@ -240,8 +240,8 @@ Resources:
           Value: {{this}}
         {{/each}}
         {{/if}}
-        MountPoints:
         {{#if mountPoints}}
+        MountPoints:
         {{#each mountPoints}}
         - SourceVolume: {{sourceVolume}}
           ContainerPath: {{containerPath}}
