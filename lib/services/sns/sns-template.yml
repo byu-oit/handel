@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created SNS topic
+
+Resources:
+  Topic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: {{topicName}}
+      TopicName: {{topicName}}
+
+Outputs:
+  TopicArn:
+    Description: The ARN of the topic
+    Value: !Ref Topic
+  TopicName:
+    Description: The name of the topic
+    Value: 
+      Fn::GetAtt: 
+        - "Topic"
+        - "TopicName"
