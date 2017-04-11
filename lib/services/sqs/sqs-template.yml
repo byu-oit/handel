@@ -1,0 +1,37 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created SQS queue
+
+Resources:
+  Queue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      {{#if fifoQueue}}
+      FifoQueue: true
+      ContentBasedDeduplication: {{contentBasedDeduplication}}
+      {{else}}
+      FifoQueue: false
+      {{/if}}
+      DelaySeconds: {{delaySeconds}}      
+      MaximumMessageSize: {{maxMessageSize}}
+      MessageRetentionPeriod: {{messageRetentionPeriod}}
+      QueueName: {{queueName}}
+      ReceiveMessageWaitTimeSeconds: {{delaySeconds}}
+      VisibilityTimeout: {{visibilityTimeout}}
+
+Outputs:
+  QueueUrl:
+    Description: The URL of the queue
+    Value: !Ref Queue
+  QueueArn:
+    Description: The ARN of the queue
+    Value: 
+      Fn::GetAtt: 
+        - "Queue"
+        - "Arn"
+  QueueName:
+    Description: The name of the queue
+    Value: 
+      Fn::GetAtt: 
+        - "Queue"
+        - "QueueName"
