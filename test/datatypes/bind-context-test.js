@@ -1,18 +1,19 @@
 const expect = require('chai').expect;
+const ServiceContext = require('../../lib/datatypes/service-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 
 describe('BindContet', function() {
     it('should be able to be constructed from a ServiceContext', function() {
-        let serviceContext = {
-            appName: 'appName',
-            environmentName: 'environmentName',
-            serviceName: 'serviceName',
-            serviceType: 'serviceType'
-        }
-        let bindContext = new BindContext(serviceContext);
-        expect(bindContext.appName).to.equal(serviceContext.appName);
-        expect(bindContext.environmentName).to.equal(serviceContext.environmentName);
-        expect(bindContext.serviceName).to.equal(serviceContext.serviceName);
-        expect(bindContext.serviceType).to.equal(serviceContext.serviceType);
+        let dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', '1', {});
+        let dependentOfServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', '1', {});
+        let bindContext = new BindContext(dependencyServiceContext, dependentOfServiceContext);
+        expect(bindContext.dependencyServiceContext.appName).to.equal(dependencyServiceContext.appName);
+        expect(bindContext.dependencyServiceContext.environmentName).to.equal(dependencyServiceContext.environmentName);
+        expect(bindContext.dependencyServiceContext.serviceName).to.equal(dependencyServiceContext.serviceName);
+        expect(bindContext.dependencyServiceContext.serviceType).to.equal(dependencyServiceContext.serviceType);
+        expect(bindContext.dependentOfServiceContext.appName).to.equal(dependentOfServiceContext.appName);
+        expect(bindContext.dependentOfServiceContext.environmentName).to.equal(dependentOfServiceContext.environmentName);
+        expect(bindContext.dependentOfServiceContext.serviceName).to.equal(dependentOfServiceContext.serviceName);
+        expect(bindContext.dependentOfServiceContext.serviceType).to.equal(dependentOfServiceContext.serviceType);
     });
 })

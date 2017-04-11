@@ -44,7 +44,7 @@ describe('sns deployer', function() {
             return sns.bind(serviceContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
-                    expect(bindContext.appName).to.equal(serviceContext.appName);
+                    expect(bindContext.dependencyServiceContext.appName).to.equal(serviceContext.appName);
                 });
         });
     });
