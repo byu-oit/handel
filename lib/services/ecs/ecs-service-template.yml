@@ -150,6 +150,10 @@ Resources:
         Ref: MaxInstances
       MinSize:
         Ref: MinInstances
+      Tags:
+      - Key: Name
+        Value: !Ref ClusterName
+        PropagateAtLaunch: true
       VPCZoneIdentifier:
         Ref: AsgSubnetIds
   EcsAutoScalingPolicyUp:
@@ -159,6 +163,23 @@ Resources:
       AutoScalingGroupName:
         Ref: EcsAutoScalingGroup
       ScalingAdjustment: 1
+  EcsClusterMemoryHighAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+      - Ref: EcsAutoScalingPolicyUp
+      MetricName: MemoryReservation
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      AlarmDescription: ECS Cluster Memory Too High Scaling Alarm
+      Period: '300'
+      Dimensions:
+      - Value:
+          Ref: ClusterName
+        Name: ClusterName
+      EvaluationPeriods: '1'
+      Namespace: AWS/ECS
+      Threshold: '50'
   EcsAutoScalingPolicyDown:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -166,6 +187,23 @@ Resources:
       AutoScalingGroupName:
         Ref: EcsAutoScalingGroup
       ScalingAdjustment: -1
+  EcsClusterMemoryLowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+      - Ref: EcsAutoScalingPolicyDown
+      MetricName: MemoryReservation
+      ComparisonOperator: LessThanThreshold
+      Statistic: Average
+      AlarmDescription: ECS Cluster Memory Too Low Scaling Alarm
+      Period: '300'
+      Dimensions:
+      - Value:
+          Ref: ClusterName
+        Name: ClusterName
+      EvaluationPeriods: '1'
+      Namespace: AWS/ECS
+      Threshold: '50'
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -174,7 +212,9 @@ Resources:
   EcsService:
     Type: AWS::ECS::Service
     DependsOn:
+    {{#if routingInfo}}
     - AlbListener
+    {{/if}}
     - EcsCluster
     Properties:
       Cluster:
@@ -184,6 +224,7 @@ Resources:
       DeploymentConfiguration:
         MinimumHealthyPercent:
           Ref: MinimumHealthyPercentDeployment
+      {{#if routingInfo}}
       LoadBalancers:
       - ContainerName:
           Ref: ContainerName
@@ -191,8 +232,8 @@ Resources:
           Ref: ContainerPort
         TargetGroupArn:
           Ref: AlbTargetGroup
-      Role:
-        Ref: EcsServiceRole
+      Role: !Ref EcsServiceRole
+      {{/if}}
       TaskDefinition:
         Ref: TaskDefinition
   TaskDefinition:
@@ -247,6 +288,7 @@ Resources:
           ContainerPath: {{containerPath}}
         {{/each}}
         {{/if}}
+  {{#if routingInfo}}
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
@@ -256,7 +298,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: '30'
+        Value: {{routingInfo.timeout}}
       Subnets:
         Ref: AlbSubnets
       SecurityGroups:
@@ -269,7 +311,7 @@ Resources:
         Ref: VpcId
       SecurityGroupIngress:
       - IpProtocol: tcp
-        {{#if certificateArn}}
+        {{#if routingInfo.httpsCertificate}}
         FromPort: '443'
         ToPort: '443'
         {{else}}
@@ -300,11 +342,11 @@ Resources:
           Ref: AlbTargetGroup
       LoadBalancerArn:
         Ref: Alb
-      {{#if certificateArn}}
+      {{#if routingInfo.httpsCertificate}}
       Port: '443'
       Protocol: HTTPS
       Certificates:
-      - CertificateArn: {{certificateArn}}
+      - CertificateArn: {{routingInfo.httpsCertificate}}
       {{else}}
       Port: '80'
       Protocol: HTTP
@@ -330,7 +372,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: "/" # TODO - Allow this to be changed
+      HealthCheckPath: {{routingInfo.healthCheckPath}}
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -341,6 +383,7 @@ Resources:
       UnhealthyThresholdCount: 2
       VpcId:
         Ref: VpcId
+  {{/if}}
 Outputs:
   EcsClusterId:
     Description: The EcsClusterId

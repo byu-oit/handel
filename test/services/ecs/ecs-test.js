@@ -24,27 +24,43 @@ describe('ecs deployer', function() {
 
     describe('check', function() {
         it('should require the port_mappings parameter', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                https_certificate: "MyCert"
-            })
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = ecs.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("'port_mappings' parameter is required");
         });
 
-        it("should either require the 'https_certificate' or 'http_only' parameter", function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                port_mappings: [5000]
+        describe('when routing element is present', function() {
+            it("should require the 'type' parameter", function() {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                    port_mappings: [5000],
+                    routing: {}
+                });
+                let errors = ecs.check(serviceContext);
+                expect(errors.length).to.equal(1);
+                expect(errors[0]).to.include("The 'type' field is required");
             });
-            let errors = ecs.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include("You must either specify an HTTPS certificate");
+
+            it("should require the 'https_certificate' parameter when the type is https", function() {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                    port_mappings: [5000],
+                    routing: {
+                        type: 'https'
+                    }
+                });
+                let errors = ecs.check(serviceContext);
+                expect(errors.length).to.equal(1);
+                expect(errors[0]).to.include("The 'https_certificate' element is required");
+            });
         });
 
         it("should return no errors on a successful configuration", function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 port_mappings: [5000],
-                https_certificate: "MyCert"
+                routing: {
+                    type: 'https',
+                    https_certificate: 'FakeCert'
+                }
             });
             let errors = ecs.check(serviceContext);
             expect(errors.length).to.equal(0);
