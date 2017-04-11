@@ -203,7 +203,7 @@ Resources:
         Name: ClusterName
       EvaluationPeriods: '1'
       Namespace: AWS/ECS
-      Threshold: '50'
+      Threshold: '25'
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
