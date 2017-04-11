@@ -4,10 +4,7 @@ const bindLifecycle = require('../lib/lifecycle/bind');
 const deployLifecycle = require('../lib/lifecycle/deploy');
 const preDeployLifecycle = require('../lib/lifecycle/pre-deploy');
 const checkLifecycle = require('../lib/lifecycle/check');
-const ServiceContext = require('../lib/datatypes/service-context');
-const DeployContext = require('../lib/datatypes/deploy-context');
 const PreDeployContext = require('../lib/datatypes/pre-deploy-context');
-const BindContext = require('../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

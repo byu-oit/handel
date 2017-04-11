@@ -12,12 +12,12 @@ describe('bind', function() {
             let serviceDeployers = {
                 ecs: {
                     bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
-                        return Promise.resolve(new BindContext(toBindServiceContext));
+                        return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
                     }
                 },
                 efs: {
                     bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
-                        return Promise.resolve(new BindContext(toBindServiceContext));
+                        return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
                     }
                 }
             }
