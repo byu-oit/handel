@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Lambda function
+
+Resources:
+  Function:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code:
+        S3Bucket: {{s3ArtifactBucket}}
+        S3Key: {{s3ArtifactKey}}
+      Description: Handel-created function {{functionName}}
+      {{#if environmentVariables}}
+      Environment:
+        Variables:
+          {{#each environmentVariables}}
+          {{@key}}: {{this}}
+          {{/each}}
+      {{/if}}
+      FunctionName: {{functionName}}
+      Handler: {{handler}}
+      MemorySize: {{memorySize}}
+      Role: {{executionRoleArn}}
+      Runtime: {{runtime}}
+      Timeout: {{timeout}}
+      # No VPC support for now
+Outputs:
+  FunctionName:
+    Description: The name of the function
+    Value: !Ref Function
+  FunctionArn:
+    Description: The ARN of the function
+    Value: 
+      Fn::GetAtt: 
+        - "Function"
+        - "Arn"
