@@ -70,14 +70,9 @@ describe('ecs deployer', function() {
     describe('preDeploy', function() {
         it('should create a security group and add ingress to self and SSH bastion', function() {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupIfNotExistsStub = sandbox.stub(ec2Calls, 'createSecurityGroupIfNotExists');
-            createSecurityGroupIfNotExistsStub.returns(Promise.resolve({}));
-            let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists');
-            addIngressRuleToSgIfNotExistsStub.returns(Promise.resolve({
+            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
-            }))
-            let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById');
-            getSecurityGroupByIdStub.returns(Promise.resolve('sg-fakeid'));
+            }));
             
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return ecs.preDeploy(serviceContext)
@@ -85,9 +80,7 @@ describe('ecs deployer', function() {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
-                    expect(createSecurityGroupIfNotExistsStub.calledOnce).to.be.true;
-                    expect(addIngressRuleToSgIfNotExistsStub.calledTwice).to.be.true;
-                    expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                    expect(createSecurityGroupStub.calledOnce).to.be.true;
                 });
         });
     });

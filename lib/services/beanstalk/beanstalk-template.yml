@@ -1,0 +1,50 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Handel-created Beanstalk application
+
+Resources: 
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Path: "/services/"
+      Roles:
+      - {{beanstalkRoleName}}
+  Application:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: {{applicationName}}
+      Description: Handel-created application for {{applicationName}}
+  ApplicationVersion:
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties:
+      ApplicationName: !Ref Application
+      Description: Application version for {{applicationName}}
+      SourceBundle:
+        S3Bucket: {{applicationVersionBucket}}
+        S3Key: {{applicationVersionKey}}
+  ConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties:
+      ApplicationName: !Ref Application
+      Description: Configuration template for {{applicationName}}
+      OptionSettings:
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: IamInstanceProfile
+        Value: !Ref InstanceProfile
+      {{#each optionSettings}}
+      - Namespace: {{namespace}}
+        OptionName: {{optionName}}
+        Value: {{value}}
+      {{/each}}
+      SolutionStackName: {{solutionStack}}
+  Environment:
+    Type: "AWS::ElasticBeanstalk::Environment"
+    Properties:
+      ApplicationName: !Ref Application
+      Description: Handel-created environment for {{applicationName}}
+      TemplateName: !Ref ConfigurationTemplate
+      VersionLabel: !Ref ApplicationVersion
+      Tags:
+      - Key: Name
+        Value: {{applicationName}}

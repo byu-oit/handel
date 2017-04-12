@@ -20,15 +20,6 @@ describe('efs deployer', function() {
     });
 
     describe('check', function() {
-        it('should require a bucket_name parameter', function() {
-            let serviceContext = {
-                params: {}
-            }
-            let errors = s3.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'bucket_name' parameter is required");
-        });
-
         it('should require the versioning parameter to be a certain value when present', function() {
             let serviceContext = {
                 params: {
