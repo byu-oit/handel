@@ -6,6 +6,7 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const deployersCommon = require('../../../lib/services/deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -44,20 +45,18 @@ describe('efs deployer', function() {
 
     describe('preDeploy', function() {
         it('should create a security group', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
-            
-            let createSecurityGroupIfNotExistsStub = sandbox.stub(ec2Calls, 'createSecurityGroupIfNotExists');
-            let groupId = "FakeSgId";
-            createSecurityGroupIfNotExistsStub.returns(Promise.resolve({
+            let groupId = "FakeSgGroupId";
+            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
-            
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return efs.preDeploy(serviceContext)
-                .then(preDepoyContext => {
-                    expect(preDepoyContext).to.be.instanceof(PreDeployContext);
-                    expect(createSecurityGroupIfNotExistsStub.calledOnce).to.be.true;
-                    expect(preDepoyContext.securityGroups.length).to.equal(1);
-                    expect(preDepoyContext.securityGroups[0].GroupId).to.equal(groupId);
+                .then(preDeployContext => {
+                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
+                    expect(preDeployContext.securityGroups.length).to.equal(1);
+                    expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
+                    expect(createSecurityGroupStub.calledOnce).to.be.true;
                 });
         });
     });
@@ -79,8 +78,7 @@ describe('efs deployer', function() {
                 GroupId: 'OtherId'
             });
 
-            let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists');
-            addIngressRuleToSgIfNotExistsStub.returns(Promise.resolve({}));
+            let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
             return efs.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                 .then(bindContext => {

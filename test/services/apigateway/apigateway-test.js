@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployersCommon = require('../../../lib/services/deployers-common');
 
-describe('dynamodb deployer', function() {
+describe('apigateway deployer', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -111,7 +111,7 @@ describe('dynamodb deployer', function() {
             //Stub out dependent services
             let bucketName = "FakeBucket";
             let bucketKey = "FakeBucketKey";
-            let uploadFileToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Bucket: bucketName,
                 Key: bucketKey
             }));
@@ -130,6 +130,7 @@ describe('dynamodb deployer', function() {
             return apigateway.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -148,7 +149,7 @@ describe('dynamodb deployer', function() {
             //Stub out dependent services
             let bucketName = "FakeBucket";
             let bucketKey = "FakeBucketKey";
-            let uploadFileToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Bucket: bucketName,
                 Key: bucketKey
             }));
@@ -167,6 +168,7 @@ describe('dynamodb deployer', function() {
             return apigateway.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;

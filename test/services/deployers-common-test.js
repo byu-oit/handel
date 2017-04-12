@@ -3,6 +3,9 @@ const DeployContext = require('../../lib/datatypes/deploy-context');
 const deployersCommon = require('../../lib/services/deployers-common');
 const iamCalls = require('../../lib/aws/iam-calls');
 const s3Calls = require('../../lib/aws/s3-calls');
+const util = require('../../lib/util/util');
+const ec2Calls = require('../../lib/aws/ec2-calls');
+const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -17,6 +20,37 @@ describe('deployers-common', function() {
         sandbox.restore();
     });
 
+    describe('getInjectedEnvVarName', function() {
+        it('should return the environment variable name from the given ServiceContext and suffix', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let envVarName = deployersCommon.getInjectedEnvVarName(serviceContext, "SOME_INFO");
+            expect(envVarName).to.equal("FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_SOME_INFO");
+        });
+    });
+
+    describe('getEnvVarsFromDependencyDeployContexts', function() {
+        it('should return an object with the env vars from all given DeployContexts', function() {
+            let deployContexts = []
+            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {});
+            let deployContext1 = new DeployContext(serviceContext1);
+            let envVarName1 = "ENV_VAR_1";
+            let envVarValue1 = "someValue1";
+            deployContext1.environmentVariables[envVarName1] = envVarValue1;
+            deployContexts.push(deployContext1);
+
+            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {});
+            let deployContext2 = new DeployContext(serviceContext2);
+            let envVarName2 = "ENV_VAR_2";
+            let envVarValue2 = "someValue2";
+            deployContext2.environmentVariables[envVarName2] = envVarValue2;
+            deployContexts.push(deployContext2);
+
+            let returnVars = deployersCommon.getEnvVarsFromDependencyDeployContexts(deployContexts);
+
+            expect(returnVars[envVarName1]).to.equal(envVarValue1);
+            expect(returnVars[envVarName2]).to.equal(envVarValue2);
+        });
+    });
 
     describe('createCustomRoleForECSService', function() {
         it('should create the role from the given ServiceContext and DeployContexts of dependencies', function() {
@@ -88,7 +122,7 @@ describe('deployers-common', function() {
                 RoleName: "FakeRole"
             }));
 
-            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", null, ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", [], ownServiceContext, deployContexts)
                 .then(role => {
                     expect(role.RoleName).to.equal("FakeRole");
                     expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
@@ -139,7 +173,7 @@ describe('deployers-common', function() {
                 RoleName: "FakeRole"
             }));
 
-            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", null, ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", [], ownServiceContext, deployContexts)
                 .then(role => {
                     expect(role.RoleName).to.equal("FakeRole");
                     expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
@@ -147,6 +181,51 @@ describe('deployers-common', function() {
                     expect(attachPolicyToRoleStub.notCalled).to.be.true;
                     expect(getRoleStub.calledOnce).to.be.true;
                 });
+        });
+    });
+
+    describe('createSecurityGroupForService', function() {
+        it('should create the security group and add ingress rules', function() {
+            let sgName = "FakeSg";
+
+            let createSecurityGroupIfNotExistsStub = sandbox.stub(ec2Calls, 'createSecurityGroupIfNotExists').returns(Promise.resolve({}))
+            let addIngressRuleToSgStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}))
+            let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
+
+            return deployersCommon.createSecurityGroupForService(sgName, true)
+                .then(securityGroup => {
+                    expect(securityGroup).to.deep.equal({});
+                    expect(createSecurityGroupIfNotExistsStub.calledOnce).to.be.true;
+                    expect(addIngressRuleToSgStub.calledTwice).to.be.true;
+                    expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('getRoutingInformationForService', function() {
+        it('should return null if no routing info defined in the given ServiceContext', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            
+            let routingInfo = deployersCommon.getRoutingInformationForService(serviceContext);
+            expect(routingInfo).to.be.null;
+        })
+
+        it('should return routing information when defined in the given ServiceContext', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                routing: {
+                    type: 'https',
+                    timeout: 59,
+                    health_check_path: '/healthcheck/heartbeat',
+                    https_certificate: 'SomeCert'
+                }
+            });
+
+            let routingInfo = deployersCommon.getRoutingInformationForService(serviceContext);
+            expect(routingInfo).to.not.be.null;
+            expect(routingInfo.type).to.equal('https');
+            expect(routingInfo.timeout).to.equal(59);
+            expect(routingInfo.healthCheckPath).to.equal('/healthcheck/heartbeat');
+            expect(routingInfo.httpsCertificate).to.contain('SomeCert');
         });
     });
 
@@ -164,6 +243,42 @@ describe('deployers-common', function() {
                 .then(s3ObjectInfo => {
                     expect(createBucketStub.calledOnce).to.be.true;
                     expect(uploadFileStub.calledOnce).to.be.true;
+                    expect(s3ObjectInfo).to.deep.equal({});
+                });
+        });
+    });
+
+    describe('uploadDeployableArtifactToHandelBucket', function() {
+        it('should upload a file to the given s3 location', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                path_to_code: `${__dirname}/mytestartifact.war`
+            });
+            let s3FileName = "FakeS3Filename";
+
+            let uploadFileToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
+
+            return deployersCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
+                .then(s3ObjectInfo => {
+                    expect(uploadFileToHandelBucketStub.calledOnce).to.be.true;
+                    expect(s3ObjectInfo).to.deep.equal({});
+                });
+        });
+
+        it('should zip and upload a directory to the given s3 location', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                path_to_code: __dirname
+            });
+            let s3FileName = "FakeS3Filename";
+
+            let zipDirectoryToFileStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve({}));
+            let uploadFileToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
+            let unlinkSyncStub = sandbox.stub(fs, 'unlinkSync').returns(null);
+
+            return deployersCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
+                .then(s3ObjectInfo => {
+                    expect(zipDirectoryToFileStub.calledOnce).to.be.true;
+                    expect(uploadFileToHandelBucketStub.calledOnce).to.be.true;
+                    expect(unlinkSyncStub.calledOnce).to.be.true;
                     expect(s3ObjectInfo).to.deep.equal({});
                 });
         });
