@@ -1,9 +1,11 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const lambda = require('../../../lib/services/lambda');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
+const lambdaCalls = require('../../../lib/aws/lambda-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployersCommon = require('../../../lib/services/deployers-common');
 const sinon = require('sinon');
@@ -125,7 +127,20 @@ describe('lambda deployer', function() {
                 Bucket: "FakeBucket"
             }));
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
+            let functionArn = "FakeFunctionArn";
+            let functionName = "FakeFunction";
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+                Outputs: [
+                    {
+                        OutputKey: 'FunctionArn',
+                        OutputValue: functionArn,
+                    },
+                    {
+                        OutputKey: 'FunctionName',
+                        OutputValue: functionName
+                    }
+                ]
+            }));
 
             let ownServiceContext = getServiceContext();
             let ownPreDeployContext = getPreDeployContext(ownServiceContext);
@@ -134,6 +149,8 @@ describe('lambda deployer', function() {
             return lambda.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
+                    expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(uploadArtifactStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
@@ -150,7 +167,20 @@ describe('lambda deployer', function() {
                 Bucket: "FakeBucket"
             }));
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({}));
+            let functionArn = "FakeFunctionArn";
+            let functionName = "FakeFunction";
+            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
+                Outputs: [
+                    {
+                        OutputKey: 'FunctionArn',
+                        OutputValue: functionArn,
+                    },
+                    {
+                        OutputKey: 'FunctionName',
+                        OutputValue: functionName
+                    }
+                ]
+            }));
 
             let ownServiceContext = getServiceContext();
             let ownPreDeployContext = getPreDeployContext(ownServiceContext);
@@ -159,6 +189,8 @@ describe('lambda deployer', function() {
             return lambda.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
+                    expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(uploadArtifactStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
@@ -167,14 +199,50 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
-        it('should throw an error because EFS doesnt consume event services', function() {
-            return lambda.consumeEvents(null, null, null, null)
+    describe('consumeEvents', function() {
+        it('should add permissions for the sns service type', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.principal = "FakePrincipal";
+            producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(addLambdaPermissionStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return an error for any other service type', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+
+            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(true).to.be.false; //Should not get here
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("Lambda service doesn't consume events");
+                    expect(err.message).to.contain("Unsupported event producer type given");
+                    expect(addLambdaPermissionStub.notCalled).to.be.true;
                 });
         });
     });

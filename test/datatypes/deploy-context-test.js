@@ -14,6 +14,7 @@ describe("DeployContext", function() {
         expect(deployContext.environmentName).to.equal(serviceContext.environmentName);
         expect(deployContext.serviceName).to.equal(serviceContext.serviceName);
         expect(deployContext.serviceType).to.equal(serviceContext.serviceType);
+        expect(deployContext.eventOutputs).to.deep.equal({});
         expect(deployContext.policies).to.deep.equal([]);
         expect(deployContext.credentials).to.deep.equal([]);
         expect(deployContext.environmentVariables).to.deep.equal({});

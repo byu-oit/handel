@@ -44,8 +44,7 @@ describe('produceEvents module', function() {
             let paramsA = {
                 some: "param",
                 event_consumers: [{
-                    type: "lambda",
-                    consuming_service: "B"
+                    service_name: "B"
                 }]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
