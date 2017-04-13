@@ -284,8 +284,7 @@ describe('parser-v1', function() {
                         mydynamo: {
                             type: 'dynamodb',
                             event_consumers: [{
-                                type: 'lambda_event',
-                                consuming_service: 'myefs'
+                                service_name: 'myefs'
                             }]
                         },
                         myefs: {
@@ -318,8 +317,7 @@ describe('parser-v1', function() {
                         mydynamo: {
                             type: 'dynamodb',
                             event_consumers: [{
-                                type: 'lambda_event',
-                                consuming_service: 'mylambda'
+                                service_name: 'mylambda'
                             }]
                         },
                         mylambda: {

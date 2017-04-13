@@ -1,8 +1,10 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sns = require('../../../lib/services/sns');
-const cloudfFormationCalls = require('../../../lib/aws/cloudformation-calls');
+const snsCalls = require('../../../lib/aws/sns-calls');
+const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
+const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
@@ -58,8 +60,8 @@ describe('sns deployer', function() {
             let topicName = "FakeTopic";
             let topicArn = "FakeArn";
 
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicName',
@@ -104,8 +106,8 @@ describe('sns deployer', function() {
             let topicName = "FakeTopic";
             let topicArn = "FakeArn";
 
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicName',
@@ -156,14 +158,49 @@ describe('sns deployer', function() {
     });
 
     describe('produceEvents', function() {
-        it('should throw an error because SNS cant produce events for other services', function() {
-            return sns.produceEvents(null, null, null, null)
+        it('should subscribe the service to the topic when a lambda is given', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "lambda", deployVersion, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.lambdaArn = "FakeLambdaArn";
+
+            let subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').returns(Promise.resolve({}));
+
+            return sns.produceEvents(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
+                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+                    expect(subscribeToTopicStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return an error for any other service type', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+
+            let subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').returns(Promise.resolve({}));
+
+            return sns.produceEvents(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
+                .then(produceEventsContext => {
+                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+                    expect(true).to.equal(false);
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("SNS service doesn't produce events");
-                });
+                    expect(err.message).to.contain('Unsupported event consumer type given');
+                    expect(subscribeToTopicStub.notCalled).to.be.true;
+                })
         });
     });
 });
