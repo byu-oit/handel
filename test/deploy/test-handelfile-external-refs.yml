@@ -1,0 +1,11 @@
+version: 1 
+
+name: handel-test
+
+environments:
+  dev:
+    A:
+      type: beanstalk
+      something: here
+      dependencies:
+      - "https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService"

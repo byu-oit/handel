@@ -45,6 +45,14 @@ describe('deploy-order-calc', function() {
             ]);
         });
 
+        it('should not include any external dependencies', function() {
+            let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-external-refs.yml`);
+            let deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
+            expect(deployOrder).to.deep.equal([
+                ['A']
+            ]);
+        });
+
         it('should check for circular dependencies', function() {
             let environmentContext = getEnvironmentContextFromYamlFile(`${__dirname}/test-handelfile-circular-dependencies.yml`);
             try {

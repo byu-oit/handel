@@ -4,19 +4,19 @@ const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 
 
-describe('ec2-calls', function() {
+describe('ec2-calls', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('createSecurityGroupIfNotExists', function() {
-        it('should create and return the security group if none exists', function() {
+    describe('createSecurityGroupIfNotExists', function () {
+        it('should create and return the security group if none exists', function () {
             let groupName = 'FakeGroup';
             sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
             sandbox.stub(ec2Calls, 'createSecurityGroup').returns(Promise.resolve({
@@ -29,7 +29,7 @@ describe('ec2-calls', function() {
                 });
         });
 
-        it('should return the security group if already exists', function() {
+        it('should return the security group if already exists', function () {
             let groupName = 'FakeGroup';
             sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
                 GroupName: groupName
@@ -41,9 +41,9 @@ describe('ec2-calls', function() {
                 })
         });
     });
-    
-    describe('createSecurityGroup', function() {
-        it('should create and return the security group', function() {
+
+    describe('createSecurityGroup', function () {
+        it('should create and return the security group', function () {
             let groupName = "FakeGroup";
             sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
                 GroupName: groupName
@@ -61,11 +61,11 @@ describe('ec2-calls', function() {
         });
     });
 
-    describe('getSecurityGroup', function() {
-        it('should return the security group if found', function() {
+    describe('getSecurityGroup', function () {
+        it('should return the security group if found', function () {
             let groupName = "FakeGroup";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
-                SecurityGroups: [ { GroupName: groupName } ]
+                SecurityGroups: [{ GroupName: groupName }]
             }));
 
             return ec2Calls.getSecurityGroup(groupName, 'FakeVpc')
@@ -75,7 +75,7 @@ describe('ec2-calls', function() {
                 });
         });
 
-        it('should return null if no group found', function() {
+        it('should return null if no group found', function () {
             let groupName = "FakeGroup";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
                 SecurityGroups: []
@@ -89,8 +89,8 @@ describe('ec2-calls', function() {
         });
     });
 
-    describe('tagResource', function() {
-        it('should call createTags', function() {
+    describe('tagResource', function () {
+        it('should call createTags', function () {
             AWS.mock('EC2', 'createTags', Promise.resolve({}));
 
             return ec2Calls.tagResource("FakeResource", [])
@@ -101,8 +101,48 @@ describe('ec2-calls', function() {
         });
     });
 
-    describe('addIngressRuleToSgIfNotExists', function() {
-        it('should add the ingress rule when it doesnt exist', function() {
+    describe('ingressRuleExists', function () {
+        it('should return true when the rule exists', function () {
+            let sourceSg = {
+                GroupId: 'SourceSg'
+            }
+            let destSg = {
+                GroupId: 'DestSg',
+                IpPermissions: [{
+                    FromPort: 0,
+                    ToPort: 65535,
+                    IpProtocol: 'tcp',
+                    UserIdGroupPairs: [{
+                        GroupId: 'SourceSg'
+                    }]
+                }]
+            }
+            let exists = ec2Calls.ingressRuleExists(destSg, 0, 65535, 'tcp', sourceSg);
+            expect(exists).to.equal(true);
+        });
+
+        it('should return false when no rule exists', function () {
+            let sourceSg = {
+                GroupId: 'SourceSg'
+            }
+            let destSg = {
+                GroupId: 'DestSg',
+                IpPermissions: [{
+                    FromPort: 0,
+                    ToPort: 65535,
+                    IpProtocol: 'tcp',
+                    UserIdGroupPairs: [{
+                        GroupId: 'OtherSg'
+                    }]
+                }]
+            }
+            let exists = ec2Calls.ingressRuleExists(destSg, 0, 65535, 'tcp', sourceSg);
+            expect(exists).to.equal(false);
+        });
+    });
+
+    describe('addIngressRuleToSgIfNotExists', function () {
+        it('should add the ingress rule when it doesnt exist', function () {
             let sourceSg = {
                 GroupId: 'SourceSg'
             }
@@ -122,11 +162,11 @@ describe('ec2-calls', function() {
 
             return ec2Calls.addIngressRuleToSgIfNotExists(sourceSg, destSg, 'tcp', 0, 65535, 'FakeVpc')
                 .then(securityGroup => {
-                   expect(securityGroup).to.deep.equal({});
+                    expect(securityGroup).to.deep.equal({});
                 });
         });
 
-        it('should just return the security group if the rule already exists', function() {
+        it('should just return the security group if the rule already exists', function () {
             let sourceSg = {
                 GroupId: 'SourceSg'
             }
@@ -146,11 +186,11 @@ describe('ec2-calls', function() {
 
             return ec2Calls.addIngressRuleToSgIfNotExists(sourceSg, destSg, 'tcp', 0, 65535, 'FakeVpc')
                 .then(securityGroup => {
-                   expect(securityGroup).to.deep.equal(destSg);
+                    expect(securityGroup).to.deep.equal(destSg);
                 });
         });
 
-        it('should throw an error if the dest security group doesnt exist', function() {
+        it('should throw an error if the dest security group doesnt exist', function () {
             sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
 
             return ec2Calls.addIngressRuleToSgIfNotExists({}, {}, 'tcp', 0, 65535, 'FakeVpc')
@@ -163,8 +203,8 @@ describe('ec2-calls', function() {
         });
     });
 
-    describe('addIngressRuleToSecurityGroup', function() {
-        it('should authorize the ingress rule and return the security group', function() {
+    describe('addIngressRuleToSecurityGroup', function () {
+        it('should authorize the ingress rule and return the security group', function () {
             let groupName = "FakeGroup";
             AWS.mock('EC2', 'authorizeSecurityGroupIngress', Promise.resolve({}));
             sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({

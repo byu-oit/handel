@@ -1,0 +1,8 @@
+version: 1 
+
+name: handel-test
+
+environments:
+  dev:
+    topic:
+      type: sns

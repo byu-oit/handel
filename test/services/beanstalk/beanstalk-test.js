@@ -1,6 +1,7 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const beanstalk = require('../../../lib/services/beanstalk');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
+const ec2Calls = require('../../../lib/aws/ec2-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -47,6 +48,34 @@ describe('beanstalk deployer', function() {
         });
     });
 
+    describe('getPreDeployContextForExternalRef', function() {
+        it('should return the PreDeployContext if predeploy has been run for the service', function() {
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {});
+            let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({}));
+
+            return beanstalk.getPreDeployContextForExternalRef(externalServiceContext)
+                .then(externalPreDeployContext => {
+                    expect(externalPreDeployContext).to.be.instanceof(PreDeployContext);
+                    expect(externalPreDeployContext.securityGroups.length).to.equal(1);
+                    expect(getSecurityGroupStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return an error if predeploy hasnt been run for the service yet', function() {
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {});
+            let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
+
+            return beanstalk.getPreDeployContextForExternalRef(externalServiceContext)
+                .then(externalPreDeployContext => {
+                    expect(true).to.equal(false); //Should not get here
+                })
+                .catch(err => {
+                    expect(getSecurityGroupStub.calledOnce).to.be.true;
+                    expect(err.message).to.contain('Beanstalk - Resources from PreDeploy not found');
+                });
+        });
+    })
+
     describe('bind', function() {
         it('should do nothing and just return an empty BindContext', function() {
             let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
@@ -56,6 +85,15 @@ describe('beanstalk deployer', function() {
             return beanstalk.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
+                });
+        });
+    });
+
+    describe('getBindContextForExternalRef', function() {
+        it('should return an empty bind context', function() {
+            return beanstalk.getBindContextForExternalRef(null, null, null, null)
+                .then(externalBindContext => {
+                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -131,7 +169,32 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
+    describe('getDeployContextForExternalRef', function() {
+        it('should return the DeployContext if the service has been deployed', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
+            return beanstalk.getDeployContextForExternalRef(externalServiceContext)
+                .then(externalDeployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(externalDeployContext).to.be.instanceof(DeployContext);
+                });
+        });
+
+        it('should return an error if the service hasnt been deployed yet', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
+            return beanstalk.getDeployContextForExternalRef(externalServiceContext)
+                .then(externalDeployContext => {
+                    expect(true).to.equal(false); //Should not get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain('is not deployed!');
+                    expect(getStackStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('consumeEvents', function() {
         it('should throw an error because Beanstalk cant consume event services', function() {
             return beanstalk.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
@@ -139,6 +202,18 @@ describe('beanstalk deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("Beanstalk service doesn't consume events");
+                });
+        });
+    });
+
+    describe('getConsumeEventsContextForExternalRef', function() {
+        it('should throw an error because Beanstalk cant consume event services', function() {
+            return beanstalk.getConsumeEventsContextForExternalRef(null, null, null, null)
+                .then(externalConsumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("Beanstalk service doesn't consume events");
                 });
         });
     });

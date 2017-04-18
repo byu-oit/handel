@@ -38,6 +38,16 @@ describe('sqs deployer', function() {
         });
     });
 
+    describe('getPreDeployContextForExternalRef', function() {
+        it('should return an empty preDeployContext', function() {
+            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return sqs.getPreDeployContextForExternalRef(externalRefServiceContext)
+                .then(externalRefPreDeployContext => {
+                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
+                });
+        })
+    });
+
     describe('bind', function() {
         it('should return an empty bind context since it doesnt do anything', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
@@ -45,6 +55,15 @@ describe('sqs deployer', function() {
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(bindContext.dependencyServiceContext.appName).to.equal(serviceContext.appName);
+                });
+        });
+    });
+
+    describe('getBindContextForExternalRef', function() {
+        it('should return an empty bind context', function() {
+            return sqs.getBindContextForExternalRef(null, null, null, null)
+                .then(externalBindContext => {
+                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -169,7 +188,47 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
+    describe('getDeployContextForExternalRef', function() {
+        it('should return a DeployContext if the service has been deployed', function() {
+            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({
+                Outputs: [
+                    {
+                        OutputKey: 'QueueName',
+                        OutputValue: 'FakeName'
+                    },
+                    {
+                        OutputKey: 'QueueArn',
+                        OutputValue: 'FakeQueueArn'
+                    },
+                    {
+                        OutputKey: 'QueueUrl',
+                        OutputValue: 'FakeQueueURl'
+                    }
+                ]
+            }));
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
+            return sqs.getDeployContextForExternalRef(externalServiceContext)
+                .then(externalDeployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(externalDeployContext).to.be.instanceof(DeployContext);
+                });
+        });
+
+        it('should return an error if the service hasnt been deployed yet', function() {
+            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
+            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
+            return sqs.getDeployContextForExternalRef(externalServiceContext)
+                .then(externalDeployContext => {
+                    expect(true).to.equal(false); //Should not get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain('You must deploy it independently');
+                    expect(getStackStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('consumeEvents', function() {
         it('should throw an error because SQS cant consume event services', function() {
             return sqs.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
@@ -177,6 +236,18 @@ describe('sqs deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("SQS service doesn't consume events");
+                });
+        });
+    });
+
+    describe('getConsumeEventsContextForExternalRef', function() {
+        it('should throw an error because SQS cant consume event services', function() {
+            return sqs.getConsumeEventsContextForExternalRef(null, null, null, null)
+                .then(externalConsumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("SQS service doesn't consume events");
                 });
         });
     });

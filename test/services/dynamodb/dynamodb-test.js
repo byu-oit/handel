@@ -66,6 +66,16 @@ describe('dynamodb deployer', function() {
         });
     });
 
+    describe('getPreDeployContextForExternalRef', function() {
+        it('should return an empty preDeployContext', function() {
+            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return dynamodb.getPreDeployContextForExternalRef(externalRefServiceContext)
+                .then(externalRefPreDeployContext => {
+                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
+                });
+        })
+    });
+
     describe('bind', function() {
         it('should do nothing and just return an empty BindContext', function() {
             let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
@@ -75,6 +85,15 @@ describe('dynamodb deployer', function() {
             return dynamodb.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
+                });
+        });
+    });
+
+    describe('getBindContextForExternalRef', function() {
+        it('should return an empty bind context', function() {
+            return dynamodb.getBindContextForExternalRef(null, null, null, null)
+                .then(externalBindContext => {
+                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -159,10 +178,72 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
+    describe('getDeployContextForExternalRef', function() {
+        it('should return a DeployContext if the service has been deployed', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let serviceName = "FakeService";
+            let serviceType = "FakeType";
+            let deployVersion = "1";
+            let params = {
+                partition_key: {
+                    name: "MyPartitionKey",
+                    type: "String"
+                }
+            }
+            let externalRefServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
+
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+            let tableArn = "FakeArn";
+            let tableName = "FakeTable";
+            AWS.mock('DynamoDB', 'describeTable', Promise.resolve({
+                Table: {
+                    TableArn: tableArn,
+                    TableName: tableName
+                }
+            }));
+
+            return dynamodb.getDeployContextForExternalRef(externalRefServiceContext)
+                .then(deployContext => {
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.policies.length).to.equal(1);
+                    expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
+                    let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
+                    expect(deployContext.environmentVariables[tableNameVar]).to.equal(tableName);
+                    expect(getStackStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return an error if the service hasnt been deployed yet', function() {
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+            let externalRefServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
+            return dynamodb.getDeployContextForExternalRef(externalRefServiceContext)
+                .then(deployContext => {
+                    expect(true).to.be.false;
+                })
+                .catch(err => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(err.message).to.include("You must deploy it independently first");
+                })
+        });
+    });
+
+    describe('consumeEvents', function() {
         it('should throw an error because DynamoDB cant consume event services', function() {
             return dynamodb.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("DynamoDB service doesn't consume events");
+                });
+        });
+    });
+
+    describe('getConsumeEventsContextForExternalRef', function() {
+        it('should throw an error because DynamoDB cant consume event services', function() {
+            return dynamodb.getConsumeEventsContextForExternalRef(null, null, null, null)
+                .then(externalConsumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
