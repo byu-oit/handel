@@ -28,6 +28,21 @@ describe('deployers-common', function() {
         });
     });
 
+    describe('getEnvVarsFromServiceContext', function() {
+        it('should return an object with the env vars to inject from the service context', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let serviceName = "FakeService";
+            let deployVersion = "1";
+            let serviceContext = new ServiceContext(appName, envName, serviceName, "apigateway", deployVersion, {});
+            let returnEnvVars = deployersCommon.getEnvVarsFromServiceContext(serviceContext);
+            expect(returnEnvVars['HANDEL_APP_NAME']).to.equal(appName);
+            expect(returnEnvVars['HANDEL_ENVIRONMENT_NAME']).to.equal(envName);
+            expect(returnEnvVars['HANDEL_SERVICE_NAME']).to.equal(serviceName);
+            expect(returnEnvVars['HANDEL_SERVICE_VERSION']).to.equal(deployVersion);
+        });
+    });
+
     describe('getEnvVarsFromDependencyDeployContexts', function() {
         it('should return an object with the env vars from all given DeployContexts', function() {
             let deployContexts = []
