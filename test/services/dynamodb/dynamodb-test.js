@@ -91,7 +91,7 @@ describe('dynamodb deployer', function() {
 
     describe('getBindContextForExternalRef', function() {
         it('should return an empty bind context', function() {
-            return dynamodb.bind(null, null, null, null)
+            return dynamodb.getBindContextForExternalRef(null, null, null, null)
                 .then(externalBindContext => {
                     expect(externalBindContext).to.be.instanceof(BindContext);
                 });

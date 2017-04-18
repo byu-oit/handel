@@ -86,7 +86,7 @@ describe('apigateway deployer', function() {
 
     describe('getBindContextForExternalRef', function() {
         it('should return an empty bind context', function() {
-            return apigateway.bind(null, null, null, null)
+            return apigateway.getBindContextForExternalRef(null, null, null, null)
                 .then(externalBindContext => {
                     expect(externalBindContext).to.be.instanceof(BindContext);
                 });
