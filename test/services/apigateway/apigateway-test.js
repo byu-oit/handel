@@ -65,12 +65,30 @@ describe('apigateway deployer', function() {
         });
     });
 
+    describe('getPreDeployContextForExternalRef', function() {
+        it('should return an empty preDeployContext', function() {
+            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return apigateway.getPreDeployContextForExternalRef(externalRefServiceContext)
+                .then(externalRefPreDeployContext => {
+                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
+                });
+        })
+    });
+
     describe('bind', function() {
         it('should return an empty bind context', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return apigateway.bind(serviceContext)
+            return apigateway.bind(null, null, null, null)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
+                });
+        });
+    });
+
+    describe('getBindContextForExternalRef', function() {
+        it('should return an empty bind context', function() {
+            return apigateway.bind(null, null, null, null)
+                .then(externalBindContext => {
+                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -176,10 +194,49 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
+    describe('getDeployContextForExternalRef', function() {
+        it('should return the DeployContext if the external service has been deployed', function() {
+            let externalRefServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+
+            return apigateway.getDeployContextForExternalRef(externalRefServiceContext)
+                .then(deployContext => {
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return an error if the service hasnt been deployed yet', function() {
+            let externalRefServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+
+            return apigateway.getDeployContextForExternalRef(externalRefServiceContext)
+                .then(deployContext => {
+                    expect(true).to.be.false;
+                })
+                .catch(err => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(err.message).to.contain('You must deploy it independently first');
+                })
+        });
+    });
+
+    describe('consumeEvents', function() {
         it('should throw an error because API gateway cant consume event services', function() {
             return apigateway.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
+                    expect(true).to.be.false; //Shouldnt get here
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("API Gateway service doesn't consume events");
+                });
+        });
+    });
+
+    describe('getConsumeEventsContextForExternalRef', function() {
+        it('should throw an error because API gateway cant consume event services', function() {
+            return apigateway.getConsumeEventsContextForExternalRef(null, null, null, null)
+                .then(externalConsumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
