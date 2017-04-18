@@ -5,14 +5,26 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 const expect = require('chai').expect;
+const sinon = require('sinon');
+const util = require('../../lib/util/util');
 
 describe('bind', function() {
+    let sandbox;
+
+    beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function() {
+        sandbox.restore();
+    });
+
     describe('bindServicesInLevel', function() {
-        it('should execute bind on all the services in parallel', function() {
+        it('should execute bind on all the internal services in parallel', function() {
             let serviceDeployers = {
                 ecs: {
                     bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
-                        return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
+                        return Promise.reject(new Error(`Should not have called ECS bind`));
                     }
                 },
                 efs: {
@@ -75,6 +87,63 @@ describe('bind', function() {
                 .then(bindContexts => {
                     expect(bindContexts['A->B']).to.be.instanceof(BindContext);
                     expect(bindContexts['C->B']).to.be.instanceof(BindContext);
+                });
+        });
+
+        it('should execute bind on external services if referenced', function() {
+            let serviceDeployers = {
+                ecs: {
+                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                        return Promise.reject(new Error(`Should not have called ECS bind`));
+                    }
+                },
+                efs: {
+                    getPreDeployContextForExternalRef: function(externalServiceContext) {
+                        return Promise.resolve(new PreDeployContext(externalServiceContext));
+                    },
+                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                        return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
+                    }
+                }
+            }
+            
+            //Construct EnvironmentContext
+            let appName = "FakeApp"
+            let deployVersion = "1";
+            let environmentName = "dev";
+            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+            //Construct ServiceContext
+            let serviceName = "A";
+            let serviceType = "efs"
+            let params = {
+                other: "param",
+                external_dependent_services: [
+                    "https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService"
+                ]
+            }
+            let serviceContext = new ServiceContext(appName, environmentName, serviceName, serviceType, deployVersion, params);
+            environmentContext.serviceContexts[serviceName] = serviceContext;
+            
+
+            //Construct PreDeployContexts
+            let preDeployContexts = {}
+            preDeployContexts[serviceName] = new PreDeployContext(serviceContext);
+
+            //Set deploy order 
+            let deployOrder = [
+                [serviceName]
+            ]
+            let levelToBind = 0;
+
+            //Stub external calls
+            let externalServiceContext = new ServiceContext("FakeExternalApp", "FakeExternalEnv", "FakeExternalService", "efs", "1", {});
+            let getExternalServiceContextStub = sandbox.stub(util, 'getExternalServiceContext').returns(Promise.resolve(externalServiceContext));
+
+            return bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, levelToBind)
+                .then(bindContexts => {
+                    expect(getExternalServiceContextStub.calledOnce).to.be.true;
+                    expect(bindContexts["https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService->A"]).to.be.instanceof(BindContext);
                 });
         });
     });

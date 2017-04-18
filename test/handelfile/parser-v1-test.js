@@ -275,7 +275,25 @@ describe('parser-v1', function() {
             }
         });
 
-        it('should conplain about a service that produces events to a service that cant consume them', function() {
+        it('should ingore external dependencies when validing dependneices', function() {
+            let handelFile = {
+                version: 1,
+                name: 'test',
+                environments: {
+                    myenv: {
+                        myapigateway: {
+                            type: 'apigateway',
+                            dependencies: [
+                                'https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService'
+                            ]
+                        }
+                    }
+                }
+            }
+            parserV1.validateHandelFile(handelFile, serviceDeployers);
+        });
+
+        it('should complain about a service that produces events to a service that cant consume them', function() {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -300,6 +318,24 @@ describe('parser-v1', function() {
             catch(e) {
                 expect(e.message).to.include("service type can't consume events");
             }
+        });
+
+        it('should ignore external event_consumers when validating event consumers', function() {
+            let handelFile = {
+                version: 1,
+                name: 'test',
+                environments: {
+                    myenv: {
+                        mydynamo: {
+                            type: 'dynamodb',
+                            event_consumers: [{
+                                service_name: "https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService"
+                            }]
+                        }
+                    }
+                }
+            }
+            parserV1.validateHandelFile(handelFile, serviceDeployers);
         });
 
         it('should work on a handel file that has valid top-level information', function() {

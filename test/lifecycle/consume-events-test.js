@@ -5,8 +5,20 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const consumeEvents = require('../../lib/lifecycle/consume-events');
 const expect = require('chai').expect;
+const sinon = require('sinon');
+const util = require('../../lib/util/util');
 
 describe('consumeEvents module', function() {
+    let sandbox;
+
+    beforeEach(function() {
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function() {
+        sandbox.restore();
+    });
+
     describe('consumeEvents', function() {
         it('should execute consumeEvents on all services that are specified as consumers by other services', function() {
             let serviceDeployers = {
@@ -57,6 +69,56 @@ describe('consumeEvents module', function() {
             return consumeEvents.consumeEvents(serviceDeployers, environmentContext, deployContexts)
                 .then(consumeEventsContexts => {
                     expect(consumeEventsContexts['B->A']).to.be.instanceof(ConsumeEventsContext);
+                });
+        });
+
+        it('should execute consumeEvents for external services', function() {
+            let serviceDeployers = {
+                lambda: {
+                    consumeEvents: function(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
+                        return Promise.resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
+                    }
+                },
+                s3: {
+                    getDeployContextForExternalRef: function(externalServiceContext) {
+                        return Promise.resolve(new DeployContext(externalServiceContext));
+                    },
+                    consumeEvents: function(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
+                        return Promise.reject(new Error("S3 doesn't consume events"));
+                    }
+                }
+            };
+
+            //Create EnvironmentContext
+            let appName = "test";
+            let deployVersion = "1";
+            let environmentName = "dev";
+            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+            //Construct ServiceContext (Consuming service)
+            let serviceName = "A";
+            let serviceType = "lambda"
+            let params = {
+                external_event_producers: [
+                    "https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService"
+                ]
+            }
+            let serviceContext = new ServiceContext(appName, environmentName, serviceName, serviceType, deployVersion, params);
+            environmentContext.serviceContexts[serviceName] = serviceContext;
+
+            //Create deployContexts
+            let deployContexts = {}
+            deployContexts[serviceName] = new DeployContext(serviceContext);
+
+            //Stub out external calls
+            let externalServiceContext = new ServiceContext("FakeExternalApp", "FakeExternalEnv", "FakeExternalService", "s3", "1", {});
+            let getExternalServiceContextStub = sandbox.stub(util, 'getExternalServiceContext').returns(Promise.resolve(externalServiceContext));
+
+
+            return consumeEvents.consumeEvents(serviceDeployers, environmentContext, deployContexts)
+                .then(consumeEventsContexts => {
+                    expect(getExternalServiceContextStub.calledOnce).to.be.true;
+                    expect(consumeEventsContexts['A->https://fakeurl.github.com/fakeorg/fakerepo/master/handel.yml#appName=fakeApp&envName=fakeEnv&serviceName=fakeService']).to.be.instanceof(ConsumeEventsContext);
                 });
         });
     });
