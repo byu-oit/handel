@@ -1,3 +1,4 @@
+const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const iamCalls = require('../../lib/aws/iam-calls');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');

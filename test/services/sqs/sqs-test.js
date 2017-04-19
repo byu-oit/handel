@@ -1,8 +1,10 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sqs = require('../../../lib/services/sqs');
+const sqsCalls = require('../../../lib/aws/sqs-calls');
 const cloudfFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
+const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
@@ -230,24 +232,73 @@ describe('sqs deployer', function() {
 
     describe('consumeEvents', function() {
         it('should throw an error because SQS cant consume event services', function() {
-            return sqs.consumeEvents(null, null, null, null)
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", deployVersion, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.queueUrl = "FakeQueueUrl";
+            consumerDeployContext.eventOutputs.queueArn = "FakeQueueArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "sns", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return sqs.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SQS service doesn't consume events");
+                    expect(addSqsPermissionStub.calledOnce).to.be.true;
+                    expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
                 });
         });
     });
 
     describe('getConsumeEventsContextForExternalRef', function() {
-        it('should throw an error because SQS cant consume event services', function() {
-            return sqs.getConsumeEventsContextForExternalRef(null, null, null, null)
+        it('should return the ConsumeEventsContext when consumeEvents has been run already', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", deployVersion, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.queueUrl = "FakeQueueUrl";
+            consumerDeployContext.eventOutputs.queueArn = "FakeQueueArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "sns", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let getSqsPermissionStub = sandbox.stub(sqsCalls, 'getSqsPermission').returns(Promise.resolve({}));
+
+            return sqs.getConsumeEventsContextForExternalRef(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
                 .then(externalConsumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
+                    expect(getSqsPermissionStub.calledOnce).to.be.true;
+                    expect(externalConsumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
+                });
+        });
+
+        it('should return an error when consumeEvents has not been run', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", deployVersion, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.queueUrl = "FakeQueueUrl";
+            consumerDeployContext.eventOutputs.queueArn = "FakeQueueArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "sns", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let getSqsPermissionStub = sandbox.stub(sqsCalls, 'getSqsPermission').returns(Promise.resolve(null));
+
+            return sqs.getConsumeEventsContextForExternalRef(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
+                .then(externalConsumeEventsContext => {
+                    expect(true).to.be.false;
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("SQS service doesn't consume events");
+                    expect(getSqsPermissionStub.calledOnce).to.be.true;
+                    expect(err.message).to.contain('ConsumeEvents not run for external service');
                 });
         });
     });
