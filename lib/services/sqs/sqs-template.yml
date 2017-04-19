@@ -9,8 +9,6 @@ Resources:
       {{#if fifoQueue}}
       FifoQueue: true
       ContentBasedDeduplication: {{contentBasedDeduplication}}
-      {{else}}
-      FifoQueue: false
       {{/if}}
       DelaySeconds: {{delaySeconds}}      
       MaximumMessageSize: {{maxMessageSize}}
