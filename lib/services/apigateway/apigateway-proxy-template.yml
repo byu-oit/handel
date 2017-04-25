@@ -76,10 +76,8 @@ Resources:
         Ref: LambdaFunction
       SourceArn:
         Fn::Sub:
-        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/${__Stage__}/ANY/*
-        - __Stage__:
-            Ref: StageName
-          __ApiId__:
+        - arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/*/*/*
+        - __ApiId__:
             Ref: ServerlessRestApi
   ServerlessRestApiDeployment:
     Type: AWS::ApiGateway::Deployment
