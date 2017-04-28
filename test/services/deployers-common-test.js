@@ -298,4 +298,16 @@ describe('deployers-common', function() {
                 });
         });
     });
+
+    describe('getAppSecretsAccessPolicyStatements', function() {
+        it('should return an array of two permissions allowing it to access secrets in its namespace', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let serviceName = "FakeService";
+            let serviceContext = new ServiceContext(appName, envName, serviceName, "lambda", "1", {});
+            let policyStatements = deployersCommon.getAppSecretsAccessPolicyStatements(serviceContext);
+            expect(policyStatements.length).to.equal(2);
+            expect(policyStatements[1].Resource).to.contain(`parameter/${appName}-${envName}-${serviceName}*`)
+        });
+    });
 });
