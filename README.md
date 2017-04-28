@@ -2,15 +2,11 @@
 Orchestrates your AWS deployments so you don't have to.
 
 # Description
-This library provides deployments for applications in AWS based off of a declarative specification file.
+Handel is a library that provides easy deployments for applications in AWS. It reads a declarative specification file and provisions and deploys
+resources, automatically wiring up the painful security bits between resources.
 
-# Library Usage
-```
-handel --environment-to-deploy <env_from_spec_file> --account-config-file <path_to_account_config_file> --deploy-version <version_being_deployed>
-```
-
-# Creating a CodePipeline Deployer
-TODO
+# Usage
+See the [Wiki](https://github.com/byu-oit-appdev/handel/wiki) for documentation on this library.
 
 # Credits
-Many of these concepts were introduced by the platform engineers at FamilySearch. I'm adapting them and modifying for use in this library.
+The concepts in this library were originally introduced by the platform engineers at [FamilySearch](https://familysearch.org/). I've adapted their concept of Blueprints for use in this library.
