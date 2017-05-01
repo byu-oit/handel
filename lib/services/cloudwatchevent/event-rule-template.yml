@@ -1,0 +1,27 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created CloudWatch Events Rule
+
+Resources:
+  EventsRule:
+    Type: "AWS::Events::Rule"
+    Properties: 
+      Description: Handel-created rule for {{ruleName}}
+      {{#if scheduleExpression}}
+      ScheduleExpression: {{scheduleExpression}}
+      {{/if}}
+      Name: {{ruleName}}
+      State: {{state}}
+      # Targets are defined dynamically by event_consumers in the produceEvents phase
+
+Outputs:
+  EventRuleId:
+    Description: The ID of the event rule
+    Value: 
+      Ref: EventsRule
+  EventRuleArn:
+    Description: The ARN of the event rule
+    Value:
+      Fn::GetAtt: 
+        - EventsRule
+        - Arn
