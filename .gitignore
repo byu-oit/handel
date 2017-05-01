@@ -1,6 +1,4 @@
-docs/.sass-cache
-docs/.jekyll-metadata
-docs/_site
+docs/_build
 out/
 node_modules/
 npm-debug.log
