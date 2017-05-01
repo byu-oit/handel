@@ -283,6 +283,28 @@ describe('lambda deployer', function() {
                 });
         });
 
+        it('should add permissions for the cloudwatchevent service type', function() {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "cloudwatchevent", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.principal = "FakePrincipal";
+            producerDeployContext.eventOutputs.eventRuleArn = "FakeEventRuleArn";
+
+            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(addLambdaPermissionStub.calledOnce).to.be.true;
+                });
+        });
+
         it('should return an error for any other service type', function() {
             let appName = "FakeApp";
             let envName = "FakeEnv";

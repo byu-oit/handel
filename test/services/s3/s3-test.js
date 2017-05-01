@@ -8,7 +8,7 @@ const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('efs deployer', function() {
+describe('s3 deployer', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -104,6 +104,8 @@ describe('efs deployer', function() {
 
             return s3.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(2);
                     expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
@@ -123,6 +125,8 @@ describe('efs deployer', function() {
 
             return s3.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(updateStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(2);
                     expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
