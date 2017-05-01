@@ -9,12 +9,17 @@ Read this section if you're brand-new to Handel.
 .. toctree::
    :maxdepth: 2
 
-   introduction
-   handel-vs-cloudformation
+   getting-started/introduction
+   getting-started/handel-vs-cloudformation
 
 Handel Basics
 -------------
 This section contains information about what you need to know to use Handel effectively.
+
+.. toctree::
+   :maxdepth: 2
+
+   handel-basics/handel-file
 
 Supported Services
 ------------------
