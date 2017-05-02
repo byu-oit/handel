@@ -2,29 +2,41 @@ Welcome to Handel's documentation!
 ==================================
 Handel is a library that orchestrates your AWS deployments so you don't have to
 
-Getting Started
----------------
-Read this section if you're brand-new to Handel.
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Getting Started
 
    getting-started/introduction
    getting-started/handel-vs-cloudformation
 
-Handel Basics
--------------
-This section contains information about what you need to know to use Handel effectively.
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Handel Basics
 
    handel-basics/handel-file
+   handel-basics/account-config-file
+   handel-basics/service-dependencies
+   handel-basics/consuming-service-dependencies
+   handel-basics/service-events
 
-Supported Services
-------------------
-This section contains information about how to configure the various supported services in your Handel file.
+.. toctree::
+   :maxdepth: 1
+   :caption: Supported Services
 
-Advanced Handel
----------------
-This section contains information on more advanced concepts like external references. You do not need to read this information to be a regular user of Handel.
+   supported-services/apigateway
+   supported-services/beanstalk
+   supported-services/cloudwatchevents
+   supported-services/dynamodb
+   supported-services/ecs
+   supported-services/efs
+   supported-services/lambda
+   supported-services/s3
+   supported-services/sns
+   supported-services/sqs
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Handel
+
+   advanced-handel/external-dependencies
+   advanced-handel/external-service-events

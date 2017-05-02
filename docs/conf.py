@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Handel'
-copyright = u'2017, David Woodruff'
+copyright = u'2017, Brigham Young University'
 author = u'David Woodruff'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -81,7 +81,7 @@ todo_include_todos = False
 
 import sphinx_rtd_theme
 
-html_theme = "alabaster"
+html_theme = "sphinx_rtd_theme"
 
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 

@@ -1,0 +1,80 @@
+S3
+==
+This document contains information about the S3 service supported in Handel. This Handel service provisions an S3 bucket for use by your applications.
+
+Service Limitations
+-------------------
+This service currently only provisions a bare-bones S3 bucket for data storage. It does support versioning, but the following other features are not currently supported:
+
+* Bucket-level ACLs.
+* CORS configuration
+* Bucket lifecycle
+* Bucket logging
+* Cross-region replication
+* Static websites
+
+Parameters
+----------
+This service takes the following parameters:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - bucket_name
+     - string
+     - Yes
+     - 
+     - The name of the bucket to create. This name must be globally unique across all AWS accounts, so 'myBucket' will likely be taken. :)
+   * - versioning
+     - string
+     - No
+     - disabled
+     - Whether to enable versioning on the bucket. Allowed values: 'enabled', 'disabled'
+
+Example Handel File
+-------------------
+This Handel file shows an S3 service being configured:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-s3-bucket
+
+    environments:
+    dev:
+      mybucket:
+      type: s3
+      bucket_name: my-cool-bucket
+      versioning: enabled
+
+Depending on this service
+-------------------------
+This service outputs the following environment variables:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Environment Variable
+     - Description
+   * - <URL_PREFIX>_BUCKET_NAME
+     - The name of the created bucket
+   * - <URL_PREFIX>_BUCKET_URL
+     - The HTTPS URL of the created bucket
+   * - <URL_PREFIX>_REGION_ENDPOINT
+     - The domain of the S3 region endpoint, which you can use when configuring your AWS SDK
+
+The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See the [Service Dependencies](https://github.com/byu-oit-appdev/handel/wiki/Service-Dependencies#environment-variable-prefix) page for information about the structure of this prefix.
+
+Events produced by this service
+-------------------------------
+The S3 service does not currently produce events for other Handel services. Support is planned to be added in the future.
+
+Events consumed by this service
+-------------------------------
+The S3 service does not consume events from other Handel services.
