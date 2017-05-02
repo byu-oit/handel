@@ -1,3 +1,5 @@
+.. _beanstalk:
+
 Beanstalk
 =========
 This document contains information about the Beanstalk service supported in Handel. This Handel service provisions an Elastic Beanstalk application, which consists of an auto-scaling group fronted by an Elastic Load Balancer.
@@ -29,7 +31,7 @@ Parameters
      - string
      - Yes
      - 
-     - The ElasticBeanstalk solution stack you wish to use. This determines what AMI your application runs on. See [Elastic Beanstalk Supported Platforms](http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html) for the list of solution stacks.
+     - The ElasticBeanstalk solution stack you wish to use. This determines what AMI your application runs on. See `Elastic Beanstalk Supported Platforms <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html>`_ for the list of solution stacks.
    * - key_name
      - string
      - No
@@ -56,7 +58,7 @@ Parameters
      - 1
      - The maximum number of instances that can be in the auto-scale group.
    * - environment_variables
-     - [EnvironmentVariables](https://github.com/byu-oit-appdev/handel/wiki/Beanstalk#environmentvariables-element)
+     - EnvironmentVariables
      - No
      - 
      - Any user-specified environment variables to inject in the application.
@@ -87,7 +89,7 @@ Example Handel File
           type: beanstalk
           path_to_code: .
           solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
-          key_name: aws-credential-detector # TODO - Get own key name
+          key_name: my-keypair-name
           instance_type: t2.micro
           health_check_url: /
           min_instances: 1

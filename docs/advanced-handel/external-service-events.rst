@@ -1,6 +1,8 @@
+.. _external-service-events:
+
 External Service Events
 =======================
-Handel allows you to wire up [service events](https://github.com/byu-oit-appdev/handel/wiki/Service-Events) inside your Handel file. When your services that produce and consume events all live in the same Handel file, Handel can easily provision and wire these services in the correct order.
+Handel allows you to wire up :ref:`service-events` inside your Handel file. When your services that produce and consume events all live in the same Handel file, Handel can easily provision and wire these services in the correct order.
 
 In some cases, however, you are writing an application that consumes or produces events and depends on other services in another Handel file. For example, you may have another team that has an SNS topic and you want to subscribe to the topic to have a Lambda fire every time a post is made to that topic.
 

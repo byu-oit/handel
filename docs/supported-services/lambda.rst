@@ -1,3 +1,5 @@
+.. _lambda:
+
 Lambda
 ======
 This document contains information about the Lambda service supported in Handel. This Handel service provisions an Lambda function. You can reference this function in other services as an event consumer, which will invoke the function when events occur.
@@ -23,22 +25,22 @@ Parameters
      - string
      - Yes
      - 
-     - The location of your code to upload to Lambda. This can be a directory (which will be zipped up) or a single file (such as a deployable Java WAR file or pre-existing [zip file](https://www.google.com/search?q=aws+lambda+zip+deployment+package))
+     - The location of your code to upload to Lambda. This can be a directory (which will be zipped up) or a single file (such as a deployable Java WAR file or pre-existing `zip file <https://www.google.com/search?q=aws+lambda+zip+deployment+package>`_)
    * - handler
      - string
      - Yes
      - 
-     - The [handler function](https://www.google.com/search?q=aws+lambda+handler) in your code that is the entry-point to the Lambda.
+     - The `handler function <https://www.google.com/search?q=aws+lambda+handler>`_ in your code that is the entry-point to the Lambda.
    * - runtime
      - string
      - Yes
      - 
-     - The [Lambda runtime](http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime) that will execute your code
+     - The `Lambda runtime <http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime>`_ that will execute your code
    * - memory
      - string
      - No
      - 128
-     - The [amount of memory](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-memorysize) to allocate for your function
+     - The `amount of memory <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-memorysize>`_ to allocate for your function
    * - timeout
      - string
      - No
@@ -78,7 +80,7 @@ Example Handel File
 
 Running a scheduled Lambda
 --------------------------
-To run a scheduled Lambda, you can use this service in conjunction with the CloudWatch Events service. See the [example](https://github.com/byu-oit-appdev/handel/wiki/CloudWatch-Events#example-handel-file) on the CloudWatch Events service for details on how to do this.
+To run a scheduled Lambda, you can use this service in conjunction with the CloudWatch Events service. See the :ref:`cloudwatch-scheduled-lambda-example` on the CloudWatch Events service for details on how to do this.
 
 Depending on this service
 -------------------------

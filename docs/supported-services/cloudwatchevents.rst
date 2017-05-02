@@ -1,3 +1,5 @@
+.. _cloudwatchevents:
+
 CloudWatch Events
 =================
 This document contains information about the CloudWatch Events service supported in Handel. This Handel service provisions a CloudWatch Events rule, which can then be integrated with services like Lambda to invoke them when events fire.
@@ -17,15 +19,20 @@ Parameters
      - string
      - No
      - 
-     - The cron or rate string specifying the schedule on which to fire the event. See the [Scheduled Events](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) document for information on the syntax of these schedule expressions.
+     - The cron or rate string specifying the schedule on which to fire the event. See the `Scheduled Events <http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html>`_ document for information on the syntax of these schedule expressions.
    * - event_pattern
      - string
      - No
      - 
-     - The list of event patterns on which to fire the event. In this field you just specify an [Event Pattern](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html) in YAML syntax.
+     - The list of event patterns on which to fire the event. In this field you just specify an `Event Pattern <http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html>`_ in YAML syntax.
 
 Example Handel Files
 --------------------
+
+.. _cloudwatch-scheduled-lambda-example:
+
+Scheduled Lambda
+~~~~~~~~~~~~~~~~
 This Handel file shows a CloudWatch Events service being configured, producing to a Lambda on a schedule:
 
 .. code-block:: yaml
@@ -48,6 +55,8 @@ This Handel file shows a CloudWatch Events service being configured, producing t
           - service_name: function
             event_input: '{"some": "param"}'
 
+EBS Events Lambda
+~~~~~~~~~~~~~~~~~
 This Handel file shows a CloudWatch Events service being configured, producing to a Lambda when an EBS volume is created:
 
 .. code-block:: yaml

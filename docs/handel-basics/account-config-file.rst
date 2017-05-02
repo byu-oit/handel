@@ -1,6 +1,9 @@
+.. _account-config-file:
+
 Account Config File
 ===================
 Handel requires two pieces of information in order to deploy your application:
+
 * Your handel.yml file that contains your service specification
 * An account configuration YAML file that contains account-level information for things such as VPCs, subnets, etc.
 
@@ -10,7 +13,7 @@ It is best if someone with a knowledge of the account-level network configuratio
 
 Defining Your Own Account Config File
 -------------------------------------
-It's best if you can find someone with a good knowledge of VPCs to help define your account config file. If you don't have a person like that, see the [[Tutorial: Creating a Handel App]] page for a tutorial on setting up prerequisite resources and specifying your own account config file.
+It's best if you can find someone with a good knowledge of VPCs to help define your account config file. If you don't have a person like that, see :ref:`creating-a-handel-app` for a tutorial on setting up prerequisite resources and specifying your own account config file.
 
 Account Config File Specification
 ---------------------------------

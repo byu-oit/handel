@@ -1,3 +1,5 @@
+.. _sns:
+
 SNS (Simple Notification Service)
 =================================
 This document contains information about the SNS service supported in Handel. This Handel service provisions an SNS topic for use by your applications.
@@ -35,7 +37,7 @@ This service outputs the following environment variables:
    * - <URL_PREFIX>_TOPIC_NAME
      - The name of the created topic
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See the [Consuming Service Dependencies](https://github.com/byu-oit-appdev/handel/wiki/Consuming-Service-Dependencies#environment-variable-prefix) page for information about the structure of this prefix.
+The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

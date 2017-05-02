@@ -1,3 +1,5 @@
+.. _service-events:
+
 Service Events
 ==============
 Many AWS services are able to send *events* to other AWS services. For example, the S3 service can send events about file changes in a bucket to another service such as Lambda. 
@@ -30,4 +32,4 @@ When you specify event consumers in your producer service, you don't need to spe
 .. NOTE::
    Not all services may produce events, and not all services may consume events. You will get an error if you try to specify a producer or consumer service that don't support events.
 
-See [[External Handel Service Events]] if you need to produce or consume events from another application's Handel file.
+See :ref:`external-service-events` if you need to produce or consume events from another application's Handel file.

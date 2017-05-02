@@ -1,3 +1,5 @@
+.. _dynamodb:
+
 DynamoDB
 ========
 This page contains information about using DynamoDB service supported in Handel. This service provisions a DynamoDB table for use by other AWS services.
@@ -104,7 +106,7 @@ The DynamoDB service outputs the following environment variables:
    * - <ENV_PREFIX>_TABLE_ARN
      - The ARN of the created DynamoDB table
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See the [Consuming Service Dependencies](https://github.com/byu-oit-appdev/handel/wiki/Consuming-Service-Dependencies#environment-variable-prefix) page for information about the structure of this prefix.
+The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

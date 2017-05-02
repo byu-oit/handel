@@ -1,6 +1,8 @@
+.. _consuming-service-dependencies:
+
 Consuming Service Dependencies
 ==============================
-When you specify a dependency on a service using [[Service Dependencies]], that service is auto-wired to your application. This page contains information about how you can consume those injected dependencies in your application code to actually communicate with these services.
+When you specify a dependency on a service using :ref:`service-dependencies`, that service is auto-wired to your application. This page contains information about how you can consume those injected dependencies in your application code to actually communicate with these services.
 
 When Handel wires services together securely, it will inject environment variables into the consuming service for each service that it depends on. These environment variables provide information about the created service that tell you information such as where to find the service and how to communicate with it. 
 
@@ -28,6 +30,8 @@ The following Handel file defines a Beanstalk service that depends on an SQS que
           type: sqs
 
 Handel will inject environment variables in the Beanstalk application for the SQS queue, such as the queue's ARN, name, and URL. You can read these environment variables when you are writing code to communicate with the queue.
+
+.. _environment-variable-prefix:
 
 Environment Variable Prefix
 ---------------------------

@@ -1,9 +1,8 @@
+.. _handel-vs-cloudformation:
+
 Handel vs. CloudFormation
 =========================
-
-Introduction
-------------
-This page contains information comparing CloudFormation to Handel.
+CloudFormation is one of the most commonly used methods for automatically deploying applications to AWS. In fact, Handel uses CloudFormation under the hood to do your deployments. This page compares using vanilla CloudFormation and the Handel library.
 
 CloudFormation
 --------------
@@ -280,7 +279,7 @@ Here is an example CloudFormation template that creates a Beanstalk server and w
 
 Handel
 ------
-Handel is a deployment library that actually runs *on top of* CloudFormation. The services you specify in Handel are turned into CloudFormation templates that are created on your behalf. 
+Handel is a deployment library that runs on top of CloudFormation. The services you specify in Handel are turned into CloudFormation templates that are created on your behalf. 
 
 Because of this approach, Handel frees you from having to worry about the detail of CloudFormation, as well as security services such as IAM and VPC. This simplicity comes at the cost of lack of flexibility in some cases. For example, when wiring up permissions between a Beanstalk app and an S3 bucket, you don't get to choose what permissions exactly will be applied. Handel will apply what it considers to be reasonable and secure permissions.
 

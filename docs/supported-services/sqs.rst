@@ -1,3 +1,5 @@
+.. _sqs:
+
 SQS (Simple Queue Service)
 ==========================
 This document contains information about the SQS service supported in Handel. This Handel service provisions an SQS queue for use by your applications.
@@ -76,7 +78,7 @@ The SQS service outputs the following environment variables:
    * - <URL_PREFIX>_QUEUE_ARN
      - The AWS ARN of the created queue
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See the [Consuming Service Dependencies](https://github.com/byu-oit-appdev/handel/wiki/Consuming-Service-Dependencies#environment-variable-prefix) page for information about the structure of this prefix.
+The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

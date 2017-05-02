@@ -1,5 +1,7 @@
-S3
-==
+.. _s3:
+
+S3 (Simple Storage Service)
+===========================
 This document contains information about the S3 service supported in Handel. This Handel service provisions an S3 bucket for use by your applications.
 
 Service Limitations
@@ -69,7 +71,7 @@ This service outputs the following environment variables:
    * - <URL_PREFIX>_REGION_ENDPOINT
      - The domain of the S3 region endpoint, which you can use when configuring your AWS SDK
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See the [Service Dependencies](https://github.com/byu-oit-appdev/handel/wiki/Service-Dependencies#environment-variable-prefix) page for information about the structure of this prefix.
+The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

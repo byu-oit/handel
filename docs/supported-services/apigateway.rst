@@ -1,3 +1,5 @@
+.. _apigateway:
+
 API Gateway
 ===========
 This document contains information about the API Gateway service supported in Handel. This Handel service provisions resources such as API Gateway and Lambda to provide a serverless HTTP application.

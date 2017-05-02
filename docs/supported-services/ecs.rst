@@ -1,3 +1,5 @@
+.. _ecs:
+
 ECS (Elastic Container Service)
 ===============================
 This page contains information about the ECS service supported in Handel. This Handel service provisions your application code as an ECS Service, with included supporting infrastructure such as load balancers and auto-scaling groups.

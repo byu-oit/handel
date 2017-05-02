@@ -1,6 +1,8 @@
+.. _external-dependencies:
+
 External Dependencies
 =====================
-Handel allows you to wire up [service dependencies](https://github.com/byu-oit-appdev/handel/wiki/Service-Dependencies) inside your Handel file. In most cases, this works fine because your entire application often lives inside a single source code repository.
+Handel allows you to wire up :ref:`service-dependencies` inside your Handel file. In most cases, this works fine because your entire application often lives inside a single source code repository.
 
 In some cases, however, you are writing an application that depends on services owned by another team. For example, many teams use SQS queues to communicate between internal applications. In this case, you often find yourself in situations where you want to depend on an SQS queue that lives in another Handel file in a different repository.
 

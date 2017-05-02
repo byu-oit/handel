@@ -1,11 +1,13 @@
+.. _introduction:
+
 Introduction
 ============
 
 Handel is a library that will help you deploy your application to AWS.
 Configuring automated provisioning and deployment for your applications
-in AWS can be very difficult and time-consuming. Handel does as much of
-the fiddly details of your deployment as it can so that you can focus on
-just configuring the services you want to use.
+in AWS can be very difficult and time-consuming. Handel takes care of
+as many of the painful little details of your deployment as it can, 
+so that you can focus on just configuring the services you want to use.
 
 Why does Handel exist?
 ----------------------
@@ -63,11 +65,11 @@ Handel provides the following benefits over vanilla CloudFormation:
 What services are supported?
 ----------------------------
 
-Handel does not support all AWS services. See the [[Supported Services]]
-for information on which services you can use with Handel.
+Handel does not support all AWS services. See the :ref:`supported-services`
+section for information on which services you can use with Handel.
 
 How can I deploy an application with Handel?
 --------------------------------------------
 
-See the [[Tutorial - Creating a Handel App]] page for a tutorial
+See the :ref:`creating-a-handel-app` page for a tutorial
 creating a simple app and deploying it with Handel.
