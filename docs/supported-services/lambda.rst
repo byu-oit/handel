@@ -71,10 +71,10 @@ Example Handel File
     name: my-lambda
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: lambda
-        path_to_code: .
+          type: lambda
+          path_to_code: .
 
 Running a scheduled Lambda
 --------------------------

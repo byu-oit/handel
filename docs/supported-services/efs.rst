@@ -28,10 +28,10 @@ Example Handel File
     name: my-efs-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: efs
-        performance_mode: general_purpose
+          type: efs
+          performance_mode: general_purpose
 
 Depending on this service
 -------------------------

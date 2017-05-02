@@ -17,9 +17,9 @@ This Handel file shows an SQS service being configured:
     name: my-sns-topic
 
     environments:
-    dev:
-      queue:
-      type: sns
+      dev:
+        queue:
+          type: sns
 
 Depending on this service
 -------------------------

@@ -82,17 +82,17 @@ Example Handel File
     name: my-beanstalk-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: beanstalk
-        path_to_code: .
-        solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
-        key_name: aws-credential-detector # TODO - Get own key name
-        instance_type: t2.micro
-        health_check_url: /
-        min_instances: 1
-        max_instances: 1
-        environment_variables:
+          type: beanstalk
+          path_to_code: .
+          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          key_name: aws-credential-detector # TODO - Get own key name
+          instance_type: t2.micro
+          health_check_url: /
+          min_instances: 1
+          max_instances: 1
+          environment_variables:
             MY_INJECTED_VAR: myValue
 
 Depending on this service

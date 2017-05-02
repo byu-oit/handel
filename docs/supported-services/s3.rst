@@ -47,11 +47,11 @@ This Handel file shows an S3 service being configured:
     name: my-s3-bucket
 
     environments:
-    dev:
-      mybucket:
-      type: s3
-      bucket_name: my-cool-bucket
-      versioning: enabled
+      dev:
+        mybucket:
+          type: s3
+          bucket_name: my-cool-bucket
+          versioning: enabled
 
 Depending on this service
 -------------------------

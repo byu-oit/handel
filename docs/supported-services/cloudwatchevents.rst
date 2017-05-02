@@ -35,17 +35,17 @@ This Handel file shows a CloudWatch Events service being configured, producing t
     name: my-scheduled-lambda
 
     environments:
-    dev:
+      dev:
         function:
-        type: lambda
-        path_to_code: .
-        handler: app.handler
-        runtime: nodejs6.10
+          type: lambda
+          path_to_code: .
+          handler: app.handler
+          runtime: nodejs6.10
         schedule:
-        type: cloudwatchevent
-        schedule: rate(1 minute)
-        event_consumers:
-        - service_name: function
+          type: cloudwatchevent
+          schedule: rate(1 minute)
+          event_consumers:
+          - service_name: function
             event_input: '{"some": "param"}'
 
 This Handel file shows a CloudWatch Events service being configured, producing to a Lambda when an EBS volume is created:
@@ -57,16 +57,16 @@ This Handel file shows a CloudWatch Events service being configured, producing t
     name: my-event-lambda
 
     environments:
-    dev:
+      dev:
         function:
-        type: lambda
-        path_to_code: .
-        handler: app.handler
-        runtime: nodejs6.10
+          type: lambda
+          path_to_code: .
+          handler: app.handler
+          runtime: nodejs6.10
         schedule:
-        type: cloudwatchevent
-        schedule: rate(1 minute)
-        event_pattern:
+          type: cloudwatchevent
+          schedule: rate(1 minute)
+          event_pattern:
             source: 
             - aws.ec2
             detail-type: 
@@ -74,8 +74,8 @@ This Handel file shows a CloudWatch Events service being configured, producing t
             detail:
             event:
             - createVolume
-        event_consumers:
-        - service_name: function
+          event_consumers:
+          - service_name: function
 
 Depending on this service
 -------------------------

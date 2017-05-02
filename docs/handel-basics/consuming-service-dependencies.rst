@@ -13,19 +13,19 @@ The following Handel file defines a Beanstalk service that depends on an SQS que
     name: beanstalk-example
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: beanstalk
-        path_to_code: .
-        solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
-        instance_type: t2.micro
-        health_check_url: /
-        min_instances: 1
-        max_instances: 1
-        dependencies:
-        - queue
+          type: beanstalk
+          path_to_code: .
+          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          instance_type: t2.micro
+          health_check_url: /
+          min_instances: 1
+          max_instances: 1
+          dependencies:
+          - queue
         queue:
-        type: sqs
+          type: sqs
 
 Handel will inject environment variables in the Beanstalk application for the SQS queue, such as the queue's ARN, name, and URL. You can read these environment variables when you are writing code to communicate with the queue.
 

@@ -17,14 +17,14 @@ In an application with all services to produce and consume events in the same Ha
 
     ...
     environments:
-    dev:
+      dev:
         function:
-        type: lambda
-        ...
+          type: lambda
+          ...
         topic:
-        type: sns
-        event_consumers:
-        - service_name: function
+          type: sns
+          event_consumers:
+          - service_name: function
     ...
 
 For external service events, you need to provide some more information that tells Handel exactly where the consumer service can be located. The syntax for an external event service name is of the following form:
@@ -68,12 +68,12 @@ To specify external service events, you must follow this exact order when initia
     name: myconsumer
 
     environments:
-    dev:
+      dev:
         function:
-        type: lambda
-        path_to_code: .
-        handler: index.handler
-        runtime: nodejs6.10
+          type: lambda
+          path_to_code: .
+          handler: index.handler
+          runtime: nodejs6.10
 
 2. Deploy the application that contains the producer service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,9 +85,9 @@ To specify external service events, you must follow this exact order when initia
     name: myproducer
 
     environments:
-    dev:
+      dev:
         topic:
-        type: topic
+          type: topic
 
 3. Add an explicit allow in the consumer service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,14 +99,14 @@ To specify external service events, you must follow this exact order when initia
     name: myconsumer
 
     environments:
-    dev:
+      dev:
         function:
-        type: lambda
-        path_to_code: .
-        handler: index.handler
-        runtime: nodejs6.10
-        external_event_producers: # Explicit allow for other apps to send events to me
-        - https://raw.githubusercontent.com/byu-oit-appdev/producerrepo/master/handel.yml#appName=myproducer&environmentName=dev&serviceName=topic
+          type: lambda
+          path_to_code: .
+          handler: index.handler
+          runtime: nodejs6.10
+          external_event_producers: # Explicit allow for other apps to send events to me
+          - https://raw.githubusercontent.com/byu-oit-appdev/producerrepo/master/handel.yml#appName=myproducer&environmentName=dev&serviceName=topic
 
 Note that in the above example we've added the *external_event_producers*, which grants an explicit allow to the external producer service.
 
@@ -120,10 +120,10 @@ Note that in the above example we've added the *external_event_producers*, which
     name: myproducer
 
     environments:
-    dev:
+      dev:
         topic:
-        type: topic
-        event_consumers:
-        - service_name: https://raw.githubusercontent.com/byu-oit-appdev/consumerrepo/master/handel.yml#appName=myconsumer&environmentName=dev&serviceName=function
+          type: topic
+          event_consumers:
+          - service_name: https://raw.githubusercontent.com/byu-oit-appdev/consumerrepo/master/handel.yml#appName=myconsumer&environmentName=dev&serviceName=function
 
 Note that in the above example we've added the *event_consumers*, which sets up the topic to produce events to the consumer Lambda service.

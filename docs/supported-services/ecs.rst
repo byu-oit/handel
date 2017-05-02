@@ -108,16 +108,16 @@ This Handel file shows an ECS service being configured:
     name: my-ecs-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: ecs
-        key_name: some_ssh_keypair
-        max_mb: 256
-        min_instances: 1
-        max_instances: 1
-        port_mappings:
-        - 5000
-        environment_variables:
+          type: ecs
+          key_name: some_ssh_keypair
+          max_mb: 256
+          min_instances: 1
+          max_instances: 1
+          port_mappings:
+          - 5000
+          environment_variables:
             MY_TEST_ENV: my_test_value
 
 Depending on this service

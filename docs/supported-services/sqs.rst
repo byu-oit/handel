@@ -52,13 +52,13 @@ This Handel file shows an SQS service being configured:
     environments:
       dev:
         queue:
-        type: sqs
-        queue_type: fifo
-        content_based_deduplication: true
-        delay_seconds: 2
-        max_message_size: 262140
-        message_retention_period: 345601
-        visibility_timeout: 40
+          type: sqs
+          queue_type: fifo
+          content_based_deduplication: true
+          delay_seconds: 2
+          max_message_size: 262140
+          message_retention_period: 345601
+          visibility_timeout: 40
 
 Depending on this service
 -------------------------

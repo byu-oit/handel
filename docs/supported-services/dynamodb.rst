@@ -77,16 +77,16 @@ Example Handel File
     name: my-ecs-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: dynamodb
-        partition_key: # Required, NOT updateable
+          type: dynamodb
+          partition_key: # Required, NOT updateable
             name: MyPartionKey
             type: String
-        sort_key:
+          sort_key:
             name: MySortKey
             type: Number
-        provisioned_throughput:
+          provisioned_throughput:
             read_capcity_units: 6
             write_capacity_units: 6
 

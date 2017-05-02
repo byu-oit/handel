@@ -17,13 +17,13 @@ The following example shows an SNS topic specifying producing events to an SQS q
     name: sns-events-example
 
     environments:
-    dev:
+      dev:
         topic:
-        type: sns
-        event_consumers:
-        - service_name: queue
+          type: sns
+          event_consumers:
+          - service_name: queue
         queue:
-        type: sqs
+          type: sqs
 
 When you specify event consumers in your producer service, you don't need to specify anything on the consumer services. They will be automatically wired appropriately to the producer service in which you specified them as consumers. 
 

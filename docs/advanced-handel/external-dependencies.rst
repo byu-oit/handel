@@ -17,14 +17,14 @@ In an application with dependencies in the same Handel file, the dependency info
     
     ...
     environments:
-    dev:
+      dev:
         webapp:
-        type: beanstalk
-        ...
-        dependencies:
-        - topic
+          type: beanstalk
+          ...
+          dependencies:
+          - topic
         topic:
-        type: sns
+          type: sns
     ...
 
 For external dependencies, you need to provide some more information that tells Handel exactly where the service can be located. The syntax for an external dependency is of the following form:
@@ -72,9 +72,9 @@ In this example, we have an SQS queue in an external service that our service wi
     name: external-dependency
 
     environments:
-    dev:
+      dev:
         queue:
-        type: sqs
+          type: sqs
 
 2. Deploy the consuming application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,11 +87,11 @@ In this example, we have a Beanstalk service that will depend on the external SQ
     name: my-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: beanstalk
-        path_to_code: .
-        solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          type: beanstalk
+          path_to_code: .
+          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
 
 *Note that the above configuration does not yet add an external dependency. That must come later.* 
 
@@ -105,11 +105,11 @@ In this example, we have a Beanstalk service that will depend on the external SQ
     name: external-dependency
 
     environments:
-    dev:
+      dev:
         queue:
-        type: sqs
-        external_dependent_services: # Explicit allow for other apps to consume me
-        - https://raw.githubusercontent.com/byu-oit-appdev/myrepo/master/handel.yml#appName=my-app&environmentName=dev&serviceName=webapp
+          type: sqs
+          external_dependent_services: # Explicit allow for other apps to consume me
+          - https://raw.githubusercontent.com/byu-oit-appdev/myrepo/master/handel.yml#appName=my-app&environmentName=dev&serviceName=webapp
 
 Note in the example above the *external_dependent_services* has been added.
 
@@ -123,12 +123,12 @@ Note in the example above the *external_dependent_services* has been added.
     name: my-app
 
     environments:
-    dev:
+      dev:
         webapp:
-        type: beanstalk
-        path_to_code: .
-        solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
-        dependencies:
-        - https://raw.githubusercontent.com/byu-oit-appdev/externalrepo/master/handel.yml#appName=external-dependency&environmentName=dev&serviceName=queue
+          type: beanstalk
+          path_to_code: .
+          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          dependencies:
+          - https://raw.githubusercontent.com/byu-oit-appdev/externalrepo/master/handel.yml#appName=external-dependency&environmentName=dev&serviceName=queue
 
 Note in the example above the *dependencies* has been added with the external dependency.

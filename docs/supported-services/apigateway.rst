@@ -78,15 +78,15 @@ This Handel file shows an API Gateway service being configured:
     name: my-apigateway-app
 
     environments:
-    dev:
+      dev:
         app:
-        type: apigateway
-        path_to_code: .
-        lambda_runtime: nodejs6.10
-        handler_function: index.handler
-        provisioned_memory: 256
-        function_timeout: 5
-        environment_variables:
+          type: apigateway
+          path_to_code: .
+          lambda_runtime: nodejs6.10
+          handler_function: index.handler
+          provisioned_memory: 256
+          function_timeout: 5
+          environment_variables:
             MY_FIRST_VAR: my_first_value
             MY_SECOND_VAR: my_second_value
 
