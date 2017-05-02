@@ -6,7 +6,7 @@ Handel is a library that provides easy deployments for applications in AWS. It r
 resources, automatically wiring up the painful security bits between resources.
 
 # Usage
-See the [Wiki](https://github.com/byu-oit-appdev/handel/wiki) for documentation on this library.
+See the [Handel docs](https://handel.readthedocs.io) on ReadTheDocs for documentation on this library.
 
 # Credits
 The concepts in this library were originally introduced by the platform engineers at [FamilySearch](https://familysearch.org/). I've adapted their concept of Blueprints for use in this library.
