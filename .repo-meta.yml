@@ -1,0 +1,52 @@
+--- 
+$schemaver: 1.1
+name: handel
+type: Command-line App
+aliases:
+short_description: Automated AWS deployments from a declarative spec file.
+assignment_group: gro:AD-Global Education Initiative
+notes: 
+maintained_by:
+  - dsw88
+developed_by_byu: True
+ddd:
+  business_domain: 
+  ubiquitous_language_url: 
+  context_map_url: 
+links:
+  system_documentation_url: https://github.com/byu-oit-appdev/handel
+  source_repo_url: https://github.com/byu-oit-appdev/handel
+  swagger_urls:
+microservice: False
+technologies_used:
+  - JavaScript
+  - Shell
+stages:
+  production:
+    urls:
+      product_page: https://github.com/byu-oit-appdev/handel
+      physical_url: 
+      virtual_url: 
+    hosting_location: 
+    aws_account: 
+    relationships: 
+      depends_on:
+        db_read_write:
+        db_read_only:
+        software:
+      supports:
+        software:
+        service:
+      reverse_proxy: 
+      runs_on:
+        server_cluster:
+        virtual_server:
+        rack_server:
+        blade_server:
+tags:
+  data-sensitivity: confidential
+  env: prd
+  app: handel
+  team: gro:AD-Global Education Initiative
+federation_json_url: https://raw.githubusercontent.com/byu-oit-appdev/handel/master/.repo-meta.yml
+
