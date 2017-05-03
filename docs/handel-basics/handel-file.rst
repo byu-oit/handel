@@ -63,12 +63,16 @@ The following limits exist on names in the deploy spec:
    :header-rows: 1
    
    * - Element
-     - Limit
+     - Length Limit
+     - Allowed Characters
    * - name
      - 30 characters
+     - Alphanumeric (a-Z, 0-9) and dashes (-)
    * - <environment_name>
      - 10 characters
+     - Alphanumeric (a-Z, 0-9) and dashes (-)
    * - <service_name>
      - 20 characters
+     - Alphanumeric (a-Z, 0-9) and dashes (-)
 
 There may be other service-specific limits. See :ref:`supported-services` for information on service-specific limits.
