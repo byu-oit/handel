@@ -29,8 +29,8 @@ This service takes the following parameters:
      - Description
    * - bucket_name
      - string
-     - Yes
-     - 
+     - No
+     - <appName>-<environmentName>-<serviceName>-<serviceType>
      - The name of the bucket to create. This name must be globally unique across all AWS accounts, so 'myBucket' will likely be taken. :)
    * - versioning
      - string
@@ -52,7 +52,7 @@ This Handel file shows an S3 service being configured:
       dev:
         mybucket:
           type: s3
-          bucket_name: my-cool-bucket
+          # Because we don't specify a bucket_name, the bucket will be named 'my-s3-bucket-dev-mybucket-s3' (see default in table above)
           versioning: enabled
 
 Depending on this service
