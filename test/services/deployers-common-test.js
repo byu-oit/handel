@@ -307,7 +307,7 @@ describe('deployers-common', function() {
             let serviceContext = new ServiceContext(appName, envName, serviceName, "lambda", "1", {});
             let policyStatements = deployersCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
-            expect(policyStatements[1].Resource).to.contain(`parameter/${appName}-${envName}-${serviceName}*`)
+            expect(policyStatements[1].Resource).to.contain(`parameter/${appName}*`)
         });
     });
 
