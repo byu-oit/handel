@@ -51,6 +51,11 @@ Parameters
      - No
      - 
      - Any environment variables you want to inject into your code.
+   * - tags
+     - Tags
+     - No
+     - 
+     - Any tags you want to apply to your Lambda
 
 EnvironmentVariables element
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,6 +67,15 @@ The EnvironmentVariables element is defined by the following schema:
       <YOUR_ENV_NAME>: <your_env_value>
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
+
+Tags element
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
@@ -77,6 +91,10 @@ Example Handel File
         webapp:
           type: lambda
           path_to_code: .
+          environment_variables:
+            MY_ENV: myEnvValue
+          tags:
+            mytag: mytagvalue
 
 Running a scheduled Lambda
 --------------------------

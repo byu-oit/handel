@@ -23,6 +23,13 @@ Resources:
       Role: {{executionRoleArn}}
       Runtime: {{runtime}}
       Timeout: {{timeout}}
+      {{#if tags}}
+      Tags:
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
       # No VPC support for now
 Outputs:
   FunctionName:
