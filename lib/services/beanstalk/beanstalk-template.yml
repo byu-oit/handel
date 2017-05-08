@@ -46,5 +46,11 @@ Resources:
       TemplateName: !Ref ConfigurationTemplate
       VersionLabel: !Ref ApplicationVersion
       Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
       - Key: Name
         Value: {{applicationName}}
