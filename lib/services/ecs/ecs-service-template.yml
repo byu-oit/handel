@@ -1,90 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Handel-created ECS Cluster
-Parameters:
-  ClusterName:
-    Description: Name of the cluster to be created
-    Type: String
-  MinInstances:
-    Description: Minimum number of instances in the cluster
-    Type: Number
-    Default: 1
-  MaxInstances:
-    Description: Maximum number of instances in the cluster
-    Type: Number
-    Default: 1
-  InstanceType:
-    Description: The type of ec2 instances to use in the cluster
-    Type: String
-    AllowedValues:
-    - t2.nano
-    - t2.micro
-    - t2.small
-    - t2.medium
-    - t2.large
-    - m4.large
-    - m4.xlarge
-    - m4.2xlarge
-    - m3.medium
-    - m3.large
-    - m3.xlarge
-    - m3.2xlarge
-    ConstraintDescription: Must be a valid EC2 instance type
-    Default: t2.micro
-  EcsSecurityGroup:
-    Description: Security Group for the ECS cluster
-    Type: String
-  AmiImageId:
-    Description: The Amazon ECS optimized AMI image id
-    Type: String
-  UserData:
-    Description: Base-64 encoded bash script to execute on startup as part of the
-      instance config
-    Type: String
-  AsgSubnetIds:
-    Description: The list of subnet ids to deploy the cluster in
-    Type: CommaDelimitedList
-  AsgCooldown:
-    Description: The cooldown time in seconds for the auto-scale group
-    Type: Number
-    Default: '300'
-  DesiredCount:
-    Description: The desired count of running tasks
-    Type: Number
-  MinimumHealthyPercentDeployment:
-    Description: The minimum percent of tasks to keep running during a deployment
-    Type: Number
-    Default: 50
-  AlbSubnets:
-    Description: The list of subnet ids to deploy the cluster in
-    Type: CommaDelimitedList
-  ContainerName:
-    Description: The name of the container from the task definition
-    Type: String
-  ContainerPort:
-    Description: The port of your application in the container
-    Type: Number
-  DockerImage:
-    Description: The Docker image to be deployed (including tag)
-    Type: String
-  VpcId:
-    Description: The ID of the VPC in which you are running
-    Type: String
-  EcsServiceRole:
-    Description: The ARN of the role the ECS service (not the task) will assume
-    Type: String
-  TaskRole:
-    Description: The ARN of the task role for the ECS tasks in your service
-    Type: String
-  MaxMb:
-    Description: The max amount of memory to allocate for the task
-    Type: Number
-  CpuUnits:
-    Description: The amount of CPU units to allocate for the task
-    Type: Number
-  DeployVersion:
-    Description: The Handel deploy version
-    Type: String
+
 Resources:
   EcsIamRole:
     Type: AWS::IAM::Role
@@ -123,39 +40,41 @@ Resources:
           DeleteOnTermination: true
       IamInstanceProfile:
         Ref: EcsInstanceProfile
-      ImageId:
-        Ref: AmiImageId
+      ImageId: {{amiImageId}}
       InstanceMonitoring: false
-      InstanceType:
-        Ref: InstanceType
+      InstanceType: {{instanceType}}
       SecurityGroups:
-      - Ref: EcsSecurityGroup
-      UserData:
-        Ref: UserData
+      - {{ecsSecurityGroupId}}
+      UserData: {{{userData}}}
       {{#if sshKeyName}}
       KeyName: {{sshKeyName}}
       {{/if}}
   EcsAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      Cooldown:
-        Ref: AsgCooldown
-      DesiredCapacity:
-        Ref: MinInstances
+      Cooldown: {{asgCooldown}}
+      DesiredCapacity: {{minInstances}}
       HealthCheckGracePeriod: 300
       HealthCheckType: EC2
       LaunchConfigurationName:
         Ref: EcsLaunchConfiguration
-      MaxSize:
-        Ref: MaxInstances
-      MinSize:
-        Ref: MinInstances
+      MaxSize: {{maxInstances}}
+      MinSize: {{minInstances}}
       Tags:
-      - Key: Name
-        Value: !Ref ClusterName
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
         PropagateAtLaunch: true
-      VPCZoneIdentifier:
-        Ref: AsgSubnetIds
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{clusterName}}
+        PropagateAtLaunch: true
+      VPCZoneIdentifier: 
+      {{#each privateSubnetIds}}
+      - {{this}}
+      {{/each}}
   EcsAutoScalingPolicyUp:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -174,8 +93,7 @@ Resources:
       AlarmDescription: ECS Cluster Memory Too High Scaling Alarm
       Period: '300'
       Dimensions:
-      - Value:
-          Ref: ClusterName
+      - Value: {{clusterName}}
         Name: ClusterName
       EvaluationPeriods: '1'
       Namespace: AWS/ECS
@@ -198,8 +116,7 @@ Resources:
       AlarmDescription: ECS Cluster Memory Too Low Scaling Alarm
       Period: '300'
       Dimensions:
-      - Value:
-          Ref: ClusterName
+      - Value: {{clusterName}}
         Name: ClusterName
       EvaluationPeriods: '1'
       Namespace: AWS/ECS
@@ -207,8 +124,7 @@ Resources:
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName:
-        Ref: ClusterName
+      ClusterName: {{clusterName}}
   EcsService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -219,30 +135,24 @@ Resources:
     Properties:
       Cluster:
         Ref: EcsCluster
-      DesiredCount:
-        Ref: DesiredCount
+      DesiredCount: {{desiredCount}}
       DeploymentConfiguration:
-        MinimumHealthyPercent:
-          Ref: MinimumHealthyPercentDeployment
+        MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
       {{#if routingInfo}}
       LoadBalancers:
-      - ContainerName:
-          Ref: ContainerName
-        ContainerPort:
-          Ref: ContainerPort
+      - ContainerName: {{containerName}}
+        ContainerPort: {{containerPort}}
         TargetGroupArn:
           Ref: AlbTargetGroup
-      Role: !Ref EcsServiceRole
+      Role: {{ecsServiceRoleArn}}
       {{/if}}
       TaskDefinition:
         Ref: TaskDefinition
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family:
-        Ref: ClusterName
-      TaskRoleArn:
-        Ref: TaskRole
+      Family: {{clusterName}}
+      TaskRoleArn: {{taskRoleArn}}
       NetworkMode: bridge
       {{#if volumes}}
       Volumes:
@@ -253,14 +163,10 @@ Resources:
       {{/each}}
       {{/if}}
       ContainerDefinitions:
-      - Name:
-          Ref: ClusterName
-        Image:
-          Ref: DockerImage
-        Memory:
-          Ref: MaxMb
-        Cpu:
-          Ref: CpuUnits
+      - Name: {{clusterName}}
+        Image: {{dockerImage}}
+        Memory: {{maxMb}}
+        Cpu: {{cpuUnits}}
         Essential: true
         Privileged: false
         DisableNetworking: false
@@ -273,8 +179,7 @@ Resources:
         {{/if}}
         Environment:
         - Name: HANDEL_DEPLOY_VERSION # This is required to force-update the thing
-          Value: 
-            Ref: DeployVersion
+          Value: {{deployVersion}}
         {{#if environmentVariables}}
         {{#each environmentVariables}}
         - Name: {{@key}}
@@ -293,22 +198,31 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
     Properties:
-      Name:
-        Ref: ClusterName
+      Name: {{clusterName}}
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
         Value: {{routingInfo.timeout}}
       Subnets:
-        Ref: AlbSubnets
+      {{#each publicSubnetIds}}
+      - {{this}}
+      {{/each}}
       SecurityGroups:
       - Ref: AlbSecurityGroup
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{clusterName}}-alb
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for ALB
-      VpcId:
-        Ref: VpcId
+      VpcId: {{vpcId}}
       SecurityGroupIngress:
       - IpProtocol: tcp
         {{#if routingInfo.httpsCertificate}}
@@ -319,12 +233,20 @@ Resources:
         ToPort: '80'
         {{/if}}
         CidrIp: 0.0.0.0/0
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{clusterName}}-alb
   EcsIngressFromAlb:
     Type: AWS::EC2::SecurityGroupIngress
     DependsOn: AlbSecurityGroup
     Properties:
-      GroupId:
-        Ref: EcsSecurityGroup
+      GroupId: {{ecsSecurityGroupId}}
       IpProtocol: tcp
       FromPort: '0'
       ToPort: '65535'
@@ -376,13 +298,20 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      Name:
-        Ref: ClusterName
+      Name: {{clusterName}}
       Port: 80
       Protocol: HTTP
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{clusterName}}-alb
       UnhealthyThresholdCount: 2
-      VpcId:
-        Ref: VpcId
+      VpcId: {{vpcId}}
   {{/if}}
 Outputs:
   EcsClusterId:

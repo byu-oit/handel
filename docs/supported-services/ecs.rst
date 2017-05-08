@@ -44,18 +44,28 @@ Parameters
    * - max_mb
      - string
      - No
-     - 256
-     - How many MB of memory you wish to allocate for each container instance of your service. This will be used when calculating how many containers to fit on each host of the instance type you specify
+     - 128
+     - How many megabytes (MB) of memory you wish to allocate for each container instance of your service. This will be used when calculating how many containers to fit on each host of the instance type you specify
+   * - cpu_units
+     - number
+     - No
+     - 100
+     - The minimum number of CPU units you want to dedicate to the container.
    * - instance_type
      - string
      - No
      - t2.micro
      - The type of EC2 instance to use for your cluster. A larger instance will fit more task containers on each instance
-   * - multi_az
-     - boolean
+   * - min_containers
+     - number
      - No
-     - false
-     - Specify whether the service should be required to be multi-AZ. If set to true, you will have at least two EC2 instances provisioned regardless of whether or not your container tasks could fit on a single instance.
+     - 1
+     - The minimum number of containers to run in the service.
+   * - max_containers
+     - number
+     - No
+     - 1
+     - The maximum number of containers to run in the service.
    * - routing
      - Routing
      - No
@@ -66,6 +76,11 @@ Parameters
      - No
      - 
      - The EnvironmentVariables element details environment variables you wish to be injected into your application
+   * - tags
+     - Tags
+     - No
+     - 
+     - Any tags you want to apply to your Beanstalk environment
 
 PortMappings element
 ~~~~~~~~~~~~~~~~~~~~
@@ -98,6 +113,15 @@ The Routing element is defined by the following schema:
     routing:
       type: <http|https>
       https_certificate # Required if you select https as the routing type
+
+Tags element
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
