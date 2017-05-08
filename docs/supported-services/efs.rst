@@ -19,6 +19,20 @@ Parameters
      - No
      - general_purpose
      - What kind of performance for the EFS mount. Allowed values: general_purpose, max_io
+   * - tags
+     - Tags
+     - No
+     - 
+     - Any tags you wish to apply to this EFS mount.
+
+Tags element
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
