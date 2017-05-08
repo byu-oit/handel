@@ -1,0 +1,37 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created EFS mount
+
+Resources:
+  FileSystem:
+    Type: "AWS::EFS::FileSystem"
+    Properties: 
+      FileSystemTags:
+      - Key: Name
+        Value: {{fileSystemName}}
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      PerformanceMode: {{performanceMode}}
+  MountTargetA:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SecurityGroups:
+      - {{securityGroupId}}
+      SubnetId: {{subnetAId}}
+  MountTargetB:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SecurityGroups:
+      - {{securityGroupId}}
+      SubnetId: {{subnetBId}}
+
+Outputs:
+  EFSFileSystemId:
+    Description: The ID of the EFS file system
+    Value: !Ref FileSystem
