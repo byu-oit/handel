@@ -64,10 +64,35 @@ Parameters
      - 3
      - The timeout to use for your Lambda function. Any functions that go over this timeout will be killed.
    * - environment_variables
-     - map
+     - EnvironmentVariables
      - No
-     - {}
+     - 
      - A set of key/value pairs to set as environment variables on your API.
+   * - tags
+     - Tags
+     - No
+     - 
+     - Any tags you want to apply to your Beanstalk environment
+
+EnvironmentVariables element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The EnvironmentVariables element is defined by the following schema:
+
+.. code-block:: yaml
+
+    environment_variables:
+      <YOUR_ENV_NAME>: <your_env_value>
+
+<YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
+
+Tags element
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
