@@ -37,6 +37,20 @@ This service takes the following parameters:
      - No
      - disabled
      - Whether to enable versioning on the bucket. Allowed values: 'enabled', 'disabled'
+   * - tags
+     - Tags
+     - No
+     -
+     - Any tags you want to apply to your S3 bucket
+
+Tags element
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
