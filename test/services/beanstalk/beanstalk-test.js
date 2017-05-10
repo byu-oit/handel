@@ -122,6 +122,9 @@ describe('beanstalk deployer', function() {
             let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 RoleName: "FakeRole"
             }));
+            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
+                RoleName: "FakeServiceRole"
+            }));
             let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
@@ -137,6 +140,7 @@ describe('beanstalk deployer', function() {
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
+                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
@@ -146,6 +150,9 @@ describe('beanstalk deployer', function() {
         it('should update the service if it doesnt exist', function() {
             let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
                 RoleName: "FakeRole"
+            }));
+            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
+                RoleName: "FakeServiceRole"
             }));
             let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Bucket: "FakeBucket",
@@ -162,6 +169,7 @@ describe('beanstalk deployer', function() {
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
+                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
