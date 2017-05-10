@@ -33,9 +33,9 @@ Resources:
         OptionName: IamInstanceProfile
         Value: !Ref InstanceProfile
       {{#each optionSettings}}
-      - Namespace: {{namespace}}
+      - Namespace: "{{namespace}}"
         OptionName: {{optionName}}
-        Value: {{value}}
+        Value: "{{value}}"
       {{/each}}
       SolutionStackName: {{solutionStack}}
   Environment:

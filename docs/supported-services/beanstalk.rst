@@ -57,6 +57,11 @@ Parameters
      - No
      - 1
      - The maximum number of instances that can be in the auto-scale group.
+   * - routing
+     - Routing
+     - No
+     - 
+     - The Routing element details what kind of routing you want to your ECS service (if any)
    * - environment_variables
      - EnvironmentVariables
      - No
@@ -78,6 +83,16 @@ The EnvironmentVariables element is defined by the following schema:
       <YOUR_ENV_NAME>: <your_env_value>
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
+
+Routing element
+~~~~~~~~~~~~~~~
+The Routing element is defined by the following schema:
+
+.. code-block:: yaml
+    
+    routing:
+      type: <http|https>
+      https_certificate # Required if you select https as the routing type
 
 Tags element
 ~~~~~~~~~~~~
