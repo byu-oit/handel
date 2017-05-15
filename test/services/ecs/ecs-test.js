@@ -23,8 +23,12 @@ describe('ecs deployer', function() {
     });
 
     describe('check', function() {
-        it('should require the port_mappings parameter', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+        it('should require the port_mappings parameter when routing is specified', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                routing: {
+                    type: 'http'
+                }
+            });
             let errors = ecs.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("'port_mappings' parameter is required");

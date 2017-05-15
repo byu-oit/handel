@@ -31,11 +31,6 @@ Parameters
      - Required
      - Default
      - Description
-   * - port_mappings
-     - PortMappings
-     - Yes
-     - 
-     - The PortMappings element details which ports to map onto the host from your container
    * - key_name
      - string
      - No
@@ -71,6 +66,11 @@ Parameters
      - No
      - 
      - The Routing element details what kind of routing you want to your ECS service (if any)
+   * - port_mappings
+     - PortMappings
+     - No
+     - 
+     - The PortMappings element details which ports to map onto the host from your container. This element is required if you specify the 'routing' element.
    * - environment_variables
      - EnvironmentVariables
      - No
