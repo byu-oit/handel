@@ -1,0 +1,11 @@
+version: 1
+
+name: myapp
+
+environments:
+  dev:
+    queue:
+      type: sqs
+  prd:
+    queue:
+      type: sqs
