@@ -1,106 +1,110 @@
 #!/usr/bin/env node
 const handel = require('../lib/handel');
-const program = require('commander'); //TODO - I don't like this CLI args library much, find another one
+const minimist = require('minimist');
 const fs = require('fs');
 const path = require('path');
 const winston = require('winston');
 const util = require('../lib/util/util');
 const yaml = require('js-yaml');
+const cli = require('../lib/cli');
 
-program
-    .arguments('<file>')
-    .option('-c, --account-config-file <configfile>', 'The account config file used by Handel')
-    .option('-a --account-config <base64_config>', 'The Base 64-encoded JSON string of the YAML account config file')
-    .option('-d, --handel-file <handelfile>', 'The Handel deploy specification file provided by the user')
-    .option('-e, --environments-to-deploy <system>', 'A comma-delimited list of the environments from the deploy spec that you wish to deploy')
-    .option('-v, --deploy-version <version>', 'The version of the current deployment')
-    .option('-l, --log-level <level>', `The level of logging to use: 'debug' or 'info'`)
-    .parse(process.argv);
-
-
-function getAbsoluteConfigFilePath(filePath) {
-    var absolutePath;
-    if( fs.existsSync(filePath) ) {
-        absolutePath = path.resolve(filePath);
-    }
-    if(!absolutePath) {
-        winston.error(`Invalid file path for config file: ${filePath}`);
-        process.exit(1);
-    }
-    return absolutePath;
-}
-
-function getAccountConfigFilePath(configFilePath) {
-    if (!configFilePath) {
-        winston.error("Missing account-config-file parameter");
-        process.exit(1);
-    }
-    return getAbsoluteConfigFilePath(configFilePath);
-}
-
-function getHandelFilePath(handelFilePath) {
-    if (!handelFilePath) {
-        winston.error("Missing handel-file parameter");
-        process.exit(1);
-    }
-    return getAbsoluteConfigFilePath(handelFilePath);
-}
-
-function getDeployVersion(deployVersion) {
-    if (!deployVersion) {
-        winston.error("Missing deploy-version parameter");
-        process.exit(1);
-    }
-    return deployVersion;
-}
-
-function getLogLevel(logLevel) {
-    if(logLevel) {
-        if(logLevel !== 'debug' && logLevel !== 'info') {
-            throw new Error(`Invalid LogLevel provided: ${logLevel}`);
-        }
-        return logLevel;
-    }
-    return "info"; //Default to info
-}
-
-winston.level = getLogLevel(program.logLevel);
-
-if(!program.environmentsToDeploy) {
-    winston.error("Missing environments-to-deploy parameter");
+function printAndExit(msg) {
+    console.log(msg)
     process.exit(1);
 }
 
-let accountConfig = null;
-if(program.accountConfig) {
-    accountConfig = yaml.safeLoad(new Buffer(program.accountConfig, 'base64').toString());
-}
-else {
-    let absoluteConfigFilePath = getAccountConfigFilePath(program.accountConfigFile);
-    accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
-}
-let absoluteHandelFilePath = getHandelFilePath(program.handelFile);
-let deployVersion = getDeployVersion(program.deployVersion);
-handel.deploy(accountConfig, absoluteHandelFilePath, program.environmentsToDeploy.split(","), deployVersion)
-    .then(envDeployResults => {
-        let success = true;
-        for(let envDeployResult of envDeployResults) {
-            if(envDeployResult.status !== 'success') {
-                winston.warn(`Error while deploying environment: ${envDeployResult.message}`);
-                winston.warn(envDeployResult.error);
-                success = false;
-            }
-        }
+function printGeneralUsage() {
+    let usageMsg = `Usage: handel <action> <args>
 
-        if(success) {
-            winston.info("Finished deploying everything successfully");
+Action:
+Check -- Checks the contents of your Handel file for errors.
+Deploy -- Deploys the given environments from your Handel file to your AWS account.
+Delete -- Deletes the given environments from your Handel file out of your AWS account.
+
+Each phase has its own unique set of arguments it requires`;
+    printAndExit(usageMsg);
+}
+
+function printDeployUsage(errors) {
+    let usageMsg = `Usage: handel deploy -c <accountConfig> -e <envsToDeploy> -v <deployVersion>
+
+Options:
+-c [required] -- Path to account config or base64 encoded JSON string of config
+-e [required] -- A comma-separated list of environments from your handel file to deploy
+-v [required] -- An abitrary string for the version of the current deployment
+-d -- If this flag is set, verbose debug output will be enabled
+
+Errors: 
+  ${errors.join('\n  ')}`;
+    printAndExit(usageMsg);
+}
+
+function deployAction(handelFile, argv) {
+    if(argv.d) {
+        winston.level = 'debug';
+    }
+    else {
+        winston.level = 'info';
+    }
+    let accountConfig = cli.loadAccountConfig(argv.c);
+    let deployVersion = argv.v;
+    let environmentsToDeploy = argv.e.split(',');
+    handel.deploy(accountConfig, handelFile, environmentsToDeploy, deployVersion)
+        .then(envDeployResults => {
+            let success = true;
+            for (let envDeployResult of envDeployResults) {
+                if (envDeployResult.status !== 'success') {
+                    winston.warn(`Error while deploying environment: ${envDeployResult.message}`);
+                    winston.warn(envDeployResult.error);
+                    success = false;
+                }
+            }
+
+            if (success) {
+                winston.info("Finished deploying everything successfully");
+            }
+            else {
+                winston.warn("Finished deployment with errors");
+                process.exit(1);
+            }
+        })
+        .catch(err => {
+            winston.warn(err);
+            process.exit(1);
+        })
+}
+
+function checkAction(handelFile) {
+    handel.check(handelFile);
+}
+
+function deleteAction(argv) {
+    throw new Error("DELETE ACTION IS NOT IMPLEMENTED YET!");
+}
+
+let handelFile = cli.loadHandelFile();
+if(!handelFile) {
+    printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
+}
+let deployPhase = process.argv[2];
+let argv = minimist(process.argv.slice(2));
+switch (deployPhase) {
+    case "deploy":
+        let errors = cli.validateDeployArgs(argv, handelFile);
+        if (errors.length > 0) {
+            printDeployUsage(errors);
         }
         else {
-            winston.warn("Finished deployment with errors");
-            process.exit(1);
+            deployAction(handelFile, argv);
         }
-    })
-    .catch(err => {
-        winston.warn(err);
-        process.exit(1);
-    })
+        break;
+    case "check":
+        checkAction(handelFile);
+        break;
+    case "delete":
+        cli.validateDeleteArgs(argv);
+        deleteAction(handelFile, argv);
+        break;
+    default:
+        printGeneralUsage();
+}
