@@ -40,16 +40,6 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('getPreDeployContextForExternalRef', function() {
-        it('should return an empty preDeployContext', function() {
-            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return sns.getPreDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalRefPreDeployContext => {
-                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        })
-    });
-
     describe('bind', function() {
         it('should return an empty bind context since it doesnt do anything', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
@@ -57,15 +47,6 @@ describe('sns deployer', function() {
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(bindContext.dependencyServiceContext.appName).to.equal(serviceContext.appName);
-                });
-        });
-    });
-
-    describe('getBindContextForExternalRef', function() {
-        it('should return an empty bind context', function() {
-            return sns.getBindContextForExternalRef(null, null, null, null)
-                .then(externalBindContext => {
-                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -164,46 +145,6 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('getDeployContextForExternalRef', function() {
-        it('should return the DeployContext if the topic has already been deployed', function() {
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
-            
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: 'TopicName',
-                        OutputValue: 'FakeTopic'
-                    },
-                    {
-                        OutputKey: 'TopicArn',
-                        OutputValue: 'FakeTopicArn'
-                    }
-                ]
-            }));
-
-            return sns.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(externalDeployContext).to.be.instanceof(DeployContext);
-                });
-        });
-
-        it('should return an error if the topic hasnt been deployed yet', function() {
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
-            
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-
-            return sns.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(true).to.be.false;
-                })
-                .catch(err => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(err.message).to.contain("You must deploy it independently first");
-                });
-        });
-    });
-
     describe('consumeEvents', function() {
         it('should throw an error because SNS cant consume event services', function() {
             return sns.consumeEvents(null, null, null, null)
@@ -212,18 +153,6 @@ describe('sns deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("SNS service doesn't consume events");
-                });
-        });
-    });
-
-    describe('getConsumeEventsContextForExternalRef', function() {
-        it('should throw an error because SNS cant consume event services', function() {
-            return sns.getConsumeEventsContextForExternalRef(null, null, null, null)
-                .then(externalConsumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SNS service doesn't consume events");
                 });
         });
     });

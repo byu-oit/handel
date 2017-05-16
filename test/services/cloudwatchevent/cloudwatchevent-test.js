@@ -52,31 +52,12 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('getPreDeployContextForExternalRef', function() {
-        it('should return an empty preDeployContext', function() {
-            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return cloudWatchEvent.getPreDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalRefPreDeployContext => {
-                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        })
-    });
-
     describe('bind', function() {
         it('should return an empty bind context', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return cloudWatchEvent.bind(serviceContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-    
-    describe('getBindContextForExternalRef', function() {
-        it('should return an empty bind context', function() {
-            return cloudWatchEvent.getBindContextForExternalRef(null, null, null, null)
-                .then(externalBindContext => {
-                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -130,39 +111,6 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('getDeployContextForExternalRef', function() {
-        it('should return a DeployContext if the service has been deployed', function() {
-            let eventRuleArn = "FakeEventRuleArn";
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'EventRuleArn',
-                    OutputValue: eventRuleArn
-                }]
-            }));
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});            
-            return cloudWatchEvent.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(externalDeployContext).to.be.instanceof(DeployContext);
-                    expect(externalDeployContext.eventOutputs.principal).to.equal("events.amazonaws.com");
-                    expect(externalDeployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
-                });
-        });
-
-        it('should return an error if the service hasnt been deployed yet', function() {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});            
-            return cloudWatchEvent.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(true).to.equal(false); //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain('You must deploy it independently');
-                    expect(getStackStub.calledOnce).to.be.true;
-                });
-        });
-    });
-
     describe('consumeEvents', function() {
         it('should return an error since it cant consume events', function() {
             return cloudWatchEvent.consumeEvents(null, null, null, null)
@@ -174,19 +122,6 @@ describe('cloudwatchevent deployer', function() {
                 });
         });
     });
-
-    describe('getConsumeEventsContextForExternalRef', function() {
-        it('should throw an error because S3 cant consume event services', function() {
-            return cloudWatchEvent.getConsumeEventsContextForExternalRef(null, null, null, null)
-                .then(externalConsumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("CloudWatch Events service doesn't consume events");
-                });
-        });
-    });
-
 
     describe('produceEvents', function() {
         let appName = "FakeApp";

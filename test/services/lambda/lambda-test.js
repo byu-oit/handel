@@ -75,16 +75,6 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('getPreDeployContextForExternalRef', function() {
-        it('should return an empty preDeployContext', function() {
-            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return lambda.getPreDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalRefPreDeployContext => {
-                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        })
-    });
-
     describe('bind', function() {
         it('should return an empty bind context since it doesnt do anything', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
@@ -92,15 +82,6 @@ describe('lambda deployer', function() {
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(bindContext.dependencyServiceContext.appName).to.equal(serviceContext.appName);
-                });
-        });
-    });
-
-    describe('getBindContextForExternalRef', function() {
-        it('should return an empty bind context', function() {
-            return lambda.getBindContextForExternalRef(null, null, null, null)
-                .then(externalBindContext => {
-                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -218,48 +199,6 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('getDeployContextForExternalRef', function() {
-        it('should return the DeployContext if the lambda has already been deployed', function() {
-            let externalRefServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
-            let functionArn = "FakeFunctionArn";
-            let functionName = "FakeFunction";
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: 'FunctionArn',
-                        OutputValue: functionArn,
-                    },
-                    {
-                        OutputKey: 'FunctionName',
-                        OutputValue: functionName
-                    }
-                ]
-            }));
-
-            return lambda.getDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalDeployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(externalDeployContext).to.be.instanceof(DeployContext);
-                    expect(externalDeployContext.eventOutputs.lambdaArn).to.equal(functionArn);
-                    expect(externalDeployContext.eventOutputs.lambdaName).to.equal(functionName);
-                });
-        })
-
-        it('should return an error if the lambda hasnt already been deployed', function() {
-            let externalRefServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-
-            return lambda.getDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalDeployContext => {
-                    expect(true).to.equal(false); //Should not get here
-                })
-                .catch(err => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(err.message).to.contain("You must deploy it independently first");
-                })
-        });
-    });
-
     describe('consumeEvents', function() {
         it('should add permissions for the sns service type', function() {
             let appName = "FakeApp";
@@ -325,45 +264,6 @@ describe('lambda deployer', function() {
                 .catch(err => {
                     expect(err.message).to.contain("Unsupported event producer type given");
                     expect(addLambdaPermissionStub.notCalled).to.be.true;
-                });
-        });
-    });
-
-    describe('getConsumeEventsContextForExternalRef', function() {
-        it('should return the ConsumeEventsContext when the consumeEvents phase has already run for the service', function() {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            let externalServiceContext = new ServiceContext("FakeExternalApp", "FakeExternalEnv", "FakeExternalService", "sns", "1", {});
-            let externalDeployContext = new DeployContext(externalServiceContext);
-            externalDeployContext.eventOutputs.principal = "FakePrincipal";
-            externalDeployContext.eventOutputs.topicArn = "FakeArn";
-
-            let getLambdaPermissionStub = sandbox.stub(lambdaCalls, 'getLambdaPermission').returns(Promise.resolve({}))
-
-            return lambda.getConsumeEventsContextForExternalRef(ownServiceContext, ownDeployContext, externalServiceContext, externalDeployContext)
-                .then(consumeEventsContext => {
-                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-                    expect(getLambdaPermissionStub.calledOnce).to.be.true;
-                });
-        });
-
-        it('should return an error if consumeEvents hasnt run yet', function() {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            let externalServiceContext = new ServiceContext("FakeExternalApp", "FakeExternalEnv", "FakeExternalService", "sns", "1", {});
-            let externalDeployContext = new DeployContext(externalServiceContext);
-            externalDeployContext.eventOutputs.principal = "FakePrincipal";
-            externalDeployContext.eventOutputs.topicArn = "FakeArn";
-
-            let getLambdaPermissionStub = sandbox.stub(lambdaCalls, 'getLambdaPermission').returns(Promise.resolve(null))
-
-            return lambda.getConsumeEventsContextForExternalRef(ownServiceContext, ownDeployContext, externalServiceContext, externalDeployContext)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false;
-                })
-                .catch(err => {
-                    expect(getLambdaPermissionStub.calledOnce).to.be.true;
-                    expect(err.message).to.contain("ConsumeEvents not run for external service");
                 });
         });
     });
