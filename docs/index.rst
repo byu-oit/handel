@@ -37,10 +37,3 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
    supported-services/s3
    supported-services/sns
    supported-services/sqs
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Advanced Handel
-
-   advanced-handel/external-dependencies
-   advanced-handel/external-service-events

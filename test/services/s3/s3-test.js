@@ -54,31 +54,12 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('getPreDeployContextForExternalRef', function() {
-        it('should return an empty preDeployContext', function() {
-            let externalRefServiceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return s3.getPreDeployContextForExternalRef(externalRefServiceContext)
-                .then(externalRefPreDeployContext => {
-                    expect(externalRefPreDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        })
-    });
-
     describe('bind', function() {
         it('should return an empty bind context', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return s3.bind(serviceContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-    
-    describe('getBindContextForExternalRef', function() {
-        it('should return an empty bind context', function() {
-            return s3.getBindContextForExternalRef(null, null, null, null)
-                .then(externalBindContext => {
-                    expect(externalBindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -136,36 +117,6 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('getDeployContextForExternalRef', function() {
-        it('should return a DeployContext if the service has been deployed', function() {
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: 'FakeBucket'
-                }]
-            }));
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
-            return s3.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(externalDeployContext).to.be.instanceof(DeployContext);
-                });
-        });
-
-        it('should return an error if the service hasnt been deployed yet', function() {
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let externalServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});            
-            return s3.getDeployContextForExternalRef(externalServiceContext)
-                .then(externalDeployContext => {
-                    expect(true).to.equal(false); //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain('You must deploy it independently');
-                    expect(getStackStub.calledOnce).to.be.true;
-                });
-        });
-    });
-
     describe('consumeEvents', function() {
         it('should return an error since it cant consume events', function() {
             return s3.consumeEvents(null, null, null, null)
@@ -177,19 +128,6 @@ describe('s3 deployer', function() {
                 });
         });
     });
-
-    describe('getConsumeEventsContextForExternalRef', function() {
-        it('should throw an error because S3 cant consume event services', function() {
-            return s3.getConsumeEventsContextForExternalRef(null, null, null, null)
-                .then(externalConsumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("S3 service doesn't consume events");
-                });
-        });
-    });
-
 
     describe('produceEvents', function() {
         it('should return an error since it doesnt yet produce events', function() {
