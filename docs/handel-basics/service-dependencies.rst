@@ -33,5 +33,3 @@ To specify a dependency on a service, add a 'dependencies' list in your service 
     Notice that the item in the dependencies list called 'queue' is referring to the service name specified for the SQS queue.
 
 See :ref:`consuming-service-dependencies` for information about how your consuming app (such as Beanstalk) can get the information it needs to talk to your service dependency (such as SQS).
-
-See :ref:`external-dependencies` for information on the details of external service events configuration.

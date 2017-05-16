@@ -31,5 +31,3 @@ When you specify event consumers in your producer service, you don't need to spe
 
 .. NOTE::
    Not all services may produce events, and not all services may consume events. You will get an error if you try to specify a producer or consumer service that don't support events.
-
-See :ref:`external-service-events` if you need to produce or consume events from another application's Handel file.
