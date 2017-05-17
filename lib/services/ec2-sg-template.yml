@@ -1,0 +1,37 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created security group
+
+Resources:
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties: 
+      GroupName: {{groupName}}
+      GroupDescription: {{groupName}}
+      Tags:
+        - Key: Name
+          Value: {{groupName}}
+      VpcId: {{vpcId}}
+  {{#if sshSg}}
+  SshIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      FromPort: 22
+      GroupId:  !GetAtt SecurityGroup.GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId: {{sshSg}}
+      ToPort: 22
+  {{/if}}
+  SelfIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      FromPort: 0
+      GroupId:  !GetAtt SecurityGroup.GroupId
+      IpProtocol: tcp
+      SourceSecurityGroupId: !GetAtt SecurityGroup.GroupId
+      ToPort: 65535
+
+Outputs:
+  GroupId:
+    Description: The ID of the created security group
+    Value: !GetAtt SecurityGroup.GroupId

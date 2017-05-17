@@ -3,6 +3,7 @@ const DeployContext = require('../../lib/datatypes/deploy-context');
 const deployersCommon = require('../../lib/services/deployers-common');
 const iamCalls = require('../../lib/aws/iam-calls');
 const s3Calls = require('../../lib/aws/s3-calls');
+const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
 const util = require('../../lib/util/util');
 const ec2Calls = require('../../lib/aws/ec2-calls');
 const fs = require('fs');
@@ -146,18 +147,44 @@ describe('deployers-common', function () {
     });
 
     describe('createSecurityGroupForService', function () {
-        it('should create the security group and add ingress rules', function () {
+        it('should create the security group when it doesnt exist', function () {
             let sgName = "FakeSg";
 
-            let createSecurityGroupIfNotExistsStub = sandbox.stub(ec2Calls, 'createSecurityGroupIfNotExists').returns(Promise.resolve({}))
-            let addIngressRuleToSgStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}))
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: "GroupId",
+                    OutputValue: "SomeId"
+                }]
+            }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
             return deployersCommon.createSecurityGroupForService(sgName, true)
                 .then(securityGroup => {
                     expect(securityGroup).to.deep.equal({});
-                    expect(createSecurityGroupIfNotExistsStub.calledOnce).to.be.true;
-                    expect(addIngressRuleToSgStub.calledTwice).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.calledOnce).to.be.true;
+                    expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should update the security group when it exists', function() {
+            let sgName = "FakeSg";
+
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: "GroupId",
+                    OutputValue: "SomeId"
+                }]
+            }))
+            let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
+
+            return deployersCommon.createSecurityGroupForService(sgName, true)
+                .then(securityGroup => {
+                    expect(securityGroup).to.deep.equal({});
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(updateStackStub.calledOnce).to.be.true;
                     expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
                 });
         });
