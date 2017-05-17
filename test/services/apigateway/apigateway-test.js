@@ -114,10 +114,6 @@ describe('apigateway deployer', function() {
                 Bucket: bucketName,
                 Key: bucketKey
             }));
-            let roleArn = "FakeArn";
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: roleArn
-            }));
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -130,7 +126,6 @@ describe('apigateway deployer', function() {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                 });
@@ -152,10 +147,6 @@ describe('apigateway deployer', function() {
                 Bucket: bucketName,
                 Key: bucketKey
             }));
-            let roleArn = "FakeArn";
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: roleArn
-            }));
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [{
@@ -168,7 +159,6 @@ describe('apigateway deployer', function() {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
                 });

@@ -3,6 +3,40 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Handel-created Lambda function
 
 Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{functionName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "lambda.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{functionName}}
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
   Function:
     Type: AWS::Lambda::Function
     Properties: 
@@ -20,7 +54,7 @@ Resources:
       FunctionName: {{functionName}}
       Handler: {{handler}}
       MemorySize: {{memorySize}}
-      Role: {{executionRoleArn}}
+      Role: !GetAtt Role.Arn
       Runtime: {{runtime}}
       Timeout: {{timeout}}
       {{#if tags}}

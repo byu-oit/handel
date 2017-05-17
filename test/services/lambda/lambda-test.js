@@ -119,9 +119,6 @@ describe('lambda deployer', function() {
 
         
         it('should create the service when it doesnt already exist', function() {
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: "FakeArn"
-            }));
             let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
@@ -151,7 +148,6 @@ describe('lambda deployer', function() {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
                     expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(uploadArtifactStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -159,9 +155,6 @@ describe('lambda deployer', function() {
         });
 
         it('should update the service when it already exists', function() {
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: "FakeArn"
-            }));
             let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
@@ -191,7 +184,6 @@ describe('lambda deployer', function() {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
                     expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(uploadArtifactStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;

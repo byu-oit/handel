@@ -19,7 +19,9 @@
             "xray:PutTelemetryRecords"
         ],
         "Effect": "Allow",
-        "Resource": "*"
+        "Resource": [
+            "*"
+        ]
     },
     {
         "Sid": "CloudWatchLogsAccess",
@@ -47,6 +49,8 @@
             "ecs:Submit*",
             "ecs:DescribeTasks"
         ],
-        "Resource": "*"
+        "Resource": [
+            "*"
+        ]
     }
 ]

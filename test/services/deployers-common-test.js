@@ -9,27 +9,27 @@ const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('deployers-common', function() {
+describe('deployers-common', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('getInjectedEnvVarName', function() {
-        it('should return the environment variable name from the given ServiceContext and suffix', function() {
+    describe('getInjectedEnvVarName', function () {
+        it('should return the environment variable name from the given ServiceContext and suffix', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let envVarName = deployersCommon.getInjectedEnvVarName(serviceContext, "SOME_INFO");
             expect(envVarName).to.equal("FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_SOME_INFO");
         });
     });
 
-    describe('getEnvVarsFromServiceContext', function() {
-        it('should return an object with the env vars to inject from the service context', function() {
+    describe('getEnvVarsFromServiceContext', function () {
+        it('should return an object with the env vars to inject from the service context', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let serviceName = "FakeService";
@@ -43,8 +43,8 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('getEnvVarsFromDependencyDeployContexts', function() {
-        it('should return an object with the env vars from all given DeployContexts', function() {
+    describe('getEnvVarsFromDependencyDeployContexts', function () {
+        it('should return an object with the env vars from all given DeployContexts', function () {
             let deployContexts = []
             let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {});
             let deployContext1 = new DeployContext(serviceContext1);
@@ -67,140 +67,86 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('createCustomRoleForECSService', function() {
-        it('should create the role from the given ServiceContext and DeployContexts of dependencies', function() {
-            //Set up service being deployed
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let ownServiceName = "FakeConsumingService";
-            let ownServiceType = "ecs";
-            let deployVersion = "1";
-
-            let consumedService1Name = "FakeConsumedService1";
-            let consumedService2Name = "FakeConsumedService2";
-            let ownServiceParams = {
-                dependencies: [
-                    consumedService1Name,
-                    consumedService2Name
-                ]
-            }
-            let ownServiceContext = new ServiceContext(appName, envName, ownServiceName, ownServiceType, deployVersion, ownServiceParams);
-            
-            //Set up DeployContexts of services being consumed
-            let deployContexts = [];
-            let consumedService1Type = "efs";
-            let consumedService1Params = {};
-            let consumedService1DeployContext = new DeployContext(new ServiceContext(appName, envName, consumedService1Name, consumedService1Type, deployVersion, consumedService1Params))
-            let consumedService1Policy = {
-                "Sid": `EFSAccess`,
-                "Effect": "Allow",
-                "Action": [
-                    "efs:SomeAction",
-                ],
-                "Resource": [
-                    "someArn"
-                ]
-            }
-            consumedService1DeployContext.policies.push(consumedService1Policy);
-            deployContexts.push(consumedService1DeployContext);
-            
-
-            let consumedService2Type = "dynamodb";
-            let consumedService2Params = {};
-            let consumedService2DeployContext = new DeployContext(new ServiceContext(appName, envName, consumedService2Name, consumedService2Type, deployVersion, consumedService2Params));
-            let consumedService2Policy = {
-                "Sid": `DynamoAccess`,
-                "Effect": "Allow",
-                "Action": [
-                    "dynamodb:SomeAction",
-                ],
-                "Resource": [
-                    "someArn"
-                ]
-            }
-            consumedService2DeployContext.policies.push(consumedService2Policy);
-            deployContexts.push(consumedService2DeployContext);
-
-            //Stub out actual IAM calls
-            let createRoleIfNotExistsStub = sandbox.stub(iamCalls, 'createRoleIfNotExists');
-            createRoleIfNotExistsStub.returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
-            let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy');
-            createOrUpdatePolicyStub.returns(Promise.resolve({
+    describe('createCustomRole', function () {
+        it('should create the role if it doesnt exist', function () {
+            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
+            let createOrUpdatePolicy = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({
                 Arn: "FakeArn"
             }));
-            let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole');
-            attachPolicyToRoleStub.returns(Promise.resolve({}));
-            let getRoleStub = sandbox.stub(iamCalls, 'getRole');
-            getRoleStub.returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
+            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
-            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", [], ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [{}])
                 .then(role => {
-                    expect(role.RoleName).to.equal("FakeRole");
-                    expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
-                    expect(createOrUpdatePolicyStub.calledOnce).to.be.true;
-                    expect(attachPolicyToRoleStub.calledOnce).to.be.true;
+                    expect(createRoleStub.calledOnce).to.be.true;
+                    expect(createOrUpdatePolicy.calledOnce).to.be.true;
+                    expect(attachPolicyStub.calledOnce).to.be.true;
                     expect(getRoleStub.calledOnce).to.be.true;
                 });
         });
 
-        it('should create the role with no policies if there are no dependencies exporting policies', function() {
-            //Set up service being deployed
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let ownServiceName = "FakeConsumingService";
-            let ownServiceType = "ecs";
-            let deployVersion = "1";
+        it('should create a role with no policies if it doesnt exist', function () {
+            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
+            let createOrUpdatePolicy = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({}));
+            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
-            let consumedService1Name = "FakeConsumedService1";
-            let consumedService2Name = "FakeConsumedService2";
-            let ownServiceParams = {
-                dependencies: [
-                    consumedService1Name,
-                    consumedService2Name
-                ]
-            }
-            let ownServiceContext = new ServiceContext(appName, envName, ownServiceName, ownServiceType, deployVersion, ownServiceParams);
-            
-            //Set up DeployContexts of one service with no policies to attach
-            let deployContexts = [];
-            let consumedService1Type = "efs";
-            let consumedService1Params = {};
-            let consumedService1DeployContext = new DeployContext(new ServiceContext(appName, envName, consumedService1Name, consumedService1Type, deployVersion, consumedService1Params));
-            deployContexts.push(consumedService1DeployContext);
-
-            //Stub out actual IAM calls
-            let createRoleIfNotExistsStub = sandbox.stub(iamCalls, 'createRoleIfNotExists');
-            createRoleIfNotExistsStub.returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
-            let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy');
-            createOrUpdatePolicyStub.returns(Promise.resolve({
-                Arn: "FakeArn"
-            }));
-            let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole');
-            attachPolicyToRoleStub.returns(Promise.resolve({}));
-            let getRoleStub = sandbox.stub(iamCalls, 'getRole');
-            getRoleStub.returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
-
-            return deployersCommon.createCustomRoleForService("fakeservice.amazonaws.com", [], ownServiceContext, deployContexts)
+            return deployersCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [])
                 .then(role => {
-                    expect(role.RoleName).to.equal("FakeRole");
-                    expect(createRoleIfNotExistsStub.calledOnce).to.be.true;
-                    expect(createOrUpdatePolicyStub.notCalled).to.be.true;
-                    expect(attachPolicyToRoleStub.notCalled).to.be.true;
+                    expect(createRoleStub.calledOnce).to.be.true;
+                    expect(createOrUpdatePolicy.notCalled).to.be.true;
+                    expect(attachPolicyStub.notCalled).to.be.true;
                     expect(getRoleStub.calledOnce).to.be.true;
                 });
         });
     });
 
-    describe('createSecurityGroupForService', function() {
-        it('should create the security group and add ingress rules', function() {
+    describe('getAllPolicyStatementsForServiceRole', function () {
+        it('should return the combination of policy statements from the own service and its dependencies', function () {
+            let ownServicePolicyStatements = [{
+                "Effect": "Allow",
+                "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                ],
+                "Resource": [
+                    "arn:aws:logs:*:*:*"
+                ]
+            }];
+
+            let dependenciesDeployContexts = [];
+            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            let dependencyDeployContext = new DeployContext(dependencyServiceContext);
+            dependencyDeployContext.policies.push({
+                "Effect": "Allow",
+                "Action": [
+                    "sqs:ChangeMessageVisibility",
+                    "sqs:ChangeMessageVisibilityBatch",
+                    "sqs:DeleteMessage",
+                    "sqs:DeleteMessageBatch",
+                    "sqs:GetQueueAttributes",
+                    "sqs:GetQueueUrl",
+                    "sqs:ListDeadLetterSourceQueues",
+                    "sqs:ListQueues",
+                    "sqs:PurgeQueue",
+                    "sqs:ReceiveMessage",
+                    "sqs:SendMessage",
+                    "sqs:SendMessageBatch"
+                ],
+                "Resource": [
+                    "SomeQueueArn"
+                ]
+            });
+            dependenciesDeployContexts.push(dependencyDeployContext);
+            
+            let policyStatements = deployersCommon.getAllPolicyStatementsForServiceRole(ownServicePolicyStatements, dependenciesDeployContexts);
+            expect(policyStatements.length).to.equal(2);
+        });
+    });
+
+    describe('createSecurityGroupForService', function () {
+        it('should create the security group and add ingress rules', function () {
             let sgName = "FakeSg";
 
             let createSecurityGroupIfNotExistsStub = sandbox.stub(ec2Calls, 'createSecurityGroupIfNotExists').returns(Promise.resolve({}))
@@ -217,15 +163,15 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('getRoutingInformationForService', function() {
-        it('should return null if no routing info defined in the given ServiceContext', function() {
+    describe('getRoutingInformationForService', function () {
+        it('should return null if no routing info defined in the given ServiceContext', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            
+
             let routingInfo = deployersCommon.getRoutingInformationForService(serviceContext);
             expect(routingInfo).to.be.null;
         })
 
-        it('should return routing information when defined in the given ServiceContext', function() {
+        it('should return routing information when defined in the given ServiceContext', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 routing: {
                     type: 'https',
@@ -244,8 +190,8 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('uploadFileToHandelBucket', function() {
-        it('should upload the given file to the bucket', function() {
+    describe('uploadFileToHandelBucket', function () {
+        it('should upload the given file to the bucket', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let diskFilePath = "FakePath";
             let s3FileName = "SomeFileName";
@@ -263,8 +209,8 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('uploadDeployableArtifactToHandelBucket', function() {
-        it('should upload a file to the given s3 location', function() {
+    describe('uploadDeployableArtifactToHandelBucket', function () {
+        it('should upload a file to the given s3 location', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: `${__dirname}/mytestartifact.war`
             });
@@ -279,7 +225,7 @@ describe('deployers-common', function() {
                 });
         });
 
-        it('should zip and upload a directory to the given s3 location', function() {
+        it('should zip and upload a directory to the given s3 location', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: __dirname
             });
@@ -299,20 +245,20 @@ describe('deployers-common', function() {
         });
     });
 
-    describe('getAppSecretsAccessPolicyStatements', function() {
-        it('should return an array of two permissions allowing it to access secrets in its namespace', function() {
+    describe('getAppSecretsAccessPolicyStatements', function () {
+        it('should return an array of two permissions allowing it to access secrets in its namespace', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let serviceName = "FakeService";
             let serviceContext = new ServiceContext(appName, envName, serviceName, "lambda", "1", {});
             let policyStatements = deployersCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
-            expect(policyStatements[1].Resource).to.contain(`parameter/${appName}*`)
+            expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}*`)
         });
     });
 
-    describe('getEventConsumerConfigParams', function() {
-        it('should return the config for the consumer from the producer', function() {
+    describe('getEventConsumerConfigParams', function () {
+        it('should return the config for the consumer from the producer', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -334,7 +280,7 @@ describe('deployers-common', function() {
             expect(eventConsumerConfig.event_input).to.equal(eventInputVal);
         });
 
-        it('should return null when no config exists in the producer for the consumer', function() {
+        it('should return null when no config exists in the producer for the consumer', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
