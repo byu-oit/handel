@@ -60,7 +60,9 @@ Next, create a file called *app.js* with the following contents:
         console.log('Server running at http://127.0.0.1:' + port + '/');
     });
 
-The above app uses Express to set up a web server that has a single route "/". That route just responds with the string "Hello World!".
+.. NOTE::
+
+    The above app code uses Express to set up a web server that has a single route "/". That route just responds with the string "Hello World!".
 
 Test your app by starting it up:
 
@@ -87,9 +89,13 @@ Now that you've got a working app, you need to create a Handel file specifying h
           path_to_code: . # This contains the path to the directory where your code lives that should be sent to Beanstalk
           solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js # This specifies which Beanstalk 'solution stack' should be used for the app.
 
-See the :ref:`handel-file` section for full details on how the Handel file is structured. 
+.. NOTE::
 
-We only specified the required parameters for Beanstalk. There are others that have defaults if you don't specify them. See the :ref:`beanstalk` service documentation for full information on all the different parameters for the service.
+    See the :ref:`handel-file` section for full details on how the Handel file is structured. 
+
+.. NOTE::
+
+    We only specified the required parameters for Beanstalk. There are others that have defaults if you don't specify them. See the :ref:`beanstalk` service documentation for full information on all the different parameters for the service.
 
 Create the account config file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,11 +123,13 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
     handel deploy -c ~/account-config.yml -e dev -v 1
 
-In the above command, the following arguments are provided:
+.. NOTE::
 
-* The -c parameter specifies where your account config file is located
-* The -e parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
-* The -v parameter is an arbitrary string specifying the current version being deployed. We're just using "1" in our example
+    In the above command, the following arguments are provided:
+
+    * The -c parameter specifies where your account config file is located
+    * The -e parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
+    * The -v parameter is an arbitrary string specifying the current version being deployed. We're just using "1" in our example
 
 Once you've executed that command, Handel should start up and deploy your application. You can sign into the AWS Console and go to the "ElasticBeanstalk" service to see your deployed application.
 
