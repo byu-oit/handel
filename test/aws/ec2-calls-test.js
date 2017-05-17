@@ -14,90 +14,38 @@ describe('ec2-calls', function () {
 
     afterEach(function () {
         sandbox.restore();
+        AWS.restore('EC2');
     });
 
-    describe('createSecurityGroupIfNotExists', function () {
-        it('should create and return the security group if none exists', function () {
-            let groupName = 'FakeGroup';
-            sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
-            sandbox.stub(ec2Calls, 'createSecurityGroup').returns(Promise.resolve({
-                GroupName: groupName
-            }));
-
-            return ec2Calls.createSecurityGroupIfNotExists(groupName, 'FakeVpc')
-                .then(securityGroup => {
-                    expect(securityGroup.GroupName).to.equal(groupName);
-                });
-        });
-
-        it('should return the security group if already exists', function () {
-            let groupName = 'FakeGroup';
-            sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
-                GroupName: groupName
-            }));
-
-            return ec2Calls.createSecurityGroupIfNotExists(groupName, 'FakeVpc')
-                .then(securityGroup => {
-                    expect(securityGroup.GroupName).to.equal(groupName);
-                })
-        });
-    });
-
-    describe('createSecurityGroup', function () {
-        it('should create and return the security group', function () {
+    describe('getSecurityGroup', function() {
+        it('should return the security group when found', function() {
             let groupName = "FakeGroup";
-            sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
-                GroupName: groupName
-            }));
-            sandbox.stub(ec2Calls, 'tagResource').returns(Promise.resolve({}));
-            AWS.mock('EC2', 'createSecurityGroup', Promise.resolve({
-                GroupName: groupName
-            }));
-
-            return ec2Calls.createSecurityGroup(groupName, 'FakeVpc')
-                .then(securityGroup => {
-                    expect(securityGroup.GroupName).to.equal(groupName);
-                    AWS.restore('EC2', 'createSecurityGroup');
-                });
-        });
-    });
-
-    describe('getSecurityGroup', function () {
-        it('should return the security group if found', function () {
-            let groupName = "FakeGroup";
+            let vpcId = "vpc-11111111";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
-                SecurityGroups: [{ GroupName: groupName }]
+                SecurityGroups: [
+                    {
+                        GroupName: groupName
+                    }
+                ]
             }));
 
-            return ec2Calls.getSecurityGroup(groupName, 'FakeVpc')
-                .then(securityGroup => {
-                    expect(securityGroup.GroupName).to.equal(groupName);
-                    AWS.restore('EC2', 'describeSecurityGroups');
+            return ec2Calls.getSecurityGroup(groupName, vpcId)
+                .then(sg => {
+                    expect(sg).to.not.be.null;
+                    expect(sg.GroupName).to.equal(groupName);
                 });
         });
 
-        it('should return null if no group found', function () {
+        it('should return null when the security group is not found', function() {
             let groupName = "FakeGroup";
+            let vpcId = "vpc-11111111";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
                 SecurityGroups: []
             }));
 
-            return ec2Calls.getSecurityGroup(groupName, 'FakeVpc')
-                .then(securityGroup => {
-                    expect(securityGroup).to.be.null;
-                    AWS.restore('EC2', 'describeSecurityGroups');
-                });
-        });
-    });
-
-    describe('tagResource', function () {
-        it('should call createTags', function () {
-            AWS.mock('EC2', 'createTags', Promise.resolve({}));
-
-            return ec2Calls.tagResource("FakeResource", [])
-                .then(response => {
-                    expect(response).to.deep.equal({});
-                    AWS.restore('EC2', 'createTags');
+            return ec2Calls.getSecurityGroup(groupName, vpcId)
+                .then(sg => {
+                    expect(sg).to.be.null;
                 });
         });
     });
@@ -216,7 +164,6 @@ describe('ec2-calls', function () {
                 .then(securityGroup => {
                     console.log(securityGroup);
                     expect(securityGroup.GroupName).to.equal(groupName);
-                    AWS.restore('EC2', 'authorizeSecurityGroupIngress');
                 });
         });
     });
