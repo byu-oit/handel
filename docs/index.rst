@@ -10,6 +10,8 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
    getting-started/handel-vs-cloudformation
    getting-started/tutorial-creating-an-app
 
+.. _handel-basics:
+
 .. toctree::
    :maxdepth: 1
    :caption: Handel Basics
