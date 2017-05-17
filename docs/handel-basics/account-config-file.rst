@@ -21,8 +21,9 @@ The account config file is a YAML file that must contain the following informati
 
 .. code-block:: yaml
 
+  account_id: <aws account id>
   region: <aws region>
-  vpc_id: <id for vpc in which to deploy compute resources>
+  vpc: <id for vpc in which to deploy compute resources>
   public_subnets:
   - <id for subnets in which to deploy public resources>
   private_subnets:
@@ -31,4 +32,4 @@ The account config file is a YAML file that must contain the following informati
   - <id for subnets in which to deploy data resources>
   ecs_ami: <AMI for the ECS agent>
   ssh_bastion_sg: <id for the SSH bastion security group>
-
+  on_prem_cidr: <CIDR block for your on-prem resources>
