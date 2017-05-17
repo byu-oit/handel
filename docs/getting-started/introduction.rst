@@ -71,5 +71,5 @@ section for information on which services you can use with Handel.
 How can I deploy an application with Handel?
 --------------------------------------------
 
-See the :ref:`creating-a-handel-app` page for a tutorial
+See the :ref:`creating-your-first-handel-app` page for a tutorial
 creating a simple app and deploying it with Handel.
