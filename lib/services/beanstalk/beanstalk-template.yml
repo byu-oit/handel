@@ -3,13 +3,47 @@ AWSTemplateFormatVersion: "2010-09-09"
 
 Description: Handel-created Beanstalk application
 
-Resources: 
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{applicationName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal: 
+              Service: 
+              - "ec2.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{applicationName}}
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
       Path: "/services/"
       Roles:
-      - {{beanstalkRoleName}}
+      - !Ref Role
   Application:
     Type: AWS::ElasticBeanstalk::Application
     Properties:

@@ -82,9 +82,6 @@ describe('beanstalk deployer', function() {
         }
 
         it('should create the service if it doesnt exist', function() {
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
@@ -102,7 +99,6 @@ describe('beanstalk deployer', function() {
             return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -111,9 +107,6 @@ describe('beanstalk deployer', function() {
         });
 
         it('should update the service if it doesnt exist', function() {
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                RoleName: "FakeRole"
-            }));
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
@@ -131,7 +124,6 @@ describe('beanstalk deployer', function() {
             return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;

@@ -166,18 +166,7 @@ describe('ecs deployer', function() {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
 
             //Stub out AWS calls
-            let fakeArn = "FakeArn";
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: "FakeRoleArn" 
-            }));
-            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
-            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
-                Arn: fakeArn
-            }))
-            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
-            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({
-                Arn: fakeArn
-            }))
+            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
 
@@ -185,8 +174,8 @@ describe('ecs deployer', function() {
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
+                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                 });
         });
@@ -206,18 +195,8 @@ describe('ecs deployer', function() {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
 
             //Stub out AWS calls
-            let createCustomRoleForServiceStub = sandbox.stub(deployersCommon, 'createCustomRoleForService').returns(Promise.resolve({
-                Arn: "FakeRoleArn" 
-            }));
             let fakeArn = "FakeArn";
-            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
-            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicyIfNotExists').returns(Promise.resolve({
-                Arn: fakeArn
-            }))
-            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
-            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({
-                Arn: fakeArn
-            }))
+            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
 
@@ -225,8 +204,8 @@ describe('ecs deployer', function() {
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(createCustomRoleForServiceStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
+                    expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
             });
         });

@@ -1,9 +1,43 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: API Gateway Lambda Proxy Template
+Description: Handel-created API Gateway application
 
 Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{apiName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "lambda.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  LambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{apiName}}
+      Roles:
+      - !Ref LambdaRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
   LambdaFunctionApiEventPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -39,7 +73,7 @@ Resources:
           {{/each}}
       {{/if}}
       Handler: {{handlerFunction}}
-      Role: {{lambdaRoleArn}}
+      Role: !GetAtt LambdaRole.Arn
       Timeout: {{functionTimeout}}
       Runtime: {{lambdaRuntime}}
       {{#if tags}}
