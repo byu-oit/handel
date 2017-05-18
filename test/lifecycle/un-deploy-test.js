@@ -1,13 +1,12 @@
 const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
-const deployPhase = require('../../lib/lifecycle/deploy');
+const unDeployPhase = require('../../lib/lifecycle/un-deploy');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const DeployContext = require('../../lib/datatypes/deploy-context');
+const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('deploy', function() {
+describe('unDeploy', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -18,17 +17,17 @@ describe('deploy', function() {
         sandbox.restore();
     });
 
-    describe('deployServicesInLevel', function() {
-        it('should deploy the services in the given level', function() {
+    describe('unDeployServicesInLevel', function() {
+        it('should UnDeploy the services in the given level', function() {
             let serviceDeployers = {
                 efs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                    unDeploy: function(toUnDeployServiceContext) {
                         throw new Error("Should not have called ECS in this level");
                     }
                 },
                 ecs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
-                        return Promise.resolve(new DeployContext(toDeployServiceContext));
+                    unDeploy: function(toUnDeployServiceContext) {
+                        return Promise.resolve(new UnDeployContext(toUnDeployServiceContext));
                     }
                 }
             }
@@ -59,25 +58,16 @@ describe('deploy', function() {
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
-            //Construct PreDeployContexts
-            let preDeployContexts = {}
-            preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
-            preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
-
-            //Construct DeployContexts 
-            let deployContexts = {}
-            deployContexts[serviceNameB] = new DeployContext(serviceContextB);
-
             //Set deploy order 
             let deployOrder = [
                 [serviceNameB],
                 [serviceNameA]
             ]
-            let levelToDeploy = 1;
+            let levelToUnDeploy = 1;
 
-            return deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy)
-                .then(deployContexts => {
-                    expect(deployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
+            return unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnDeploy)
+                .then(unDeployContexts => {
+                    expect(unDeployContexts[serviceNameA]).to.be.instanceOf(UnDeployContext);
                 });
         });
     });

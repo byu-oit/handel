@@ -2,9 +2,7 @@
 const handel = require('../lib/handel');
 const minimist = require('minimist');
 const fs = require('fs');
-const path = require('path');
 const winston = require('winston');
-const util = require('../lib/util/util');
 const yaml = require('js-yaml');
 const cli = require('../lib/cli');
 
@@ -39,13 +37,30 @@ Errors:
     printAndExit(usageMsg);
 }
 
-function deployAction(handelFile, argv) {
-    if(argv.d) {
+function printDeleteUsage(errors) {
+    let usageMsg = `Usage: handel delete -c <accountConfig> -e <envsToDelete>
+
+Options:
+-c [required] -- Path to account config or base64 encoded JSON string of config
+-e [required] -- A comma-separated list of environments from your handel file to deploy
+-d -- If this flag is set, verbose debug output will be enabled
+
+Errors: 
+  ${errors.join('\n  ')}`;
+    printAndExit(usageMsg);
+}
+
+function setLogLevel(argv) {
+    if (argv.d) {
         winston.level = 'debug';
     }
     else {
         winston.level = 'info';
     }
+}
+
+function deployAction(handelFile, argv) {
+    setLogLevel(argv);
     let accountConfig = cli.loadAccountConfig(argv.c);
     let deployVersion = argv.v;
     let environmentsToDeploy = argv.e.split(',');
@@ -78,8 +93,34 @@ function checkAction(handelFile) {
     handel.check(handelFile);
 }
 
-function deleteAction(argv) {
-    throw new Error("DELETE ACTION IS NOT IMPLEMENTED YET!");
+function deleteAction(handelFile, argv) {
+    setLogLevel(argv);
+    let accountConfig = cli.loadAccountConfig(argv.c);
+    let environmentToDelete = argv.e;
+    cli.confirmDelete(environmentToDelete)
+        .then(confirmDelete => {
+            if (confirmDelete) {
+                handel.delete(accountConfig, handelFile, environmentToDelete)
+                    .then(envDeleteResult => {
+                        if (envDeleteResult.status !== 'success') {
+                            winston.warn(`Error while deleting environment: ${envDeleteResult.message}`);
+                            winston.warn(envDeleteResult.error);
+                            winston.warn("Finished deletion with errors");
+                            process.exit(1);
+                        }
+                        else {
+                            winston.info("Finished deleting everything successfully");
+                        }
+                    })
+                    .catch(err => {
+                        winston.warn(err);
+                        process.exit(1);
+                    })
+            }
+            else {
+                winston.info("You did not type 'yes' to confirm deletion. Will not delete environment.");
+            }
+        });
 }
 
 function loadHandelFile() {
@@ -88,10 +129,10 @@ function loadHandelFile() {
         return handelFile;
     }
     catch (e) {
-        if(e.code === 'ENOENT') {
+        if (e.code === 'ENOENT') {
             printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
         }
-        else if(e.name === 'YAMLException') {
+        else if (e.name === 'YAMLException') {
             printAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
         }
         else {
@@ -103,9 +144,10 @@ function loadHandelFile() {
 let handelFile = loadHandelFile();
 let deployPhase = process.argv[2];
 let argv = minimist(process.argv.slice(2));
+let errors = [];
 switch (deployPhase) {
     case "deploy":
-        let errors = cli.validateDeployArgs(argv, handelFile);
+        errors = cli.validateDeployArgs(argv, handelFile);
         if (errors.length > 0) {
             printDeployUsage(errors);
         }
@@ -117,8 +159,13 @@ switch (deployPhase) {
         checkAction(handelFile);
         break;
     case "delete":
-        cli.validateDeleteArgs(argv);
-        deleteAction(handelFile, argv);
+        errors = cli.validateDeleteArgs(argv, handelFile);
+        if (errors.length > 0) {
+            printDeleteUsage(errors);
+        }
+        else {
+            deleteAction(handelFile, argv);
+        }
         break;
     default:
         printGeneralUsage();

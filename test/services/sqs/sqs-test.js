@@ -7,6 +7,10 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const deployersCommon = require('../../../lib/services/deployers-common');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -203,6 +207,39 @@ describe('sqs deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("SQS service doesn't produce events");
+                });
+        });
+    });
+
+    describe('unPreDeploy', function() {
+        it('should return an empty UnPreDeploy context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            return sqs.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                });
+        });
+    });
+
+    describe('unBind', function() {
+        it('should return an empty UnBind context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            return sqs.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                });
+        });
+    });
+
+    describe('unDeploy', function() {
+        it('should undeploy the stack', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
+            return sqs.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(unDeployStackStub.calledOnce).to.be.ture;
                 });
         });
     });

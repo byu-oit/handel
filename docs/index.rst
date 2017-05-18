@@ -22,6 +22,7 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
    handel-basics/consuming-service-dependencies
    handel-basics/service-events
    handel-basics/accessing-secrets
+   handel-basics/deleting-an-environment
 
 .. _supported-services:
 

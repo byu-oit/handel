@@ -100,13 +100,32 @@ describe('cli module', function () {
     });
 
     describe('validateDeleteArgs', function() {
-        it('should throw an unimplemented error', function() {
-            try {
-                cli.validateDeleteArgs()
+        let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
+        it('should fail if the -c param is not provided', function() {
+            let argv = {
+                e: "dev,prod"
             }
-            catch(e) {
-                expect(e.message).to.contain("DEPLOY ACTION IS NOT IMPLEMENTED");
+            let errors = cli.validateDeleteArgs(argv, handelFile);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain(`'-c' parameter is required`);
+        });
+
+        it('should fail if the -e parameter is not provided', function() {
+            let argv = {
+                c: `${__dirname}/../test-account-config.yml`
             }
+            let errors = cli.validateDeleteArgs(argv, handelFile);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain(`'-e' parameter is required`);
+        });
+
+        it('should succeed if all params are provided', function() {
+            let argv = {
+                e: "dev,prod",
+                c: `${__dirname}/../test-account-config.yml`
+            }
+            let errors = cli.validateDeleteArgs(argv, handelFile);
+            expect(errors.length).to.equal(0);
         });
     });
 });

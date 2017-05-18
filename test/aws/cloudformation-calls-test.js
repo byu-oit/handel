@@ -13,6 +13,7 @@ describe('cloudformationCalls', function() {
 
     afterEach(function() {
         sandbox.restore();
+        AWS.restore('CloudFormation');
     });
 
     describe('getStack', function() {
@@ -27,7 +28,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.getStack(stackName)
                 .then(stack => {
                     expect(stack.StackName).to.equal(stackName);
-                    AWS.restore('CloudFormation');
                 });
         });
 
@@ -40,7 +40,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.getStack(stackName)
                 .then(stack => {
                     expect(stack).to.be.null;
-                    AWS.restore('CloudFormation');
                 });
         });
 
@@ -57,7 +56,6 @@ describe('cloudformationCalls', function() {
                 })
                 .catch(error => {
                     expect(error.code).to.equal(errorCode);
-                    AWS.restore('CloudFormation');
                 });
         });
     });
@@ -74,7 +72,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.waitForStack(stackName, "stackUpdateComplete")
                 .then(stack => {
                     expect(stack.StackName).to.equal(stackName);
-                    AWS.restore('CloudFormation');
                 })
         });
     });
@@ -90,7 +87,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.createStack(stackName, "FakeTemplateBody", [])
                 .then(stack => {
                     expect(stack.StackName).to.equal(stackName);
-                    AWS.restore('CloudFormation');
                 });
         });
     });
@@ -106,7 +102,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.updateStack(stackName, "FakeTEmplateBody", [])
                 .then(stack => {
                     expect(stack.StackName).to.equal(stackName);
-                    AWS.restore('CloudFormation');
                 });
         });
 
@@ -122,7 +117,6 @@ describe('cloudformationCalls', function() {
             return cloudformationCalls.updateStack(stackName, "FakeTemplateBody", [])
                 .then(stack => {
                     expect(stack.StackName).to.equal(stackName);
-                    AWS.restore('CloudFormation');
                 });
         });
 
@@ -137,7 +131,18 @@ describe('cloudformationCalls', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.equal(message);
-                    AWS.restore('CloudFormation');
+                });
+        });
+    });
+
+    describe('deleteStack', function() {
+        it('should delete the stack', function() {
+            AWS.mock('CloudFormation', 'deleteStack', Promise.resolve({}));
+            AWS.mock('CloudFormation', 'waitFor', Promise.resolve({}));
+
+            return cloudformationCalls.deleteStack("FakeStack")
+                .then(result => {
+                    expect(result).to.be.true;
                 });
         });
     });

@@ -1,8 +1,9 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
 const deployersCommon = require('../../../lib/services/deployers-common');
-const ec2Calls = require('../../../lib/aws/ec2-calls');
-const iamCalls = require('../../../lib/aws/iam-calls');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -11,19 +12,19 @@ const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('ecs deployer', function() {
+describe('ecs deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require the port_mappings parameter when routing is specified', function() {
+    describe('check', function () {
+        it('should require the port_mappings parameter when routing is specified', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 routing: {
                     type: 'http'
@@ -34,8 +35,8 @@ describe('ecs deployer', function() {
             expect(errors[0]).to.include("'port_mappings' parameter is required");
         });
 
-        describe('when routing element is present', function() {
-            it("should require the 'type' parameter", function() {
+        describe('when routing element is present', function () {
+            it("should require the 'type' parameter", function () {
                 let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                     port_mappings: [5000],
                     routing: {}
@@ -45,7 +46,7 @@ describe('ecs deployer', function() {
                 expect(errors[0]).to.include("The 'type' field is required");
             });
 
-            it("should require the 'https_certificate' parameter when the type is https", function() {
+            it("should require the 'https_certificate' parameter when the type is https", function () {
                 let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                     port_mappings: [5000],
                     routing: {
@@ -58,7 +59,7 @@ describe('ecs deployer', function() {
             });
         });
 
-        it("should return no errors on a successful configuration", function() {
+        it("should return no errors on a successful configuration", function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 port_mappings: [5000],
                 routing: {
@@ -71,13 +72,13 @@ describe('ecs deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should create a security group and add ingress to self and SSH bastion', function() {
+    describe('preDeploy', function () {
+        it('should create a security group and add ingress to self and SSH bastion', function () {
             let groupId = "FakeSgGroupId";
             let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
-            
+
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return ecs.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -89,7 +90,7 @@ describe('ecs deployer', function() {
         });
     });
 
-    describe('bind', function() {
+    describe('bind', function () {
         it('should do nothing and just return an empty BindContext', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return ecs.bind(serviceContext)
@@ -99,7 +100,7 @@ describe('ecs deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         function getOwnServiceContextForDeploy(appName, envName, deployVersion) {
             //Set up ServiceContext
             let ownServiceName = "FakeService";
@@ -151,11 +152,11 @@ describe('ecs deployer', function() {
             return dependenciesDeployContexts;
         }
 
-        it('should create a new ECS service CF stack when it doesnt exist', function() {
+        it('should create a new ECS service CF stack when it doesnt exist', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
-            
+
             //Set up ServiceContext
             let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
 
@@ -163,7 +164,7 @@ describe('ecs deployer', function() {
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
 
             //Set up dependencies DeployContexts
-            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
+            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
@@ -180,11 +181,11 @@ describe('ecs deployer', function() {
                 });
         });
 
-        it('should update the CF service stack when it exists', function() {
+        it('should update the CF service stack when it exists', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
-            
+
             //Set up ServiceContext
             let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
 
@@ -192,7 +193,7 @@ describe('ecs deployer', function() {
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
 
             //Set up dependencies DeployContexts
-            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);            
+            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
             let fakeArn = "FakeArn";
@@ -207,12 +208,12 @@ describe('ecs deployer', function() {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
-            });
+                });
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because ECS cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because ECS cant consume event services', function () {
             return ecs.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -223,14 +224,50 @@ describe('ecs deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because ECS cant produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because ECS cant produce events for other services', function () {
             return ecs.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
                     expect(err.message).to.contain("ECS service doesn't produce events");
+                });
+        });
+    });
+
+    describe('unPreDeploy', function () {
+        it('should delete the security group', function () {
+            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", {});
+            return ecs.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(deleteSecurityGroupStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", {});
+            return ecs.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                });
+        });
+    });
+
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", {});
+            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
+            return ecs.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(unDeployStackStub.calledOnce).to.be.ture;
                 });
         });
     });
