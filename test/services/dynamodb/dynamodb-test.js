@@ -187,7 +187,7 @@ describe('dynamodb deployer', function() {
         });
     });
 
-        describe('unPreDeploy', function() {
+    describe('unPreDeploy', function() {
         it('should return an empty UnPreDeploy context', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return dynamodb.unPreDeploy(serviceContext)
