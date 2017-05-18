@@ -90,6 +90,37 @@ describe('ec2-calls', function () {
         });
     });
 
+    describe('removeAllIngressFromSg', function() {
+        it('should revoke all ingreess on the security group', function() {
+            let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
+                GroupId: 'FakeId',
+                IpPermissions: [{
+                    IpProtocol: 'tcp',
+                    FromPort: 0,
+                    ToPort: 1024,
+                    UserIdGroupPairs: []
+                }]
+            }));
+            AWS.mock('EC2', 'revokeSecurityGroupIngress', Promise.resolve({}));
+
+            return ec2Calls.removeAllIngressFromSg("FakeGroup")
+                .then(success => {
+                    expect(success).to.be.true;
+                    expect(getSecurityGroupStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return true if the security group has already been deleted', function() {
+            let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
+
+            return ec2Calls.removeAllIngressFromSg("FakeGroup")
+                .then(success => {
+                    expect(success).to.be.true;
+                    expect(getSecurityGroupStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
     describe('addIngressRuleToSgIfNotExists', function () {
         it('should add the ingress rule when it doesnt exist', function () {
             let sourceSg = {

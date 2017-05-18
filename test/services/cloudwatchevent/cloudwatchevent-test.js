@@ -5,8 +5,11 @@ const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls'
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -176,6 +179,47 @@ describe('cloudwatchevent deployer', function() {
                 .catch(err => {
                     expect(err.message).to.contain("Unsupported event consumer type");
                     expect(addTargetStub.notCalled).to.be.true;
+                });
+        });
+    });
+
+    describe('unPreDeploy', function() {
+        it('should return an empty UnPreDeployContext since it doesnt do anything', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
+            return cloudWatchEvent.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeployContext.appName).to.equal(serviceContext.appName);
+                });
+        });
+    });
+
+    describe('unBind', function() {
+        it('should return an empty UnBindContext since it doesnt do anything', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
+            return cloudWatchEvent.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindContext.appName).to.equal(serviceContext.appName);
+                });
+        });
+    });
+
+    describe('unDeploy', function() {
+        it('should remove all targets and delete the stack', function() {
+            let getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
+            let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+            let deleteStackStub = sandbox.stub(cloudFormationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
+            return cloudWatchEvent.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getRuleStub.calledOnce).to.be.true;
+                    expect(removeTargetsStub.calledOnce).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.calledOnce).to.be.true;
                 });
         });
     });

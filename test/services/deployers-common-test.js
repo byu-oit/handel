@@ -1,5 +1,6 @@
 const ServiceContext = require('../../lib/datatypes/service-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
+const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
 const deployersCommon = require('../../lib/services/deployers-common');
 const iamCalls = require('../../lib/aws/iam-calls');
 const s3Calls = require('../../lib/aws/s3-calls');
@@ -189,6 +190,72 @@ describe('deployers-common', function () {
                 });
         });
     });
+
+    describe('unBindAllOnSg', function() {
+        it('should remove all ingress from the given security group', function() {
+            let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
+
+            return deployersCommon.unBindAllOnSg('FakeStack')
+                .then(success => {
+                    expect(success).to.be.true;
+                    expect(removeIngressStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('deleteSecurityGroupForService', function() {
+        it('should delete the stack if it exists', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            return deployersCommon.deleteSecurityGroupForService("FakeStack")
+                .then(success => {
+                    expect(success).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should return true if the stack is already deleted', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            return deployersCommon.deleteSecurityGroupForService("FakeStack")
+                .then(success => {
+                    expect(success).to.be.true;
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.notCalled).to.be.true;
+                });
+        })
+    });
+
+    describe('unDeployCloudFormationStack', function() {
+        it('should delete the stack if it exists', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
+            return deployersCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+                .then(unDeployContext  => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should suceed even if the stack has been deleted', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
+            return deployersCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+                .then(unDeployContext  => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.notCalled).to.be.true;
+                });
+        });
+    })
 
     describe('getRoutingInformationForService', function () {
         it('should return null if no routing info defined in the given ServiceContext', function () {

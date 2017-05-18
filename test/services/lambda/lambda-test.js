@@ -4,9 +4,12 @@ const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const lambdaCalls = require('../../../lib/aws/lambda-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const deployersCommon = require('../../../lib/services/deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -268,6 +271,43 @@ describe('lambda deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("Lambda service doesn't produce events");
+                });
+        });
+    });
+
+    describe('unPreDeploy', function() {
+        it('should return an empty UnPreDeployContext since it doesnt do anything', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return lambda.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeployContext.appName).to.equal(serviceContext.appName);
+                });
+        });
+    });
+
+    describe('unBind', function() {
+        it('should return an empty UnBindContext since it doesnt do anything', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return lambda.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindContext.appName).to.equal(serviceContext.appName);
+                });
+        });
+    });
+
+    describe('unDeploy', function() {
+        it('should delete the stack', function() {
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
+            let deleteStackStub = sandbox.stub(cloudFormationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return lambda.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.calledOnce).to.be.true;
                 });
         });
     });

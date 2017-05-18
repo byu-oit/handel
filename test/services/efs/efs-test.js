@@ -7,6 +7,9 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployersCommon = require('../../../lib/services/deployers-common');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -173,6 +176,45 @@ describe('efs deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("EFS service doesn't produce events");
+                });
+        });
+    });
+
+    describe('unPreDeploy', function() {
+        it('should delete the security group', function() {
+            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            return efs.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(deleteSecurityGroupStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('unBind', function() {
+        it('should unbind the security group', function() {
+            let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            return efs.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindAllStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('unDeploy', function() {
+        it('should undeploy the stack', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
+            return efs.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(unDeployStackStub.calledOnce).to.be.ture;
                 });
         });
     });

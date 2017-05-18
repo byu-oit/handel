@@ -5,6 +5,10 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const deployersCommon = require('../../../lib/services/deployers-common');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../lib/datatypes/un-bind-context');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -137,6 +141,39 @@ describe('s3 deployer', function() {
                 })
                 .catch(err => {
                     expect(err.message).to.contain("S3 service doesn't currently produce events");
+                });
+        });
+    });
+
+    describe('unPreDeploy', function() {
+        it('should return an empty UnPreDeploy context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
+            return s3.unPreDeploy(serviceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                });
+        });
+    });
+
+    describe('unBind', function() {
+        it('should return an empty UnBind context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
+            return s3.unBind(serviceContext)
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                });
+        });
+    });
+
+    describe('unDeploy', function() {
+        it('should undeploy the stack', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
+            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
+            return s3.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(unDeployStackStub.calledOnce).to.be.ture;
                 });
         });
     });
