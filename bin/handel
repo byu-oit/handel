@@ -82,10 +82,25 @@ function deleteAction(argv) {
     throw new Error("DELETE ACTION IS NOT IMPLEMENTED YET!");
 }
 
-let handelFile = cli.loadHandelFile();
-if(!handelFile) {
-    printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
+function loadHandelFile() {
+    try {
+        var handelFile = yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8'));
+        return handelFile;
+    }
+    catch (e) {
+        if(e.code === 'ENOENT') {
+            printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
+        }
+        else if(e.name === 'YAMLException') {
+            printAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
+        }
+        else {
+            printAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
+        }
+    }
 }
+
+let handelFile = loadHandelFile();
 let deployPhase = process.argv[2];
 let argv = minimist(process.argv.slice(2));
 switch (deployPhase) {
