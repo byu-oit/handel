@@ -292,12 +292,14 @@ describe('deployers-common', function () {
 
             //Stub out dependent services
             let createBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').returns(Promise.resolve({}));
-            let uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({})
+            let uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({});
+            let cleanupOldVersionsStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').returns(Promise.resolve(null));
 
             return deployersCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName)
                 .then(s3ObjectInfo => {
                     expect(createBucketStub.calledOnce).to.be.true;
                     expect(uploadFileStub.calledOnce).to.be.true;
+                    expect(cleanupOldVersionsStub.calledOnce).to.be.true;
                     expect(s3ObjectInfo).to.deep.equal({});
                 });
         });

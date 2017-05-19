@@ -3,7 +3,6 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
-const fs = require('fs');
 
 describe('s3Calls', function() {
     let sandbox;
@@ -26,6 +25,67 @@ describe('s3Calls', function() {
             return s3Calls.uploadFile('handel-fake-bucket', 'my-key', filePath)
                 .then(uploadResponse => {
                     expect(uploadResponse).to.deep.equal({});
+                });
+        });
+    });
+
+    describe('listFilesByPrefix', function() {
+        it('should return a list of objects when there are results', function() {
+            AWS.mock('S3', 'listObjectsV2', Promise.resolve({
+                Contents: [{
+                    Key: "FakeKey"
+                }]
+            }))
+            return s3Calls.listFilesByPrefix("FakeBucket", "FakePrefix")
+                .then(objects => {
+                    expect(objects.length).to.equal(1);
+                });
+        });
+
+        it('should return an empty list when there are no results', function() {
+            AWS.mock('S3', 'listObjectsV2', Promise.resolve({}))
+            return s3Calls.listFilesByPrefix("FakeBucket", "FakePrefix")
+                .then(objects => {
+                    expect(objects.length).to.equal(0);
+                });
+        });
+    });
+
+    describe('deleteFiles', function() {
+        it('should delete the objects', function() {
+            AWS.mock('S3', 'deleteObjects', Promise.resolve({}));
+
+            return s3Calls.deleteFiles("FakeBucket", [{Key: "FakeKey"}])
+                .then(results => {
+                    expect(results).to.deep.equal({});
+                });
+        });
+    });
+
+    describe('cleanupOldVersionsOfFiles', function() {
+        it('should clean up versions of files older than 30 days, but keeping the 5 most recent', function() {
+            //5 really old objects + 1 current object. The algorithm should keep the 1 current, plus the four most recent old ones
+            let oldestDate = new Date(1000);
+            let objects = [
+                {LastModified: oldestDate},
+                {LastModified: new Date(1001)},
+                {LastModified: new Date(1002)},
+                {LastModified: new Date(1003)},
+                {LastModified: new Date(1004)},
+                {LastModified: new Date()}
+            ];
+
+            let listFilesStub = sandbox.stub(s3Calls, 'listFilesByPrefix').returns(Promise.resolve(objects));
+            let deleteFilesStub = sandbox.stub(s3Calls, 'deleteFiles').returns(Promise.resolve({}));
+
+            return s3Calls.cleanupOldVersionsOfFiles("FakeBucket", "FakePrefix")
+                .then(result => {
+                    expect(result).to.deep.equal({});
+                    expect(listFilesStub.calledOnce).to.be.true;
+                    expect(deleteFilesStub.calledOnce).to.be.true;
+                    let deletedObjects = deleteFilesStub.args[0][1];
+                    expect(deletedObjects.length).to.equal(1);
+                    expect(deletedObjects[0].LastModified).to.equal(oldestDate);
                 });
         });
     });
