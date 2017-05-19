@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:Get*",
+            "organizations:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]
