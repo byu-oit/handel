@@ -6,7 +6,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: {{clusterName}}
+      RoleName: {{stackName}}
       Path: "/services/"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -20,7 +20,7 @@ Resources:
   TaskRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: {{clusterName}}
+      PolicyName: {{stackName}}
       Roles:
       - !Ref TaskRole
       PolicyDocument:
