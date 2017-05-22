@@ -108,7 +108,7 @@ The <URL_PREFIX> is a consistent prefix applied to all information injected for 
 
 Events produced by this service
 -------------------------------
-The Reids service does not produce events for other Handel services to consume.
+The Redis service does not produce events for other Handel services to consume.
 
 Events consumed by this service
 -------------------------------

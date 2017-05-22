@@ -1,5 +1,5 @@
 const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
-const redis = require('../../../lib/services/redis');
+const memcached = require('../../../lib/services/memcached');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
@@ -13,7 +13,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('redis deployer', function () {
+describe('memcached deployer', function () {
     let sandbox;
 
     beforeEach(function () {
@@ -28,60 +28,33 @@ describe('redis deployer', function () {
         it('should do require the instance_type parameter', function () {
             let serviceContext = {
                 params: {
-                    redis_version: '3.2.4'
+                    memcached_version: '1.4.34'
                 }
             }
-            let errors = redis.check(serviceContext);
+            let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'instance_type' parameter is required`);
         });
 
-        it('should require the redis_version parameter', function() {
+        it('should require the memcached_version parameter', function() {
             let serviceContext = {
                 params: {
                     instance_type: 'cache.t2.micro'
                 }
             }
-            let errors = redis.check(serviceContext);
+            let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'redis_version' parameter is required`);
+            expect(errors[0]).to.contain(`'memcached_version' parameter is required`);
         });
 
-        it('should fail if the read_replicas parameter is not between 0-5', function() {
+        it('should return ok when all required parameters are given', function() {
             let serviceContext = {
                 params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.m3.medium',
-                    read_replicas: 6
+                    memcached_version: '1.4.34',
+                    instance_type: 'cache.t2.micro'
                 }
             }
-            let errors = redis.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'read_replicas' parameter may only have a value of 0-5`);
-        });
-
-        it('should fail if the instance_type is a t* class when using replication', function() {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.t2.micro',
-                    read_replicas: 5
-                }
-            }
-            let errors = redis.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`You may not use the 't1' and 't2' instance types when using any read replicas`);
-        });
-
-        it('should work when all parameters are provided properly', function() {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.m3.medium',
-                    read_replicas: 5
-                }
-            }
-            let errors = redis.check(serviceContext);
+            let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
     });
@@ -93,8 +66,8 @@ describe('redis deployer', function () {
                 GroupId: groupId
             }));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
-            return redis.preDeploy(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
+            return memcached.preDeploy(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
@@ -109,7 +82,7 @@ describe('redis deployer', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "redis", deployVersion, {});
+            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {});
             let ownPreDeployContext = new PreDeployContext(ownServiceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'
@@ -123,7 +96,7 @@ describe('redis deployer', function () {
 
             let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
-            return redis.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
+            return memcached.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(addIngressRuleToSgIfNotExistsStub.calledOnce).to.be.true;
@@ -135,8 +108,8 @@ describe('redis deployer', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "redis", deployVersion, {
-            redis_version: '3.2.4',
+        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {
+            memcached_version: '3.2.4',
             instance_type: 'cache.t2.micro'
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
@@ -146,8 +119,8 @@ describe('redis deployer', function () {
         let dependenciesDeployContexts = [];
 
         let cacheAddress = "fakeaddress.byu.edu";
-        let cachePort = 6379;
-        let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        let cachePort = 11211;
+        let envPrefix = `MEMCACHED_${appName}_${envName}_FAKESERVICE`.toUpperCase();
 
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
@@ -164,7 +137,7 @@ describe('redis deployer', function () {
                 ]
             }));
 
-            return redis.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return memcached.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -189,7 +162,7 @@ describe('redis deployer', function () {
                 ]
             }));
 
-            return redis.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return memcached.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
@@ -201,25 +174,25 @@ describe('redis deployer', function () {
     });
 
     describe('consumerEvents', function () {
-        it('should throw an error because Redis cant consume event services', function () {
-            return redis.consumeEvents(null, null, null, null)
+        it('should throw an error because Memcached cant consume event services', function () {
+            return memcached.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("Redis service doesn't consume events");
+                    expect(err.message).to.contain("Memcached service doesn't consume events");
                 });
         });
     });
 
     describe('produceEvents', function () {
-        it('should throw an error because Redis cant produce events for other services', function () {
-            return redis.produceEvents(null, null, null, null)
+        it('should throw an error because Memcached cant produce events for other services', function () {
+            return memcached.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("Redis service doesn't produce events");
+                    expect(err.message).to.contain("Memcached service doesn't produce events");
                 });
         });
     });
@@ -228,8 +201,8 @@ describe('redis deployer', function () {
         it('should delete the security group', function () {
             let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
-            return redis.unPreDeploy(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
+            return memcached.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(deleteSecurityGroupStub.calledOnce).to.be.true;
@@ -241,8 +214,8 @@ describe('redis deployer', function () {
         it('should unbind the security group', function () {
             let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
-            return redis.unBind(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
+            return memcached.unBind(serviceContext)
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
                     expect(unBindAllStub.calledOnce).to.be.true;
@@ -252,10 +225,10 @@ describe('redis deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
-            return redis.unDeploy(serviceContext)
+            return memcached.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(unDeployStackStub.calledOnce).to.be.ture;
