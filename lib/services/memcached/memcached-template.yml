@@ -1,0 +1,50 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Memcached cluster
+
+Resources:
+  Cluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      AutoMinorVersionUpgrade: true
+      CacheNodeType: {{instanceType}}
+      {{#if cacheParameters}}
+      CacheParameterGroupName: !Ref ParameterGroup
+      {{else}}
+      CacheParameterGroupName: {{defaultCacheParameterGroup}}
+      {{/if}}
+      CacheSubnetGroupName: {{cacheSubnetGroup}}
+      ClusterName: {{clusterName}}
+      Engine: memcached
+      EngineVersion: {{memcachedVersion}}
+      NumCacheNodes: {{nodeCount}}
+      Port: {{memcachedPort}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VpcSecurityGroupIds:
+      - {{memcachedSecurityGroupId}}
+  {{#if cacheParameters}}
+  ParameterGroup:
+    Type: AWS::ElastiCache::ParameterGroup
+    Properties:
+      CacheParameterGroupFamily: {{cacheParameterGroupFamily}}
+      Description: Parameter group for {{clusterName}}
+      Properties:
+        {{#each cacheParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+  {{/if}}
+Outputs:
+  CacheAddress:
+    Description: The address of the Memcached configuration endpoint
+    Value: !GetAtt Cluster.ConfigurationEndpoint.Address
+  CachePort:
+    Description: The port of the Memcached cluster
+    Value: !GetAtt Cluster.ConfigurationEndpoint.Port
