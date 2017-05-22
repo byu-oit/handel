@@ -1,0 +1,52 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Redis cluster
+
+Resources:
+  Cluster:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      AutomaticFailoverEnabled: true
+      AutoMinorVersionUpgrade: true
+      CacheNodeType: {{instanceType}}
+      {{#if cacheParameters}}
+      CacheParameterGroupName: !Ref ParameterGroup
+      {{else}}
+      CacheParameterGroupName: {{defaultCacheParameterGroup}}
+      {{/if}}
+      CacheSubnetGroupName: {{cacheSubnetGroup}}
+      Engine: redis
+      EngineVersion: {{redisVersion}}
+      NumCacheClusters: {{numNodes}}
+      ReplicationGroupDescription: Replication group for {{clusterName}}
+      ReplicationGroupId: {{clusterName}}
+      Port: 6379
+      SecurityGroupIds:
+      - {{redisSecurityGroupId}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+  {{#if cacheParameters}}
+  ParameterGroup:
+    Type: AWS::ElastiCache::ParameterGroup
+    Properties:
+      CacheParameterGroupFamily: {{cacheParameterGroupFamily}}
+      Description: Parameter group for {{clusterName}}
+      Properties:
+        {{#each cacheParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+  {{/if}}
+Outputs:
+  CacheAddress:
+    Description: The address of the redis configuration endpoint
+    Value: !GetAtt Cluster.PrimaryEndPoint.Address
+  CachePort:
+    Description: The port of the redis cluster
+    Value: !GetAtt Cluster.PrimaryEndPoint.Port
