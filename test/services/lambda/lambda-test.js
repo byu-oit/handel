@@ -26,7 +26,7 @@ const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
-const deployersCommon = require('../../../lib/services/deployers-common');
+const deployersCommon = require('../../../lib/common/deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
