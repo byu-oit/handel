@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ssm:Describe*",
+            "ssm:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

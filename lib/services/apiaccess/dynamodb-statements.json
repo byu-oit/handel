@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "dynamodb:Describe*",
+            "dynamodb:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

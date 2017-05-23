@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "codebuild:BatchGet*",
+            "codebuild:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

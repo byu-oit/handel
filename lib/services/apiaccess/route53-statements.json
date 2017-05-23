@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "route53:Get*",
+            "route53:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

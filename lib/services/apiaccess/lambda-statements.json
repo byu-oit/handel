@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "lambda:Get*",
+            "lambda:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

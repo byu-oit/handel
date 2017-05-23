@@ -1,0 +1,11 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "elasticfilesystem:Describe*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

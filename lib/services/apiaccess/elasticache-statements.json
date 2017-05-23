@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "elasticache:Describe*",
+            "elasticache:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

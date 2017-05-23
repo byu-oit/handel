@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "rds:Describe*",
+            "rds:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

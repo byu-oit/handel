@@ -1,0 +1,14 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ecr:Describe*",
+            "ecr:List*",
+            "ecs:Describe*",
+            "ecs:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

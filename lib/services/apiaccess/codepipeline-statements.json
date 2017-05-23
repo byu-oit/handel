@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "codepipeline:Get*",
+            "codepipeline:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]
