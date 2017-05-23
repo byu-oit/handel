@@ -1,6 +1,5 @@
 [
     {
-        "Sid": "BucketAccess",
         "Action": [
             "s3:Get*",
             "s3:List*",
@@ -13,7 +12,6 @@
         ]
     },
     {
-        "Sid": "XRayAccess",
         "Action": [
             "xray:PutTraceSegments",
             "xray:PutTelemetryRecords"
@@ -24,7 +22,6 @@
         ]
     },
     {
-        "Sid": "CloudWatchLogsAccess",
         "Action": [
             "logs:PutLogEvents",
             "logs:CreateLogStream"
@@ -35,7 +32,6 @@
         ]
     },
     {
-        "Sid": "ECSAccess",
         "Effect": "Allow",
         "Action": [
             "ecs:Poll",

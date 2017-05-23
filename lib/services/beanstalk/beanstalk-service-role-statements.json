@@ -23,7 +23,6 @@
         ]
     },
     {
-        "Sid": "AllowCloudformationOperationsOnElasticBeanstalkStacks",
         "Effect": "Allow",
         "Action": [
             "cloudformation:*"
@@ -34,7 +33,6 @@
         ]
     },
     {
-        "Sid": "AllowDeleteCloudwatchLogGroups",
         "Effect": "Allow",
         "Action": [
             "logs:DeleteLogGroup"
@@ -44,7 +42,6 @@
         ]
     },
     {
-        "Sid": "AllowS3OperationsOnElasticBeanstalkBuckets",
         "Effect": "Allow",
         "Action": [
             "s3:*"
@@ -55,7 +52,6 @@
         ]
     },
     {
-        "Sid": "AllowOperations",
         "Effect": "Allow",
         "Action": [
             "autoscaling:AttachInstances",
