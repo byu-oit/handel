@@ -1,0 +1,13 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "cloudformation:Describe*",
+            "cloudformation:Get*",
+            "cloudformation:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

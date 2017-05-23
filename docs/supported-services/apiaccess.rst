@@ -6,6 +6,14 @@ This document contains information about the API Access service supported in Han
 
 This service does not provision any AWS resources, it just serves to add additional permissions onto your applications.
 
+.. NOTE::
+
+    This service won't grant you permissions to publish to topics, read from data stores, etc. The permissions this service grants are read-only on the service level.
+
+    As an example of how you would use this service, you may want to run a Lambda that inspects your EC2 instances to audit them for certain characteristics. You can use this *apiaccess* service to grant that read-only access to EC2 to give you that information. 
+    
+    Since this service provides limited read-only access, in the EC2 exammple you would not be able to do things like start instances, create AMIs, etc.
+
 Parameters
 ----------
 
@@ -27,7 +35,25 @@ Supported Service Access
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The following AWS services are supported in the *aws_services* element:
 
+* beanstalk
+* cloudformation
+* cloudwatchevents
+* codebuild
+* codepipeline
+* dynamodb
+* ec2
+* ecs
+* efs
+* elasticache
+* lambda
+* loadbalancing
 * organizations
+* rds
+* route53
+* s3
+* sns
+* sqs
+* ssm
 
 Example Handel File
 -------------------

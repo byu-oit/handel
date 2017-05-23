@@ -1,0 +1,14 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "elasticbeanstalk:Describe*",
+            "elasticbeanstalk:List*",
+            "elasticbeanstalk:RequestEnvironmentInfo",
+            "elasticbeanstalk:RetrieveEnvironmentInfo"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

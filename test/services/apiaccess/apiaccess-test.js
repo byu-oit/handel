@@ -80,7 +80,8 @@ describe('apiaccess deployer', function () {
         it('should return a deploy context with the given policies', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {
                 aws_services: [
-                    "organizations"
+                    "organizations",
+                    "ec2"
                 ]
             });
             let preDeployContext = new PreDeployContext(serviceContext);
@@ -88,7 +89,7 @@ describe('apiaccess deployer', function () {
             return apiaccess.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.policies.length).to.equal(1);
+                    expect(deployContext.policies.length).to.equal(2);
                 });
         });
     });

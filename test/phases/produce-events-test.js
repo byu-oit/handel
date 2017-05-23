@@ -39,13 +39,13 @@ describe('produceEvents module', function () {
         it('should execute produceEvents on all services that specify themselves as producers for other services', function () {
             let serviceDeployers = {
                 lambda: {
-                    produceEvents: function (ownServiceContext,  ownDeployContext,  consumerServiceContext,  consumerDeployContext) {
+                    produceEvents: function (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) {
                         return Promise.reject(new Error("Lambda doesn't produce events"));
 
                     }
                 },
                 s3: {
-                    produceEvents: function (ownServiceContext,  ownDeployContext,  consumerServiceContext,  consumerDeployContext) {
+                    produceEvents: function (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) {
                         return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
                     }
                 }

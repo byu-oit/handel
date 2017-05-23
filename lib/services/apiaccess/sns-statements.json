@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "sns:Get*",
+            "sns:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

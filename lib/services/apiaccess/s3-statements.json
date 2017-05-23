@@ -1,0 +1,12 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "s3:GetBucket*",
+            "s3:List*"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]
