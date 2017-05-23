@@ -1,13 +1,14 @@
 const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
-const deployPhase = require('../../lib/lifecycle/deploy');
+const bindPhase = require('../../lib/phases/bind');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const DeployContext = require('../../lib/datatypes/deploy-context');
+const BindContext = require('../../lib/datatypes/bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const util = require('../../lib/util/util');
 
-describe('deploy', function() {
+describe('bind', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -18,27 +19,26 @@ describe('deploy', function() {
         sandbox.restore();
     });
 
-    describe('deployServicesInLevel', function() {
-        it('should deploy the services in the given level', function() {
+    describe('bindServicesInLevel', function() {
+        it('should execute bind on all the services in parallel', function() {
             let serviceDeployers = {
-                efs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
-                        throw new Error("Should not have called ECS in this level");
+                ecs: {
+                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                        return Promise.reject(new Error(`Should not have called ECS bind`));
                     }
                 },
-                ecs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
-                        return Promise.resolve(new DeployContext(toDeployServiceContext));
+                efs: {
+                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                        return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
                     }
                 }
             }
-
-            //Create EnvironmentContext
-            let appName = "test";
+            
+            //Construct EnvironmentContext
+            let appName = "FakeApp"
             let deployVersion = "1";
             let environmentName = "dev";
             let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
-
 
             //Construct ServiceContext B
             let serviceNameB = "B";
@@ -59,25 +59,34 @@ describe('deploy', function() {
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
+            //Construct ServiceContext C
+            let serviceNameC = "C";
+            let serviceTypeC = "ecs";
+            let paramsC = {
+                some: "param",
+                dependencies: [ serviceNameB]
+            }
+            let serviceContextC = new ServiceContext(appName, environmentName, serviceNameC, serviceTypeC, deployVersion, paramsC);
+            environmentContext.serviceContexts[serviceNameC] = serviceContextC;
+            
+
             //Construct PreDeployContexts
             let preDeployContexts = {}
             preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
             preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
-
-            //Construct DeployContexts 
-            let deployContexts = {}
-            deployContexts[serviceNameB] = new DeployContext(serviceContextB);
+            preDeployContexts[serviceNameC] = new PreDeployContext(serviceContextC);
 
             //Set deploy order 
             let deployOrder = [
                 [serviceNameB],
-                [serviceNameA]
+                [serviceNameA, serviceNameC]
             ]
-            let levelToDeploy = 1;
+            let levelToBind = 0;
 
-            return deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy)
-                .then(deployContexts => {
-                    expect(deployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
+            return bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, levelToBind)
+                .then(bindContexts => {
+                    expect(bindContexts['A->B']).to.be.instanceof(BindContext);
+                    expect(bindContexts['C->B']).to.be.instanceof(BindContext);
                 });
         });
     });

@@ -3,7 +3,7 @@ const util = require('../../lib/util/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const fs = require('fs');
-const ServiceContext = require('../../lib/datatypes/service-context');
+const EnvironmentContext = require('../../lib/datatypes/environment-context');
 
 describe('util module', function() {
     let sandbox;
@@ -90,5 +90,42 @@ describe('util module', function() {
                     expect(err.message).to.contain('Directory path to be zipped does not exist');
                 });
         });
+    });
+
+    describe('getBindContextName', function() {
+        it('should return a string containing both services in the binding', function() {
+            let name = util.getBindContextName('A', 'B');
+            expect(name).to.equal('B->A');
+        });
+    });
+
+    describe('getConsumeEventsContextName', function() {
+        it('should return a string containing both the consumer and producer', function() {
+            let name = util.getConsumeEventsContextName('A', 'B');
+            expect(name).to.equal('A->B');
+        });
+    });
+
+    describe('getProduceEventsContextName', function() {
+        it('should return a string containing both the producer and consumer', function() {
+            let name = util.getProduceEventsContextName('B', 'A');
+            expect(name).to.equal('B->A');
+        });
+    });
+
+    describe('getHandelFileParser', function() {
+        let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
+        let handelFileParser = util.getHandelFileParser(handelFile);
+        expect(handelFile).to.not.be.null;
+    });
+
+    describe('createEnvironmentContext', function() {
+        let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
+        let handelFileParser = util.getHandelFileParser(handelFile);
+        let environmentName = "dev";
+        let deployVersion = "1";
+
+        let environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, deployVersion);
+        expect(environmentContext).to.be.instanceof(EnvironmentContext);
     });
 })

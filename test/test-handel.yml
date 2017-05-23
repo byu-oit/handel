@@ -10,8 +10,8 @@ environments:
       dependencies:
       - B
     B:
-      type: efs
-      something: else
+      type: mysql
+      database_name: mydb
   prod:
     A:
       type: ecs
@@ -19,5 +19,5 @@ environments:
       dependencies:
       - B
     B:
-      type: efs
-      something: else
+      type: mysql
+      database_name: mydb

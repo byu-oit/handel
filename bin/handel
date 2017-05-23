@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-const handel = require('../lib/handel');
+const deleteLifecycle = require('../lib/lifecycles/delete');
+const deployLifecycle = require('../lib/lifecycles/deploy');
+const checkLifecycle = require('../lib/lifecycles/check');
 const minimist = require('minimist');
 const fs = require('fs');
 const winston = require('winston');
@@ -64,7 +66,7 @@ function deployAction(handelFile, argv) {
     let accountConfig = cli.loadAccountConfig(argv.c);
     let deployVersion = argv.v;
     let environmentsToDeploy = argv.e.split(',');
-    handel.deploy(accountConfig, handelFile, environmentsToDeploy, deployVersion)
+    deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, deployVersion)
         .then(envDeployResults => {
             let success = true;
             for (let envDeployResult of envDeployResults) {
@@ -90,7 +92,20 @@ function deployAction(handelFile, argv) {
 }
 
 function checkAction(handelFile) {
-    handel.check(handelFile);
+    let errors = checkLifecycle.check(handelFile);
+    let foundErrors = false;
+    for (let env in errors) {
+        let envErrors = errors[env];
+        if (envErrors.length > 0) {
+            winston.error(`The following errors were found for env ${env}`);
+            console.log("  " + envErrors.join("\n  "));
+            foundErrors = true;
+        }
+    }
+
+    if(!foundErrors) {
+        winston.info("No errors were found when checking Handel file");
+    }
 }
 
 function deleteAction(handelFile, argv) {
@@ -100,7 +115,7 @@ function deleteAction(handelFile, argv) {
     cli.confirmDelete(environmentToDelete)
         .then(confirmDelete => {
             if (confirmDelete) {
-                handel.delete(accountConfig, handelFile, environmentToDelete)
+                deleteLifecycle.delete(accountConfig, handelFile, environmentToDelete)
                     .then(envDeleteResult => {
                         if (envDeleteResult.status !== 'success') {
                             winston.warn(`Error while deleting environment: ${envDeleteResult.message}`);
