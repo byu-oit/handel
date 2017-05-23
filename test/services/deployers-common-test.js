@@ -160,7 +160,7 @@ describe('deployers-common', function () {
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
-            return deployersCommon.createSecurityGroupForService(sgName, true)
+            return deployersCommon.createSecurityGroupForService(sgName, 22)
                 .then(securityGroup => {
                     expect(securityGroup).to.deep.equal({});
                     expect(getStackStub.calledOnce).to.be.true;
@@ -181,7 +181,7 @@ describe('deployers-common', function () {
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
-            return deployersCommon.createSecurityGroupForService(sgName, true)
+            return deployersCommon.createSecurityGroupForService(sgName, 22)
                 .then(securityGroup => {
                     expect(securityGroup).to.deep.equal({});
                     expect(getStackStub.calledOnce).to.be.true;
@@ -349,7 +349,7 @@ describe('deployers-common', function () {
             let serviceContext = new ServiceContext(appName, envName, serviceName, "lambda", "1", {});
             let policyStatements = deployersCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
-            expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}*`)
+            expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`)
         });
     });
 

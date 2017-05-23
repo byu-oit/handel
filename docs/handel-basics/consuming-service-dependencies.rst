@@ -60,3 +60,23 @@ These values come from the service dependency in your Handel file. In the above 
       SQS_BEANSTALK_EXAMPLE_DEV_QUEUE
 
    Note that everything in the above prefix is upper-cased, and the app name "beanstalk-example" has been converted to to use underscores instead of dashes
+
+.. _parameter-store-prefix:
+
+Parameter Store Prefix
+----------------------
+Handel puts auto-generated credentials and other secrets in the EC2 Parameter Store, and it wires up your applications to allow you to access these secrets.
+
+Each parameter Handel puts in the parameter store has a common prefix, which is defined by the following structure:
+
+.. code-block:: none
+
+    <app_name>.<environment_name>.<service_name>
+
+These values come from the service dependency in your Handel file. In the above example, the referencing Beanstalk application would need to use the following values in that prefix:
+
+.. code-block:: none
+   
+    app_name = "beanstalk-example"
+    environment_name = "dev"
+    service_name = "queue"
