@@ -25,7 +25,6 @@ const deployersCommon = require('../../../lib/common/deployers-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -39,7 +38,6 @@ describe('dynamodb deployer', function() {
 
     afterEach(function() {
         sandbox.restore();
-        AWS.restore('DynamoDB');
     });
 
     describe('check', function() {
@@ -100,81 +98,63 @@ describe('dynamodb deployer', function() {
     });
 
     describe('deploy', function() {
-        it('should create a new table when one doesnt exist', function (){
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "FakeType";
-            let deployVersion = "1";
-            let params = {
-                partition_key: {
-                    name: "MyPartitionKey",
-                    type: "String"
-                }
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let serviceName = "FakeService";
+        let serviceType = "dynamodb";
+        let deployVersion = "1";
+        let params = {
+            partition_key: {
+                name: "MyPartitionKey",
+                type: "String"
             }
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            let dependenciesDeployContexts = [];
+        }
+        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
+        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+        let dependenciesDeployContexts = [];
 
-            let tableArn = "FakeArn";
-            let tableName = "FakeTable";
+        let tableName = "FakeTable";
+        let tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`
+
+        it('should create a new table when one doesnt exist', function (){
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
-            AWS.mock('DynamoDB', 'describeTable', Promise.resolve({
-                Table: {
-                    TableArn: tableArn,
-                    TableName: tableName
-                }
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'TableName',
+                    OutputValue: tableName
+                }]
             }));
 
             return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
                     let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
                     expect(deployContext.environmentVariables[tableNameVar]).to.equal(tableName);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
                 });
         });
 
         it('should not update anything on a table when one already exists', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "FakeType";
-            let deployVersion = "1";
-            let params = {
-                partition_key: {
-                    name: "MyPartitionKey",
-                    type: "String"
-                }
-            }
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            let dependenciesDeployContexts = [];
-
-            let tableArn = "FakeArn";
-            let tableName = "FakeTable";
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
-            AWS.mock('DynamoDB', 'describeTable', Promise.resolve({
-                Table: {
-                    TableArn: tableArn,
-                    TableName: tableName
-                }
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'TableName',
+                    OutputValue: tableName
+                }]
             }));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
 
             return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(createStackStub.notCalled).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
                     let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
                     expect(deployContext.environmentVariables[tableNameVar]).to.equal(tableName);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.notCalled).to.be.true;
                 });
         });
     });
