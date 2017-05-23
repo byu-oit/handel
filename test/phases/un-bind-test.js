@@ -22,32 +22,32 @@ const UnBindContext = require('../../lib/datatypes/un-bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('unBind', function() {
+describe('unBind', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('unBindServicesInLevel', function() {
-        it('should execute UnBind on all the services in parallel', function() {
+    describe('unBindServicesInLevel', function () {
+        it('should execute UnBind on all the services in parallel', function () {
             let serviceDeployers = {
                 ecs: {
-                    unBind: function(toUnBindServiceContext) {
+                    unBind: function (toUnBindServiceContext) {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
                     }
                 },
                 efs: {
-                    unBind: function(toUnBindServiceContext) {
+                    unBind: function (toUnBindServiceContext) {
                         return Promise.resolve(new UnBindContext(toUnBindServiceContext));
                     }
                 }
             }
-            
+
             //Construct EnvironmentContext
             let appName = "FakeApp"
             let deployVersion = "1";
@@ -68,11 +68,11 @@ describe('unBind', function() {
             let serviceTypeA = "ecs";
             let paramsA = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
-            
+
             //Set deploy order 
             let deployOrder = [
                 [serviceNameB],

@@ -33,8 +33,8 @@ describe('ec2-calls', function () {
         AWS.restore('EC2');
     });
 
-    describe('getSecurityGroup', function() {
-        it('should return the security group when found', function() {
+    describe('getSecurityGroup', function () {
+        it('should return the security group when found', function () {
             let groupName = "FakeGroup";
             let vpcId = "vpc-11111111";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
@@ -52,7 +52,7 @@ describe('ec2-calls', function () {
                 });
         });
 
-        it('should return null when the security group is not found', function() {
+        it('should return null when the security group is not found', function () {
             let groupName = "FakeGroup";
             let vpcId = "vpc-11111111";
             AWS.mock('EC2', 'describeSecurityGroups', Promise.resolve({
@@ -106,8 +106,8 @@ describe('ec2-calls', function () {
         });
     });
 
-    describe('removeAllIngressFromSg', function() {
-        it('should revoke all ingreess on the security group', function() {
+    describe('removeAllIngressFromSg', function () {
+        it('should revoke all ingreess on the security group', function () {
             let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve({
                 GroupId: 'FakeId',
                 IpPermissions: [{
@@ -126,7 +126,7 @@ describe('ec2-calls', function () {
                 });
         });
 
-        it('should return true if the security group has already been deleted', function() {
+        it('should return true if the security group has already been deleted', function () {
             let getSecurityGroupStub = sandbox.stub(ec2Calls, 'getSecurityGroup').returns(Promise.resolve(null));
 
             return ec2Calls.removeAllIngressFromSg("FakeGroup")

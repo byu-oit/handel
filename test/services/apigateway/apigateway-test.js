@@ -28,19 +28,19 @@ const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 
-describe('apigateway deployer', function() {
+describe('apigateway deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it("should require the 'path_to_code' param", function() {
+    describe('check', function () {
+        it("should require the 'path_to_code' param", function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 lambda_runtime: 'FakeRuntime',
                 handler_function: 'FakeFunction'
@@ -51,7 +51,7 @@ describe('apigateway deployer', function() {
             expect(errors[0]).to.contain("'path_to_code' parameter is required");
         });
 
-        it("should require the 'lambda_runtime' param", function() {
+        it("should require the 'lambda_runtime' param", function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: './',
                 handler_function: 'FakeFunction'
@@ -62,7 +62,7 @@ describe('apigateway deployer', function() {
             expect(errors[0]).to.contain("'lambda_runtime' parameter is required");
         });
 
-        it("should require the 'handler_function' param", function() {
+        it("should require the 'handler_function' param", function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: './',
                 lambda_runtime: 'FakeRuntime'
@@ -74,8 +74,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty preDeploy context', function() {
+    describe('preDeploy', function () {
+        it('should return an empty preDeploy context', function () {
             let serviceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
             return apigateway.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -84,8 +84,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context', function() {
+    describe('bind', function () {
+        it('should return an empty bind context', function () {
             return apigateway.bind(null, null, null, null)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
@@ -93,7 +93,7 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         function getOwnServiceContext(appName, envName, deployVersion) {
             let ownServiceName = "OwnService";
             let ownServiceType = "apigateway";
@@ -117,7 +117,7 @@ describe('apigateway deployer', function() {
             return dependenciesDeployContexts;
         }
 
-        it('should create the new service if it doesnt already exist', function() {
+        it('should create the new service if it doesnt already exist', function () {
             //Set up input parameters
             let appName = "FakeApp";
             let envName = "FakeEnv";
@@ -150,7 +150,7 @@ describe('apigateway deployer', function() {
                 });
         });
 
-        it('should update the service if it already exists', function() {
+        it('should update the service if it already exists', function () {
             //Set up input parameters
             let appName = "FakeApp";
             let envName = "FakeEnv";
@@ -184,8 +184,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because API gateway cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because API gateway cant consume event services', function () {
             return apigateway.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -196,8 +196,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because our API gateway service doesnt produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because our API gateway service doesnt produce events for other services', function () {
             return apigateway.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -208,8 +208,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeploy context', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
             return apigateway.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -218,8 +218,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
             return apigateway.unBind(serviceContext)
                 .then(unBindContext => {
@@ -228,8 +228,8 @@ describe('apigateway deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

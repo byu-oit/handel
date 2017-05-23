@@ -52,7 +52,7 @@ describe('redis deployer', function () {
             expect(errors[0]).to.contain(`'instance_type' parameter is required`);
         });
 
-        it('should require the redis_version parameter', function() {
+        it('should require the redis_version parameter', function () {
             let serviceContext = {
                 params: {
                     instance_type: 'cache.t2.micro'
@@ -63,7 +63,7 @@ describe('redis deployer', function () {
             expect(errors[0]).to.contain(`'redis_version' parameter is required`);
         });
 
-        it('should fail if the read_replicas parameter is not between 0-5', function() {
+        it('should fail if the read_replicas parameter is not between 0-5', function () {
             let serviceContext = {
                 params: {
                     redis_version: '3.2.4',
@@ -76,7 +76,7 @@ describe('redis deployer', function () {
             expect(errors[0]).to.contain(`'read_replicas' parameter may only have a value of 0-5`);
         });
 
-        it('should fail if the instance_type is a t* class when using replication', function() {
+        it('should fail if the instance_type is a t* class when using replication', function () {
             let serviceContext = {
                 params: {
                     redis_version: '3.2.4',
@@ -89,7 +89,7 @@ describe('redis deployer', function () {
             expect(errors[0]).to.contain(`You may not use the 't1' and 't2' instance types when using any read replicas`);
         });
 
-        it('should work when all parameters are provided properly', function() {
+        it('should work when all parameters are provided properly', function () {
             let serviceContext = {
                 params: {
                     redis_version: '3.2.4',
@@ -190,7 +190,7 @@ describe('redis deployer', function () {
                 });
         });
 
-        it('should update the cluster if it already exists', function() {
+        it('should update the cluster if it already exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [

@@ -29,32 +29,32 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 
 
-describe('beanstalk deployer', function() {
+describe('beanstalk deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should check parameters for correctness', function() {
+    describe('check', function () {
+        it('should check parameters for correctness', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = beanstalk.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
     });
 
-    describe('preDeploy', function() {
-        it('should create a security group and add self and SSH bastion ingress', function() {
+    describe('preDeploy', function () {
+        it('should create a security group and add self and SSH bastion ingress', function () {
             let groupId = "FakeSgGroupId";
             let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
-            
+
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return beanstalk.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -66,8 +66,8 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should do nothing and just return an empty BindContext', function() {
+    describe('bind', function () {
+        it('should do nothing and just return an empty BindContext', function () {
             let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let ownPreDeployContext = new PreDeployContext(ownServiceContext);
             let dependentOfServiceContext = new ServiceContext("FakeApp", "FakeEnv", "OtherService", "OtherType", "1", {});
@@ -79,7 +79,7 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         function getServiceContext() {
             return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
                 type: 'beanstalk',
@@ -99,7 +99,7 @@ describe('beanstalk deployer', function() {
             return ownPreDeployContext;
         }
 
-        it('should create the service if it doesnt exist', function() {
+        it('should create the service if it doesnt exist', function () {
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
@@ -124,7 +124,7 @@ describe('beanstalk deployer', function() {
                 });
         });
 
-        it('should update the service if it doesnt exist', function() {
+        it('should update the service if it doesnt exist', function () {
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
@@ -150,8 +150,8 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because Beanstalk cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because Beanstalk cant consume event services', function () {
             return beanstalk.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -162,8 +162,8 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because Beanstalk doesnt yet produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because Beanstalk doesnt yet produce events for other services', function () {
             return beanstalk.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -174,7 +174,7 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
+    describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
@@ -187,8 +187,8 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {});
             return beanstalk.unBind(serviceContext)
                 .then(unBindContext => {
@@ -197,8 +197,8 @@ describe('beanstalk deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

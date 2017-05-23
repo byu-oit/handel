@@ -23,27 +23,27 @@ const DeployContext = require('../../lib/datatypes/deploy-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('deploy', function() {
+describe('deploy', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('deployServicesInLevel', function() {
-        it('should deploy the services in the given level', function() {
+    describe('deployServicesInLevel', function () {
+        it('should deploy the services in the given level', function () {
             let serviceDeployers = {
                 efs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                    deploy: function (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
                         throw new Error("Should not have called ECS in this level");
                     }
                 },
                 ecs: {
-                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                    deploy: function (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
                         return Promise.resolve(new DeployContext(toDeployServiceContext));
                     }
                 }
@@ -70,7 +70,7 @@ describe('deploy', function() {
             let serviceTypeA = "ecs";
             let paramsA = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;

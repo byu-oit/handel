@@ -17,8 +17,8 @@
 const DeployContext = require('../../lib/datatypes/deploy-context');
 const expect = require('chai').expect;
 
-describe("DeployContext", function() {
-    it('should be able to be constructed from a ServiceContext', function() {
+describe("DeployContext", function () {
+    it('should be able to be constructed from a ServiceContext', function () {
         let serviceContext = {
             appName: 'appName',
             environmentName: 'environmentName',

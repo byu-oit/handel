@@ -20,20 +20,20 @@ const AWS = require('aws-sdk-mock');
 const snsCalls = require('../../lib/aws/sns-calls');
 const sinon = require('sinon');
 
-describe('snsCalls', function() {
+describe('snsCalls', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
         AWS.restore('SNS');
     });
 
-    describe('subscribeToTopic', function() {
-        it('should subscribe to the topic', function() {
+    describe('subscribeToTopic', function () {
+        it('should subscribe to the topic', function () {
             let subscriptionArn = "FakeSubscriptionArn";
             AWS.mock('SNS', 'subscribe', Promise.resolve({
                 SubscriptionArn: subscriptionArn

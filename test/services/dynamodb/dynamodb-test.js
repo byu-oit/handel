@@ -29,19 +29,19 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 
 
-describe('dynamodb deployer', function() {
+describe('dynamodb deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require a partition key section', function() {
+    describe('check', function () {
+        it('should require a partition key section', function () {
             let params = {};
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", params);
             let errors = dynamodb.check(serviceContext);
@@ -49,7 +49,7 @@ describe('dynamodb deployer', function() {
             expect(errors[0]).to.include("partition_key section is required");
         });
 
-        it('should require a name field in the partition_key', function() {
+        it('should require a name field in the partition_key', function () {
             let params = {
                 partition_key: {
                     type: 'sometype'
@@ -61,7 +61,7 @@ describe('dynamodb deployer', function() {
             expect(errors[0]).to.include("name field in partition_key is required");
         });
 
-        it('should require a type field in the partition_key', function() {
+        it('should require a type field in the partition_key', function () {
             let params = {
                 partition_key: {
                     name: 'somename'
@@ -74,8 +74,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should do nothing and just return an empty PreDeployContext', function() {
+    describe('preDeploy', function () {
+        it('should do nothing and just return an empty PreDeployContext', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return dynamodb.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -84,8 +84,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should do nothing and just return an empty BindContext', function() {
+    describe('bind', function () {
+        it('should do nothing and just return an empty BindContext', function () {
             let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let ownPreDeployContext = new PreDeployContext(ownServiceContext);
             let dependentOfServiceContext = new ServiceContext("FakeApp", "FakeEnv", "OtherService", "OtherType", "1", {});
@@ -97,7 +97,7 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let serviceName = "FakeService";
@@ -116,7 +116,7 @@ describe('dynamodb deployer', function() {
         let tableName = "FakeTable";
         let tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`
 
-        it('should create a new table when one doesnt exist', function (){
+        it('should create a new table when one doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -137,7 +137,7 @@ describe('dynamodb deployer', function() {
                 });
         });
 
-        it('should not update anything on a table when one already exists', function() {
+        it('should not update anything on a table when one already exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
@@ -159,8 +159,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because DynamoDB cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because DynamoDB cant consume event services', function () {
             return dynamodb.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -171,8 +171,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because DynamoDB doesnt yet produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because DynamoDB doesnt yet produce events for other services', function () {
             return dynamodb.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -183,8 +183,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeploy context', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return dynamodb.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -193,8 +193,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return dynamodb.unBind(serviceContext)
                 .then(unBindContext => {
@@ -203,8 +203,8 @@ describe('dynamodb deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

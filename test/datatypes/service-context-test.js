@@ -17,8 +17,8 @@
 const ServiceContext = require('../../lib/datatypes/service-context');
 const expect = require('chai').expect;
 
-describe('ServiceContext', function() {
-    it('should be able to be constructed from required params', function() {
+describe('ServiceContext', function () {
+    it('should be able to be constructed from required params', function () {
         let appName = "FakeApp";
         let environmentName = "FakeEnv";
         let serviceName = "FakeService";

@@ -154,7 +154,7 @@ describe('deployers-common', function () {
                 ]
             });
             dependenciesDeployContexts.push(dependencyDeployContext);
-            
+
             let policyStatements = deployersCommon.getAllPolicyStatementsForServiceRole(ownServicePolicyStatements, dependenciesDeployContexts);
             expect(policyStatements.length).to.equal(2);
         });
@@ -182,7 +182,7 @@ describe('deployers-common', function () {
                 });
         });
 
-        it('should update the security group when it exists', function() {
+        it('should update the security group when it exists', function () {
             let sgName = "FakeSg";
 
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
@@ -204,8 +204,8 @@ describe('deployers-common', function () {
         });
     });
 
-    describe('unBindAllOnSg', function() {
-        it('should remove all ingress from the given security group', function() {
+    describe('unBindAllOnSg', function () {
+        it('should remove all ingress from the given security group', function () {
             let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
 
             return deployersCommon.unBindAllOnSg('FakeStack')
@@ -216,8 +216,8 @@ describe('deployers-common', function () {
         });
     });
 
-    describe('deleteSecurityGroupForService', function() {
-        it('should delete the stack if it exists', function() {
+    describe('deleteSecurityGroupForService', function () {
+        it('should delete the stack if it exists', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
@@ -229,7 +229,7 @@ describe('deployers-common', function () {
                 });
         });
 
-        it('should return true if the stack is already deleted', function() {
+        it('should return true if the stack is already deleted', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
@@ -242,27 +242,27 @@ describe('deployers-common', function () {
         })
     });
 
-    describe('unDeployCloudFormationStack', function() {
-        it('should delete the stack if it exists', function() {
+    describe('unDeployCloudFormationStack', function () {
+        it('should delete the stack if it exists', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return deployersCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
-                .then(unDeployContext  => {
+                .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.calledOnce).to.be.true;
                 });
         });
 
-        it('should suceed even if the stack has been deleted', function() {
+        it('should suceed even if the stack has been deleted', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return deployersCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
-                .then(unDeployContext  => {
+                .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.notCalled).to.be.true;

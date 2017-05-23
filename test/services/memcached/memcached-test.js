@@ -52,7 +52,7 @@ describe('memcached deployer', function () {
             expect(errors[0]).to.contain(`'instance_type' parameter is required`);
         });
 
-        it('should require the memcached_version parameter', function() {
+        it('should require the memcached_version parameter', function () {
             let serviceContext = {
                 params: {
                     instance_type: 'cache.t2.micro'
@@ -63,7 +63,7 @@ describe('memcached deployer', function () {
             expect(errors[0]).to.contain(`'memcached_version' parameter is required`);
         });
 
-        it('should return ok when all required parameters are given', function() {
+        it('should return ok when all required parameters are given', function () {
             let serviceContext = {
                 params: {
                     memcached_version: '1.4.34',
@@ -163,7 +163,7 @@ describe('memcached deployer', function () {
                 });
         });
 
-        it('should not update the file system if it already exists', function() {
+        it('should not update the file system if it already exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [

@@ -21,19 +21,19 @@ const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('check lifecycle module', function() {
+describe('check lifecycle module', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should check the Handel file for errors', function() {
+    describe('check', function () {
+        it('should check the Handel file for errors', function () {
             let error = 'SomeService - Some error was found'
             let checkServicesStub = sandbox.stub(checkPhase, 'checkServices').returns([error])
 

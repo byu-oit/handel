@@ -29,28 +29,28 @@ const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('cloudwatchevent deployer', function() {
+describe('cloudwatchevent deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require the schedule or event_pattern parameter to be present', function() {
+    describe('check', function () {
+        it('should require the schedule or event_pattern parameter to be present', function () {
             let serviceContext = {
-                params: { }
+                params: {}
             }
             let errors = cloudWatchEvent.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("You must specify at least one of the 'schedule' or 'event_pattern' parameters");
         });
 
-        it('should work when there are no configuration errors', function() {
+        it('should work when there are no configuration errors', function () {
             let serviceContext = {
                 params: {
                     schedule: 'rate(1 minute)'
@@ -61,8 +61,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty predeploy context', function() {
+    describe('preDeploy', function () {
+        it('should return an empty predeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return cloudWatchEvent.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -71,8 +71,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context', function() {
+    describe('bind', function () {
+        it('should return an empty bind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return cloudWatchEvent.bind(serviceContext)
                 .then(bindContext => {
@@ -81,7 +81,7 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
@@ -91,7 +91,7 @@ describe('cloudwatchevent deployer', function() {
         let preDeployContext = new PreDeployContext(serviceContext);
         let eventRuleArn = "FakeEventRuleArn";
 
-        it('should create a new rule when it doesnt exist', function() {
+        it('should create a new rule when it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -110,7 +110,7 @@ describe('cloudwatchevent deployer', function() {
                 });
         });
 
-        it('should update an existing rule when it exists', function() {
+        it('should update an existing rule when it exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [{
@@ -130,8 +130,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should return an error since it cant consume events', function() {
+    describe('consumeEvents', function () {
+        it('should return an error since it cant consume events', function () {
             return cloudWatchEvent.consumeEvents(null, null, null, null)
                 .then(() => {
                     expect(true).to.be.false; //Should not get here
@@ -142,12 +142,12 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
+    describe('produceEvents', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
 
-        it('should add a target for the lambda service type', function() {
+        it('should add a target for the lambda service type', function () {
             let consumerServiceName = "ConsumerService";
             let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
@@ -171,8 +171,8 @@ describe('cloudwatchevent deployer', function() {
                     expect(addTargetStub.calledOnce).to.be.truel
                 });
         });
-        
-        it('should throw an error for an unsupported consumer service type', function() {
+
+        it('should throw an error for an unsupported consumer service type', function () {
             let consumerServiceName = "ConsumerService";
             let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
@@ -199,8 +199,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeployContext since it doesnt do anything', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeployContext since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
             return cloudWatchEvent.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -210,8 +210,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBindContext since it doesnt do anything', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBindContext since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
             return cloudWatchEvent.unBind(serviceContext)
                 .then(unBindContext => {
@@ -221,8 +221,8 @@ describe('cloudwatchevent deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should remove all targets and delete the stack', function() {
+    describe('unDeploy', function () {
+        it('should remove all targets and delete the stack', function () {
             let getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
             let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));

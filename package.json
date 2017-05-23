@@ -1,7 +1,7 @@
 {
   "name": "handel",
   "version": "0.7.1",
-  "description": "Simple orchestration of your AWS deployments",
+  "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "lib/handel.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha 'test/**/*.js'",

@@ -25,19 +25,19 @@ const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('deploy lifecycle module', function() {
+describe('deploy lifecycle module', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('deploy', function() {
-        it('should deploy the application environment on success', function() {
+    describe('deploy', function () {
+        it('should deploy the application environment on success', function () {
             let checkServicesStub = sandbox.stub(checkPhase, 'checkServices').returns([]);
             let preDeployServicesStub = sandbox.stub(preDeployPhase, 'preDeployServices').returns(Promise.resolve({
                 A: new PreDeployContext({}),

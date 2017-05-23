@@ -30,27 +30,27 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('sqs deployer', function() {
+describe('sqs deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('shouldnt validate anything yet', function() {
+    describe('check', function () {
+        it('shouldnt validate anything yet', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = sqs.check(serviceContext);
             expect(errors).to.deep.equal([]);
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty predeploy context since it doesnt do anything', function() {
+    describe('preDeploy', function () {
+        it('should return an empty predeploy context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return sqs.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -60,8 +60,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context since it doesnt do anything', function() {
+    describe('bind', function () {
+        it('should return an empty bind context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return sqs.bind(serviceContext)
                 .then(bindContext => {
@@ -71,7 +71,7 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let serviceName = "FakeService";
@@ -91,7 +91,7 @@ describe('sqs deployer', function() {
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
-        it('should create a new queue when the stack doesnt exist', function() {
+        it('should create a new queue when the stack doesnt exist', function () {
 
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
@@ -132,7 +132,7 @@ describe('sqs deployer', function() {
                 });
         });
 
-        it('should update the stack when the queue already exists', function() {
+        it('should update the stack when the queue already exists', function () {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [
@@ -173,8 +173,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because SQS cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because SQS cant consume event services', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -197,8 +197,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because SQS cant produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because SQS cant produce events for other services', function () {
             return sqs.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -209,8 +209,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeploy context', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
             return sqs.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -219,8 +219,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
             return sqs.unBind(serviceContext)
                 .then(unBindContext => {
@@ -229,8 +229,8 @@ describe('sqs deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

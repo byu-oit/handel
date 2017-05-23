@@ -20,19 +20,19 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 
-describe('iam calls', function() {
+describe('iam calls', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('createRole', function() {
-        it('should create the role', function() {
+    describe('createRole', function () {
+        it('should create the role', function () {
             let roleName = "FakeRole"
             AWS.mock('IAM', 'createRole', Promise.resolve({
                 Role: {}
@@ -45,8 +45,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('getRole', function() {
-        it('should return the role when it exists', function() {
+    describe('getRole', function () {
+        it('should return the role when it exists', function () {
             AWS.mock('IAM', 'getRole', Promise.resolve({
                 Role: {}
             }));
@@ -58,7 +58,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should return null when the role doesnt exist', function() {
+        it('should return null when the role doesnt exist', function () {
             AWS.mock('IAM', 'getRole', Promise.reject({
                 code: "NoSuchEntity"
             }));
@@ -70,7 +70,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should throw an error on any other error', function() {
+        it('should throw an error on any other error', function () {
             let errorCode = "OtherError";
             AWS.mock('IAM', 'getRole', Promise.reject({
                 code: errorCode
@@ -87,8 +87,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('createRoleIfNotExists', function() {
-        it('should create the role when it doesnt exist', function() {
+    describe('createRoleIfNotExists', function () {
+        it('should create the role when it doesnt exist', function () {
             sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
             sandbox.stub(iamCalls, 'createRole').returns(Promise.resolve({}));
 
@@ -98,7 +98,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should just return the role when it already exists', function() {
+        it('should just return the role when it already exists', function () {
             sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
             return iamCalls.createRoleIfNotExists("FakeRole", "TrustedService")
@@ -108,8 +108,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('getPolicy', function() {
-        it('should return the policy when it exists', function() {
+    describe('getPolicy', function () {
+        it('should return the policy when it exists', function () {
             AWS.mock('IAM', 'getPolicy', Promise.resolve({
                 Policy: {}
             }));
@@ -121,7 +121,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should return null when the policy doesnt exist', function() {
+        it('should return null when the policy doesnt exist', function () {
             AWS.mock('IAM', 'getPolicy', Promise.reject({
                 code: "NoSuchEntity"
             }));
@@ -134,8 +134,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('createPolicy', function() {
-        it('should create the policy', function() {
+    describe('createPolicy', function () {
+        it('should create the policy', function () {
             AWS.mock('IAM', 'createPolicy', Promise.resolve({
                 Policy: {}
             }));
@@ -148,8 +148,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('deleteAllPolicyVersionsButProvided', function() {
-        it('should delete all policy versions but the one provided', function() {
+    describe('deleteAllPolicyVersionsButProvided', function () {
+        it('should delete all policy versions but the one provided', function () {
             let policyVersionToKeep = {
                 VersionId: 'v2'
             }
@@ -157,7 +157,7 @@ describe('iam calls', function() {
                 Versions: [
                     {
                         VersionId: 'v1'
-                    }, 
+                    },
                     policyVersionToKeep
                 ]
             }));
@@ -171,8 +171,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('attachPolicyToRole', function() {
-        it('should attach the policy to the role', function() {
+    describe('attachPolicyToRole', function () {
+        it('should attach the policy to the role', function () {
             AWS.mock('IAM', 'attachRolePolicy', Promise.resolve({}));
 
             return iamCalls.attachPolicyToRole('FakeArn', 'FakeRole')
@@ -183,8 +183,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('createOrUpdatePolicy', function() {
-        it('should create the policy when it doesnt exist', function() {
+    describe('createOrUpdatePolicy', function () {
+        it('should create the policy when it doesnt exist', function () {
             sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve(null));
             sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
 
@@ -194,7 +194,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should update the policy when it exists', function() {
+        it('should update the policy when it exists', function () {
             sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve({}));
             sandbox.stub(iamCalls, 'createPolicyVersion').returns(Promise.resolve({}));
             sandbox.stub(iamCalls, 'deleteAllPolicyVersionsButProvided').returns(Promise.resolve({}));
@@ -206,8 +206,8 @@ describe('iam calls', function() {
         });
     });
 
-    describe('createPolicyIfNotExists', function() {
-        it('should create the policy when it doesnt exist', function() {
+    describe('createPolicyIfNotExists', function () {
+        it('should create the policy when it doesnt exist', function () {
             let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve(null));
             let createPolicyStub = sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
 
@@ -219,7 +219,7 @@ describe('iam calls', function() {
                 });
         });
 
-        it('should just return the policy when it exists', function() {
+        it('should just return the policy when it exists', function () {
             let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve({}));
             let createPolicyStub = sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
 

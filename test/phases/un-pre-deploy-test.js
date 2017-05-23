@@ -21,17 +21,17 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const expect = require('chai').expect;
 
-describe('preDeploy', function() {
-    describe('preDeployServices', function() {
-        it('should execute predeploy on all services, even across levels', function() {
+describe('preDeploy', function () {
+    describe('preDeployServices', function () {
+        it('should execute predeploy on all services, even across levels', function () {
             let serviceDeployers = {
                 efs: {
-                    unPreDeploy: function(serviceContext) {
+                    unPreDeploy: function (serviceContext) {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
                     }
                 },
                 ecs: {
-                    unPreDeploy: function(serviceContext) {
+                    unPreDeploy: function (serviceContext) {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
                     }
                 }
@@ -57,7 +57,7 @@ describe('preDeploy', function() {
             let serviceTypeA = "ecs";
             let paramsA = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;

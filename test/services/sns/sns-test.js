@@ -30,27 +30,27 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('sns deployer', function() {
+describe('sns deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('shouldnt validate anything yet', function() {
+    describe('check', function () {
+        it('shouldnt validate anything yet', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = sns.check(serviceContext);
             expect(errors).to.deep.equal([]);
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty predeploy context since it doesnt do anything', function() {
+    describe('preDeploy', function () {
+        it('should return an empty predeploy context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return sns.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -60,8 +60,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context since it doesnt do anything', function() {
+    describe('bind', function () {
+        it('should return an empty bind context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return sns.bind(serviceContext)
                 .then(bindContext => {
@@ -71,7 +71,7 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let serviceName = "FakeService";
@@ -84,7 +84,7 @@ describe('sns deployer', function() {
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
-        it('should create a new topic when one doesnt exist', function() {
+        it('should create a new topic when one doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [
@@ -118,7 +118,7 @@ describe('sns deployer', function() {
                 });
         });
 
-        it('should update the topic if it already exists', function() {
+        it('should update the topic if it already exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [
@@ -153,8 +153,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should throw an error because SNS cant consume event services', function() {
+    describe('consumeEvents', function () {
+        it('should throw an error because SNS cant consume event services', function () {
             return sns.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -165,8 +165,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should subscribe the service to the topic when a lambda is given', function() {
+    describe('produceEvents', function () {
+        it('should subscribe the service to the topic when a lambda is given', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -187,7 +187,7 @@ describe('sns deployer', function() {
                 });
         });
 
-        it('should return an error for any other service type', function() {
+        it('should return an error for any other service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -212,8 +212,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeploy context', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
             return sns.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -222,8 +222,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
             return sns.unBind(serviceContext)
                 .then(unBindContext => {
@@ -232,8 +232,8 @@ describe('sns deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

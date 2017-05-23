@@ -24,29 +24,29 @@ const produceEvents = require('../../lib/phases/produce-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('produceEvents module', function() {
+describe('produceEvents module', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('produceEvents', function() {
-        it('should execute produceEvents on all services that specify themselves as producers for other services', function() {
+    describe('produceEvents', function () {
+        it('should execute produceEvents on all services that specify themselves as producers for other services', function () {
             let serviceDeployers = {
                 lambda: {
-                    produceEvents: function(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) {
+                    produceEvents: function (ownServiceContext,  ownDeployContext,  consumerServiceContext,  consumerDeployContext) {
                         return Promise.reject(new Error("Lambda doesn't produce events"));
-                        
+
                     }
                 },
                 s3: {
-                    produceEvents: function(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) {
-                        return Promise.resolve(new ProduceEventsContext(ownServiceContext,  consumerServiceContext));
+                    produceEvents: function (ownServiceContext,  ownDeployContext,  consumerServiceContext,  consumerDeployContext) {
+                        return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
                     }
                 }
             };

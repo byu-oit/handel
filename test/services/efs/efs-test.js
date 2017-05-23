@@ -29,19 +29,19 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('efs deployer', function() {
+describe('efs deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require either max_io or general_purpose for the performance_mode parameter', function() {
+    describe('check', function () {
+        it('should require either max_io or general_purpose for the performance_mode parameter', function () {
             //Errors expected
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {
                 performance_mode: 'other_param'
@@ -62,7 +62,7 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
+    describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
             let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
@@ -80,8 +80,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should add the source sg to its own sg as an ingress rule', function() {
+    describe('bind', function () {
+        it('should add the source sg to its own sg as an ingress rule', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -107,7 +107,7 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
@@ -119,7 +119,7 @@ describe('efs deployer', function() {
         let dependenciesDeployContexts = [];
         let fileSystemId = "FakeFileSystemId";
 
-        it('should create the file system if it doesnt exist', function() {
+        it('should create the file system if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -137,7 +137,7 @@ describe('efs deployer', function() {
                 });
         });
 
-        it('should not update the file system if it already exists', function() {
+        it('should not update the file system if it already exists', function () {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: "EFSFileSystemId",
@@ -161,8 +161,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('consumerEvents', function() {
-        it('should throw an error because EFS cant consume event services', function() {
+    describe('consumerEvents', function () {
+        it('should throw an error because EFS cant consume event services', function () {
             return efs.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -173,8 +173,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because EFS cant produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because EFS cant produce events for other services', function () {
             return efs.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -185,8 +185,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should delete the security group', function() {
+    describe('unPreDeploy', function () {
+        it('should delete the security group', function () {
             let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
@@ -198,8 +198,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should unbind the security group', function() {
+    describe('unBind', function () {
+        it('should unbind the security group', function () {
             let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
@@ -211,8 +211,8 @@ describe('efs deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 

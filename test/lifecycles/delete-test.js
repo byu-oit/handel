@@ -24,19 +24,19 @@ const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('delete lifecycle module', function() {
+describe('delete lifecycle module', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('delete', function() {
-        it('should delete the application environment', function() {
+    describe('delete', function () {
+        it('should delete the application environment', function () {
             let unDeployServicesStub = sandbox.stub(unDeployPhase, 'unDeployServicesInLevel').returns({});
             let unBindServicesStub = sandbox.stub(unBindPhase, 'unBindServicesInLevel').returns({});
             let unPreDeployStub = sandbox.stub(unPreDeployPhase, 'unPreDeployServices').returns(Promise.resolve({

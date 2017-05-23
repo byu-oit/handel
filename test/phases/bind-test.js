@@ -24,32 +24,32 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const util = require('../../lib/common/util');
 
-describe('bind', function() {
+describe('bind', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('bindServicesInLevel', function() {
-        it('should execute bind on all the services in parallel', function() {
+    describe('bindServicesInLevel', function () {
+        it('should execute bind on all the services in parallel', function () {
             let serviceDeployers = {
                 ecs: {
-                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                    bind: function (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
                     }
                 },
                 efs: {
-                    bind: function(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+                    bind: function (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
                         return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
                     }
                 }
             }
-            
+
             //Construct EnvironmentContext
             let appName = "FakeApp"
             let deployVersion = "1";
@@ -70,7 +70,7 @@ describe('bind', function() {
             let serviceTypeA = "ecs";
             let paramsA = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
@@ -80,11 +80,11 @@ describe('bind', function() {
             let serviceTypeC = "ecs";
             let paramsC = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextC = new ServiceContext(appName, environmentName, serviceNameC, serviceTypeC, deployVersion, paramsC);
             environmentContext.serviceContexts[serviceNameC] = serviceContextC;
-            
+
 
             //Construct PreDeployContexts
             let preDeployContexts = {}

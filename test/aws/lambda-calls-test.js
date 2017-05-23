@@ -20,20 +20,20 @@ const AWS = require('aws-sdk-mock');
 const lambdaCalls = require('../../lib/aws/lambda-calls');
 const sinon = require('sinon');
 
-describe('lambdaCalls', function() {
+describe('lambdaCalls', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
         AWS.restore('Lambda');
     });
 
-    describe('addLambdaPermission', function() {
-        it('should add the given permission', function() {
+    describe('addLambdaPermission', function () {
+        it('should add the given permission', function () {
             AWS.mock('Lambda', 'addPermission', Promise.resolve({}));
             let getLambdaPermissionStub = sandbox.stub(lambdaCalls, 'getLambdaPermission').returns(Promise.resolve({}));
 
@@ -44,8 +44,8 @@ describe('lambdaCalls', function() {
         });
     });
 
-    describe('getLambdaPermission', function() {
-        it('should return the given permission if present', function() {
+    describe('getLambdaPermission', function () {
+        it('should return the given permission if present', function () {
             let principal = "FakePrincipal";
             let sourceArn = "FakeSourceArn";
             let policy = {
@@ -73,7 +73,7 @@ describe('lambdaCalls', function() {
                 });
         });
 
-        it('should return null when the requested permissions is not present in the policy', function() {
+        it('should return null when the requested permissions is not present in the policy', function () {
             let principal = "FakePrincipal";
             let sourceArn = "FakeSourceArn";
             let policy = {
@@ -99,7 +99,7 @@ describe('lambdaCalls', function() {
                 });
         });
 
-        it('should return null when there is no policy for the function', function() {
+        it('should return null when there is no policy for the function', function () {
             AWS.mock('Lambda', 'getPolicy', Promise.reject({
                 code: 'ResourceNotFoundException'
             }));
@@ -111,8 +111,8 @@ describe('lambdaCalls', function() {
         });
     });
 
-    describe('addLambdaPermissionIfNotExists', function() {
-        it('should create the permission if it doesnt exist', function() {
+    describe('addLambdaPermissionIfNotExists', function () {
+        it('should create the permission if it doesnt exist', function () {
             let getLambdaPermissionStub = sandbox.stub(lambdaCalls, 'getLambdaPermission').returns(Promise.resolve(null));
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermission').returns(Promise.resolve({}));
 
@@ -124,7 +124,7 @@ describe('lambdaCalls', function() {
                 });
         });
 
-        it('should just return the permission statement if it already exists', function() {
+        it('should just return the permission statement if it already exists', function () {
             let getLambdaPermissionStub = sandbox.stub(lambdaCalls, 'getLambdaPermission').returns(Promise.resolve({}));
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermission').returns(Promise.resolve(null));
 

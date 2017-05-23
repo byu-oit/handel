@@ -51,7 +51,7 @@ describe('mysql deployer', function () {
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
-        it('should work when all required parameters are provided properly', function() {
+        it('should work when all required parameters are provided properly', function () {
             let serviceContext = {
                 params: {
                     database_name: 'mydb',
@@ -163,7 +163,7 @@ describe('mysql deployer', function () {
                 });
         });
 
-        it('should not update the database if it already exists', function() {
+        it('should not update the database if it already exists', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
                 Outputs: [
                     {

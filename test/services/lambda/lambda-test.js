@@ -30,19 +30,19 @@ const deployersCommon = require('../../../lib/common/deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('lambda deployer', function() {
+describe('lambda deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require the path_to_code parameter', function() {
+    describe('check', function () {
+        it('should require the path_to_code parameter', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 handler: 'index.handler',
                 runtime: 'nodejs6.11'
@@ -52,7 +52,7 @@ describe('lambda deployer', function() {
             expect(errors[0]).to.contain("'path_to_code' parameter is required");
         });
 
-        it('should require the handler parameter', function() {
+        it('should require the handler parameter', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: '.',
                 runtime: 'nodejs6.11'
@@ -62,7 +62,7 @@ describe('lambda deployer', function() {
             expect(errors[0]).to.contain("'handler' parameter is required");
         });
 
-        it('should require the runtime parameter', function() {
+        it('should require the runtime parameter', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: '.',
                 handler: 'index.handler'
@@ -72,7 +72,7 @@ describe('lambda deployer', function() {
             expect(errors[0]).to.contain("'runtime' parameter is required");
         });
 
-        it('should work when things are configured properly', function() {
+        it('should work when things are configured properly', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
                 path_to_code: '.',
                 runtime: 'nodejs6.11',
@@ -83,8 +83,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty predeploy context since it doesnt do anything', function() {
+    describe('preDeploy', function () {
+        it('should return an empty predeploy context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return lambda.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -94,8 +94,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context since it doesnt do anything', function() {
+    describe('bind', function () {
+        it('should return an empty bind context since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return lambda.bind(serviceContext)
                 .then(bindContext => {
@@ -105,7 +105,7 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         function getServiceContext() {
             return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {
                 memory: 256,
@@ -127,7 +127,7 @@ describe('lambda deployer', function() {
             let dependenciesDeployContexts = [];
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {
-                
+
             });
             let deployContext = new DeployContext(serviceContext);
             deployContext.environmentVariables['INJECTED_VAR'] = 'injectedValue';
@@ -136,8 +136,8 @@ describe('lambda deployer', function() {
             return dependenciesDeployContexts;
         }
 
-        
-        it('should create the service when it doesnt already exist', function() {
+
+        it('should create the service when it doesnt already exist', function () {
             let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
@@ -173,7 +173,7 @@ describe('lambda deployer', function() {
                 });
         });
 
-        it('should update the service when it already exists', function() {
+        it('should update the service when it already exists', function () {
             let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
@@ -210,8 +210,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should add permissions for the sns service type', function() {
+    describe('consumeEvents', function () {
+        it('should add permissions for the sns service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -233,7 +233,7 @@ describe('lambda deployer', function() {
                 });
         });
 
-        it('should add permissions for the cloudwatchevent service type', function() {
+        it('should add permissions for the cloudwatchevent service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -255,7 +255,7 @@ describe('lambda deployer', function() {
                 });
         });
 
-        it('should return an error for any other service type', function() {
+        it('should return an error for any other service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -279,8 +279,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should throw an error because EFS doesnt produce events for other services', function() {
+    describe('produceEvents', function () {
+        it('should throw an error because EFS doesnt produce events for other services', function () {
             return lambda.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
@@ -291,8 +291,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeployContext since it doesnt do anything', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeployContext since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return lambda.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -302,8 +302,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBindContext since it doesnt do anything', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBindContext since it doesnt do anything', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return lambda.unBind(serviceContext)
                 .then(unBindContext => {
@@ -313,8 +313,8 @@ describe('lambda deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should delete the stack', function() {
+    describe('unDeploy', function () {
+        it('should delete the stack', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudFormationCalls, 'deleteStack').returns(Promise.resolve(true));
 

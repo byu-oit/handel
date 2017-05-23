@@ -20,20 +20,20 @@ const AWS = require('aws-sdk-mock');
 const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 
-describe('s3Calls', function() {
+describe('s3Calls', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
         AWS.restore('S3');
     });
 
-    describe('uploadFile', function() {
-        it('should upload the file', function() {
+    describe('uploadFile', function () {
+        it('should upload the file', function () {
             let filePath = `${__dirname}/test-upload-file.txt`;
 
             AWS.mock('S3', 'upload', Promise.resolve({}))
@@ -45,8 +45,8 @@ describe('s3Calls', function() {
         });
     });
 
-    describe('listFilesByPrefix', function() {
-        it('should return a list of objects when there are results', function() {
+    describe('listFilesByPrefix', function () {
+        it('should return a list of objects when there are results', function () {
             AWS.mock('S3', 'listObjectsV2', Promise.resolve({
                 Contents: [{
                     Key: "FakeKey"
@@ -58,7 +58,7 @@ describe('s3Calls', function() {
                 });
         });
 
-        it('should return an empty list when there are no results', function() {
+        it('should return an empty list when there are no results', function () {
             AWS.mock('S3', 'listObjectsV2', Promise.resolve({}))
             return s3Calls.listFilesByPrefix("FakeBucket", "FakePrefix")
                 .then(objects => {
@@ -67,28 +67,28 @@ describe('s3Calls', function() {
         });
     });
 
-    describe('deleteFiles', function() {
-        it('should delete the objects', function() {
+    describe('deleteFiles', function () {
+        it('should delete the objects', function () {
             AWS.mock('S3', 'deleteObjects', Promise.resolve({}));
 
-            return s3Calls.deleteFiles("FakeBucket", [{Key: "FakeKey"}])
+            return s3Calls.deleteFiles("FakeBucket", [{ Key: "FakeKey" }])
                 .then(results => {
                     expect(results).to.deep.equal({});
                 });
         });
     });
 
-    describe('cleanupOldVersionsOfFiles', function() {
-        it('should clean up versions of files older than 30 days, but keeping the 5 most recent', function() {
+    describe('cleanupOldVersionsOfFiles', function () {
+        it('should clean up versions of files older than 30 days, but keeping the 5 most recent', function () {
             //5 really old objects + 1 current object. The algorithm should keep the 1 current, plus the four most recent old ones
             let oldestDate = new Date(1000);
             let objects = [
-                {LastModified: oldestDate},
-                {LastModified: new Date(1001)},
-                {LastModified: new Date(1002)},
-                {LastModified: new Date(1003)},
-                {LastModified: new Date(1004)},
-                {LastModified: new Date()}
+                { LastModified: oldestDate },
+                { LastModified: new Date(1001) },
+                { LastModified: new Date(1002) },
+                { LastModified: new Date(1003) },
+                { LastModified: new Date(1004) },
+                { LastModified: new Date() }
             ];
 
             let listFilesStub = sandbox.stub(s3Calls, 'listFilesByPrefix').returns(Promise.resolve(objects));
@@ -106,8 +106,8 @@ describe('s3Calls', function() {
         });
     });
 
-    describe('createBucket', function() {
-        it('should create the bucket', function() {
+    describe('createBucket', function () {
+        it('should create the bucket', function () {
             AWS.mock('S3', 'createBucket', Promise.resolve({}));
 
             return s3Calls.createBucket("handel-fake-bucket", 'us-badregion-5')
@@ -117,8 +117,8 @@ describe('s3Calls', function() {
         });
     });
 
-    describe('getBucket', function() {
-        it('should return the bucket if it exists', function() {
+    describe('getBucket', function () {
+        it('should return the bucket if it exists', function () {
             let bucketName = "FakeBucket";
 
             AWS.mock('S3', 'listBuckets', Promise.resolve({
@@ -133,7 +133,7 @@ describe('s3Calls', function() {
                 });
         });
 
-        it('should return null if the bucket doesnt exist', function() {
+        it('should return null if the bucket doesnt exist', function () {
             AWS.mock('S3', 'listBuckets', Promise.resolve({
                 Buckets: []
             }));
@@ -145,8 +145,8 @@ describe('s3Calls', function() {
         });
     });
 
-    describe('createBucketIfNotExists', function() {
-        it('should return the bucket if it exists', function() {
+    describe('createBucketIfNotExists', function () {
+        it('should return the bucket if it exists', function () {
             let getBucketStub = sandbox.stub(s3Calls, 'getBucket').returns(Promise.resolve({}));
             let createBucketStub = sandbox.stub(s3Calls, 'createBucket').returns(Promise.resolve(null));
 
@@ -158,7 +158,7 @@ describe('s3Calls', function() {
                 });
         });
 
-        it('should create the bucket if it doesnt exist', function() {
+        it('should create the bucket if it doesnt exist', function () {
             let getBucketStub = sandbox.stub(s3Calls, 'getBucket');
             getBucketStub.onCall(0).returns(Promise.resolve(null));
             getBucketStub.onCall(1).returns(Promise.resolve({}));

@@ -22,27 +22,27 @@ const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('unDeploy', function() {
+describe('unDeploy', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('unDeployServicesInLevel', function() {
-        it('should UnDeploy the services in the given level', function() {
+    describe('unDeployServicesInLevel', function () {
+        it('should UnDeploy the services in the given level', function () {
             let serviceDeployers = {
                 efs: {
-                    unDeploy: function(toUnDeployServiceContext) {
+                    unDeploy: function (toUnDeployServiceContext) {
                         throw new Error("Should not have called ECS in this level");
                     }
                 },
                 ecs: {
-                    unDeploy: function(toUnDeployServiceContext) {
+                    unDeploy: function (toUnDeployServiceContext) {
                         return Promise.resolve(new UnDeployContext(toUnDeployServiceContext));
                     }
                 }
@@ -69,7 +69,7 @@ describe('unDeploy', function() {
             let serviceTypeA = "ecs";
             let paramsA = {
                 some: "param",
-                dependencies: [ serviceNameB]
+                dependencies: [serviceNameB]
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;

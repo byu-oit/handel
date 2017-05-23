@@ -23,27 +23,27 @@ const consumeEvents = require('../../lib/phases/consume-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('consumeEvents module', function() {
+describe('consumeEvents module', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('consumeEvents', function() {
-        it('should execute consumeEvents on all services that are specified as consumers by other services', function() {
+    describe('consumeEvents', function () {
+        it('should execute consumeEvents on all services that are specified as consumers by other services', function () {
             let serviceDeployers = {
                 lambda: {
-                    consumeEvents: function(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
+                    consumeEvents: function (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) {
                         return Promise.resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
                     }
                 },
                 s3: {
-                    consumeEvents: function(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
+                    consumeEvents: function (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) {
                         return Promise.reject(new Error("S3 doesn't consume events"));
                     }
                 }

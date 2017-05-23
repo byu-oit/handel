@@ -17,8 +17,8 @@
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const expect = require('chai').expect;
 
-describe('EnvironmentContext', function() {
-    it('should be able to be constructed with required parameters', function() {
+describe('EnvironmentContext', function () {
+    it('should be able to be constructed with required parameters', function () {
         let appName = "FakeApp";
         let deployVersion = 1;
         let environmentName = "FakeEnvironment";

@@ -23,12 +23,12 @@ const expect = require('chai').expect;
 function getServiceDeployers() {
     return {
         ecs: {
-            check: function(serviceContext) {
+            check: function (serviceContext) {
                 return [];
             }
         },
         efs: {
-            check: function(serviceContext) {
+            check: function (serviceContext) {
                 return [];
             }
         }
@@ -62,27 +62,27 @@ function getEnvironmentContext() {
     return environmentContext;
 }
 
-describe('check', function() {
-    describe('checkServices', function() {
-        it('should run check services on all services in the environment', function() {
+describe('check', function () {
+    describe('checkServices', function () {
+        it('should run check services on all services in the environment', function () {
             let serviceDeployers = getServiceDeployers();
-            let environmentContext = getEnvironmentContext();    
+            let environmentContext = getEnvironmentContext();
 
             let checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
             expect(checkResults).to.deep.equal([]);
         });
-        
-        it('should return errors when there are errors in one or more services', function() {
+
+        it('should return errors when there are errors in one or more services', function () {
             let serviceDeployers = getServiceDeployers();
             let ecsErrors = ['ECS Error'];
-            serviceDeployers['ecs'].check = function() {
+            serviceDeployers['ecs'].check = function () {
                 return ecsErrors
             }
             let efsErrors = ['EFS Errors'];
-            serviceDeployers['efs'].check = function() {
+            serviceDeployers['efs'].check = function () {
                 return efsErrors;
             }
-            let environmentContext = getEnvironmentContext();    
+            let environmentContext = getEnvironmentContext();
 
             let checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
             expect(checkResults).to.deep.equal(ecsErrors.concat(efsErrors));

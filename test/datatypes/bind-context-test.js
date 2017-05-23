@@ -18,8 +18,8 @@ const expect = require('chai').expect;
 const ServiceContext = require('../../lib/datatypes/service-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 
-describe('BindContet', function() {
-    it('should be able to be constructed from a ServiceContext', function() {
+describe('BindContet', function () {
+    it('should be able to be constructed from a ServiceContext', function () {
         let dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', '1', {});
         let dependentOfServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', '1', {});
         let bindContext = new BindContext(dependencyServiceContext, dependentOfServiceContext);

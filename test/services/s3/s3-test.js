@@ -28,19 +28,19 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('s3 deployer', function() {
+describe('s3 deployer', function () {
     let sandbox;
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.sandbox.create();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    describe('check', function() {
-        it('should require the versioning parameter to be a certain value when present', function() {
+    describe('check', function () {
+        it('should require the versioning parameter to be a certain value when present', function () {
             let serviceContext = {
                 params: {
                     bucket_name: 'somename',
@@ -52,7 +52,7 @@ describe('s3 deployer', function() {
             expect(errors[0]).to.contain("'versioning' parameter must be either 'enabled' or 'disabled'");
         });
 
-        it('should work when there are no configuration errors', function() {
+        it('should work when there are no configuration errors', function () {
             let serviceContext = {
                 params: {
                     bucket_name: 'somename',
@@ -64,8 +64,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('preDeploy', function() {
-        it('should return an empty predeploy context', function() {
+    describe('preDeploy', function () {
+        it('should return an empty predeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return s3.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -74,8 +74,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('bind', function() {
-        it('should return an empty bind context', function() {
+    describe('bind', function () {
+        it('should return an empty bind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return s3.bind(serviceContext)
                 .then(bindContext => {
@@ -84,7 +84,7 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('deploy', function() {
+    describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
@@ -94,7 +94,7 @@ describe('s3 deployer', function() {
         });
         let preDeployContext = new PreDeployContext(serviceContext);
 
-        it('should create a new bucket when it doesnt exist', function() {
+        it('should create a new bucket when it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -115,7 +115,7 @@ describe('s3 deployer', function() {
                 });
         });
 
-        it('should update an existing bucket when it exists', function() {
+        it('should update an existing bucket when it exists', function () {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [{
@@ -137,8 +137,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('consumeEvents', function() {
-        it('should return an error since it cant consume events', function() {
+    describe('consumeEvents', function () {
+        it('should return an error since it cant consume events', function () {
             return s3.consumeEvents(null, null, null, null)
                 .then(() => {
                     expect(true).to.be.false; //Should not get here
@@ -149,8 +149,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('produceEvents', function() {
-        it('should return an error since it doesnt yet produce events', function() {
+    describe('produceEvents', function () {
+        it('should return an error since it doesnt yet produce events', function () {
             return s3.produceEvents(null, null, null, null)
                 .then(() => {
                     expect(true).to.be.false; //Should not get here
@@ -161,8 +161,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('unPreDeploy', function() {
-        it('should return an empty UnPreDeploy context', function() {
+    describe('unPreDeploy', function () {
+        it('should return an empty UnPreDeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
             return s3.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
@@ -171,8 +171,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('unBind', function() {
-        it('should return an empty UnBind context', function() {
+    describe('unBind', function () {
+        it('should return an empty UnBind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
             return s3.unBind(serviceContext)
                 .then(unBindContext => {
@@ -181,8 +181,8 @@ describe('s3 deployer', function() {
         });
     });
 
-    describe('unDeploy', function() {
-        it('should undeploy the stack', function() {
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
             let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
