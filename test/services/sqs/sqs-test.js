@@ -72,14 +72,26 @@ describe('sqs deployer', function() {
     });
 
     describe('deploy', function() {
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let serviceName = "FakeService";
+        let serviceType = "sqs";
+        let queueName = "FakeQueue";
+        let queueArn = "FakeArn";
+        let queueUrl = "FakeUrl";
+
+        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
+            type: 'sqs',
+            queue_type: 'fifo',
+            content_based_deduplication: true,
+            delay_seconds: 2,
+            max_message_size: 262140,
+            message_retention_period: 345601,
+            visibility_timeout: 40
+        });
+        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+
         it('should create a new queue when the stack doesnt exist', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "sqs";
-            let queueName = "FakeQueue";
-            let queueArn = "FakeArn";
-            let queueUrl = "FakeUrl";
 
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
@@ -98,17 +110,6 @@ describe('sqs deployer', function() {
                     }
                 ]
             }));
-
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
-                type: 'sqs',
-                queue_type: 'fifo',
-                content_based_deduplication: true,
-                delay_seconds: 2,
-                max_message_size: 262140,
-                message_retention_period: 345601,
-                visibility_timeout: 40
-            });
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
             return sqs.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
@@ -132,14 +133,6 @@ describe('sqs deployer', function() {
         });
 
         it('should update the stack when the queue already exists', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "sqs";
-            let queueName = "FakeQueue";
-            let queueArn = "FakeArn";
-            let queueUrl = "FakeUrl";
-
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [
@@ -157,17 +150,6 @@ describe('sqs deployer', function() {
                     }
                 ]
             }));
-
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
-                type: 'sqs',
-                queue_type: 'fifo',
-                content_based_deduplication: true,
-                delay_seconds: 2,
-                max_message_size: 262140,
-                message_retention_period: 345601,
-                visibility_timeout: 40
-            });
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
             return sqs.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {

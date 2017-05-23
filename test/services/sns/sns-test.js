@@ -72,14 +72,19 @@ describe('sns deployer', function() {
     });
 
     describe('deploy', function() {
-        it('should create a new topic when one doesnt exist', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "sns";
-            let topicName = "FakeTopic";
-            let topicArn = "FakeArn";
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let serviceName = "FakeService";
+        let serviceType = "sns";
+        let topicName = "FakeTopic";
+        let topicArn = "FakeArn";
 
+        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
+            type: 'sns'
+        });
+        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+
+        it('should create a new topic when one doesnt exist', function() {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [
@@ -93,11 +98,6 @@ describe('sns deployer', function() {
                     }
                 ]
             }));
-
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
-                type: 'sns'
-            });
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
             return sns.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
@@ -119,13 +119,6 @@ describe('sns deployer', function() {
         });
 
         it('should update the topic if it already exists', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceType = "sns";
-            let topicName = "FakeTopic";
-            let topicArn = "FakeArn";
-
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [
@@ -139,11 +132,6 @@ describe('sns deployer', function() {
                     }
                 ]
             }));
-
-            let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
-                type: 'sns'
-            });
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
             return sns.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {

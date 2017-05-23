@@ -108,18 +108,18 @@ describe('efs deployer', function() {
     });
 
     describe('deploy', function() {
-        it('should create the file system if it doesnt exist', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            ownPreDeployContext.securityGroups.push({
-                GroupId: 'FakeId'
-            });
-            let dependenciesDeployContexts = [];
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let deployVersion = "1";
+        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {});
+        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+        ownPreDeployContext.securityGroups.push({
+            GroupId: 'FakeId'
+        });
+        let dependenciesDeployContexts = [];
+        let fileSystemId = "FakeFileSystemId";
 
-            let fileSystemId = "FakeFileSystemId";
+        it('should create the file system if it doesnt exist', function() {
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -138,17 +138,6 @@ describe('efs deployer', function() {
         });
 
         it('should not update the file system if it already exists', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            ownPreDeployContext.securityGroups.push({
-                GroupId: 'FakeId'
-            });
-            let dependenciesDeployContexts = [];
-
-            let fileSystemId = "FakeFileSystemId";
             let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: "EFSFileSystemId",

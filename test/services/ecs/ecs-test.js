@@ -173,13 +173,8 @@ describe('ecs deployer', function () {
             let envName = "FakeEnv";
             let deployVersion = "1";
 
-            //Set up ServiceContext
             let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
-
-            //Set up PreDeployContext
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
-
-            //Set up dependencies DeployContexts
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
@@ -202,13 +197,8 @@ describe('ecs deployer', function () {
             let envName = "FakeEnv";
             let deployVersion = "1";
 
-            //Set up ServiceContext
             let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
-
-            //Set up PreDeployContext
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
-
-            //Set up dependencies DeployContexts
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls

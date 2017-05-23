@@ -367,15 +367,14 @@ describe('deployers-common', function () {
     });
 
     describe('getEventConsumerConfigParams', function () {
-        it('should return the config for the consumer from the producer', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let consumerServiceName = "ConsumerServiceName";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let deployVersion = "1";
+        let consumerServiceName = "ConsumerServiceName";
+        let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {});
+        let producerServiceName = "ProducerServiceName";
 
-            });
-            let producerServiceName = "ProducerServiceName";
+        it('should return the config for the consumer from the producer', function () {
             let eventInputVal = '{"notify": false}';
             let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
                 event_consumers: [{
@@ -390,14 +389,6 @@ describe('deployers-common', function () {
         });
 
         it('should return null when no config exists in the producer for the consumer', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let consumerServiceName = "ConsumerServiceName";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {
-
-            });
-            let producerServiceName = "ProducerServiceName";
             let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
                 event_consumers: []
             });
