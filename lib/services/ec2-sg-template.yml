@@ -12,15 +12,15 @@ Resources:
         - Key: Name
           Value: {{groupName}}
       VpcId: {{vpcId}}
-  {{#if sshSg}}
+  {{#if sshBastionSg}}
   SshIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
     Properties:
-      FromPort: 22
+      FromPort: {{sshBastionIngressPort}}
       GroupId:  !GetAtt SecurityGroup.GroupId
       IpProtocol: tcp
-      SourceSecurityGroupId: {{sshSg}}
-      ToPort: 22
+      SourceSecurityGroupId: {{sshBastionSg}}
+      ToPort: {{sshBastionIngressPort}}
   {{/if}}
   SelfIngress:
     Type: "AWS::EC2::SecurityGroupIngress"
