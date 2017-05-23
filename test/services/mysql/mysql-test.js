@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const mysql = require('../../../lib/services/mysql');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
 const ssmCalls = require('../../../lib/aws/ssm-calls');

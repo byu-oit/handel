@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/util/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
 const deployLifecycle = require('../../lib/lifecycles/deploy');
 const bindPhase = require('../../lib/phases/bind');
 const deployPhase = require('../../lib/phases/deploy');
 const preDeployPhase = require('../../lib/phases/pre-deploy');
 const checkPhase = require('../../lib/phases/check');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const util = require('../../lib/util/util');
+const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');

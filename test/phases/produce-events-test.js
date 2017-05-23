@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const ProduceEventsContext = require('../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
@@ -23,7 +23,6 @@ const ConsumeEventsContext = require('../../lib/datatypes/consume-events-context
 const produceEvents = require('../../lib/phases/produce-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const util = require('../../lib/util/util');
 
 describe('produceEvents module', function() {
     let sandbox;

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sns = require('../../../lib/services/sns');
 const snsCalls = require('../../../lib/aws/sns-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');

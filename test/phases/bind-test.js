@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const bindPhase = require('../../lib/phases/bind');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
@@ -22,7 +22,7 @@ const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const util = require('../../lib/util/util');
+const util = require('../../lib/common/util');
 
 describe('bind', function() {
     let sandbox;

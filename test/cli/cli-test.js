@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const expect = require('chai').expect;
 const cli = require('../../lib/cli');
 const sinon = require('sinon');
 const fs = require('fs');
-const util = require('../../lib/util/util');
+const util = require('../../lib/common/util');
 
 describe('cli module', function () {
     let sandbox;

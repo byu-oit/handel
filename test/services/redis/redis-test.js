@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const redis = require('../../../lib/services/redis');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');

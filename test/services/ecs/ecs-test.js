@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/util/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
 const deployersCommon = require('../../../lib/services/deployers-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
