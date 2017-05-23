@@ -1,12 +1,13 @@
 const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
-const unBindPhase = require('../../lib/lifecycle/un-bind');
+const deployPhase = require('../../lib/phases/deploy');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
-const UnBindContext = require('../../lib/datatypes/un-bind-context');
+const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
+const DeployContext = require('../../lib/datatypes/deploy-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 
-describe('unBind', function() {
+describe('deploy', function() {
     let sandbox;
 
     beforeEach(function() {
@@ -17,26 +18,27 @@ describe('unBind', function() {
         sandbox.restore();
     });
 
-    describe('unBindServicesInLevel', function() {
-        it('should execute UnBind on all the services in parallel', function() {
+    describe('deployServicesInLevel', function() {
+        it('should deploy the services in the given level', function() {
             let serviceDeployers = {
-                ecs: {
-                    unBind: function(toUnBindServiceContext) {
-                        return Promise.reject(new Error(`Should not have called ECS bind`));
+                efs: {
+                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                        throw new Error("Should not have called ECS in this level");
                     }
                 },
-                efs: {
-                    unBind: function(toUnBindServiceContext) {
-                        return Promise.resolve(new UnBindContext(toUnBindServiceContext));
+                ecs: {
+                    deploy: function(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                        return Promise.resolve(new DeployContext(toDeployServiceContext));
                     }
                 }
             }
-            
-            //Construct EnvironmentContext
-            let appName = "FakeApp"
+
+            //Create EnvironmentContext
+            let appName = "test";
             let deployVersion = "1";
             let environmentName = "dev";
             let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
 
             //Construct ServiceContext B
             let serviceNameB = "B";
@@ -56,17 +58,26 @@ describe('unBind', function() {
             }
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
-            
+
+            //Construct PreDeployContexts
+            let preDeployContexts = {}
+            preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
+            preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
+
+            //Construct DeployContexts 
+            let deployContexts = {}
+            deployContexts[serviceNameB] = new DeployContext(serviceContextB);
+
             //Set deploy order 
             let deployOrder = [
                 [serviceNameB],
                 [serviceNameA]
             ]
-            let levelToUnBind = 0;
+            let levelToDeploy = 1;
 
-            return unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind)
-                .then(unBindContexts => {
-                    expect(unBindContexts['B']).to.be.instanceof(UnBindContext);
+            return deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy)
+                .then(deployContexts => {
+                    expect(deployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
                 });
         });
     });

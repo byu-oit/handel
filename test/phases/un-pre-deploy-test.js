@@ -1,8 +1,8 @@
 const accountConfig = require('../../lib/util/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
-const preDeployPhase = require('../../lib/lifecycle/pre-deploy');
+const unPreDeployPhase = require('../../lib/phases/un-pre-deploy');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
+const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const expect = require('chai').expect;
 
 describe('preDeploy', function() {
@@ -10,13 +10,13 @@ describe('preDeploy', function() {
         it('should execute predeploy on all services, even across levels', function() {
             let serviceDeployers = {
                 efs: {
-                    preDeploy: function(serviceContext) {
-                        return Promise.resolve(new PreDeployContext(serviceContext));
+                    unPreDeploy: function(serviceContext) {
+                        return Promise.resolve(new UnPreDeployContext(serviceContext));
                     }
                 },
                 ecs: {
-                    preDeploy: function(serviceContext) {
-                        return Promise.resolve(new PreDeployContext(serviceContext));
+                    unPreDeploy: function(serviceContext) {
+                        return Promise.resolve(new UnPreDeployContext(serviceContext));
                     }
                 }
             }
@@ -26,7 +26,6 @@ describe('preDeploy', function() {
             let deployVersion = "1";
             let environmentName = "dev";
             let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
-
 
             //Construct ServiceContext B
             let serviceNameB = "B";
@@ -47,10 +46,10 @@ describe('preDeploy', function() {
             let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
-            return preDeployPhase.preDeployServices(serviceDeployers, environmentContext)
-                .then(preDeployContexts => {
-                    expect(preDeployContexts[serviceNameA]).to.be.instanceof(PreDeployContext);
-                    expect(preDeployContexts[serviceNameB]).to.be.instanceof(PreDeployContext);
+            return unPreDeployPhase.unPreDeployServices(serviceDeployers, environmentContext)
+                .then(unPreDeployContexts => {
+                    expect(unPreDeployContexts[serviceNameA]).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeployContexts[serviceNameB]).to.be.instanceof(UnPreDeployContext);
                 });
         });
     });
