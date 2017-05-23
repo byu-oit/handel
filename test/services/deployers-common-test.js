@@ -71,34 +71,31 @@ describe('deployers-common', function () {
 
     describe('createCustomRole', function () {
         it('should create the role if it doesnt exist', function () {
-            let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
+            let createRoleStub = sandbox.stub(iamCalls, 'createRole').returns(Promise.resolve({}));
             let createOrUpdatePolicy = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({
                 Arn: "FakeArn"
             }));
             let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
-            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
 
             return deployersCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [{}])
                 .then(role => {
+                    expect(getRoleStub.calledTwice).to.be.true;
                     expect(createRoleStub.calledOnce).to.be.true;
                     expect(createOrUpdatePolicy.calledOnce).to.be.true;
                     expect(attachPolicyStub.calledOnce).to.be.true;
-                    expect(getRoleStub.calledOnce).to.be.true;
                 });
         });
 
-        it('should create a role with no policies if it doesnt exist', function () {
+        it('should return the role if it already exists', function () {
             let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
-            let createOrUpdatePolicy = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({}));
-            let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
             let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
             return deployersCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [])
                 .then(role => {
-                    expect(createRoleStub.calledOnce).to.be.true;
-                    expect(createOrUpdatePolicy.notCalled).to.be.true;
-                    expect(attachPolicyStub.notCalled).to.be.true;
                     expect(getRoleStub.calledOnce).to.be.true;
+                    expect(createRoleStub.notCalled).to.be.true;
+                    expect(role).to.deep.equal({});
                 });
         });
     });
