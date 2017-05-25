@@ -1,0 +1,76 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created PostgreSQL RDS instance
+
+Parameters:
+  DBPassword:
+    NoEcho: true
+    Description: The password of the database
+    Type: String
+
+Resources:
+  Instance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: {{storageGB}}
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: {{instanceType}}
+      DBInstanceIdentifier: {{stackName}}
+      DBName: {{databaseName}}
+      DBParameterGroupName: !Ref ParameterGroup
+      DBSubnetGroupName: {{dbSubnetGroup}}
+      Engine: postgres
+      EngineVersion: {{postgresVersion}}
+      MasterUsername: {{dbUsername}}
+      MasterUserPassword: !Ref DBPassword
+      {{#if multiAZ}}
+      MultiAZ: true
+      {{/if}}
+      Port: {{dbPort}}
+      PubliclyAccessible: false
+      StorageType: {{storageType}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VPCSecurityGroups:
+      - {{dbSecurityGroupId}}
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Parameter group for {{stackName}}
+      Family: {{parameterGroupFamily}}
+      {{#if parameterGroupParams}}
+      Parameters:
+        {{#each parameterGroupParams}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+Outputs:
+  DatabaseAddress:
+    Description: The address of the RDS database
+    Value: !GetAtt Instance.Endpoint.Address
+  DatabasePort:
+    Description: The port of the RDS database
+    Value: !GetAtt Instance.Endpoint.Address
+  DatabaseUsername:
+    Description: The username of the database
+    Value: {{dbUsername}}
+  DatabaseName:
+    Description: The name of the database
+    Value: {{databaseName}}
