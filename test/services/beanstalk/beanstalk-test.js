@@ -16,6 +16,7 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const beanstalk = require('../../../lib/services/beanstalk');
+const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -107,6 +108,8 @@ describe('beanstalk deployer', function () {
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
             }));
+            let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToSourceFile').returns(Promise.resolve({}));
+            let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
 
@@ -118,6 +121,8 @@ describe('beanstalk deployer', function () {
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
+                    expect(addEbextensionsStub.calledOnce).to.be.true;
+                    expect(deleteEbextensionsStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
@@ -132,6 +137,8 @@ describe('beanstalk deployer', function () {
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
             }));
+            let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToSourceFile').returns(Promise.resolve({}));
+            let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
 
@@ -143,6 +150,8 @@ describe('beanstalk deployer', function () {
                 .then(deployContext => {
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
+                    expect(addEbextensionsStub.calledOnce).to.be.true;
+                    expect(deleteEbextensionsStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
