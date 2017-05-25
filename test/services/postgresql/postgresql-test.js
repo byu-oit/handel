@@ -15,7 +15,7 @@
  *
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
-const mysql = require('../../../lib/services/mysql');
+const postgresql = require('../../../lib/services/postgresql');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
 const ssmCalls = require('../../../lib/aws/ssm-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
@@ -24,13 +24,14 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployersCommon = require('../../../lib/common/deployers-common');
+const rdsCommon = require('../../../lib/common/rds-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('mysql deployer', function () {
+describe('postgresql deployer', function () {
     let sandbox;
 
     beforeEach(function () {
@@ -46,7 +47,7 @@ describe('mysql deployer', function () {
             let serviceContext = {
                 params: {}
             }
-            let errors = mysql.check(serviceContext);
+            let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
@@ -57,7 +58,7 @@ describe('mysql deployer', function () {
                     database_name: 'mydb',
                 }
             }
-            let errors = mysql.check(serviceContext);
+            let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
     });
@@ -69,8 +70,8 @@ describe('mysql deployer', function () {
                 GroupId: groupId
             }));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
-            return mysql.preDeploy(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
+            return postgresql.preDeploy(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
@@ -85,7 +86,7 @@ describe('mysql deployer', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {});
+            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", deployVersion, {});
             let ownPreDeployContext = new PreDeployContext(ownServiceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'
@@ -99,7 +100,7 @@ describe('mysql deployer', function () {
 
             let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
-            return mysql.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
+            return postgresql.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(addIngressRuleToSgIfNotExistsStub.calledOnce).to.be.true;
@@ -111,7 +112,7 @@ describe('mysql deployer', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
         let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {
+        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", deployVersion, {
             database_name: 'mydb'
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
@@ -120,41 +121,43 @@ describe('mysql deployer', function () {
         });
         let dependenciesDeployContexts = [];
 
-        let envPrefix = `MYSQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        let envPrefix = `POSTGRESQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
         let databaseUsername = "handel";
         let databaseName = "mydb";
 
+        let deployedStack = {
+            Outputs: [
+                {
+                    OutputKey: "DatabaseAddress",
+                    OutputValue: databaseAddress
+                },
+                {
+                    OutputKey: "DatabasePort",
+                    OutputValue: databasePort
+                },
+                {
+                    OutputKey: "DatabaseUsername",
+                    OutputValue: databaseUsername
+                },
+                {
+                    OutputKey: "DatabaseName",
+                    OutputValue: databaseName
+                }
+            ]
+        }
+
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "DatabaseAddress",
-                        OutputValue: databaseAddress
-                    },
-                    {
-                        OutputKey: "DatabasePort",
-                        OutputValue: databasePort
-                    },
-                    {
-                        OutputKey: "DatabaseUsername",
-                        OutputValue: databaseUsername
-                    },
-                    {
-                        OutputKey: "DatabaseName",
-                        OutputValue: databaseName
-                    }
-                ]
-            }));
-            let putParameterStub = sandbox.stub(ssmCalls, 'storeParameter').returns(Promise.resolve({}));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve(deployedStack));
+            let addDbCredentialStub = sandbox.stub(rdsCommon, 'addDbCredentialToParameterStore').returns(Promise.resolve(deployedStack));
 
-            return mysql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return postgresql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
-                    expect(putParameterStub.calledOnce).to.be.true;
+                    expect(addDbCredentialStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
@@ -164,29 +167,10 @@ describe('mysql deployer', function () {
         });
 
         it('should not update the database if it already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "DatabaseAddress",
-                        OutputValue: databaseAddress
-                    },
-                    {
-                        OutputKey: "DatabasePort",
-                        OutputValue: databasePort
-                    },
-                    {
-                        OutputKey: "DatabaseUsername",
-                        OutputValue: databaseUsername
-                    },
-                    {
-                        OutputKey: "DatabaseName",
-                        OutputValue: databaseName
-                    }
-                ]
-            }));
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(deployedStack));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
 
-            return mysql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return postgresql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.notCalled).to.be.true;
@@ -200,25 +184,25 @@ describe('mysql deployer', function () {
     });
 
     describe('consumeEvents', function () {
-        it('should throw an error because MySQL cant consume event services', function () {
-            return mysql.consumeEvents(null, null, null, null)
+        it('should throw an error because PostgreSQL cant consume event services', function () {
+            return postgresql.consumeEvents(null, null, null, null)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("MySQL service doesn't consume events");
+                    expect(err.message).to.contain("PostgreSQL service doesn't consume events");
                 });
         });
     });
 
     describe('produceEvents', function () {
-        it('should throw an error because MySQL cant produce events for other services', function () {
-            return mysql.produceEvents(null, null, null, null)
+        it('should throw an error because PostgreSQL cant produce events for other services', function () {
+            return postgresql.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here
                 })
                 .catch(err => {
-                    expect(err.message).to.contain("MySQL service doesn't produce events");
+                    expect(err.message).to.contain("PostgreSQL service doesn't produce events");
                 });
         });
     });
@@ -227,8 +211,8 @@ describe('mysql deployer', function () {
         it('should delete the security group', function () {
             let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
-            return mysql.unPreDeploy(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
+            return postgresql.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(deleteSecurityGroupStub.calledOnce).to.be.true;
@@ -240,8 +224,8 @@ describe('mysql deployer', function () {
         it('should unbind the security group', function () {
             let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
-            return mysql.unBind(serviceContext)
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
+            return postgresql.unBind(serviceContext)
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
                     expect(unBindAllStub.calledOnce).to.be.true;
@@ -251,11 +235,12 @@ describe('mysql deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-            let deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').returns(Promise.resolve({}));
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
+            let unDeployContext = new UnDeployContext(serviceContext);
+            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(unDeployContext));
+            let deleteParametersStub = sandbox.stub(rdsCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));
 
-            return mysql.unDeploy(serviceContext)
+            return postgresql.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(unDeployStackStub.calledOnce).to.be.true;
