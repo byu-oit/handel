@@ -112,7 +112,7 @@ function deleteAction(handelFile, argv) {
     setLogLevel(argv);
     let accountConfig = cli.loadAccountConfig(argv.c);
     let environmentToDelete = argv.e;
-    cli.confirmDelete(environmentToDelete)
+    cli.confirmDelete(environmentToDelete, argv.d)
         .then(confirmDelete => {
             if (confirmDelete) {
                 deleteLifecycle.delete(accountConfig, handelFile, environmentToDelete)
