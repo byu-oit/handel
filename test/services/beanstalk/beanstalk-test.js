@@ -23,6 +23,7 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployersCommon = require('../../../lib/common/deployers-common');
+const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -104,12 +105,10 @@ describe('beanstalk deployer', function () {
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
-            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
+            let prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').returns(Promise.resolve({
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
             }));
-            let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToSourceFile').returns(Promise.resolve({}));
-            let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
 
@@ -119,10 +118,8 @@ describe('beanstalk deployer', function () {
 
             return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
-                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
-                    expect(addEbextensionsStub.calledOnce).to.be.true;
-                    expect(deleteEbextensionsStub.calledOnce).to.be.true;
+                    expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
@@ -133,12 +130,10 @@ describe('beanstalk deployer', function () {
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
-            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
+            let prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').returns(Promise.resolve({
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
             }));
-            let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToSourceFile').returns(Promise.resolve({}));
-            let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(Promise.resolve({}));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
 
@@ -148,10 +143,8 @@ describe('beanstalk deployer', function () {
 
             return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
-                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
+                    expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
-                    expect(addEbextensionsStub.calledOnce).to.be.true;
-                    expect(deleteEbextensionsStub.calledOnce).to.be.true;
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
