@@ -48,5 +48,23 @@
         "Resource": [
             "*"
         ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ecr:*"
+        ],
+        "Resource": [
+            "arn:aws:ecr:{{region}}:{{accountId}}:repository/{{appName}}*"
+        ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ecr:GetAuthorizationToken"
+        ],
+        "Resource": [
+            "*"
+        ]
     }
 ]

@@ -39,21 +39,16 @@ describe('ebextensions module', function () {
             }
             let pathToArtifact = './fake/path/on/system';
 
-            let statStub = sandbox.stub(fs, 'lstatSync').returns({
-                isDirectory: function () { return true; }
-            });
+
             let existsStub = sandbox.stub(fs, 'existsSync').returns(false);
             let mkdirStub = sandbox.stub(fs, 'mkdirSync').returns(true);
             let writeFileStub = sandbox.stub(fs, 'writeFileSync').returns(true);
 
-            return ebextensions.addEbextensionsToSourceFile(ebextensionsFiles, pathToArtifact)
-                .then(success => {
-                    expect(success).to.be.true;
-                    expect(statStub.calledOnce).to.be.true;
-                    expect(existsStub.calledOnce).to.be.true;
-                    expect(mkdirStub.calledOnce).to.be.true;
-                    expect(writeFileStub.calledTwice).to.be.true;
-                })
+            let success = ebextensions.addEbextensionsToDir(ebextensionsFiles, pathToArtifact)
+            expect(success).to.be.true;
+            expect(existsStub.calledOnce).to.be.true;
+            expect(mkdirStub.calledOnce).to.be.true;
+            expect(writeFileStub.calledTwice).to.be.true;
         });
     });
 
@@ -65,21 +60,15 @@ describe('ebextensions module', function () {
             }
             let pathToArtifact = './fake/path/on/system';
 
-            let statStub = sandbox.stub(fs, 'lstatSync').returns({
-                isDirectory: function () { return true; }
-            });
             let unlinkStub = sandbox.stub(fs, 'unlinkSync').returns(true);
             let readdirStub = sandbox.stub(fs, 'readdirSync').returns([]);
             let rmdirStub = sandbox.stub(fs, 'rmdirSync').returns(true);
 
-            return ebextensions.deleteAddedEbExtensionsFromDirectory(ebextensionsFiles, pathToArtifact)
-                .then(success => {
-                    expect(success).to.be.true;
-                    expect(statStub.calledOnce).to.be.true;
-                    expect(unlinkStub.calledTwice).to.be.true;
-                    expect(readdirStub.calledOnce).to.be.true;
-                    expect(rmdirStub.calledOnce).to.be.true;
-                });
+            let success = ebextensions.deleteAddedEbExtensionsFromDirectory(ebextensionsFiles, pathToArtifact)
+            expect(success).to.be.true;
+            expect(unlinkStub.calledTwice).to.be.true;
+            expect(readdirStub.calledOnce).to.be.true;
+            expect(rmdirStub.calledOnce).to.be.true;
         });
     });
 });
