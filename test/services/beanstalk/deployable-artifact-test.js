@@ -54,6 +54,7 @@ describe('deployable artifact module', function () {
             }));
             let unlinkStub = sandbox.stub(fs, 'unlinkSync').returns(true);
             let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(true);
+            let copyDirectoryStub = sandbox.stub(util, 'copyDirectory').returns(Promise.resolve(true));
 
             return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
@@ -64,7 +65,7 @@ describe('deployable artifact module', function () {
                     expect(zipDirStub.callCount).to.equal(1);
                     expect(uploadFileStub.callCount).to.equal(1);
                     expect(unlinkStub.callCount).to.equal(1);
-                    expect(deleteEbextensionsStub.callCount).to.equal(1);
+                    expect(copyDirectoryStub.callCount).to.equal(1);
                 });
         });
 
