@@ -7,9 +7,9 @@ This document contains information about the Beanstalk service supported in Hand
 Service Limitations
 -------------------
 
-No Docker Support
-~~~~~~~~~~~~~~~~~
-This Handel Beanstalk service does not yet support Docker stack types. Support is planned to be added in the near future.
+No WAR support
+~~~~~~~~~~~~~~~~~~~~~
+This Handel Beanstalk service does not yet support Java WAR stack types. Support is planned to be added in the near future.
 
 Parameters
 ----------
