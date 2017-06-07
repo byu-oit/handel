@@ -4,6 +4,10 @@ S3 (Simple Storage Service)
 ===========================
 This document contains information about the S3 service supported in Handel. This Handel service provisions an S3 bucket for use by your applications.
 
+.. NOTE::
+  
+  For static websites in S3, see the :ref:`s3staticsite` service.
+
 Service Limitations
 -------------------
 This service currently only provisions a bare-bones S3 bucket for data storage. It does support versioning, but the following other features are not currently supported:
@@ -13,7 +17,6 @@ This service currently only provisions a bare-bones S3 bucket for data storage. 
 * Bucket lifecycle
 * Bucket logging
 * Cross-region replication
-* Static websites
 
 Parameters
 ----------

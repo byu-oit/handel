@@ -128,7 +128,7 @@ Example Handel File
 
 Depending on this service
 -------------------------
-The Beanstalk service cannot be referenced as a dependency for another Handel service
+The Beanstalk service cannot be referenced as a dependency for another Handel service.
 
 Events produced by this service
 -------------------------------
