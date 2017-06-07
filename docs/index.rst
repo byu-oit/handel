@@ -43,5 +43,6 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
    supported-services/postgresql
    supported-services/redis
    supported-services/s3
+   supported-services/s3staticsite
    supported-services/sns
    supported-services/sqs

@@ -19,6 +19,8 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
+const nodeS3 = require('s3');
+const EventEmitter = require('events');
 
 describe('s3Calls', function () {
     let sandbox;
@@ -42,6 +44,48 @@ describe('s3Calls', function () {
                 .then(uploadResponse => {
                     expect(uploadResponse).to.deep.equal({});
                 });
+        });
+    });
+
+    describe('uploadDirectory', function () {
+        it('should upload the directory', function () {
+            let myEventEmitter = new EventEmitter();
+            let createClientStub = sandbox.stub(nodeS3, 'createClient').returns({
+                uploadDir: function (uploadParams) {
+
+                    return myEventEmitter;
+                }
+            });
+            //This is lame using a time-based test like this, but not sure how to mock this better
+            setTimeout(function () {
+                myEventEmitter.emit('end');
+            }, 50)
+            return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
+                .then(() => {
+                    expect(createClientStub.callCount).to.equal(1);
+                });
+        });
+
+        it('should return an error when the upload fails', function () {
+            let myEventEmitter = new EventEmitter();
+            let createClientStub = sandbox.stub(nodeS3, 'createClient').returns({
+                uploadDir: function (uploadParams) {
+
+                    return myEventEmitter;
+                }
+            });
+            //This is lame using a time-based test like this, but not sure how to mock this better
+            setTimeout(function () {
+                myEventEmitter.emit('error', 'someerror');
+            }, 50)
+            return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
+                .then(() => {
+                    expect(true).to.equal(false); //Should not get here
+                })
+                .catch(err => {
+                    expect(createClientStub.callCount).to.equal(1);
+                    expect(err).to.equal('someerror');
+                })
         });
     });
 
