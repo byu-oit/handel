@@ -35,6 +35,11 @@ Parameters
      - No
      - 345600
      - The amount of time in seconds to retain messages. Allowed values: 60 - 1209600
+   * - receive_message_wait_time_seconds
+     - number
+     - No
+     - 0
+     - The number of seconds ReceiveMessage will wait for messages to be available. Allowed values: 0-20. See `Amazon SQS Long Polling <http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-long-polling.html>`_ for more information.
    * - visibility_timeout
      - number
      - No
