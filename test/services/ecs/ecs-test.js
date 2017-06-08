@@ -20,7 +20,6 @@ const deployersCommon = require('../../../lib/common/deployers-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -179,41 +178,14 @@ describe('ecs deployer', function () {
 
             //Stub out AWS calls
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
             //Run the test
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(createCustomRoleStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                });
-        });
-
-        it('should update the CF service stack when it exists', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-
-            let ownServiceContext = getOwnServiceContextForDeploy(appName, envName, deployVersion);
-            let ownPreDeployContext = getOwnPreDeployContextForDeploy(ownServiceContext);
-            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
-
-            //Stub out AWS calls
-            let fakeArn = "FakeArn";
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
-
-            //Run the test
-            return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
                 });
         });
     });

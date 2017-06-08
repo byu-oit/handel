@@ -16,7 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const s3 = require('../../../lib/services/s3');
-const cloudfFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -94,40 +93,17 @@ describe('s3 deployer', function () {
         });
         let preDeployContext = new PreDeployContext(serviceContext);
 
-        it('should create a new bucket when it doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the bucket', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'BucketName',
                     OutputValue: bucketName
                 }]
-            }))
+            }));
 
             return s3.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.policies.length).to.equal(2);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_REGION_ENDPOINT"]).to.exist;
-                });
-        });
-
-        it('should update an existing bucket when it exists', function () {
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: bucketName
-                }]
-            }))
-
-            return s3.deploy(serviceContext, preDeployContext, [])
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.callCount).to.equal(1);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(2);
                     expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);

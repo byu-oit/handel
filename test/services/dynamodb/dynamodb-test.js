@@ -16,7 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const dynamodb = require('../../../lib/services/dynamodb');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -116,9 +115,8 @@ describe('dynamodb deployer', function () {
         let tableName = "FakeTable";
         let tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`
 
-        it('should create a new table when one doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the table', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
                     OutputValue: tableName
@@ -127,29 +125,7 @@ describe('dynamodb deployer', function () {
 
             return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.policies.length).to.equal(1);
-                    expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
-                    let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
-                    expect(deployContext.environmentVariables[tableNameVar]).to.equal(tableName);
-                });
-        });
-
-        it('should not update anything on a table when one already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'TableName',
-                    OutputValue: tableName
-                }]
-            }));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
-
-            return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.notCalled).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);

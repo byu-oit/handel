@@ -16,8 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const beanstalk = require('../../../lib/services/beanstalk');
-const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
-const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -101,7 +99,7 @@ describe('beanstalk deployer', function () {
             return ownPreDeployContext;
         }
 
-        it('should create the service if it doesnt exist', function () {
+        it('should deploy the service', function () {
             let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
                 RoleName: "FakeServiceRole"
             }));
@@ -109,8 +107,7 @@ describe('beanstalk deployer', function () {
                 Bucket: "FakeBucket",
                 Key: "FakeKey"
             }));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
             let ownServiceContext = getServiceContext();
             let sgGroupId = "FakeSgId";
@@ -120,33 +117,7 @@ describe('beanstalk deployer', function () {
                 .then(deployContext => {
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                });
-        });
-
-        it('should update the service if it doesnt exist', function () {
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({
-                RoleName: "FakeServiceRole"
-            }));
-            let prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').returns(Promise.resolve({
-                Bucket: "FakeBucket",
-                Key: "FakeKey"
-            }));
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
-
-            let ownServiceContext = getServiceContext();
-            let sgGroupId = "FakeSgId";
-            let ownPreDeployContext = getPreDeployContext(ownServiceContext, sgGroupId);
-
-            return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
-                .then(deployContext => {
-                    expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                 });
         });

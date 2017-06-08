@@ -137,15 +137,14 @@ describe('lambda deployer', function () {
         }
 
 
-        it('should create the service when it doesnt already exist', function () {
+        it('should deploy the lambda', function () {
             let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
             }));
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let functionArn = "FakeFunctionArn";
             let functionName = "FakeFunction";
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'FunctionArn',
@@ -168,44 +167,7 @@ describe('lambda deployer', function () {
                     expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
                     expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
                     expect(uploadArtifactStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                });
-        });
-
-        it('should update the service when it already exists', function () {
-            let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
-                Key: "FakeKey",
-                Bucket: "FakeBucket"
-            }));
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let functionArn = "FakeFunctionArn";
-            let functionName = "FakeFunction";
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: 'FunctionArn',
-                        OutputValue: functionArn,
-                    },
-                    {
-                        OutputKey: 'FunctionName',
-                        OutputValue: functionName
-                    }
-                ]
-            }));
-
-            let ownServiceContext = getServiceContext();
-            let ownPreDeployContext = getPreDeployContext(ownServiceContext);
-            let dependenciesDeployContexts = getDependenciesDeployContexts();
-
-            return lambda.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
-                    expect(deployContext.eventOutputs.lambdaName).to.equal(functionName);
-                    expect(uploadArtifactStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                 });
         });
     });

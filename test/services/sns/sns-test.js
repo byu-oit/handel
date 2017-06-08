@@ -17,7 +17,6 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sns = require('../../../lib/services/sns');
 const snsCalls = require('../../../lib/aws/sns-calls');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
@@ -84,9 +83,8 @@ describe('sns deployer', function () {
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
-        it('should create a new topic when one doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the topic', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicName',
@@ -101,43 +99,7 @@ describe('sns deployer', function () {
 
             return sns.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-
-                    expect(deployContext).to.be.instanceof(DeployContext);
-
-                    //Should have exported 2 env vars
-                    let topicNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_TOPIC_NAME`.toUpperCase()
-                    expect(deployContext.environmentVariables[topicNameEnv]).to.equal(topicName);
-                    let topicArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_TOPIC_ARN`.toUpperCase()
-                    expect(deployContext.environmentVariables[topicArnEnv]).to.equal(topicArn);
-
-                    //Should have exported 1 policy
-                    expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
-                    expect(deployContext.policies[0].Resource[0]).to.equal(topicArn);
-                });
-        });
-
-        it('should update the topic if it already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: 'TopicName',
-                        OutputValue: topicName
-                    },
-                    {
-                        OutputKey: 'TopicArn',
-                        OutputValue: topicArn
-                    }
-                ]
-            }));
-
-            return sns.deploy(ownServiceContext, ownPreDeployContext, [])
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
-
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
 
                     //Should have exported 2 env vars
