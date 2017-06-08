@@ -17,7 +17,6 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const redis = require('../../../lib/services/redis');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -165,9 +164,8 @@ describe('redis deployer', function () {
         let cachePort = 6379;
         let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
 
-        it('should create the cluster if it doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the cluster', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: "CacheAddress",
@@ -182,33 +180,7 @@ describe('redis deployer', function () {
 
             return redis.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(cachePort);
-                });
-        });
-
-        it('should update the cluster if it already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "CacheAddress",
-                        OutputValue: cacheAddress
-                    },
-                    {
-                        OutputKey: "CachePort",
-                        OutputValue: cachePort
-                    }
-                ]
-            }));
-
-            return redis.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(cachePort);

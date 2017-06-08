@@ -16,7 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const s3StaticSite = require('../../../lib/services/s3staticsite');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const s3Calls = require('../../../lib/aws/s3-calls');
@@ -83,18 +82,15 @@ describe('s3staticsite deployer', function () {
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
-        it('should create a new bucket when it doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack');
-            getStackStub.onCall(0).returns(Promise.resolve(null));
-            getStackStub.onCall(1).returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack');
-            createStackStub.onCall(0).returns(Promise.resolve({
+        it('should deploy the static site bucket', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack');
+            deployStackStub.onCall(0).returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'BucketName',
                     OutputValue: 'logging-bucket'
                 }]
             }));
-            createStackStub.onCall(1).returns(Promise.resolve({
+            deployStackStub.onCall(1).returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'BucketName',
                     OutputValue: 'my-static-site-bucket'
@@ -105,34 +101,7 @@ describe('s3staticsite deployer', function () {
             return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(getStackStub.callCount).to.equal(2);
-                    expect(createStackStub.callCount).to.equal(2);
-                    expect(uploadDirectoryStub.callCount).to.equal(1);
-                });
-        });
-
-        it('should update an existing bucket when it exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack');
-            getStackStub.onCall(0).returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: 'logging-bucket'
-                }]
-            }));
-            getStackStub.onCall(1).returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: 'my-static-site-bucket'
-                }]
-            }));
-            let uploadDirectoryStub = sandbox.stub(s3Calls, 'uploadDirectory').returns(Promise.resolve({}));
-
-            return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
-                .then(deployContext => {
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(getStackStub.callCount).to.equal(2);
-                    expect(updateStackStub.callCount).to.equal(1);
+                    expect(deployStackStub.callCount).to.equal(2);
                     expect(uploadDirectoryStub.callCount).to.equal(1);
                 });
         });

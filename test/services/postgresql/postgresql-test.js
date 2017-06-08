@@ -17,7 +17,6 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const postgresql = require('../../../lib/services/postgresql');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
-const ssmCalls = require('../../../lib/aws/ssm-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');

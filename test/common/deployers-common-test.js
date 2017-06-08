@@ -242,6 +242,41 @@ describe('deployers-common', function () {
         })
     });
 
+    describe('deployCloudFormationStack', function() {
+        it('should create the stack if it doesnt exist yet', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
+            return deployersCommon.deployCloudFormationStack("FakeStack", "", [], true, "FakeService")
+                .then(deployedStack => {
+                    expect(deployedStack).to.deep.equal({});
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(createStackStub.callCount).to.equal(1);
+                });
+        });
+
+        it('should update the stack if it exists and updates are supported', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
+            return deployersCommon.deployCloudFormationStack("FakeStack", "", [], true, "FakeService")
+                .then(deployedStack => {
+                    expect(deployedStack).to.deep.equal({});
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(updateStackStub.callCount).to.equal(1);
+                });
+        });
+
+        it('should just return the stack if it exists and updates are not supported', function() {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve(null));
+            return deployersCommon.deployCloudFormationStack("FakeStack", "", [], false, "FakeService")
+                .then(deployedStack => {
+                    expect(deployedStack).to.deep.equal({});
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(updateStackStub.callCount).to.equal(0);
+                });
+        });
+    });
+
     describe('unDeployCloudFormationStack', function () {
         it('should delete the stack if it exists', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));

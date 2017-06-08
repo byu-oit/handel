@@ -16,7 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const apigateway = require('../../../lib/services/apigateway');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -117,7 +116,7 @@ describe('apigateway deployer', function () {
             return dependenciesDeployContexts;
         }
 
-        it('should create the new service if it doesnt already exist', function () {
+        it('should deploy the service', function () {
             //Set up input parameters
             let appName = "FakeApp";
             let envName = "FakeEnv";
@@ -133,8 +132,7 @@ describe('apigateway deployer', function () {
                 Bucket: bucketName,
                 Key: bucketKey
             }));
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'
@@ -145,41 +143,7 @@ describe('apigateway deployer', function () {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                });
-        });
-
-        it('should update the service if it already exists', function () {
-            //Set up input parameters
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = getOwnServiceContext(appName, envName, deployVersion);
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName, deployVersion);
-
-            //Stub out dependent services
-            let bucketName = "FakeBucket";
-            let bucketKey = "FakeBucketKey";
-            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
-                Bucket: bucketName,
-                Key: bucketKey
-            }));
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'RestApiId',
-                    OutputValue: 'someApiId'
-                }]
-            }));
-
-            return apigateway.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                 });
         });
     });

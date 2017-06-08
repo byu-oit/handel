@@ -72,7 +72,9 @@ function deployAction(handelFile, argv) {
             for (let envDeployResult of envDeployResults) {
                 if (envDeployResult.status !== 'success') {
                     winston.warn(`Error while deploying environment: ${envDeployResult.message}`);
-                    winston.warn(envDeployResult.error);
+                    if(winston.level === 'debug') {
+                        winston.warn(envDeployResult.error);
+                    }
                     success = false;
                 }
             }

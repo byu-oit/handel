@@ -17,7 +17,6 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const memcached = require('../../../lib/services/memcached');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
@@ -138,9 +137,8 @@ describe('memcached deployer', function () {
         let cachePort = 11211;
         let envPrefix = `MEMCACHED_${appName}_${envName}_FAKESERVICE`.toUpperCase();
 
-        it('should create the cluster if it doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the cluster', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: "CacheAddress",
@@ -155,33 +153,7 @@ describe('memcached deployer', function () {
 
             return memcached.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(cachePort);
-                });
-        });
-
-        it('should not update the file system if it already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "CacheAddress",
-                        OutputValue: cacheAddress
-                    },
-                    {
-                        OutputKey: "CachePort",
-                        OutputValue: cachePort
-                    }
-                ]
-            }));
-
-            return memcached.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(cachePort);

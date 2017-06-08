@@ -17,7 +17,6 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sqs = require('../../../lib/services/sqs');
 const sqsCalls = require('../../../lib/aws/sqs-calls');
-const cloudfFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
@@ -91,10 +90,8 @@ describe('sqs deployer', function () {
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
-        it('should create a new queue when the stack doesnt exist', function () {
-
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudfFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the queue', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'QueueName',
@@ -113,48 +110,7 @@ describe('sqs deployer', function () {
 
             return sqs.deploy(ownServiceContext, ownPreDeployContext, [])
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-
-                    expect(deployContext).to.be.instanceof(DeployContext);
-
-                    //Should have exported 3 env vars
-                    let queueNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_NAME`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueNameEnv]).to.equal(queueName);
-                    let queueUrlEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_URL`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueUrlEnv]).to.equal(queueUrl);
-                    let queueArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_ARN`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueArnEnv]).to.equal(queueArn);
-
-                    //Should have exported 1 policy
-                    expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
-                    expect(deployContext.policies[0].Resource[0]).to.equal(queueArn);
-                });
-        });
-
-        it('should update the stack when the queue already exists', function () {
-            let getStackStub = sandbox.stub(cloudfFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudfFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: 'QueueName',
-                        OutputValue: queueName
-                    },
-                    {
-                        OutputKey: 'QueueArn',
-                        OutputValue: queueArn
-                    },
-                    {
-                        OutputKey: 'QueueUrl',
-                        OutputValue: queueUrl
-                    }
-                ]
-            }));
-
-            return sqs.deploy(ownServiceContext, ownPreDeployContext, [])
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
 
                     expect(deployContext).to.be.instanceof(DeployContext);
 

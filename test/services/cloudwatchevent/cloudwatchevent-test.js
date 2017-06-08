@@ -18,6 +18,7 @@ const accountConfig = require('../../../lib/common/account-config')(`${__dirname
 const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');
+const deployersCommon = require('../../../lib/common/deployers-common');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -91,38 +92,17 @@ describe('cloudwatchevent deployer', function () {
         let preDeployContext = new PreDeployContext(serviceContext);
         let eventRuleArn = "FakeEventRuleArn";
 
-        it('should create a new rule when it doesnt exist', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
+        it('should deploy the event rule', function () {
+            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn
-                }]
+                }]                
             }));
 
             return cloudWatchEvent.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.eventOutputs.principal).to.equal("events.amazonaws.com");
-                    expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
-                });
-        });
-
-        it('should update an existing rule when it exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'EventRuleArn',
-                    OutputValue: eventRuleArn
-                }]
-            }));
-
-            return cloudWatchEvent.deploy(serviceContext, preDeployContext, [])
-                .then(deployContext => {
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
+                    expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.eventOutputs.principal).to.equal("events.amazonaws.com");
                     expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
