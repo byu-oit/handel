@@ -16,7 +16,9 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -90,7 +92,7 @@ describe('ecs deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group and add ingress to self and SSH bastion', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
+            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
 
@@ -177,8 +179,8 @@ describe('ecs deployer', function () {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
-            let createCustomRoleStub = sandbox.stub(deployersCommon, 'createCustomRole').returns(Promise.resolve({}));
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
+            let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
             //Run the test
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
@@ -216,7 +218,7 @@ describe('ecs deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", {});
             return ecs.unPreDeploy(serviceContext)
@@ -240,7 +242,7 @@ describe('ecs deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return ecs.unDeploy(serviceContext)
                 .then(unDeployContext => {

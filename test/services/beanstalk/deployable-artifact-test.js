@@ -16,7 +16,7 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const util = require('../../../lib/common/util');
@@ -48,7 +48,7 @@ describe('deployable artifact module', function () {
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return true; } })
             let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
             let zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve(true));
-            let uploadFileStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
                 Bucket: bucket,
                 Key: key
             }));
@@ -100,7 +100,7 @@ describe('deployable artifact module', function () {
             let copyDirectoryStub = sandbox.stub(util, 'copyDirectory').returns(Promise.resolve(true));
             let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
             let zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve(true));
-            let uploadFileStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
                 Bucket: bucket,
                 Key: key
             }));
@@ -154,7 +154,7 @@ describe('deployable artifact module', function () {
             let copyDirectoryStub = sandbox.stub(util, 'copyDirectory').returns(Promise.resolve(true));
             let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
             let zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve(true));
-            let uploadFileStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
                 Bucket: bucket,
                 Key: key
             }));
@@ -191,7 +191,7 @@ describe('deployable artifact module', function () {
             let copyDirectoryStub = sandbox.stub(util, 'copyDirectory').returns(Promise.resolve(true));
             let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
             let zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve(true));
-            let uploadFileStub = sandbox.stub(deployersCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
+            let uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({
                 Bucket: bucket,
                 Key: key
             }));

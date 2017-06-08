@@ -22,7 +22,8 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -84,7 +85,7 @@ describe('sns deployer', function () {
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         it('should deploy the topic', function () {
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicName',
@@ -197,7 +198,7 @@ describe('sns deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return sns.unDeploy(serviceContext)
                 .then(unDeployContext => {

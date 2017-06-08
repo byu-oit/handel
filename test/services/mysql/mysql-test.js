@@ -23,7 +23,9 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -65,7 +67,7 @@ describe('mysql deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
+            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
 
@@ -225,7 +227,7 @@ describe('mysql deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
             return mysql.unPreDeploy(serviceContext)
@@ -238,7 +240,7 @@ describe('mysql deployer', function () {
 
     describe('unBind', function () {
         it('should unbind the security group', function () {
-            let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
+            let unBindAllStub = sandbox.stub(deletePhasesCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
             return mysql.unBind(serviceContext)
@@ -252,7 +254,7 @@ describe('mysql deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
             let deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').returns(Promise.resolve({}));
 
             return mysql.unDeploy(serviceContext)

@@ -21,7 +21,9 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -104,7 +106,7 @@ describe('redis deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
+            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
 
@@ -165,7 +167,7 @@ describe('redis deployer', function () {
         let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
 
         it('should deploy the cluster', function () {
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: "CacheAddress",
@@ -214,7 +216,7 @@ describe('redis deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
             return redis.unPreDeploy(serviceContext)
@@ -227,7 +229,7 @@ describe('redis deployer', function () {
 
     describe('unBind', function () {
         it('should unbind the security group', function () {
-            let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
+            let unBindAllStub = sandbox.stub(deletePhasesCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
             return redis.unBind(serviceContext)
@@ -241,7 +243,7 @@ describe('redis deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return redis.unDeploy(serviceContext)
                 .then(unDeployContext => {

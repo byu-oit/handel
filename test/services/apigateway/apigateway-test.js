@@ -22,7 +22,8 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -128,11 +129,11 @@ describe('apigateway deployer', function () {
             //Stub out dependent services
             let bucketName = "FakeBucket";
             let bucketKey = "FakeBucketKey";
-            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
+            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Bucket: bucketName,
                 Key: bucketKey
             }));
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'
@@ -195,7 +196,7 @@ describe('apigateway deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return apigateway.unDeploy(serviceContext)
                 .then(unDeployContext => {
