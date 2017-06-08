@@ -14,8 +14,8 @@ ddd:
   ubiquitous_language_url: 
   context_map_url: 
 links:
-  system_documentation_url: https://github.com/byu-oit-appdev/handel
-  source_repo_url: https://github.com/byu-oit-appdev/handel
+  system_documentation_url: https://github.com/byu-oit/handel
+  source_repo_url: https://github.com/byu-oit/handel
   swagger_urls:
 microservice: False
 technologies_used:
@@ -24,7 +24,7 @@ technologies_used:
 stages:
   production:
     urls:
-      product_page: https://github.com/byu-oit-appdev/handel
+      product_page: https://github.com/byu-oit/handel
       physical_url: 
       virtual_url: 
     hosting_location: 
@@ -48,5 +48,5 @@ tags:
   env: prd
   app: handel
   team: gro:AD-Global Education Initiative
-federation_json_url: https://raw.githubusercontent.com/byu-oit-appdev/handel/master/.repo-meta.yml
+federation_json_url: https://raw.githubusercontent.com/byu-oit/handel/master/.repo-meta.yml
 
