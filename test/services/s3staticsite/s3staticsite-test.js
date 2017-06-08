@@ -21,7 +21,8 @@ const DeployContext = require('../../../lib/datatypes/deploy-context');
 const s3Calls = require('../../../lib/aws/s3-calls');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -83,7 +84,7 @@ describe('s3staticsite deployer', function () {
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         it('should deploy the static site bucket', function () {
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack');
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
             deployStackStub.onCall(0).returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'BucketName',
@@ -154,7 +155,7 @@ describe('s3staticsite deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {});
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return s3StaticSite.unDeploy(serviceContext)
                 .then(unDeployContext => {

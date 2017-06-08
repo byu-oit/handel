@@ -18,8 +18,9 @@ const accountConfig = require('../../../lib/common/account-config')(`${__dirname
 const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const ServiceContext = require('../../../lib/datatypes/service-context');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -93,7 +94,7 @@ describe('cloudwatchevent deployer', function () {
         let eventRuleArn = "FakeEventRuleArn";
 
         it('should deploy the event rule', function () {
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn
@@ -205,17 +206,15 @@ describe('cloudwatchevent deployer', function () {
         it('should remove all targets and delete the stack', function () {
             let getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
             let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let deleteStackStub = sandbox.stub(cloudFormationCalls, 'deleteStack').returns(Promise.resolve(true));
-
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(true));
+            
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
             return cloudWatchEvent.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getRuleStub.calledOnce).to.be.true;
                     expect(removeTargetsStub.calledOnce).to.be.true;
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(deleteStackStub.calledOnce).to.be.true;
+                    expect(unDeployStackStub.calledOnce).to.be.true;
                 });
         });
     });

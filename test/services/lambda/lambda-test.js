@@ -16,7 +16,6 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const lambda = require('../../../lib/services/lambda');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const lambdaCalls = require('../../../lib/aws/lambda-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -26,7 +25,8 @@ const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -138,13 +138,13 @@ describe('lambda deployer', function () {
 
 
         it('should deploy the lambda', function () {
-            let uploadArtifactStub = sandbox.stub(deployersCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
+            let uploadArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
                 Key: "FakeKey",
                 Bucket: "FakeBucket"
             }));
             let functionArn = "FakeFunctionArn";
             let functionName = "FakeFunction";
-            let deployStackStub = sandbox.stub(deployersCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'FunctionArn',
@@ -277,15 +277,13 @@ describe('lambda deployer', function () {
 
     describe('unDeploy', function () {
         it('should delete the stack', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
-            let deleteStackStub = sandbox.stub(cloudFormationCalls, 'deleteStack').returns(Promise.resolve(true));
-
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
             return lambda.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(deleteStackStub.calledOnce).to.be.true;
+                    expect(unDeployStack.calledOnce).to.be.true;
                 });
         });
     });

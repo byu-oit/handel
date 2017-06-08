@@ -22,7 +22,9 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployersCommon = require('../../../lib/common/deployers-common');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const rdsCommon = require('../../../lib/common/rds-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
@@ -65,7 +67,7 @@ describe('postgresql deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(deployersCommon, 'createSecurityGroupForService').returns(Promise.resolve({
+            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
                 GroupId: groupId
             }));
 
@@ -208,7 +210,7 @@ describe('postgresql deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deployersCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
+            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
             return postgresql.unPreDeploy(serviceContext)
@@ -221,7 +223,7 @@ describe('postgresql deployer', function () {
 
     describe('unBind', function () {
         it('should unbind the security group', function () {
-            let unBindAllStub = sandbox.stub(deployersCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
+            let unBindAllStub = sandbox.stub(deletePhasesCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
             return postgresql.unBind(serviceContext)
@@ -236,7 +238,7 @@ describe('postgresql deployer', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
             let unDeployContext = new UnDeployContext(serviceContext);
-            let unDeployStackStub = sandbox.stub(deployersCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(unDeployContext));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(unDeployContext));
             let deleteParametersStub = sandbox.stub(rdsCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));
 
             return postgresql.unDeploy(serviceContext)
