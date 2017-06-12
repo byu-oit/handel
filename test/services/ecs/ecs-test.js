@@ -17,8 +17,9 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -91,27 +92,31 @@ describe('ecs deployer', function () {
 
     describe('preDeploy', function () {
         it('should create a security group and add ingress to self and SSH bastion', function () {
-            let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
-                GroupId: groupId
-            }));
-
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let preDeployContext = new PreDeployContext(serviceContext);
+            let groupId = "FakeSgGroupId";
+            preDeployContext.securityGroups.push({
+                GroupId: groupId
+            });
+            let createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').returns(Promise.resolve(preDeployContext));
+
             return ecs.preDeploy(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
-                    expect(createSecurityGroupStub.calledOnce).to.be.true;
+                    expect(createSgStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('bind', function () {
         it('should do nothing and just return an empty BindContext', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return ecs.bind(serviceContext)
+            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
+
+            return ecs.bind({}, {}, {}, {})
                 .then(bindContext => {
+                    expect(bindNotRequiredStub.callCount).to.equal(1);
                     expect(bindContext).to.be.instanceof(BindContext);
                 });
         });

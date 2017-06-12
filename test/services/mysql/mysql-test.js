@@ -16,15 +16,14 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const mysql = require('../../../lib/services/mysql');
-const ec2Calls = require('../../../lib/aws/ec2-calls');
 const ssmCalls = require('../../../lib/aws/ssm-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
@@ -67,44 +66,31 @@ describe('mysql deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
-                GroupId: groupId
-            }));
-
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
+            let preDeployContext = new PreDeployContext(serviceContext);
+            preDeployContext.securityGroups.push({
+                GroupId: groupId
+            });
+            let createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').returns(Promise.resolve(preDeployContext));
+
             return mysql.preDeploy(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
-                    expect(createSecurityGroupStub.calledOnce).to.be.true;
+                    expect(createSgStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('bind', function () {
         it('should add the source sg to its own sg as an ingress rule', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            ownPreDeployContext.securityGroups.push({
-                GroupId: 'FakeId'
-            });
+            let bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').returns(Promise.resolve(new BindContext({}, {})));
 
-            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentOfService", "ecs", deployVersion, {});
-            let dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
-            dependentOfPreDeployContext.securityGroups.push({
-                GroupId: 'OtherId'
-            });
-
-            let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
-
-            return mysql.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
+            return mysql.bind({}, {}, {}, {})
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
-                    expect(addIngressRuleToSgIfNotExistsStub.calledOnce).to.be.true;
+                    expect(bindSgStub.callCount).to.equal(1);
                 });
         });
     });

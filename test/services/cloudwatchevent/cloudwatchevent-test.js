@@ -16,11 +16,12 @@
  */
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -66,8 +67,11 @@ describe('cloudwatchevent deployer', function () {
     describe('preDeploy', function () {
         it('should return an empty predeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
+
             return cloudWatchEvent.preDeploy(serviceContext)
                 .then(preDeployContext => {
+                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                 });
         });
@@ -76,8 +80,11 @@ describe('cloudwatchevent deployer', function () {
     describe('bind', function () {
         it('should return an empty bind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
+            
             return cloudWatchEvent.bind(serviceContext)
                 .then(bindContext => {
+                    expect(bindNotRequiredStub.callCount).to.equal(1);
                     expect(bindContext).to.be.instanceof(BindContext);
                 });
         });
