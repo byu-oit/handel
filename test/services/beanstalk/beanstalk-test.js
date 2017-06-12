@@ -22,6 +22,7 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
@@ -51,31 +52,32 @@ describe('beanstalk deployer', function () {
     });
 
     describe('preDeploy', function () {
-        it('should create a security group and add self and SSH bastion ingress', function () {
+        it('should call the predeploy common to create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let createSecurityGroupStub = sandbox.stub(preDeployPhaseCommon, 'createSecurityGroupForService').returns(Promise.resolve({
-                GroupId: groupId
-            }));
-
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let preDeployContext = new PreDeployContext(serviceContext);
+            preDeployContext.securityGroups.push({
+                GroupId: groupId
+            });
+            let preDeployCreateSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').returns(Promise.resolve(preDeployContext));
+
             return beanstalk.preDeploy(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
-                    expect(createSecurityGroupStub.calledOnce).to.be.true;
+                    expect(preDeployCreateSgStub.calledOnce).to.be.true;
                 });
         });
     });
 
     describe('bind', function () {
         it('should do nothing and just return an empty BindContext', function () {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            let dependentOfServiceContext = new ServiceContext("FakeApp", "FakeEnv", "OtherService", "OtherType", "1", {});
-            let dependentOfPreDeployContext = new PreDeployContext(ownServiceContext);
-            return beanstalk.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
+            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
+
+            return beanstalk.bind({}, {}, {}, {})
                 .then(bindContext => {
+                    expect(bindNotRequiredStub.callCount).to.equal(1);
                     expect(bindContext).to.be.instanceof(BindContext);
                 });
         });

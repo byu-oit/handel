@@ -22,6 +22,8 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -77,8 +79,11 @@ describe('dynamodb deployer', function () {
     describe('preDeploy', function () {
         it('should do nothing and just return an empty PreDeployContext', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
+
             return dynamodb.preDeploy(serviceContext)
                 .then(preDeployContext => {
+                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                 });
         });
@@ -86,12 +91,11 @@ describe('dynamodb deployer', function () {
 
     describe('bind', function () {
         it('should do nothing and just return an empty BindContext', function () {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            let dependentOfServiceContext = new ServiceContext("FakeApp", "FakeEnv", "OtherService", "OtherType", "1", {});
-            let dependentOfPreDeployContext = new PreDeployContext(ownServiceContext);
-            return dynamodb.bind(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
+            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
+
+            return dynamodb.bind({}, {}, {}, {})
                 .then(bindContext => {
+                    expect(bindNotRequiredStub.callCount).to.equal(1);
                     expect(bindContext).to.be.instanceof(BindContext);
                 });
         });

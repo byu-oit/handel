@@ -16,6 +16,8 @@
  */
 const preDeployPhaseCommon = require('../../lib/common/pre-deploy-phase-common');
 const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
+const ServiceContext = require('../../lib/datatypes/service-context');
+const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -31,10 +33,8 @@ describe('PreDeploy Phase Common module', function () {
         sandbox.restore();
     });
 
-    describe('createSecurityGroupForService', function () {
+    describe('preDeployCreateSecurityGroup', function () {
         it('should create the security group when it doesnt exist', function () {
-            let sgName = "FakeSg";
-
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({
                 Outputs: [{
@@ -44,9 +44,13 @@ describe('PreDeploy Phase Common module', function () {
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
-            return preDeployPhaseCommon.createSecurityGroupForService(sgName, 22)
-                .then(securityGroup => {
-                    expect(securityGroup).to.deep.equal({});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+
+            return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, "FakeService")
+                .then(preDeployContext => {
+                    expect(preDeployContext).to.be.instanceOf(PreDeployContext);
+                    expect(preDeployContext.securityGroups.length).to.equal(1);
+                    expect(preDeployContext.securityGroups[0]).to.deep.equal({});
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
                     expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
@@ -65,12 +69,26 @@ describe('PreDeploy Phase Common module', function () {
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
-            return preDeployPhaseCommon.createSecurityGroupForService(sgName, 22)
-                .then(securityGroup => {
-                    expect(securityGroup).to.deep.equal({});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+
+            return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, "FakeService")
+                .then(preDeployContext => {
+                    expect(preDeployContext).to.be.instanceOf(PreDeployContext);
+                    expect(preDeployContext.securityGroups.length).to.equal(1);
+                    expect(preDeployContext.securityGroups[0]).to.deep.equal({});
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.calledOnce).to.be.true;
                     expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                });
+        });
+    });
+
+    describe('preDeployNotRequired', function() {
+        it('should return an empty predeploy context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return preDeployPhaseCommon.preDeployNotRequired(serviceContext)
+                .then(preDeployContext => {
+                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
                 });
         });
     });

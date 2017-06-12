@@ -23,6 +23,8 @@ const BindContext = require('../../../lib/datatypes/bind-context');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -59,8 +61,11 @@ describe('apiaccess deployer', function () {
     describe('preDeploy', function () {
         it('should return an empty predeploy context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {});
+            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
+
             return apiaccess.preDeploy(serviceContext)
                 .then(preDeployContext => {
+                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                 });
         });
@@ -69,8 +74,11 @@ describe('apiaccess deployer', function () {
     describe('bind', function () {
         it('should return an empty bind context', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {});
+            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext(serviceContext, {})));
+
             return apiaccess.bind(serviceContext)
                 .then(bindContext => {
+                    expect(bindNotRequiredStub.callCount).to.equal(1);
                     expect(bindContext).to.be.instanceof(BindContext);
                 });
         });
