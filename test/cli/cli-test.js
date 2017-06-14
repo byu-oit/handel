@@ -32,45 +32,45 @@ describe('cli module', function () {
         sandbox.restore();
     });
 
-    describe('validateAccountConfigParam', function () {
-        it('should return no errors if the accuont config file exists', function () {
-            let existsStub = sandbox.stub(fs, 'existsSync').returns(false);
+    // describe('validateAccountConfigParam', function () {
+    //     it('should return no errors if the accuont config file exists', function () {
+    //         let existsStub = sandbox.stub(fs, 'existsSync').returns(false);
 
-            let accountConfig = 'dGVzdDogc29tZXRoaW5n'; //Base-64 encoded string of simple YAML file
+    //         let accountConfig = 'dGVzdDogc29tZXRoaW5n'; //Base-64 encoded string of simple YAML file
 
-            let errors = cli.validateAccountConfigParam(accountConfig);
-            expect(errors.length).to.equal(0);
-            expect(existsStub.calledOnce).to.be.true;
-        });
+    //         let errors = cli.validateAccountConfigParam(accountConfig);
+    //         expect(errors.length).to.equal(0);
+    //         expect(existsStub.calledOnce).to.be.true;
+    //     });
 
-        it('should return an error if the file is not valid YAML', function () {
-            let existsStub = sandbox.stub(fs, 'existsSync').returns(false);
+    //     it('should return an error if the file is not valid YAML', function () {
+    //         let existsStub = sandbox.stub(fs, 'existsSync').returns(false);
 
-            let accountConfig = 'SomeFakeString'; //Wont decode to valid yaml file
+    //         let accountConfig = 'SomeFakeString'; //Wont decode to valid yaml file
 
-            let errors = cli.validateAccountConfigParam(accountConfig);
-            expect(errors.length).to.equal(1);
-            expect(existsStub.calledOnce).to.be.true;
-        });
-    });
+    //         let errors = cli.validateAccountConfigParam(accountConfig);
+    //         expect(errors.length).to.equal(1);
+    //         expect(existsStub.calledOnce).to.be.true;
+    //     });
+    // });
 
-    describe('validateEnvsInHandelFile', function () {
-        it('should return an error when the env doesnt exist', function () {
-            let envsToDeploy = 'dev,fake';
-            let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
+    // describe('validateEnvsInHandelFile', function () {
+    //     it('should return an error when the env doesnt exist', function () {
+    //         let envsToDeploy = 'dev,fake';
+    //         let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
 
-            let errors = cli.validateEnvsInHandelFile(envsToDeploy, handelFile);
-            expect(errors.length).to.equal(1);
-        });
+    //         let errors = cli.validateEnvsInHandelFile(envsToDeploy, handelFile);
+    //         expect(errors.length).to.equal(1);
+    //     });
 
-        it('should return no errors when the envs all exist', function() {
-            let envsToDeploy = 'dev,prod';
-            let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
+    //     it('should return no errors when the envs all exist', function() {
+    //         let envsToDeploy = 'dev,prod';
+    //         let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
 
-            let errors = cli.validateEnvsInHandelFile(envsToDeploy, handelFile);
-            expect(errors.length).to.equal(0);
-        });
-    });
+    //         let errors = cli.validateEnvsInHandelFile(envsToDeploy, handelFile);
+    //         expect(errors.length).to.equal(0);
+    //     });
+    // });
 
     describe('validateDeployArgs', function() {
         let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);

@@ -1,10 +1,7 @@
 #!/usr/bin/env node
-const deleteLifecycle = require('../lib/lifecycles/delete');
-const deployLifecycle = require('../lib/lifecycles/deploy');
-const checkLifecycle = require('../lib/lifecycles/check');
+
 const minimist = require('minimist');
 const fs = require('fs');
-const winston = require('winston');
 const yaml = require('js-yaml');
 const cli = require('../lib/cli');
 
@@ -52,94 +49,6 @@ Errors:
     printAndExit(usageMsg);
 }
 
-function setLogLevel(argv) {
-    if (argv.d) {
-        winston.level = 'debug';
-    }
-    else {
-        winston.level = 'info';
-    }
-}
-
-function deployAction(handelFile, argv) {
-    setLogLevel(argv);
-    let accountConfig = cli.loadAccountConfig(argv.c);
-    let deployVersion = argv.v;
-    let environmentsToDeploy = argv.e.split(',');
-    deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, deployVersion)
-        .then(envDeployResults => {
-            let success = true;
-            for (let envDeployResult of envDeployResults) {
-                if (envDeployResult.status !== 'success') {
-                    winston.warn(`Error while deploying environment: ${envDeployResult.message}`);
-                    if(winston.level === 'debug') {
-                        winston.warn(envDeployResult.error);
-                    }
-                    success = false;
-                }
-            }
-
-            if (success) {
-                winston.info("Finished deploying everything successfully");
-            }
-            else {
-                winston.warn("Finished deployment with errors");
-                process.exit(1);
-            }
-        })
-        .catch(err => {
-            winston.warn(err);
-            process.exit(1);
-        })
-}
-
-function checkAction(handelFile) {
-    let errors = checkLifecycle.check(handelFile);
-    let foundErrors = false;
-    for (let env in errors) {
-        let envErrors = errors[env];
-        if (envErrors.length > 0) {
-            winston.error(`The following errors were found for env ${env}`);
-            console.log("  " + envErrors.join("\n  "));
-            foundErrors = true;
-        }
-    }
-
-    if(!foundErrors) {
-        winston.info("No errors were found when checking Handel file");
-    }
-}
-
-function deleteAction(handelFile, argv) {
-    setLogLevel(argv);
-    let accountConfig = cli.loadAccountConfig(argv.c);
-    let environmentToDelete = argv.e;
-    cli.confirmDelete(environmentToDelete, argv.d)
-        .then(confirmDelete => {
-            if (confirmDelete) {
-                deleteLifecycle.delete(accountConfig, handelFile, environmentToDelete)
-                    .then(envDeleteResult => {
-                        if (envDeleteResult.status !== 'success') {
-                            winston.warn(`Error while deleting environment: ${envDeleteResult.message}`);
-                            winston.warn(envDeleteResult.error);
-                            winston.warn("Finished deletion with errors");
-                            process.exit(1);
-                        }
-                        else {
-                            winston.info("Finished deleting everything successfully");
-                        }
-                    })
-                    .catch(err => {
-                        winston.warn(err);
-                        process.exit(1);
-                    })
-            }
-            else {
-                winston.info("You did not type 'yes' to confirm deletion. Will not delete environment.");
-            }
-        });
-}
-
 function loadHandelFile() {
     try {
         var handelFile = yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8'));
@@ -169,11 +78,11 @@ switch (deployPhase) {
             printDeployUsage(errors);
         }
         else {
-            deployAction(handelFile, argv);
+            cli.deployAction(handelFile, argv);
         }
         break;
     case "check":
-        checkAction(handelFile);
+        cli.checkAction(handelFile);
         break;
     case "delete":
         errors = cli.validateDeleteArgs(argv, handelFile);
@@ -181,7 +90,7 @@ switch (deployPhase) {
             printDeleteUsage(errors);
         }
         else {
-            deleteAction(handelFile, argv);
+            cli.deleteAction(handelFile, argv);
         }
         break;
     default:

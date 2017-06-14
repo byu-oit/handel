@@ -25,7 +25,7 @@ const BindContext = require('../../../lib/datatypes/bind-context');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const rdsCommon = require('../../../lib/common/rds-common');
+const rdsDeployersCommon = require('../../../lib/common/rds-deployers-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -139,7 +139,7 @@ describe('postgresql deployer', function () {
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve(deployedStack));
-            let addDbCredentialStub = sandbox.stub(rdsCommon, 'addDbCredentialToParameterStore').returns(Promise.resolve(deployedStack));
+            let addDbCredentialStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore').returns(Promise.resolve(deployedStack));
 
             return postgresql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
@@ -224,7 +224,7 @@ describe('postgresql deployer', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
             let unDeployContext = new UnDeployContext(serviceContext);
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(unDeployContext));
-            let deleteParametersStub = sandbox.stub(rdsCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));
+            let deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));
 
             return postgresql.unDeploy(serviceContext)
                 .then(unDeployContext => {
