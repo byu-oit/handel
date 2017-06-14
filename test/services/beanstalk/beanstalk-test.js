@@ -153,23 +153,23 @@ describe('beanstalk deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
-
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {});
-            return beanstalk.unPreDeploy(serviceContext)
+            let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
+            
+            return beanstalk.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(deleteSecurityGroupStub.calledOnce).to.be.true;
+                    expect(unPreDeployStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('unBind', function () {
         it('should return an empty UnBind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {});
-            return beanstalk.unBind(serviceContext)
+            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+            return beanstalk.unBind({})
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

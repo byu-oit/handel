@@ -183,20 +183,22 @@ describe('apigateway deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should return an empty UnPreDeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
-            return apigateway.unPreDeploy(serviceContext)
+            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
+            return apigateway.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('unBind', function () {
         it('should return an empty UnBind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
-            return apigateway.unBind(serviceContext)
+            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+            return apigateway.unBind({})
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

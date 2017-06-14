@@ -259,23 +259,23 @@ describe('lambda deployer', function () {
     });
 
     describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeployContext since it doesnt do anything', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return lambda.unPreDeploy(serviceContext)
+        it('should return an empty UnPreDeploy context', function () {
+            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
+            return lambda.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployContext.appName).to.equal(serviceContext.appName);
+                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('unBind', function () {
-        it('should return an empty UnBindContext since it doesnt do anything', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return lambda.unBind(serviceContext)
+        it('should return an empty UnBind context', function () {
+            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+            return lambda.unBind({})
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindContext.appName).to.equal(serviceContext.appName);
+                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

@@ -142,20 +142,22 @@ describe('s3staticsite deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should return an empty UnPreDeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {});
-            return s3StaticSite.unPreDeploy(serviceContext)
+            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
+            return s3StaticSite.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('unBind', function () {
         it('should return an empty UnBind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {});
-            return s3StaticSite.unBind(serviceContext)
+            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+            return s3StaticSite.unBind({})
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

@@ -16,6 +16,8 @@
  */
 const ServiceContext = require('../../lib/datatypes/service-context');
 const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
+const UnBindContext = require('../../lib/datatypes/un-bind-context');
+const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const deletePhasesCommon = require('../../lib/common/delete-phases-common');
 const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
 const ec2Calls = require('../../lib/aws/ec2-calls');
@@ -33,26 +35,28 @@ describe('Delete phases common module', function () {
         sandbox.restore();
     });
 
-    describe('unBindAllOnSg', function () {
+    describe('unBindSecurityGroups', function () {
         it('should remove all ingress from the given security group', function () {
             let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
 
-            return deletePhasesCommon.unBindAllOnSg('FakeStack')
-                .then(success => {
-                    expect(success).to.be.true;
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return deletePhasesCommon.unBindSecurityGroups(serviceContext, "FakeService")
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
                     expect(removeIngressStub.calledOnce).to.be.true;
                 });
         });
     });
 
-    describe('deleteSecurityGroupForService', function () {
+    describe('unPreDeploySecurityGroup', function () {
         it('should delete the stack if it exists', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            return deletePhasesCommon.deleteSecurityGroupForService("FakeStack")
-                .then(success => {
-                    expect(success).to.be.true;
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, "FakeService")
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.calledOnce).to.be.true;
                 });
@@ -62,9 +66,10 @@ describe('Delete phases common module', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            return deletePhasesCommon.deleteSecurityGroupForService("FakeStack")
-                .then(success => {
-                    expect(success).to.be.true;
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, "FakeService")
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.notCalled).to.be.true;
                 });

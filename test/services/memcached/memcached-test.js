@@ -176,26 +176,24 @@ describe('memcached deployer', function () {
 
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
-            let deleteSecurityGroupStub = sandbox.stub(deletePhasesCommon, 'deleteSecurityGroupForService').returns(Promise.resolve(true));
-
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
-            return memcached.unPreDeploy(serviceContext)
+            let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
+            
+            return memcached.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(deleteSecurityGroupStub.calledOnce).to.be.true;
+                    expect(unPreDeployStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('unBind', function () {
         it('should unbind the security group', function () {
-            let unBindAllStub = sandbox.stub(deletePhasesCommon, 'unBindAllOnSg').returns(Promise.resolve(true));
+            let unBindStub = sandbox.stub(deletePhasesCommon, 'unBindSecurityGroups').returns(Promise.resolve(new UnBindContext({})));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
-            return memcached.unBind(serviceContext)
+            return memcached.unBind({})
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindAllStub.calledOnce).to.be.true;
+                    expect(unBindStub.callCount).to.equal(1);
                 });
         });
     });
