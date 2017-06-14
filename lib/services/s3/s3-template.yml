@@ -7,6 +7,11 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties: 
       BucketName: {{bucketName}}
+      {{#if loggingBucketName}}
+      LoggingConfiguration:
+        DestinationBucketName: {{loggingBucketName}}
+        LogFilePrefix: {{logFilePrefix}}
+      {{/if}}
       VersioningConfiguration: 
         Status: {{versioningStatus}}
       {{#if tags}}

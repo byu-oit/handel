@@ -112,7 +112,7 @@ describe('s3 deployer', function () {
 
             return s3.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
-                    expect(deployStackStub.callCount).to.equal(1);
+                    expect(deployStackStub.callCount).to.equal(2);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(2);
                     expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
