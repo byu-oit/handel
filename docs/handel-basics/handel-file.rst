@@ -15,12 +15,12 @@ The Handel file is a YAML file that must conform to the following specification:
     name: <name of the app being deployed>
 
     environments:
-    <environment_name>:
-      <service_name>:
-        type: <service_type>
-        <service_param>: <param_value>
-        dependencies:
-        - <service name>
+      <environment_name>:
+        <service_name>:
+          type: <service_type>
+          <service_param>: <param_value>
+          dependencies:
+          - <service name>
 
 Terminology
 -----------
