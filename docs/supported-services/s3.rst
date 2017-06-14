@@ -44,7 +44,12 @@ This service takes the following parameters:
      - string
      - No
      - disabled
-     - Whether to enable versioning on the bucket. Allowed values: 'enabled', 'disabled'
+     - Whether to enable versioning on the bucket. Allowed values: *enabled*, *disabled*
+   * - logging
+     - string
+     - No
+     - disabled
+     - Whether to enable logging on the bucket. Allowed values: *enabled*, *disabled*.
    * - tags
      - Tags
      - No
