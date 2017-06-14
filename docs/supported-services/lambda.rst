@@ -21,6 +21,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *lambda* for this service type.
    * - path_to_code
      - string
      - Yes

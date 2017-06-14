@@ -10,6 +10,16 @@ Parameters
 .. list-table::
    :header-rows: 1
 
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *sqs* for this service type.
    * - queue_type
      - string
      - No

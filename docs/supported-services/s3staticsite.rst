@@ -27,6 +27,11 @@ This service takes the following parameters:
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *s3staticsite* for this service type.
    * - path_to_code
      - string
      - Yes

@@ -23,6 +23,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *dynamodb* for this service type.
    * - partition_key
      - PartitionKey
      - Yes

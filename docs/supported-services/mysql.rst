@@ -29,6 +29,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *mysql* for this service type.
    * - database_name
      - string
      - yes

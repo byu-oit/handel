@@ -15,6 +15,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *cloudwatchevents* for this service type.
    * - schedule
      - string
      - No

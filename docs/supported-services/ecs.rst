@@ -31,6 +31,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *ecs* for this service type.
    * - key_name
      - string
      - No

@@ -25,6 +25,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *apiaccess* for this service type.
    * - aws_services
      - List<string>
      - Yes

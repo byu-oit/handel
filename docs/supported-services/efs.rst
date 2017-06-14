@@ -14,6 +14,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *efs* for this service type.
    * - performance_mode
      - string 
      - No

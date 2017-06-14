@@ -22,6 +22,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *beanstalk* for this service type.
    * - path_to_code
      - string
      - Yes

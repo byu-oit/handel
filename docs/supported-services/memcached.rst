@@ -29,6 +29,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *memcached* for this service type.
    * - instance_type
      - string 
      - yes

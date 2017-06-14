@@ -6,7 +6,19 @@ This document contains information about the SNS service supported in Handel. Th
 
 Parameters
 ----------
-There are currently no parameters for this service.
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *sns* for this service type.
 
 Example Handel File
 -------------------

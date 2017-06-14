@@ -29,6 +29,11 @@ Parameters
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *postgresql* for this service type.
    * - database_name
      - string
      - yes

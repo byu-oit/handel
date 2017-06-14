@@ -30,6 +30,11 @@ This service takes the following parameters:
      - Required
      - Default
      - Description
+   * - type
+     - string
+     - Yes
+     - 
+     - This must always be *s3* for this service type.
    * - bucket_name
      - string
      - No
