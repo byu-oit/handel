@@ -108,6 +108,13 @@ The Tags element is defined by the following schema:
   tags:
    <your_tag_name>: <your_tag_value>
 
+
+.. ATTENTION::
+
+  Beanstalk tags may not be modified after you initially create the environment. Beanstalk has had a feature request open for years to modify tags on environments, but still doesn't support it.
+
+  If you try to modify your *tags* element after your environment is created, your CloudFormation stack will fail to update.
+
 Example Handel File
 -------------------
 
