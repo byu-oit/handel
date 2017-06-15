@@ -144,8 +144,9 @@ This Handel file shows an ECS service being configured:
           type: ecs
           key_name: some_ssh_keypair
           max_mb: 256
-          min_instances: 1
-          max_instances: 1
+          instance_type: t2.micro
+          min_containers: 1
+          max_containers: 1
           port_mappings:
           - 5000
           environment_variables:
