@@ -40,14 +40,16 @@ describe('lambdaCalls', function () {
             lambdaCalls.addLambdaPermission("FakeFunction", "FakePrincipal", "FakeSourceArn")
                 .then(statement => {
                     expect(statement).to.deep.equal({});
+                    expect(getLambdaPermissionStub.callCount).to.equal(1);
                 });
         });
     });
 
     describe('getLambdaPermission', function () {
+        let principal = "FakePrincipal";
+        let sourceArn = "FakeSourceArn";
+
         it('should return the given permission if present', function () {
-            let principal = "FakePrincipal";
-            let sourceArn = "FakeSourceArn";
             let policy = {
                 Statement: [{
                     Principal: {
@@ -74,8 +76,6 @@ describe('lambdaCalls', function () {
         });
 
         it('should return null when the requested permissions is not present in the policy', function () {
-            let principal = "FakePrincipal";
-            let sourceArn = "FakeSourceArn";
             let policy = {
                 Statement: [{
                     Principal: {
@@ -118,8 +118,8 @@ describe('lambdaCalls', function () {
 
             return lambdaCalls.addLambdaPermissionIfNotExists("FakeFunction", "FakePrincipal", "FakeSourceArn")
                 .then(statement => {
-                    expect(getLambdaPermissionStub.calledOnce).to.be.true;
-                    expect(addLambdaPermissionStub.calledOnce).to.be.true;
+                    expect(getLambdaPermissionStub.callCount).to.equal(1);
+                    expect(addLambdaPermissionStub.callCount).to.equal(1);
                     expect(statement).to.deep.equal({});
                 });
         });
@@ -130,8 +130,8 @@ describe('lambdaCalls', function () {
 
             return lambdaCalls.addLambdaPermissionIfNotExists("FakeFunction", "FakePrincipal", "FakeSourceArn")
                 .then(statement => {
-                    expect(getLambdaPermissionStub.calledOnce).to.be.true;
-                    expect(addLambdaPermissionStub.notCalled).to.be.true;
+                    expect(getLambdaPermissionStub.callCount).to.equal(1);
+                    expect(addLambdaPermissionStub.callCount).to.equal(0);
                     expect(statement).to.deep.equal({});
                 });
         });

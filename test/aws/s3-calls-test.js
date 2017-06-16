@@ -113,11 +113,11 @@ describe('s3Calls', function () {
 
     describe('deleteFiles', function () {
         it('should delete the objects', function () {
-            AWS.mock('S3', 'deleteObjects', Promise.resolve({}));
+            AWS.mock('S3', 'deleteObjects', Promise.resolve(true));
 
             return s3Calls.deleteFiles("FakeBucket", [{ Key: "FakeKey" }])
                 .then(results => {
-                    expect(results).to.deep.equal({});
+                    expect(results).to.equal(true);
                 });
         });
     });
@@ -141,8 +141,8 @@ describe('s3Calls', function () {
             return s3Calls.cleanupOldVersionsOfFiles("FakeBucket", "FakePrefix")
                 .then(result => {
                     expect(result).to.deep.equal({});
-                    expect(listFilesStub.calledOnce).to.be.true;
-                    expect(deleteFilesStub.calledOnce).to.be.true;
+                    expect(listFilesStub.callCount).to.equal(1)
+                    expect(deleteFilesStub.callCount).to.equal(1)
                     let deletedObjects = deleteFilesStub.args[0][1];
                     expect(deletedObjects.length).to.equal(1);
                     expect(deletedObjects[0].LastModified).to.equal(oldestDate);
@@ -197,8 +197,8 @@ describe('s3Calls', function () {
             return s3Calls.createBucketIfNotExists("FakeBucket")
                 .then(bucket => {
                     expect(bucket).to.deep.equal({});
-                    expect(getBucketStub.calledOnce).to.be.true;
-                    expect(createBucketStub.notCalled).to.be.true;
+                    expect(getBucketStub.callCount).to.equal(1);
+                    expect(createBucketStub.callCount).to.equal(0);
                 });
         });
 
@@ -211,8 +211,8 @@ describe('s3Calls', function () {
             return s3Calls.createBucketIfNotExists("FakeBucket")
                 .then(bucket => {
                     expect(bucket).to.deep.equal({});
-                    expect(getBucketStub.calledTwice).to.be.true;
-                    expect(createBucketStub.calledOnce).to.be.true;
+                    expect(getBucketStub.callCount).to.equal(2);
+                    expect(createBucketStub.callCount).to.equal(1);
                 });
         });
     });

@@ -29,6 +29,7 @@ describe('iam calls', function () {
 
     afterEach(function () {
         sandbox.restore();
+        AWS.restore('IAM');
     });
 
     describe('createRole', function () {
@@ -54,7 +55,6 @@ describe('iam calls', function () {
             return iamCalls.getRole("FakeRole")
                 .then(role => {
                     expect(role).to.deep.equal({});
-                    AWS.restore('IAM');
                 });
         });
 
@@ -66,7 +66,6 @@ describe('iam calls', function () {
             return iamCalls.getRole("FakeRole")
                 .then(role => {
                     expect(role).to.be.null;
-                    AWS.restore('IAM');
                 });
         });
 
@@ -82,28 +81,30 @@ describe('iam calls', function () {
                 })
                 .catch(err => {
                     expect(err.code).to.equal(errorCode);
-                    AWS.restore('IAM');
                 })
         });
     });
 
     describe('createRoleIfNotExists', function () {
         it('should create the role when it doesnt exist', function () {
-            sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
-            sandbox.stub(iamCalls, 'createRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
+            let createRoleStub = sandbox.stub(iamCalls, 'createRole').returns(Promise.resolve({}));
 
             return iamCalls.createRoleIfNotExists("FakeRole", "TrustedService")
                 .then(role => {
                     expect(role).to.deep.equal({});
+                    expect(getRoleStub.callCount).to.equal(1);
+                    expect(createRoleStub.callCount).to.equal(1);
                 });
         });
 
         it('should just return the role when it already exists', function () {
-            sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
             return iamCalls.createRoleIfNotExists("FakeRole", "TrustedService")
                 .then(role => {
                     expect(role).to.deep.equal({});
+                    expect(getRoleStub.callCount).to.equal(1);
                 });
         });
     });
@@ -117,7 +118,6 @@ describe('iam calls', function () {
             return iamCalls.getPolicy("FakeArn")
                 .then(policy => {
                     expect(policy).to.deep.equal({});
-                    AWS.restore('IAM');
                 });
         });
 
@@ -129,7 +129,6 @@ describe('iam calls', function () {
             return iamCalls.getPolicy("FakeArn")
                 .then(policy => {
                     expect(policy).to.be.null;
-                    AWS.restore('IAM');
                 });
         });
     });
@@ -143,7 +142,19 @@ describe('iam calls', function () {
             return iamCalls.createPolicy("PolicyName", {})
                 .then(policy => {
                     expect(policy).to.deep.equal({});
-                    AWS.restore('IAM');
+                });
+        });
+    });
+
+    describe('createPolicyVersion', function() {
+        it('should create the version on the existing policy', function() {
+            AWS.mock('IAM', 'createPolicyVersion', Promise.resolve({
+                PolicyVersion: {}
+            }));
+
+            return iamCalls.createPolicyVersion("PolicyArn", {})
+                .then(policyVersion => {
+                    expect(policyVersion).to.deep.equal({});
                 });
         });
     });
@@ -166,7 +177,6 @@ describe('iam calls', function () {
             return iamCalls.deleteAllPolicyVersionsButProvided("FakeArn", policyVersionToKeep)
                 .then(policyVersionKept => {
                     expect(policyVersionKept.VersionId).to.equal('v2');
-                    AWS.restore('IAM');
                 });
         });
     });
@@ -178,30 +188,34 @@ describe('iam calls', function () {
             return iamCalls.attachPolicyToRole('FakeArn', 'FakeRole')
                 .then(response => {
                     expect(response).to.deep.equal({});
-                    AWS.restore('IAM');
                 });
         });
     });
 
     describe('createOrUpdatePolicy', function () {
         it('should create the policy when it doesnt exist', function () {
-            sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve(null));
-            sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
+            let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve(null));
+            let createPolicyStub = sandbox.stub(iamCalls, 'createPolicy').returns(Promise.resolve({}));
 
             return iamCalls.createOrUpdatePolicy('FakePolicy', 'FakeArn', {})
                 .then(policy => {
-                    expect(policy).to.deep.equal({})
+                    expect(policy).to.deep.equal({});
+                    expect(getPolicyStub.callCount).to.equal(1);
+                    expect(createPolicyStub.callCount).to.equal(1);
                 });
         });
 
         it('should update the policy when it exists', function () {
-            sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve({}));
-            sandbox.stub(iamCalls, 'createPolicyVersion').returns(Promise.resolve({}));
-            sandbox.stub(iamCalls, 'deleteAllPolicyVersionsButProvided').returns(Promise.resolve({}));
+            let getPolicyStub = sandbox.stub(iamCalls, 'getPolicy').returns(Promise.resolve({}));
+            let createPolicyVersionStub = sandbox.stub(iamCalls, 'createPolicyVersion').returns(Promise.resolve({}));
+            let deleteVersionsStub = sandbox.stub(iamCalls, 'deleteAllPolicyVersionsButProvided').returns(Promise.resolve({}));
 
             return iamCalls.createOrUpdatePolicy('FakePolicy', 'FakeArn', {})
                 .then(policy => {
-                    expect(policy).to.deep.equal({})
+                    expect(policy).to.deep.equal({});
+                    expect(getPolicyStub.callCount).to.equal(2);
+                    expect(createPolicyVersionStub.callCount).to.equal(1);
+                    expect(deleteVersionsStub.callCount).to.equal(1);
                 });
         });
     });
@@ -214,8 +228,8 @@ describe('iam calls', function () {
             return iamCalls.createPolicyIfNotExists('FakePolicy', 'FakeArn', {})
                 .then(policy => {
                     expect(policy).to.deep.equal({});
-                    expect(getPolicyStub.calledOnce).to.be.true;
-                    expect(createPolicyStub.calledOnce).to.be.true;
+                    expect(getPolicyStub.callCount).to.equal(1);
+                    expect(createPolicyStub.callCount).to.equal(1);
                 });
         });
 
@@ -226,8 +240,8 @@ describe('iam calls', function () {
             return iamCalls.createPolicyIfNotExists('FakePolicy', 'FakeArn', {})
                 .then(policy => {
                     expect(policy).to.deep.equal({});
-                    expect(getPolicyStub.calledOnce).to.be.true;
-                    expect(createPolicyStub.notCalled).to.be.true;
+                    expect(getPolicyStub.callCount).to.equal(1);
+                    expect(createPolicyStub.callCount).to.equal(0);
                 });
         });
     });

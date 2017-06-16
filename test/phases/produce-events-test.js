@@ -19,7 +19,6 @@ const ProduceEventsContext = require('../../lib/datatypes/produce-events-context
 const DeployContext = require('../../lib/datatypes/deploy-context');
 const ServiceContext = require('../../lib/datatypes/service-context');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ConsumeEventsContext = require('../../lib/datatypes/consume-events-context');
 const produceEvents = require('../../lib/phases/produce-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');

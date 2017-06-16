@@ -63,26 +63,26 @@ describe('sqsCalls', function () {
     });
 
     describe('getSqsPermission', function () {
+        let queueArn = "FakeQueueArn";
+        let producerArn = "FakeTopicArn";
+        let permissionToGet = {
+            Effect: "Allow",
+            Principal: "*",
+            Action: "sqs:SendMessage",
+            Resource: queueArn,
+            Condition: {
+                ArnEquals: {
+                    "aws:SourceArn": producerArn
+                }
+            }
+        }
+
         it('should return the permission if present in the policy doc', function () {
-            let queueArn = "FakeQueueArn";
-            let producerArn = "FakeTopicArn";
             AWS.mock('SQS', 'getQueueAttributes', Promise.resolve({
                 Attributes: {
                     Policy: `{"Statement": [{"Effect": "Allow","Principal": "*","Action":"sqs:SendMessage","Resource":"${queueArn}","Condition":{"ArnEquals":{"aws:SourceArn": "${producerArn}"}}}]}`
                 }
             }));
-
-            let permissionToGet = {
-                Effect: "Allow",
-                Principal: "*",
-                Action: "sqs:SendMessage",
-                Resource: queueArn,
-                Condition: {
-                    ArnEquals: {
-                        "aws:SourceArn": producerArn
-                    }
-                }
-            }
 
             return sqsCalls.getSqsPermission("FakeQueueUrl", permissionToGet)
                 .then(returnedPermission => {
@@ -91,25 +91,11 @@ describe('sqsCalls', function () {
         });
 
         it('should return null when the permission is not present in the policy doc', function () {
-            let queueArn = "FakeQueueArn";
-            let producerArn = "FakeTopicArn";
             AWS.mock('SQS', 'getQueueAttributes', Promise.resolve({
                 Attributes: {
                     Policy: `{"Statement": [{"Effect": "Allow","Principal": "*","Action":"sqs:SendMessage","Resource":"SomeOtherArn","Condition":{"ArnEquals":{"aws:SourceArn": "${producerArn}"}}}]}`
                 }
             }));
-
-            let permissionToGet = {
-                Effect: "Allow",
-                Principal: "*",
-                Action: "sqs:SendMessage",
-                Resource: queueArn,
-                Condition: {
-                    ArnEquals: {
-                        "aws:SourceArn": producerArn
-                    }
-                }
-            }
 
             return sqsCalls.getSqsPermission("FakeQueueUrl", permissionToGet)
                 .then(returnedPermission => {
@@ -118,23 +104,9 @@ describe('sqsCalls', function () {
         });
 
         it('should return null when there is no policy doc', function () {
-            let queueArn = "FakeQueueArn";
-            let producerArn = "FakeTopicArn";
             AWS.mock('SQS', 'getQueueAttributes', Promise.resolve({
                 Attributes: {}
             }));
-
-            let permissionToGet = {
-                Effect: "Allow",
-                Principal: "*",
-                Action: "sqs:SendMessage",
-                Resource: queueArn,
-                Condition: {
-                    ArnEquals: {
-                        "aws:SourceArn": producerArn
-                    }
-                }
-            }
 
             return sqsCalls.getSqsPermission("FakeQueueUrl", permissionToGet)
                 .then(returnedPermission => {
@@ -152,8 +124,8 @@ describe('sqsCalls', function () {
 
             return sqsCalls.addSqsPermissionIfNotExists("FakeQueueUrl", "FakeQueueArn", "FakeTopicArn", {})
                 .then(permission => {
-                    expect(getSqsPermissionStub.calledTwice).to.be.true;
-                    expect(addSqsPermissionStub.calledOnce).to.be.true;
+                    expect(getSqsPermissionStub.callCount).to.equal(2);
+                    expect(addSqsPermissionStub.callCount).to.equal(1);
                     expect(permission).to.deep.equal({});
                 });
         });
@@ -164,8 +136,8 @@ describe('sqsCalls', function () {
 
             return sqsCalls.addSqsPermissionIfNotExists("FakeQueueUrl", "FakeQueueArn", "FakeTopicArn", {})
                 .then(permission => {
-                    expect(getSqsPermissionStub.calledOnce).to.be.true;
-                    expect(addSqsPermissionStub.notCalled).to.be.true;
+                    expect(getSqsPermissionStub.callCount).to.equal(1);
+                    expect(addSqsPermissionStub.callCount).to.equal(0);
                     expect(permission).to.deep.equal({});
                 });
         });

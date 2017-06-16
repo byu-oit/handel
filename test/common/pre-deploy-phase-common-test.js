@@ -51,9 +51,9 @@ describe('PreDeploy Phase Common module', function () {
                     expect(preDeployContext).to.be.instanceOf(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0]).to.deep.equal({});
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(createStackStub.calledOnce).to.be.true;
-                    expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(createStackStub.callCount).to.equal(1);
+                    expect(getSecurityGroupByIdStub.callCount).to.equal(1);
                 });
         });
 
@@ -76,9 +76,9 @@ describe('PreDeploy Phase Common module', function () {
                     expect(preDeployContext).to.be.instanceOf(PreDeployContext);
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0]).to.deep.equal({});
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(updateStackStub.calledOnce).to.be.true;
-                    expect(getSecurityGroupByIdStub.calledOnce).to.be.true;
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(updateStackStub.callCount).to.equal(1);
+                    expect(getSecurityGroupByIdStub.callCount).to.equal(1);
                 });
         });
     });

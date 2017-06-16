@@ -77,7 +77,7 @@ describe('cloudformationCalls', function () {
     });
 
     describe('waitForStack', function () {
-        it('should wait for the stack', function () {
+        it('should wait for the stack to be in the given state', function () {
             let stackName = "FakeStack";
             AWS.mock('CloudFormation', 'waitFor', Promise.resolve({
                 Stacks: [{

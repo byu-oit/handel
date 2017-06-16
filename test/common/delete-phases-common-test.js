@@ -35,15 +35,30 @@ describe('Delete phases common module', function () {
         sandbox.restore();
     });
 
-    describe('unBindSecurityGroups', function () {
-        it('should remove all ingress from the given security group', function () {
-            let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
+    describe('unDeployCloudFormationStack', function () {
+        it('should delete the stack if it exists', function () {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return deletePhasesCommon.unBindSecurityGroups(serviceContext, "FakeService")
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(removeIngressStub.calledOnce).to.be.true;
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
+            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should suceed even if the stack has been deleted', function () {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
+            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(getStackStub.calledOnce).to.be.true;
+                    expect(deleteStackStub.notCalled).to.be.true;
                 });
         });
     });
@@ -76,32 +91,34 @@ describe('Delete phases common module', function () {
         })
     });
 
-    describe('unDeployCloudFormationStack', function () {
-        it('should delete the stack if it exists', function () {
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
-            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+    describe('unBindSecurityGroups', function () {
+        it('should remove all ingress from the given security group', function () {
+            let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
-            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(deleteStackStub.calledOnce).to.be.true;
-                });
-        });
-
-        it('should suceed even if the stack has been deleted', function () {
-            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
-            let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
-
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
-            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(getStackStub.calledOnce).to.be.true;
-                    expect(deleteStackStub.notCalled).to.be.true;
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            return deletePhasesCommon.unBindSecurityGroups(serviceContext, "FakeService")
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                    expect(removeIngressStub.calledOnce).to.be.true;
                 });
         });
     });
 
+    describe('unPreDeployNotRequired', function() {
+        it('should return an empty UnPreDeployContext', function() {
+            return deletePhasesCommon.unPreDeployNotRequired({}, "FakeService")
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceOf(UnPreDeployContext);
+                });
+        });
+    });
+
+    describe('unBindNotRequired', function() {
+        it('should return an emtpy UnBindContext', function() {
+            return deletePhasesCommon.unBindNotRequired({}, "FakeService")
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                });
+        });
+    });
 });

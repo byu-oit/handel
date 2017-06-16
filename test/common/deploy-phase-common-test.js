@@ -16,13 +16,11 @@
  */
 const ServiceContext = require('../../lib/datatypes/service-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
-const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
 const deployPhaseCommon = require('../../lib/common/deploy-phase-common');
 const iamCalls = require('../../lib/aws/iam-calls');
 const s3Calls = require('../../lib/aws/s3-calls');
 const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
 const util = require('../../lib/common/util');
-const ec2Calls = require('../../lib/aws/ec2-calls');
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -43,6 +41,14 @@ describe('Deploy phase common module', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let envVarName = deployPhaseCommon.getInjectedEnvVarName(serviceContext, "SOME_INFO");
             expect(envVarName).to.equal("FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_SOME_INFO");
+        });
+    });
+
+    describe('getSsmParamName', function() {
+        it('should return a consistent name for SSM params', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let paramName = deployPhaseCommon.getSsmParamName(serviceContext, 'myparamname');
+            expect(paramName).to.equal("FakeApp.FakeEnv.FakeService.myparamname");
         });
     });
 
@@ -96,10 +102,10 @@ describe('Deploy phase common module', function () {
 
             return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [{}])
                 .then(role => {
-                    expect(getRoleStub.calledTwice).to.be.true;
-                    expect(createRoleStub.calledOnce).to.be.true;
-                    expect(createOrUpdatePolicy.calledOnce).to.be.true;
-                    expect(attachPolicyStub.calledOnce).to.be.true;
+                    expect(getRoleStub.callCount).to.equal(2);
+                    expect(createRoleStub.callCount).to.equal(1);
+                    expect(createOrUpdatePolicy.callCount).to.equal(1);
+                    expect(attachPolicyStub.callCount).to.equal(1);
                 });
         });
 
@@ -109,8 +115,8 @@ describe('Deploy phase common module', function () {
 
             return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [])
                 .then(role => {
-                    expect(getRoleStub.calledOnce).to.be.true;
-                    expect(createRoleStub.notCalled).to.be.true;
+                    expect(getRoleStub.callCount).to.equal(1);
+                    expect(createRoleStub.callCount).to.equal(0);
                     expect(role).to.deep.equal({});
                 });
         });
@@ -208,9 +214,9 @@ describe('Deploy phase common module', function () {
 
             return deployPhaseCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName)
                 .then(s3ObjectInfo => {
-                    expect(createBucketStub.calledOnce).to.be.true;
-                    expect(uploadFileStub.calledOnce).to.be.true;
-                    expect(cleanupOldVersionsStub.calledOnce).to.be.true;
+                    expect(createBucketStub.callCount).to.equal(1);
+                    expect(uploadFileStub.callCount).to.equal(1);
+                    expect(cleanupOldVersionsStub.callCount).to.equal(1);
                     expect(s3ObjectInfo).to.deep.equal({});
                 });
         });
@@ -227,7 +233,7 @@ describe('Deploy phase common module', function () {
 
             return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
                 .then(s3ObjectInfo => {
-                    expect(uploadFileToHandelBucketStub.calledOnce).to.be.true;
+                    expect(uploadFileToHandelBucketStub.callCount).to.equal(1);
                     expect(s3ObjectInfo).to.deep.equal({});
                 });
         });
@@ -244,9 +250,9 @@ describe('Deploy phase common module', function () {
 
             return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
                 .then(s3ObjectInfo => {
-                    expect(zipDirectoryToFileStub.calledOnce).to.be.true;
-                    expect(uploadFileToHandelBucketStub.calledOnce).to.be.true;
-                    expect(unlinkSyncStub.calledOnce).to.be.true;
+                    expect(zipDirectoryToFileStub.callCount).to.equal(1);
+                    expect(uploadFileToHandelBucketStub.callCount).to.equal(1);
+                    expect(unlinkSyncStub.callCount).to.equal(1);
                     expect(s3ObjectInfo).to.deep.equal({});
                 });
         });
@@ -261,6 +267,14 @@ describe('Deploy phase common module', function () {
             let policyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
             expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`)
+        });
+    });
+
+    describe('getResourceName', function() {
+        it('should return a consistent name for Handel-created resources from the service context', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let resourceName = deployPhaseCommon.getResourceName(serviceContext);
+            expect(resourceName).to.equal("FakeApp-FakeEnv-FakeService-FakeType");
         });
     });
 
@@ -293,6 +307,21 @@ describe('Deploy phase common module', function () {
 
             let eventConsumerConfig = deployPhaseCommon.getEventConsumerConfigParams(producerServiceContext, consumerServiceContext);
             expect(eventConsumerConfig).to.be.null;
+        });
+    });
+
+    describe('getTags', function() {
+        it('should return the Handel-injected tags, plus any user-defined tags', function() {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                tags: {
+                    mytag: 'myvalue'
+                }
+            });
+            
+            let returnTags = deployPhaseCommon.getTags(serviceContext);
+            expect(returnTags.app).to.equal('FakeApp');
+            expect(returnTags.env).to.equal("FakeEnv");
+            expect(returnTags.mytag).to.equal('myvalue');
         });
     });
 });
