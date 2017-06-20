@@ -39,7 +39,7 @@ Parameters
      - string
      - No
      - 
-     - The daily time range (in UTC) during which ElastiCache may peform maintenance on the node group. For example, you can specify 05:00-09:00.
+     - The weekly time range (in UTC) during which ElastiCache may peform maintenance on the node group. For example, you can specify Sun:05:00-Tue:09:00.
    * - redis_version
      - string
      - Yes
@@ -54,7 +54,7 @@ Parameters
      - string
      - No
      - 
-     - The daily time range (in UTC) during which ElastiCache will begin taking a daily snapshot of your node group. For example, you can specify 05:00-09:00.
+     - The daily time range (in UTC) during which ElastiCache will begin taking a daily snapshot of your node group. For example, you can specify 05:00-09:00. This feature is not available on the t2 and t1 instance types.
    * - cache_parameters
      - Map<string,string>
      - No
