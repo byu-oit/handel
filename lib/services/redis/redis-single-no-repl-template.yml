@@ -19,6 +19,9 @@ Resources:
       EngineVersion: {{redisVersion}}
       NumCacheNodes: 1
       Port: 6379
+      {{#if maintenanceWindow}}
+      PreferredMaintenanceWindow: {{maintenanceWindow}}
+      {{/if}}
       {{#if snapshotWindow}}
       SnapshotWindow: {{snapshotWindow}}
       {{/if}}

@@ -11,14 +11,6 @@ No Cluster Mode Support
 ~~~~~~~~~~~~~~~~~~~~~~~
 This service currently does not support using Redis in cluster mode. It does support replication groups with a primary node and 1 or more read replicas, but it doesn't yet support Redis' cluster mode sharding.
 
-No Scheduled Maintenance Window Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This service currently doesn't allow you to change the maintenance window for your Redis cluster.
-
-No Snapshot Window Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This service currently doesn't allow you to change the snapshot window for your Redis cluster.
-
 No Restoration From Snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This service currently doesn't allow you to launch a cluster from a previous cluster snapshot.
@@ -43,6 +35,11 @@ Parameters
      - Yes
      - 
      - The size of each Redis instance in your cluster. See `Choosing Your Node Size <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/CacheNodes.SelectSize.html>`_ for more details.
+   * - maintenance_window
+     - string
+     - No
+     - 
+     - The daily time range (in UTC) during which ElastiCache may peform maintenance on the node group. For example, you can specify 05:00-09:00.
    * - redis_version
      - string
      - Yes
