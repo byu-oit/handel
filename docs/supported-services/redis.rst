@@ -40,22 +40,27 @@ Parameters
      - This must always be *redis* for this service type.
    * - instance_type
      - string 
-     - yes
+     - Yes
      - 
      - The size of each Redis instance in your cluster. See `Choosing Your Node Size <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/CacheNodes.SelectSize.html>`_ for more details.
    * - redis_version
      - string
-     - yes
+     - Yes
      -
      - The version of Redis to run. See `Comparing Redis Versions <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.RedisVersions.html>`_ for a list of available versions.
-   * - read_replicas:
+   * - read_replicas
      - number
-     - no
+     - No
      - 0
      - The number of read replicas you want to provision. Allowed values: 0-5.
-   * - cache_parameters:
+   * - snapshot_window
+     - string
+     - No
+     - 
+     - The daily time range (in UTC) during which ElastiCache will begin taking a daily snapshot of your node group. For example, you can specify 05:00-09:00.
+   * - cache_parameters
      - Map<string,string>
-     - no
+     - No
      - 
      - Any cache parameters you wish for your Redis cluster. See `Redis Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Redis.html>`_ for the list of parameters you can provide.
    * - tags

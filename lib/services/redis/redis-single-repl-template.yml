@@ -23,6 +23,9 @@ Resources:
       Port: 6379
       SecurityGroupIds:
       - {{redisSecurityGroupId}}
+      {{#if snapshotWindow}}
+      SnapshotWindow: {{snapshotWindow}}
+      {{/if}}
       Tags:
       {{#if tags}}
       {{#each tags}}
