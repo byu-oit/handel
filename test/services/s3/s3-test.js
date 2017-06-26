@@ -64,6 +64,29 @@ describe('s3 deployer', function () {
             let errors = s3.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
+
+        it('should fail if PublicReadWrite set as an ACL', function () {
+            let serviceContext = {
+                params: {
+                    bucket_name: 'somename',
+                    bucket_acl: 'PublicReadWrite'
+                }
+            }
+            let errors = s3.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain("'bucket_acl' parameter must be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead'");
+        });
+
+        it('should work with valid bucket_acl', function () {
+            let serviceContext = {
+                params: {
+                    bucket_name: 'somename',
+                    bucket_acl: 'PublicRead'
+                }
+            }
+            let errors = s3.check(serviceContext);
+            expect(errors.length).to.equal(0);
+        });
     });
 
     describe('preDeploy', function () {
