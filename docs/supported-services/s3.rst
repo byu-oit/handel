@@ -12,7 +12,6 @@ Service Limitations
 -------------------
 This service currently only provisions a bare-bones S3 bucket for data storage. It does support versioning, but the following other features are not currently supported:
 
-* Bucket-level ACLs.
 * CORS configuration
 * Bucket lifecycle
 * Bucket logging
@@ -40,6 +39,11 @@ This service takes the following parameters:
      - No
      - <appName>-<environmentName>-<serviceName>-<serviceType>
      - The name of the bucket to create. This name must be globally unique across all AWS accounts, so 'myBucket' will likely be taken. :)
+   * - bucket_acl
+     - string
+     - No
+     - disabled
+     - **Warning:** A canned access control list (ACL) that grants predefined permissions to the bucket. These are global permissions ie, PublicRead means the bucket is open to the world. Allowed values: *AuthenticatedRead*, *AwsExecRead*, *BucketOwnerRead*, *BucketOwnerFullControl*, *LogDeliveryWrite*, *Private*, *PublicRead*
    * - versioning
      - string
      - No
