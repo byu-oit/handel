@@ -6,6 +6,9 @@ Resources:
   Bucket:
     Type: "AWS::S3::Bucket"
     Properties: 
+      {{#if bucketACL}}
+      AccessControl: {{bucketACL}}
+      {{/if}}
       BucketName: {{bucketName}}
       {{#if loggingBucketName}}
       LoggingConfiguration:
