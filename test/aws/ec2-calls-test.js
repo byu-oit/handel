@@ -197,4 +197,36 @@ describe('ec2-calls', function () {
                 });
         });
     });
+
+    describe('getLatestAmiByName', function () {
+        it('should return the latest AMI from a list of AMIs with the given name substring', function () {
+            let latestCreationDate = '2017-01-27T19:23:17.000Z'
+            AWS.mock('EC2', 'describeImages', Promise.resolve({
+                Images: [
+                    {
+                        CreationDate: '2016-01-27T19:23:17.000Z'
+                    },
+                    {
+                        CreationDate: latestCreationDate
+                    }
+                ]
+            }));
+
+            return ec2Calls.getLatestAmiByName('amazon', 'some-ami-name')
+                .then(ami => {
+                    expect(ami.CreationDate).to.equal(latestCreationDate);
+                });
+        });
+
+        it('should return null if there are no results', function () {
+            AWS.mock('EC2', 'describeImages', Promise.resolve({
+                Images: []
+            }));
+
+            return ec2Calls.getLatestAmiByName('amazon', 'some-ami-name')
+                .then(ami => {
+                    expect(ami).to.be.null;
+                });
+        });
+    });
 });

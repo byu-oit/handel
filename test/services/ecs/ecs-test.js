@@ -18,6 +18,7 @@ const accountConfig = require('../../../lib/common/account-config')(`${__dirname
 const ecs = require('../../../lib/services/ecs');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
+const ec2Calls = require('../../../lib/aws/ec2-calls');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
@@ -185,6 +186,9 @@ describe('ecs deployer', function () {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
+            let getLatestAmiByNameStub = sandbox.stub(ec2Calls, 'getLatestAmiByName').returns(Promise.resolve({
+                ImageId: 'FakeAmiId'
+            }));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').returns(Promise.resolve({}));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
@@ -197,6 +201,7 @@ describe('ecs deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(getStackStub.callCount).to.equal(1);
                     expect(uploadDirStub.callCount).to.equal(1);
+                    expect(getLatestAmiByNameStub.callCount).to.equal(1);
                     expect(createStackStub.callCount).to.equal(1);
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(createCustomRoleStub.callCount).to.equal(1);
