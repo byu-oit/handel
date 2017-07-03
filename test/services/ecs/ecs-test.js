@@ -17,6 +17,7 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const ecs = require('../../../lib/services/ecs');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
@@ -174,7 +175,7 @@ describe('ecs deployer', function () {
             return dependenciesDeployContexts;
         }
 
-        it('should create a new ECS service CF stack when it doesnt exist', function () {
+        it('should deploy the ECS service stack', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let deployVersion = "1";
@@ -184,6 +185,9 @@ describe('ecs deployer', function () {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
 
             //Stub out AWS calls
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').returns(Promise.resolve({}));
+            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
             let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
@@ -191,8 +195,11 @@ describe('ecs deployer', function () {
             return ecs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployStackStub.calledOnce).to.be.true;
-                    expect(createCustomRoleStub.calledOnce).to.be.true;
+                    expect(getStackStub.callCount).to.equal(1);
+                    expect(uploadDirStub.callCount).to.equal(1);
+                    expect(createStackStub.callCount).to.equal(1);
+                    expect(deployStackStub.callCount).to.equal(1);
+                    expect(createCustomRoleStub.callCount).to.equal(1);
                 });
         });
     });
