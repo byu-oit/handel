@@ -116,22 +116,22 @@ Resources:
       AutoScalingGroupName:
         Ref: EcsAutoScalingGroup
       ScalingAdjustment: 1
-  EcsClusterMemoryHighAlarm:
+  EcsClusterNeedsScalingUp:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmActions:
       - Ref: EcsAutoScalingPolicyUp
-      MetricName: MemoryReservation
+      MetricName: ClusterNeedsScalingUp
       ComparisonOperator: GreaterThanThreshold
-      Statistic: Average
-      AlarmDescription: ECS Cluster Memory Too High Scaling Alarm
-      Period: '300'
+      Statistic: Minimum
+      AlarmDescription: ECS cluster has been calculated to need scaling up
+      Period: '60'
       Dimensions:
-      - Value: {{clusterName}}
-        Name: ClusterName
+      - Name: ClusterName 
+        Value: {{clusterName}}
       EvaluationPeriods: '1'
-      Namespace: AWS/ECS
-      Threshold: '50'
+      Namespace: Handel/ECS
+      Threshold: '0'
   EcsAutoScalingPolicyDown:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -139,22 +139,22 @@ Resources:
       AutoScalingGroupName:
         Ref: EcsAutoScalingGroup
       ScalingAdjustment: -1
-  EcsClusterMemoryLowAlarm:
+  EcsClusterNeedsScalingDown:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmActions:
       - Ref: EcsAutoScalingPolicyDown
-      MetricName: MemoryReservation
-      ComparisonOperator: LessThanThreshold
-      Statistic: Average
-      AlarmDescription: ECS Cluster Memory Too Low Scaling Alarm
-      Period: '300'
+      MetricName: ClusterNeedsScalingDown
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Minimum
+      AlarmDescription: ECS cluster has been calculated to need scaling down
+      Period: '60'
       Dimensions:
-      - Value: {{clusterName}}
-        Name: ClusterName
+      - Name: ClusterName 
+        Value: {{clusterName}}
       EvaluationPeriods: '1'
-      Namespace: AWS/ECS
-      Threshold: '25'
+      Namespace: Handel/ECS
+      Threshold: '0'
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -171,6 +171,7 @@ Resources:
         Ref: EcsCluster
       DesiredCount: {{desiredCount}}
       DeploymentConfiguration:
+        MaximumPercent: 200  #TODO - Does this need to be dynamically configured, or is just a blanket 200 ok?
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
       {{#if routingInfo}}
       LoadBalancers:

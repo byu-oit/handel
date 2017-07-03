@@ -1,0 +1,81 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function used by Handel for auto-scaling ECS clusters
+
+Resources:
+  EventsRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: Fires Handel ECS auto-scaling lambda on a schedule
+      ScheduleExpression: cron(0/1 * * * ? *)
+      Name: HandelEcsAutoScalingLambda
+      State: ENABLED
+      Targets:
+      - Id: 'HandelEcsAutoScalingLambda'
+        Arn: !GetAtt Function.Arn
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: HandelEcsAutoScalingLambda
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "lambda.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: HandelEcsAutoScalingLambda
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - 'logs:CreateLogGroup'
+          - 'logs:CreateLogStream'
+          - 'logs:PutLogEvents'
+          Resource:
+          - 'arn:aws:logs:*:*:*'
+        - Effect: Allow
+          Action:
+          - 'ecs:ListClusters'
+          - 'ecs:DescribeClusters'
+          - 'ecs:ListContainerInstances'
+          - 'ecs:DescribeContainerInstances'
+          - 'ecs:DescribeTasks'
+          - 'ecs:DescribeTaskDefinition'
+          - 'ecs:ListTasks'
+          Resource:
+          - '*'
+        - Effect: Allow
+          Action:
+          - 'cloudwatch:PutMetricData'
+          Resource:
+          - '*'
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: {{s3Bucket}}
+        S3Key: {{s3Key}}
+      Description: Lambda function used by Handel for auto-scaling ECS clusters
+      FunctionName: HandelEcsAutoScalingLambda
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt Role.Arn
+      Runtime: nodejs6.10
+      Timeout: 300
+  PermissionForEventsToInvokeLambda:
+    Type: "AWS::Lambda::Permission"
+    Properties: 
+      FunctionName: !Ref Function
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt EventsRule.Arn
