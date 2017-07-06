@@ -27,6 +27,7 @@ const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const dynamodbCalls = require('../../../lib/aws/dynamodb-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -111,6 +112,9 @@ describe('dynamodb deployer', function () {
             partition_key: {
                 name: "MyPartitionKey",
                 type: "String"
+            },
+            tags: {
+                name: "MyTagName"
             }
         }
         let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
@@ -127,10 +131,11 @@ describe('dynamodb deployer', function () {
                     OutputValue: tableName
                 }]
             }));
-
+            let tagResourceStub = sandbox.stub(dynamodbCalls, 'tagTable').returns(Promise.resolve({}))
             return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployStackStub.calledOnce).to.be.true;
+                    expect(tagResourceStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
