@@ -32,6 +32,39 @@ const BindContext = require('../../../lib/datatypes/bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const VALID_ECS_CONFIG = {
+    cluster: {
+        key_name: 'fakekey',
+        instance_type: 'm3.medium'
+    },
+    auto_scaling: {
+        min_tasks: 2,
+        max_tasks: 2
+    },
+    load_balancer: {
+        type: 'https',
+        https_certificate: 'fakeid'
+    },
+    tags: {
+        mytag: 'myvalue'
+    },
+    containers: [
+        {
+            name: 'mycontainer',
+            port_mappings: [5000],
+            max_mb: 256,
+            cpu_units: 101,
+            environment_variables: {
+                MY_VAR: 'myvalue'
+            },
+            routing: {
+                base_path: '/mypath',
+                health_check_url: '/healthcheck'
+            }
+        }
+    ]
+}
+
 describe('ecs deployer', function () {
     let sandbox;
 
@@ -44,50 +77,85 @@ describe('ecs deployer', function () {
     });
 
     describe('check', function () {
-        it('should require the port_mappings parameter when routing is specified', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                routing: {
-                    type: 'http'
-                }
-            });
-            let errors = ecs.check(serviceContext);
+        let configToCheck;
+        let serviceContextToCheck;
+
+        beforeEach(function () {
+            configToCheck = JSON.parse(JSON.stringify(VALID_ECS_CONFIG))
+            serviceContextToCheck = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", configToCheck);
+        })
+
+        it('should require the auto_scaling section', function () {
+            delete configToCheck.auto_scaling;
+            let errors = ecs.check(serviceContextToCheck);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include("'port_mappings' parameter is required");
+            expect(errors[0]).to.include(`'auto_scaling' section is required`);
         });
 
-        describe('when routing element is present', function () {
-            it("should require the 'type' parameter", function () {
-                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                    port_mappings: [5000],
-                    routing: {}
-                });
-                let errors = ecs.check(serviceContext);
-                expect(errors.length).to.equal(1);
-                expect(errors[0]).to.include("The 'type' field is required");
-            });
+        it('should require the min_tasks value in the auto_scaling section', function () {
+            delete configToCheck.auto_scaling.min_tasks;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'min_tasks' parameter is required`);
+        });
 
-            it("should require the 'https_certificate' parameter when the type is https", function () {
-                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                    port_mappings: [5000],
-                    routing: {
-                        type: 'https'
-                    }
-                });
-                let errors = ecs.check(serviceContext);
-                expect(errors.length).to.equal(1);
-                expect(errors[0]).to.include("The 'https_certificate' element is required");
-            });
+        it('should require the max_tasks value in the auto_scaling section', function () {
+            delete configToCheck.auto_scaling.max_tasks;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'max_tasks' parameter is required`);
+        });
+
+        it('should require the type parameter when load_balancer section is present', function () {
+            delete configToCheck.load_balancer.type;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'type' parameter is required`);
+        });
+
+        it('should require the https_certificate parameter when load_balancers type is https', function () {
+            delete configToCheck.load_balancer.https_certificate;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'https_certificate' parameter is required`);
+        });
+
+        it('should require the container section be present', function () {
+            delete configToCheck.containers;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`You must specify at least one container`);
+        });
+
+        it('should require the name parameter in the container section', function () {
+            delete configToCheck.containers[0].name;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'name' parameter is required`);
+        });
+
+        it('should not allow more than one container to have routing specified', function () {
+            configToCheck.containers.push({
+                name: 'othercontainer',
+                port_mappings: [5000],
+                routing: {
+                    base_path: '/myotherpath'
+                }
+            })
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container`);
+        });
+
+        it('should require the port_mappings parameter when routing is specified', function () {
+            delete configToCheck.containers[0].port_mappings;
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'port_mappings' parameter is required`);
         });
 
         it("should return no errors on a successful configuration", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                port_mappings: [5000],
-                routing: {
-                    type: 'https',
-                    https_certificate: 'FakeCert'
-                }
-            });
-            let errors = ecs.check(serviceContext);
+            let errors = ecs.check(serviceContextToCheck);
             expect(errors.length).to.equal(0);
         });
     });
@@ -129,10 +197,7 @@ describe('ecs deployer', function () {
             //Set up ServiceContext
             let ownServiceName = "FakeService";
             let ownServiceType = "ecs";
-            let ownParams = {
-                image_name: "MyImage",
-                port_mappings: [5000]
-            };
+            let ownParams = VALID_ECS_CONFIG;
             let ownServiceContext = new ServiceContext(appName, envName, ownServiceName, ownServiceType, deployVersion, ownParams);
             return ownServiceContext;
         }
@@ -236,7 +301,7 @@ describe('ecs deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return ecs.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
