@@ -112,6 +112,8 @@ Example Handel File
           provisioned_throughput:
             read_capcity_units: 6
             write_capacity_units: 6
+          tags:
+            name: my-dynamodb-tag
 
 Depending on this service
 -------------------------
