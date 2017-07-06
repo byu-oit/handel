@@ -111,6 +111,9 @@ describe('dynamodb deployer', function () {
             partition_key: {
                 name: "MyPartitionKey",
                 type: "String"
+            },
+            tags: {
+                name: "MyTagName"
             }
         }
         let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
@@ -127,7 +130,6 @@ describe('dynamodb deployer', function () {
                     OutputValue: tableName
                 }]
             }));
-
             return dynamodb.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployStackStub.calledOnce).to.be.true;

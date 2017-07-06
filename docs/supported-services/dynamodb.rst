@@ -43,6 +43,11 @@ Parameters
      - No
      - 5 for read and write
      - The ProvisionedThroughput element details how much provisioned IOPS you want on your table for reads and writes.
+   * - tags
+     - :ref:`dynamodb-tags`
+     - No
+     - 
+     - Any tags you want to apply to your Dynamo Table
 
 PartitionKey element
 ~~~~~~~~~~~~~~~~~~~~
@@ -74,6 +79,17 @@ The ProvisionedThroughput element tells many IOPS to provision for your table fo
     provisioned_throughput:
       read_capacity_units: <Number>
       write_capacity_units: <Number>
+
+.. _dynamodb-tags:
+
+Tags
+~~~~~~~~~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
 
 Example Handel File
 -------------------
