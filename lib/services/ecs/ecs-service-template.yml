@@ -87,7 +87,6 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       Cooldown: {{asgCooldown}}
-      DesiredCapacity: {{minInstances}}
       HealthCheckGracePeriod: 300
       HealthCheckType: EC2
       LaunchConfigurationName:
@@ -162,23 +161,27 @@ Resources:
   EcsService:
     Type: AWS::ECS::Service
     DependsOn:
-    {{#if routingInfo}}
+    {{#if oneOrMoreTasksHasRouting}}
     - AlbListener
     {{/if}}
     - EcsCluster
     Properties:
       Cluster:
         Ref: EcsCluster
-      DesiredCount: {{desiredCount}}
       DeploymentConfiguration:
         MaximumPercent: 200  #TODO - Does this need to be dynamically configured, or is just a blanket 200 ok?
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
-      {{#if routingInfo}}
+      DesiredCount: {{autoScaling.minTasks}}
+      {{#if oneOrMoreTasksHasRouting}}
       LoadBalancers:
-      - ContainerName: {{containerName}}
-        ContainerPort: {{containerPort}}
+      {{#each containerConfigs}}
+      {{#if routingInfo}}      
+      - ContainerName: {{name}}
+        ContainerPort: {{routingInfo.containerPort}}
         TargetGroupArn:
-          Ref: AlbTargetGroup
+          Ref: AlbTargetGroup{{name}}
+      {{/if}}
+      {{/each}}
       Role: {{ecsServiceRoleArn}}
       {{/if}}
       TaskDefinition:
@@ -198,8 +201,9 @@ Resources:
       {{/each}}
       {{/if}}
       ContainerDefinitions:
-      - Name: {{clusterName}}
-        Image: {{dockerImage}}
+      {{#each containerConfigs}}
+      - Name: {{name}}
+        Image: {{imageName}}
         Memory: {{maxMb}}
         Cpu: {{cpuUnits}}
         Essential: true
@@ -213,14 +217,10 @@ Resources:
         {{/each}}
         {{/if}}
         Environment:
-        - Name: HANDEL_DEPLOY_VERSION # This is required to force-update the thing
-          Value: {{deployVersion}}
-        {{#if environmentVariables}}
         {{#each environmentVariables}}
         - Name: {{@key}}
           Value: {{this}}
         {{/each}}
-        {{/if}}
         {{#if mountPoints}}
         MountPoints:
         {{#each mountPoints}}
@@ -228,7 +228,8 @@ Resources:
           ContainerPath: {{containerPath}}
         {{/each}}
         {{/if}}
-  {{#if routingInfo}}
+      {{/each}}
+  {{#if oneOrMoreTasksHasRouting}}
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
@@ -237,7 +238,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: {{routingInfo.timeout}}
+        Value: 60
       Subnets:
       {{#each publicSubnetIds}}
       - {{this}}
@@ -260,7 +261,7 @@ Resources:
       VpcId: {{vpcId}}
       SecurityGroupIngress:
       - IpProtocol: tcp
-        {{#if routingInfo.httpsCertificate}}
+        {{#if loadBalancer.httpsCertificate}}
         FromPort: '443'
         ToPort: '443'
         {{else}}
@@ -290,42 +291,48 @@ Resources:
   AlbListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     DependsOn:
-    - AlbTargetGroup
+    {{#each containerConfigs}}
+    {{#if routingInfo}}
+    - AlbTargetGroup{{name}}
+    {{/if}}
+    {{/each}}
     - Alb
     Properties:
       DefaultActions:
       - Type: forward
         TargetGroupArn:
-          Ref: AlbTargetGroup
+          Ref: AlbTargetGroup{{loadBalancer.defaultRouteContainer.name}}
       LoadBalancerArn:
         Ref: Alb
-      {{#if routingInfo.httpsCertificate}}
+      {{#if loadBalancer.httpsCertificate}}
       Port: '443'
       Protocol: HTTPS
       Certificates:
-      - CertificateArn: {{routingInfo.httpsCertificate}}
+      - CertificateArn: {{loadBalancer.httpsCertificate}}
       {{else}}
       Port: '80'
       Protocol: HTTP
       {{/if}}
-  AlbListenerRule:
+  {{#each containerConfigs}}
+  {{#if routingInfo}}
+  AlbListenerRule{{name}}:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     DependsOn:
     - AlbListener
-    - AlbTargetGroup
+    - AlbTargetGroup{{name}}
     Properties:
       Actions:
       - Type: forward
         TargetGroupArn:
-          Ref: AlbTargetGroup
+          Ref: AlbTargetGroup{{name}}
       Conditions:
       - Field: path-pattern
         Values:
-        - "/"
+        - "{{routingInfo.basePath}}"
       ListenerArn:
         Ref: AlbListener
-      Priority: 1
-  AlbTargetGroup:
+      Priority: {{routingInfo.albPriority}}
+  AlbTargetGroup{{name}}:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
@@ -333,20 +340,22 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      Name: {{clusterName}}
+      Name: {{../clusterName}}-{{name}}
       Port: 80
       Protocol: HTTP
       Tags:
-      {{#if tags}}
-      {{#each tags}}
+      {{#if ../tags}}
+      {{#each ../tags}}
       - Key: {{@key}}
         Value: {{this}}
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{clusterName}}-alb
+        Value: {{../clusterName}}-{{name}}-alb
       UnhealthyThresholdCount: 2
-      VpcId: {{vpcId}}
+      VpcId: {{../vpcId}}
+  {{/if}}
+  {{/each}}
   {{/if}}
 Outputs:
   EcsClusterId:

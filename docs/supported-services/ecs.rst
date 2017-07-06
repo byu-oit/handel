@@ -10,14 +10,16 @@ One service per cluster
 ~~~~~~~~~~~~~~~~~~~~~~~
 This service uses a model of one ECS service per ECS cluster. It does not support the model of one large cluster with multiple services running on it.
 
-Auto-scaling support
-~~~~~~~~~~~~~~~~~~~~
-Auto-scaling up and down is not yet well-supported in this service.
+Container auto-scaling
+~~~~~~~~~~~~~~~~~~~~~~
+Handel will auto-scale your EC2 cluster up and down, but does not yet support you configuring your own container auto-scaling. Support is planned to be added in the near future.
 
 Unsupported ECS task features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This service currently does not support the following ECS task features:
+
 * User-specified volumes from the EC2 host. You can specify services such as EFS that will mount a volume in your container for you, however.
+* Container links within a task.
 * Extra networking items such as manually specifying DNS Servers, DNS Search Domains, and extra hosts in the /etc/hosts file
 * Task definition options such as specifying an entry point, command, or working directory. These options are available in your Dockerfile and can be specified there.
 
@@ -36,101 +38,128 @@ Parameters
      - Yes
      - 
      - This must always be *ecs* for this service type.
-   * - key_name
-     - string
+   * - containers
+     - :ref:`ecs-containers`
+     - Yes
+     - 
+     - This section allows you to configure one or more containers that will make up your service.
+   * - auto_scaling
+     - :ref:`ecs-autoscaling`
+     - Yes
+     - 
+     - This section contains information about scaling your tasks up and down.
+   * - cluster
+     - :ref:`ecs-cluster`
      - No
      - 
-     - The name of the EC2 Keypair you wish to use for SSH access to the EC2 instances in your ECS cluster. If you don't specify this, you won't be able to SSH to your instances.
-   * - max_mb
-     - string
-     - No
-     - 128
-     - How many megabytes (MB) of memory you wish to allocate for each container instance of your service. This will be used when calculating how many containers to fit on each host of the instance type you specify
-   * - cpu_units
-     - number
-     - No
-     - 100
-     - The minimum number of CPU units you want to dedicate to the container.
-   * - instance_type
-     - string
-     - No
-     - t2.micro
-     - The type of EC2 instance to use for your cluster. A larger instance will fit more task containers on each instance
-   * - min_containers
-     - number
-     - No
-     - 1
-     - The minimum number of containers to run in the service.
-   * - max_containers
-     - number
-     - No
-     - 1
-     - The maximum number of containers to run in the service.
-   * - routing
-     - Routing
+     - This section contains items used to configure your ECS cluster of EC2 instances.   
+   * - load_balancer
+     - :ref:`ecs-loadbalancer`
      - No
      - 
-     - The Routing element details what kind of routing you want to your ECS service (if any)
-   * - port_mappings
-     - PortMappings
-     - No
-     - 
-     - The PortMappings element details which ports to map onto the host from your container. This element is required if you specify the 'routing' element.
-   * - environment_variables
-     - EnvironmentVariables
-     - No
-     - 
-     - The EnvironmentVariables element details environment variables you wish to be injected into your application
+     - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
    * - tags
-     - Tags
+     - :ref:`ecs-tags`
      - No
      - 
-     - Any tags you want to apply to your Beanstalk environment
+     - This section allows you to specify any tags you wish to apply to your ECS service.
 
-PortMappings element
-~~~~~~~~~~~~~~~~~~~~
-The PortMappings element is define by the following schema:
+.. _ecs-containers:
 
-.. code-block:: yaml
-
-    port_mappings:
-    - <port_number>
-
-<port_number> is a number value from 1 to 65335 detailing which port from the container should be exposed to the host. Since this is a YAML list, you can specify more than one port to map to the host if needed.
-
-EnvironmentVariables element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The EnvironmentVariables element is defined by the following schema:
+Containers
+~~~~~~~~~~
+The `containers` section is defined by the following schema:
 
 .. code-block:: yaml
 
-    environment_variables:
-      <YOUR_ENV_NAME>: <your_env_value>
+    containers:
+    - name: <string> # Required
+      port_mappings: # Optional, required if you specify 'routing'
+      - <integer>
+      max_mb: <integer> # Optional. Default: 128
+      cpu_units: <integer> # Optional. Default: 100
+      routing: # Optional
+        base_path: <string> # Required
+        health_check_path: <string> # Optional. Default: /
+      environment_variables: # Optional
+        <string>: <string>
 
-<YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
+.. NOTE::
 
-Routing element
-~~~~~~~~~~~~~~~
-The Routing element is defined by the following schema:
+  You may currently only specify the `routing` section in a single container. Attempting to add routing to multiple containers in a single service will result in an error. This is due to a current limitation in the integration between Application Load Balancers (ALB) and ECS that only allows you to attach an ALB to a single container in your task.
+
+.. _ecs-autoscaling:
+
+AutoScaling
+~~~~~~~~~~~
+The `auto_scaling` section is defined by the following schema:
+
+.. code-block:: yaml
+
+    auto_scaling:
+      min_tasks: <integer> # Required
+      max_tasks: <integer> # Required
+
+.. NOTE::
+
+  If you don't wish to configure auto scaling for your containers, just set `min_tasks` = `max_tasks` and don't configure any other options in auto_scaling.
+
+.. _ecs-cluster:
+
+Cluster
+~~~~~~~
+The `cluster` section is defined by the following schema:
 
 .. code-block:: yaml
     
-    routing:
-      type: <http|https>
-      https_certificate # Required if you select https as the routing type
+    cluster:
+      key_name: <string> # Optional. The name of the EC2 keypair to use for SSH access. Default: none
+      instance_type: <string> # Optional. The type of EC2 instances to use in the cluster. Default: t2.micro
 
-Tags element
+.. _ecs-loadbalancer:
+
+LoadBalancer
 ~~~~~~~~~~~~
-The Tags element is defined by the following schema:
+The `load_balancer` section is defined by the following schema:
+
+.. code-block:: yaml
+    
+    load_balancer:
+      type: <string> # Required. Allowed values: `http`, `https`. 
+      timeout: <integer> # Optional. The connection timeout on the load balancer
+      https_certificate: <string> # Required if type=https. The ID of the ACM certificate to use on the load balancer.
+
+.. _ecs-tags:
+
+Tags
+~~~~
+The `tags` section is defined by the following schema:
 
 .. code-block:: yaml
 
   tags:
    <your_tag_name>: <your_tag_value>
 
+Container Image Names
+---------------------
+This ECS service looks in the EC2 Container Registry for the Docker images it pulls for your service containers. It looks for images with the following naming pattern:
+
+.. code-block:: none
+
+    <appName>-<serviceName>-<containerName>:<environmentName>
+
+For example, in the below :ref:`ecs-example-handel-file`, the two images ECS looks for would be named the following:
+
+.. code-block:: none
+
+    my-ecs-app-webapp-mywebapp:dev
+    my-ecs-app-webapp-myothercontainer:dev
+
+.. _ecs-example-handel-file:
+
 Example Handel File
 -------------------
-This Handel file shows an ECS service being configured:
+This Handel file shows an ECS service with two containers being configured:
 
 .. code-block:: yaml
 
@@ -142,16 +171,30 @@ This Handel file shows an ECS service being configured:
       dev:
         webapp:
           type: ecs
-          key_name: some_ssh_keypair
-          max_mb: 256
-          instance_type: t2.micro
-          min_containers: 1
-          max_containers: 1
-          port_mappings:
-          - 5000
-          environment_variables:
-            MY_TEST_ENV: my_test_value
-
+          cluster:
+            key_name: mykey
+          auto_scaling:
+            min_tasks: 1
+            max_tasks: 1
+          load_balancer:
+            type: http
+            timeout: 120
+          tags:
+            mytag: myvalue
+          containers:
+          - name: mywebapp
+            port_mappings:
+            - 5000
+            max_mb: 256
+            cpu_units: 200
+            environment_variables:
+              MY_VAR: myvalue
+            routing:
+              base_path: /mypath
+              health_check_path: /
+          - name: myothercontainer
+            max_mb: 256
+        
 Depending on this service
 -------------------------
 The ECS service cannot be referenced as a dependency for another Handel service
