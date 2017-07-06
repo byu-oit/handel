@@ -24,6 +24,13 @@ Resources:
         ReadCapacityUnits: {{readCapacityUnits}}
         WriteCapacityUnits: {{writeCapacityUnits}}
       TableName: {{tableName}}
+      {{#if tags}}
+      Tags:
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
 
 Outputs:
   TableName:
