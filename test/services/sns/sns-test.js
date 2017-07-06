@@ -44,10 +44,44 @@ describe('sns deployer', function () {
     });
 
     describe('check', function () {
-        it('shouldnt validate anything yet', function () {
+        it('should handle no subscriptions', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = sns.check(serviceContext);
             expect(errors).to.deep.equal([]);
+        });
+        it('should require an endpoint on a subscription', function () {
+            let params = {
+                subscriptions: [{
+                    protocol: 'http'
+                }]
+            };
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let errors = sns.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`requires an 'endpoint'`);
+        });
+        it('should require a protocol on a subscription', function () {
+            let params = {
+                subscriptions: [{
+                    endpoint: 'http://example.com/'
+                }]
+            };
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let errors = sns.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`requires a 'protocol'`);
+        });
+        it('should require a valid protocol', function () {
+            let params = {
+                subscriptions: [{
+                    endpoint: 'http://example.com/',
+                    protocol: 'webhook'
+                }]
+            };
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let errors = sns.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`Protocol must be one of`);
         });
     });
 

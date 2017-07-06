@@ -19,6 +19,29 @@ Parameters
      - Yes
      - 
      - This must always be *sns* for this service type.
+   * - subscriptions
+     - :ref:`sns-subscriptions`
+     - No
+     -
+     - An optional list of statically-defined subscriptions. You can also dynamically add subscriptions in your application code.
+
+.. _sns-subscriptions:
+
+Subscriptions
+~~~~~~~~~~~~~
+The Subscription element is defined by the following schema:
+
+.. code-block:: yaml
+
+    subscriptions:
+      - endpoint: <string>
+        protocol: <http|https|email|email-json|sms>
+
+See the `SNS subscription documentation <http://docs.aws.amazon.com/sns/latest/api/API_Subscribe.html>`_ for full details on configuring endpoints and protocols.
+
+.. NOTE::
+
+    Protocols `sqs`, `application`, and `lambda` are supported through :ref:`service-events`.
 
 Example Handel File
 -------------------
@@ -32,8 +55,11 @@ This Handel file shows an SQS service being configured:
 
     environments:
       dev:
-        queue:
+        topic:
           type: sns
+          subscriptions:
+            - endpoint: fake@example.com
+              protocol: email
 
 Depending on this service
 -------------------------

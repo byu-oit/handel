@@ -8,6 +8,16 @@ Resources:
     Properties: 
       DisplayName: {{topicName}}
       TopicName: {{topicName}}
+  {{#if subscriptions}}
+  {{#each subscriptions}}
+  Subscription{{@index}}:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: {{endpoint}}
+      Protocol: {{protocol}}
+      TopicArn: !Ref Topic
+  {{/each}}
+  {{/if}}
 
 Outputs:
   TopicArn:
