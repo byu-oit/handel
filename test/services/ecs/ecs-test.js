@@ -82,8 +82,8 @@ describe('ecs deployer', function () {
 
         beforeEach(function () {
             configToCheck = JSON.parse(JSON.stringify(VALID_ECS_CONFIG))
-            serviceContextToCheck = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", configToCheck);
-        })
+            serviceContextToCheck = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "ecs", "1", configToCheck);
+        });
 
         it('should require the auto_scaling section', function () {
             delete configToCheck.auto_scaling;

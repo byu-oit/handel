@@ -7,22 +7,59 @@ Resources:
     Type: "AWS::DynamoDB::Table"
     Properties:
       AttributeDefinitions:
-      - AttributeName: {{partitionKeyName}}
-        AttributeType: {{partitionKeyType}}
-      {{#if sortKeyName}}
-      - AttributeName: {{sortKeyName}}
-        AttributeType: {{sortKeyType}}
-      {{/if}}
+      {{#each attributeDefinitions}}
+      - AttributeName: {{attributeName}}
+        AttributeType: {{attributeType}}
+      {{/each}}
       KeySchema:
-      - AttributeName: {{partitionKeyName}}
+      - AttributeName: {{tablePartitionKeyName}}
         KeyType: HASH
-      {{#if sortKeyName}}
-      - AttributeName: {{sortKeyName}}
+      {{#if tableSortKeyName}}
+      - AttributeName: {{tableSortKeyName}}
         KeyType: RANGE
       {{/if}}
       ProvisionedThroughput:
-        ReadCapacityUnits: {{readCapacityUnits}}
-        WriteCapacityUnits: {{writeCapacityUnits}}
+        ReadCapacityUnits: {{tableWriteCapacityUnits}}
+        WriteCapacityUnits: {{tableWriteCapacityUnits}}
+      {{#if globalIndexes}}
+      GlobalSecondaryIndexes:
+      {{#each globalIndexes}}
+      - IndexName: {{indexName}}
+        KeySchema:
+        - AttributeName: {{indexPartitionKeyName}}
+          KeyType: HASH
+        {{#if indexSortKeyName}} 
+        - AttributeName: {{indexSortKeyName}}
+          KeyType: RANGE
+        {{/if}}
+        Projection:
+          ProjectionType: INCLUDE
+          NonKeyAttributes:
+          {{#each indexProjectionAttributes}}
+          - {{this}}
+          {{/each}}
+        ProvisionedThroughput:
+          ReadCapacityUnits: {{indexReadCapacityUnits}}
+          WriteCapacityUnits: {{indexWriteCapacityUnits}}
+      {{/each}}
+      {{/if}}
+      {{#if localIndexes}}
+      LocalSecondaryIndexes:
+      {{#each localIndexes}}
+      - IndexName: {{indexName}}
+        KeySchema:
+        - AttributeName: {{indexPartitionKeyName}}
+          KeyType: HASH
+        - AttributeName: {{indexSortKeyName}}
+          KeyType: RANGE
+        Projection:
+          ProjectionType: INCLUDE
+          NonKeyAttributes:
+          {{#each indexProjectionAttributes}}
+          - {{this}}
+          {{/each}}
+      {{/each}}
+      {{/if}}
       TableName: {{tableName}}
       {{#if tags}}
       Tags:
