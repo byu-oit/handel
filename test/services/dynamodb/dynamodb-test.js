@@ -30,6 +30,52 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const VALID_DYNAMODB_CONFIG = {
+    partition_key: {
+        name: "MyPartitionKey",
+        type: "String"
+    },
+    sort_key: {
+        name: "MySortKey",
+        type: "Number"
+    },
+    provisioned_throughput: {
+        read_capacity_units: "3",
+        write_capacity_units: "3"
+    },
+    global_indexes: [{
+        name: "myglobal",
+        partition_key: {
+            name: "MyPartitionKey",
+            type: "String"
+        },
+        sort_key: {
+            name: "MyGlobalSortKey",
+            type: "String"
+        },
+        attributes_to_copy: [
+            "MyOtherGlobalAttribute"
+        ],
+        provisioned_throughput: {
+            read_capacity_units: 2,
+            write_capacity_units: 2
+        }
+    }],
+    local_indexes: [{
+        name: "mylocal",
+        sort_key: {
+            name: "MyLocalSortKey",
+            type: "String"
+        },
+        attributes_to_copy: [
+            "MyOtherLocalAttribute"
+        ]
+    }],
+    tags: {
+        name: "MyTagName"
+    }
+}
+
 
 describe('dynamodb deployer', function () {
     let sandbox;
@@ -43,36 +89,89 @@ describe('dynamodb deployer', function () {
     });
 
     describe('check', function () {
+        let configToCheck;
+        let serviceContextToCheck;
+
+        beforeEach(function () {
+            configToCheck = JSON.parse(JSON.stringify(VALID_DYNAMODB_CONFIG))
+            serviceContextToCheck = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", configToCheck);
+        });
+
         it('should require a partition key section', function () {
-            let params = {};
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", params);
-            let errors = dynamodb.check(serviceContext);
+            delete configToCheck.partition_key;
+            let errors = dynamodb.check(serviceContextToCheck);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include("partition_key section is required");
+            expect(errors[0]).to.include("The 'partition_key' section is required");
         });
 
         it('should require a name field in the partition_key', function () {
-            let params = {
-                partition_key: {
-                    type: 'sometype'
-                }
-            };
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", params);
-            let errors = dynamodb.check(serviceContext);
+            delete configToCheck.partition_key.name;
+            let errors = dynamodb.check(serviceContextToCheck);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include("name field in partition_key is required");
+            expect(errors[0]).to.include("The 'name' field in the 'partition_key' section is required");
         });
 
         it('should require a type field in the partition_key', function () {
-            let params = {
-                partition_key: {
-                    name: 'somename'
-                }
-            };
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", params);
-            let errors = dynamodb.check(serviceContext);
+            delete configToCheck.partition_key.type;
+            let errors = dynamodb.check(serviceContextToCheck);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include("type field in partition_key is required");
+            expect(errors[0]).to.include("The 'type' field in the 'partition_key' section is required");
+        });
+
+        it('should require a name field for each global index', function () {
+            delete configToCheck.global_indexes[0].name;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'name' field is required in the 'global_indexes' section");
+        });
+
+        it('should require the partition_key section in global indexes', function () {
+            delete configToCheck.global_indexes[0].partition_key;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'partition_key' section is required in the 'global_indexes' section");
+        });
+
+        it('should require the name field in the partition_key for global indexes', function () {
+            delete configToCheck.global_indexes[0].partition_key.name;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'name' field in the 'partition_key' section is required in the 'global_indexes' section");
+        });
+
+        it('should require the type field in the partition_key section for global indexes', function () {
+            delete configToCheck.global_indexes[0].partition_key.type;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'type' field in the 'partition_key' section is required in the 'global_indexes' section");
+        });
+
+        it('should require a name field for each local index', function () {
+            delete configToCheck.local_indexes[0].name;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'name' field is required in the 'local_indexes' section");
+        });
+
+        it('should require the sort_key section in local indexes', function () {
+            delete configToCheck.local_indexes[0].sort_key;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'sort_key' section is required in the 'local_indexes' section");
+        });
+
+        it('should require the name field in the sort_key for local indexes', function () {
+            delete configToCheck.local_indexes[0].sort_key.name;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'name' field in the 'sort_key' section is required in the 'local_indexes' section");
+        });
+
+        it('should require the type field in the sort_key section for local indexes', function () {
+            delete configToCheck.local_indexes[0].sort_key.type;
+            let errors = dynamodb.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'type' field in the 'sort_key' section is required in the 'local_indexes' section");
         });
     });
 
@@ -107,15 +206,7 @@ describe('dynamodb deployer', function () {
         let serviceName = "FakeService";
         let serviceType = "dynamodb";
         let deployVersion = "1";
-        let params = {
-            partition_key: {
-                name: "MyPartitionKey",
-                type: "String"
-            },
-            tags: {
-                name: "MyTagName"
-            }
-        }
+        let params = VALID_DYNAMODB_CONFIG;
         let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, params);
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
         let dependenciesDeployContexts = [];
