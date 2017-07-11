@@ -25,13 +25,15 @@ Parameters
      - general_purpose
      - What kind of performance for the EFS mount. Allowed values: general_purpose, max_io
    * - tags
-     - Tags
+     - :ref:`efs-tags`
      - No
      - 
      - Any tags you wish to apply to this EFS mount.
 
-Tags element
-~~~~~~~~~~~~
+.. _efs-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml
@@ -72,7 +74,7 @@ The EFS service outputs the following environment variables:
    * - <ENV_PREFIX>_MOUNT_DIR
      - The directory on the host where the EFS volume was mounted.
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

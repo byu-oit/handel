@@ -55,13 +55,15 @@ This service takes the following parameters:
      - disabled
      - Whether to enable logging on the bucket. Allowed values: *enabled*, *disabled*.
    * - tags
-     - Tags
+     - :ref:`s3-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
 
-Tags element
-~~~~~~~~~~~~
+.. _s3-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml
@@ -99,14 +101,14 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <URL_PREFIX>_BUCKET_NAME
+   * - <ENV_PREFIX>_BUCKET_NAME
      - The name of the created bucket
-   * - <URL_PREFIX>_BUCKET_URL
+   * - <ENV_PREFIX>_BUCKET_URL
      - The HTTPS URL of the created bucket
-   * - <URL_PREFIX>_REGION_ENDPOINT
+   * - <ENV_PREFIX>_REGION_ENDPOINT
      - The domain of the S3 region endpoint, which you can use when configuring your AWS SDK
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

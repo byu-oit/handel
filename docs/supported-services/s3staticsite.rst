@@ -58,13 +58,15 @@ This service takes the following parameters:
      - error.html
      - The name of the file in S3 to serve as the error document.
    * - tags
-     - Tags
+     - :ref:`s3staticsite-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
 
-Tags element
-~~~~~~~~~~~~
+.. _s3staticsite-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml

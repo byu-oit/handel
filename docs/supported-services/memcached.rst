@@ -1,4 +1,4 @@
-.. memcached:
+.. _memcached:
 
 Memcached (ElastiCache)
 =======================
@@ -55,11 +55,11 @@ Parameters
      - 
      - Any cache parameters you wish for your Memcached cluster. See `Memcached Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Memcached.html>`_ for the list of parameters you can provide.
    * - tags
-     - Tags
+     - :ref:`memcached-tags`
      - No
      - 
      - Any tags you wish to apply to this Memcached cluster.
-     
+
 .. WARNING::
 
     Note that having more than 1 node in your cluster will greatly increase your cost. Each node you add to the cluster adds a full cache instance type node cost to your cluster cost.
@@ -69,6 +69,22 @@ Parameters
     If you have that same cache.m4.large type, but with a cluster size of 4, it will cost about $448/month since you are being charged for four full Memcached instances.
 
     **Be careful to calculate how much this service will cost you if you are using a cluster of more than 1 node.**
+
+.. _memcached-tags:
+
+Tags
+~~~~
+The Tags element is defined by the following schema:
+
+.. code-block:: yaml
+
+  tags:
+   <your_tag_name>: <your_tag_value>
+
+.. NOTE::
+
+    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
+
 
 Example Handel File
 -------------------
@@ -105,7 +121,7 @@ The Memcached service outputs the following environment variables:
    * - <ENV_PREFIX>_PORT
      - The port on which the Memcached cluster is listening.
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

@@ -63,23 +63,25 @@ Parameters
      - 1
      - The maximum number of instances that can be in the auto-scale group.
    * - routing
-     - Routing
+     - :ref:`beanstalk-routing`
      - No
      - 
      - The Routing element details what kind of routing you want to your ECS service (if any)
    * - environment_variables
-     - EnvironmentVariables
+     - :ref:`beanstalk-environment-variables`
      - No
      - 
      - Any user-specified environment variables to inject in the application.
    * - tags
-     - Tags
+     - :ref:`beanstalk-tags`
      - No
      - 
      - Any tags you want to apply to your Beanstalk environment
 
-EnvironmentVariables element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _beanstalk-environment-variables:
+
+EnvironmentVariables
+~~~~~~~~~~~~~~~~~~~~
 The EnvironmentVariables element is defined by the following schema:
 
 .. code-block:: yaml
@@ -89,8 +91,10 @@ The EnvironmentVariables element is defined by the following schema:
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
 
-Routing element
-~~~~~~~~~~~~~~~
+.. _beanstalk-routing:
+
+Routing
+~~~~~~~
 The Routing element is defined by the following schema:
 
 .. code-block:: yaml
@@ -99,8 +103,10 @@ The Routing element is defined by the following schema:
       type: <http|https>
       https_certificate # Required if you select https as the routing type
 
-Tags element
-~~~~~~~~~~~~
+.. _beanstalk-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml

@@ -52,18 +52,20 @@ Parameters
      - 3
      - The timeout in seconds for your function. Max 300
    * - environment_variables
-     - EnvironmentVariables
+     - :ref:`lambda-environment-variables`
      - No
      - 
      - Any environment variables you want to inject into your code.
    * - tags
-     - Tags
+     - :ref:`lambda-tags`
      - No
      - 
      - Any tags you want to apply to your Lambda
 
-EnvironmentVariables element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _lambda-environment-variables:
+
+EnvironmentVariables
+~~~~~~~~~~~~~~~~~~~~
 The EnvironmentVariables element is defined by the following schema:
 
 .. code-block:: yaml
@@ -73,8 +75,10 @@ The EnvironmentVariables element is defined by the following schema:
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
 
-Tags element
-~~~~~~~~~~~~
+.. _lambda-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml

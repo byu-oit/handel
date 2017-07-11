@@ -86,14 +86,14 @@ The SQS service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <URL_PREFIX>_QUEUE_NAME
+   * - <ENV_PREFIX>_QUEUE_NAME
      - The name of the created queue
-   * - <URL_PREFIX>_QUEUE_URL
+   * - <ENV_PREFIX>_QUEUE_URL
      - The HTTPS URL of the created queue
-   * - <URL_PREFIX>_QUEUE_ARN
+   * - <ENV_PREFIX>_QUEUE_ARN
      - The AWS ARN of the created queue
 
-The <URL_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
 Events produced by this service
 -------------------------------

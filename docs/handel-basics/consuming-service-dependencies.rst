@@ -37,11 +37,11 @@ Environment Variable Prefix
 ---------------------------
 Every environment variable injected by Handel for service dependencies has a common prefix in the environment variable name. 
 
-This URL prefix is defined with the following structure:
+This environment variable prefix is defined with the following structure:
 
 .. code-block:: none
 
-   <service_type>_<app_name>_<environment_name>_<service_name>
+   <SERVICE_TYPE>_<APP_NAME>_<ENVIRONMENT_NAME>_<SERVICE_NAME>
 
 These values come from the service dependency in your Handel file. In the above example, the referencing Beanstalk application would need to use the following values in that prefix:
 
@@ -51,6 +51,8 @@ These values come from the service dependency in your Handel file. In the above 
     app_name = "beanstalk-example"
     environment_name = "dev"
     service_name = "queue"
+
+You can use the :ref:`consuming-service-dependencies-common-vars` to dynamically obtain values such as *environment_name* that will be different depending on which environment your code is currently running in.
 
 .. NOTE::
    All Handel injected environment variables will be all upper-cased, with dashes converted to underscores. In the above example, the Beanstalk application would need to use the following prefix for the SQS queue: 
@@ -80,3 +82,25 @@ These values come from the service dependency in your Handel file. In the above 
     app_name = "beanstalk-example"
     environment_name = "dev"
     service_name = "queue"
+
+You can use the :ref:`consuming-service-dependencies-common-vars` to dynamically obtain values such as *environment_name* that will be different depending on which environment your code is currently running in.
+
+.. _consuming-service-dependencies-common-vars:
+
+Common Injected Environment Variables
+-------------------------------------
+In addition to environment variables injected by services your applications consume, Handel will inject a common set of environment variables to all applications:
+
+.. list-table::
+   :header-rows: 1
+   
+   * - Environment Variable
+     - Description
+   * - HANDEL_APP_NAME
+     - This is the value of the *name* field from your Handel file. It is the name of your application.
+   * - HANDEL_ENVIRONMENT_NAME
+     - This is the value of the *\<environment\>* field from your Handel file. It is the name of the environment the current service is a part of.
+   * - HANDEL_SERVICE_NAME
+     - This is the value of the *\<service_name>* field from your Handel file. It is the name of the currently deployed service.
+   * - HANDEL_SERVICE_VERSION
+     - This is the value of the version of the application being deployed. It is set to whatever the *-v* parameter was when Handel last deployed your application.
