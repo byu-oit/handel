@@ -115,6 +115,10 @@ The Tags element is defined by the following schema:
 
   If you try to modify your *tags* element after your environment is created, your CloudFormation stack will fail to update.
 
+.. NOTE::
+
+    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
+
 Example Handel File
 -------------------
 

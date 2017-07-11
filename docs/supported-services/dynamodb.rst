@@ -148,6 +148,10 @@ The Tags element is defined by the following schema:
   tags:
    <your_tag_name>: <your_tag_value>
 
+.. NOTE::
+
+    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
+
 Example Handel File
 -------------------
 .. code-block:: yaml

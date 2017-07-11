@@ -69,18 +69,20 @@ Parameters
      - 3
      - The timeout to use for your Lambda function. Any functions that go over this timeout will be killed.
    * - environment_variables
-     - EnvironmentVariables
+     - :ref:`apigateway-environment-variables`
      - No
      - 
      - A set of key/value pairs to set as environment variables on your API.
    * - tags
-     - Tags
+     - :ref:`apigateway-tags`
      - No
      - 
      - Any tags you want to apply to your Beanstalk environment
 
-EnvironmentVariables element
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _apigateway-environment-variables:
+
+EnvironmentVariables
+~~~~~~~~~~~~~~~~~~~~
 The EnvironmentVariables element is defined by the following schema:
 
 .. code-block:: yaml
@@ -90,14 +92,20 @@ The EnvironmentVariables element is defined by the following schema:
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
 
-Tags element
-~~~~~~~~~~~~
+.. _apigateway-tags:
+
+Tags
+~~~~
 The Tags element is defined by the following schema:
 
 .. code-block:: yaml
 
   tags:
    <your_tag_name>: <your_tag_value>
+
+.. NOTE::
+
+    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

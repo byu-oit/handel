@@ -39,6 +39,8 @@ Environment
 Service
   In an environment, a 'service' is a single Handel service that is deployed via a CloudFormation stack. This service takes configuration parameters to determine how to deploy it. It can also reference other services in your environment that it depends on at runtime. Handel will auto-wire these services together for you and inject their information into your application. 
 
+.. _handel-file-explanation:
+
 Handel File Explanation
 -----------------------
 name
