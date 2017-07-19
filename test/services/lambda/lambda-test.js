@@ -178,14 +178,14 @@ describe('lambda deployer', function () {
     });
 
     describe('consumeEvents', function () {
-        it('should add permissions for the sns service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let deployVersion = "1";
+        let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+        let ownDeployContext = new DeployContext(ownServiceContext);
+        ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
 
+        it('should add permissions for the sns service type', function () {
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
@@ -201,13 +201,6 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the cloudwatchevent service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
-
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "cloudwatchevent", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
@@ -219,6 +212,21 @@ describe('lambda deployer', function () {
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(addLambdaPermissionStub.calledOnce).to.be.true;
+                });
+        });
+
+        it('should add permissions for the iot service type', function () {
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "iot", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.principal = "FakePrincipal";
+            producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
+
+            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(addLambdaPermissionStub.callCount).to.equal(1);
                 });
         });
 
@@ -247,7 +255,7 @@ describe('lambda deployer', function () {
     });
 
     describe('produceEvents', function () {
-        it('should throw an error because EFS doesnt produce events for other services', function () {
+        it('should throw an error because Lambda doesnt produce events for other services', function () {
             return lambda.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Shouldnt get here

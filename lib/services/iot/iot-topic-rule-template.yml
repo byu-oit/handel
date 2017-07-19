@@ -1,0 +1,28 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created IOT topic rule
+
+Resources:
+  TopicRule:
+    Type: "AWS::IoT::TopicRule"
+    Properties:
+      RuleName: {{ruleName}}
+      TopicRulePayload:
+        AwsIotSqlVersion: '2015-10-08'
+        Description: AWS IoT rule created by Handel for {{appName}}
+        RuleDisabled: {{ruleDisabled}}
+        Sql: "{{{sql}}}"
+        Actions:
+        {{#each actions}}
+        {{#each this}}
+        - {{@key}}:
+          {{#each this}}
+            {{@key}}: {{this}}
+          {{/each}}  
+        {{/each}}
+        {{/each}}
+
+Outputs:
+  TopicRuleName:
+    Description: The name of the topic rule
+    Value: !Ref TopicRule
