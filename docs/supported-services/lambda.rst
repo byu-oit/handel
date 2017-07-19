@@ -104,6 +104,8 @@ Example Handel File
         webapp:
           type: lambda
           path_to_code: .
+          handler: index.handler
+          runtime: nodejs6.10
           environment_variables:
             MY_ENV: myEnvValue
           tags:
