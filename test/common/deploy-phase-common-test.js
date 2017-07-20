@@ -278,38 +278,6 @@ describe('Deploy phase common module', function () {
         });
     });
 
-    describe('getEventConsumerConfigParams', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let consumerServiceName = "ConsumerServiceName";
-        let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {});
-        let producerServiceName = "ProducerServiceName";
-
-        it('should return the config for the consumer from the producer', function () {
-            let eventInputVal = '{"notify": false}';
-            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
-                event_consumers: [{
-                    service_name: consumerServiceName,
-                    event_input: eventInputVal
-                }]
-            });
-
-            let eventConsumerConfig = deployPhaseCommon.getEventConsumerConfigParams(producerServiceContext, consumerServiceContext);
-            expect(eventConsumerConfig).to.not.be.null;
-            expect(eventConsumerConfig.event_input).to.equal(eventInputVal);
-        });
-
-        it('should return null when no config exists in the producer for the consumer', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
-                event_consumers: []
-            });
-
-            let eventConsumerConfig = deployPhaseCommon.getEventConsumerConfigParams(producerServiceContext, consumerServiceContext);
-            expect(eventConsumerConfig).to.be.null;
-        });
-    });
-
     describe('getTags', function() {
         it('should return the Handel-injected tags, plus any user-defined tags', function() {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {

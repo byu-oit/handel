@@ -178,14 +178,14 @@ describe('lambda deployer', function () {
     });
 
     describe('consumeEvents', function () {
-        it('should add permissions for the sns service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let deployVersion = "1";
+        let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+        let ownDeployContext = new DeployContext(ownServiceContext);
+        ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
 
+        it('should add permissions for the sns service type', function () {
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
@@ -201,13 +201,6 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the cloudwatchevent service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
-
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "cloudwatchevent", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
@@ -232,84 +225,90 @@ describe('lambda deployer', function () {
 
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "alexaskillkit", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
+            it('should add permissions for the iot service type', function () {
+                let producerServiceContext = new ServiceContext(appName, envName, "producerService", "iot", deployVersion, {});
+                let producerDeployContext = new DeployContext(producerServiceContext);
+                producerDeployContext.eventOutputs.principal = "FakePrincipal";
+                producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
 
-            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+                let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
-                .then(consumeEventsContext => {
-                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-                    expect(addLambdaPermissionStub.calledOnce).to.be.true;
-                });
+                return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                    .then(consumeEventsContext => {
+                        expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                        expect(addLambdaPermissionStub.callCount).to.equal(1);
+                    });
+            });
+
+            it('should return an error for any other service type', function () {
+                let appName = "FakeApp";
+                let envName = "FakeEnv";
+                let deployVersion = "1";
+                let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+                let ownDeployContext = new DeployContext(ownServiceContext);
+                ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+
+                let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
+                let producerDeployContext = new DeployContext(producerServiceContext);
+
+                let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+                return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                    .then(consumeEventsContext => {
+                        expect(true).to.be.false; //Should not get here
+                    })
+                    .catch(err => {
+                        expect(err.message).to.contain("Unsupported event producer type given");
+                        expect(addLambdaPermissionStub.notCalled).to.be.true;
+                    });
+            });
         });
 
-        it('should return an error for any other service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
-
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
-            let producerDeployContext = new DeployContext(producerServiceContext);
-
-            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
-
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Unsupported event producer type given");
-                    expect(addLambdaPermissionStub.notCalled).to.be.true;
-                });
+        describe('produceEvents', function () {
+            it('should throw an error because Lambda doesnt produce events for other services', function () {
+                return lambda.produceEvents(null, null, null, null)
+                    .then(produceEventsContext => {
+                        expect(true).to.be.false; //Shouldnt get here
+                    })
+                    .catch(err => {
+                        expect(err.message).to.contain("Lambda service doesn't produce events");
+                    });
+            });
         });
-    });
 
-    describe('produceEvents', function () {
-        it('should throw an error because EFS doesnt produce events for other services', function () {
-            return lambda.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Lambda service doesn't produce events");
-                });
+        describe('unPreDeploy', function () {
+            it('should return an empty UnPreDeploy context', function () {
+                let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
+                return lambda.unPreDeploy({})
+                    .then(unPreDeployContext => {
+                        expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                        expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
+                    });
+            });
         });
-    });
 
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return lambda.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
+        describe('unBind', function () {
+            it('should return an empty UnBind context', function () {
+                let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+                return lambda.unBind({})
+                    .then(unBindContext => {
+                        expect(unBindContext).to.be.instanceof(UnBindContext);
+                        expect(unBindNotRequiredStub.callCount).to.equal(1);
+                    });
+            });
         });
-    });
 
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return lambda.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
+        describe('unDeploy', function () {
+            it('should delete the stack', function () {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+                let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
-    describe('unDeploy', function () {
-        it('should delete the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-
-            return lambda.unDeploy(serviceContext)
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(unDeployStack.calledOnce).to.be.true;
-                });
+                return lambda.unDeploy(serviceContext)
+                    .then(unDeployContext => {
+                        expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                        expect(unDeployStack.calledOnce).to.be.true;
+                    });
+            });
         });
     });
 });
