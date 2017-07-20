@@ -31,6 +31,7 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
    :maxdepth: 1
    :caption: Supported Services
 
+   supported-services/alexaskillkit
    supported-services/apiaccess
    supported-services/apigateway
    supported-services/beanstalk

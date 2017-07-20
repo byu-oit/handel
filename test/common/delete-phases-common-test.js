@@ -121,4 +121,13 @@ describe('Delete phases common module', function () {
                 });
         });
     });
+
+    describe('unDeployNotRequired', function() {
+        it('should return an emtpy UnDeployContext', function() {
+            return deletePhasesCommon.unDeployNotRequired({}, "FakeService")
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                });
+        });
+    });
 });

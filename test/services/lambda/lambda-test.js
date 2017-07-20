@@ -215,6 +215,25 @@ describe('lambda deployer', function () {
                 });
         });
 
+        it('should add permissions for the alexaskillkit service type', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
+            let ownDeployContext = new DeployContext(ownServiceContext);
+            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "alexaskillkit", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(addLambdaPermissionStub.callCount).to.equal(1);
+                });
+        });
+
         it('should add permissions for the iot service type', function () {
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "iot", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
