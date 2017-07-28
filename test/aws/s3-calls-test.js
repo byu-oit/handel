@@ -19,8 +19,7 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
-const nodeS3 = require('s3');
-const EventEmitter = require('events');
+const childProcess = require('child_process');
 
 describe('s3Calls', function () {
     let sandbox;
@@ -47,45 +46,47 @@ describe('s3Calls', function () {
         });
     });
 
-    describe('uploadDirectory', function () {
-        it('should upload the directory', function () {
-            let myEventEmitter = new EventEmitter();
-            let createClientStub = sandbox.stub(nodeS3, 'createClient').returns({
-                uploadDir: function (uploadParams) {
-
-                    return myEventEmitter;
-                }
+    describe('uploadDirectory', function() {
+        it('should upload the directory', function() {
+            let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
+                callback(null, "somestdout", "");
             });
-            //This is lame using a time-based test like this, but not sure how to mock this better
-            setTimeout(function () {
-                myEventEmitter.emit('end');
-            }, 50)
+
             return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
-                .then(() => {
-                    expect(createClientStub.callCount).to.equal(1);
+                .then(response => {
+                    expect(response).to.be.true;
+                    expect(execStub.callCount).to.equal(1);
                 });
         });
-
-        it('should return an error when the upload fails', function () {
-            let myEventEmitter = new EventEmitter();
-            let createClientStub = sandbox.stub(nodeS3, 'createClient').returns({
-                uploadDir: function (uploadParams) {
-
-                    return myEventEmitter;
-                }
+        
+        it('should return an error when the AWS CLI is not present', function() {
+            let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
+                callback(new Error("command not found"), "", "somestderr");
             });
-            //This is lame using a time-based test like this, but not sure how to mock this better
-            setTimeout(function () {
-                myEventEmitter.emit('error', 'someerror');
-            }, 50)
+
             return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
-                .then(() => {
-                    expect(true).to.equal(false); //Should not get here
+                .then(response => {
+                    expect(true).to.be.false; //Should not get here
                 })
                 .catch(err => {
-                    expect(createClientStub.callCount).to.equal(1);
-                    expect(err).to.equal('someerror');
+                    expect(err.message).to.include("requires you to have the Python AWS CLI installed");
+                    expect(execStub.callCount).to.equal(1);
+                });
+        });
+            
+        it('should return any other error', function() {
+            let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
+                callback(new Error("some other error"), "", "somestderr");
+            });
+
+            return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
+                .then(response => {
+                    expect(true).to.be.false; //Should not get here
                 })
+                .catch(err => {
+                    expect(err.message).to.eq("some other error");
+                    expect(execStub.callCount).to.equal(1);
+                });
         });
     });
 

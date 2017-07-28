@@ -4,6 +4,12 @@ S3 Static Site
 ==============
 This document contains information about the S3 Static Site service supported in Handel. This Handel service sets up an S3 bucket for your static website.
 
+.. ATTENTION::
+
+    This service requires you to have the external AWS CLI installed in order to use it. See the `AWS documentation <https://aws.amazon.com/cli/>`_ for help on installing it.
+
+    If you are running Handel inside CodePipeline, you should already have the AWS CLI pre-installed.
+
 Service Limitations
 -------------------
 
