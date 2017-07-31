@@ -79,6 +79,8 @@ The `containers` section is defined by the following schema:
       - <integer>
       max_mb: <integer> # Optional. Default: 128
       cpu_units: <integer> # Optional. Default: 100
+      links: # Optional
+      - <string> # Each value in the list should be the "name" field of another container in your containers list
       routing: # Optional
         base_path: <string> # Required
         health_check_path: <string> # Optional. Default: /
