@@ -209,6 +209,12 @@ Resources:
         Essential: true
         Privileged: false
         DisableNetworking: false
+        {{#if links}}
+        Links:
+        {{#each links}}
+        - {{this}}
+        {{/each}} 
+        {{/if}}
         {{#if portMappings}}
         PortMappings:
         {{#each portMappings}}
