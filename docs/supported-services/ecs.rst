@@ -74,6 +74,7 @@ The `containers` section is defined by the following schema:
 
     containers:
     - name: <string> # Required
+      image_name: <string> # Optional
       port_mappings: # Optional, required if you specify 'routing'
       - <integer>
       max_mb: <integer> # Optional. Default: 128
@@ -87,6 +88,35 @@ The `containers` section is defined by the following schema:
 .. NOTE::
 
   You may currently only specify the `routing` section in a single container. Attempting to add routing to multiple containers in a single service will result in an error. This is due to a current limitation in the integration between Application Load Balancers (ALB) and ECS that only allows you to attach an ALB to a single container in your task.
+
+Container Image Names
+*********************
+In each container, you may specify an optional *image_name*. If you want to pull a public image from somewhere like DockerHub, just reference the image name:
+
+.. code-block:: none
+
+    dsw88/my-cool-image
+
+If you want to reference an image in your AWS account's EC2 Container Registry (ECR), reference it like this:
+
+.. code-block:: none
+
+    # The <account> piece will be replaced with your account's long ECR repository name
+    <account>/my-cool-image
+
+If you don't specify an *image_name*, Handel will automatically choose an image name for you based on your Handel naming information. It will use the following image naming pattern:
+
+.. code-block:: none
+
+    <appName>-<serviceName>-<containerName>:<environmentName>
+
+For example, if you don't specify an *image_name* in the below :ref:`ecs-example-handel-file`, the two images ECS looks for would be named the following:
+
+.. code-block:: none
+
+    my-ecs-app-webapp-mywebapp:dev
+    my-ecs-app-webapp-myothercontainer:dev
+
 
 .. _ecs-autoscaling:
 
@@ -144,20 +174,7 @@ The `tags` section is defined by the following schema:
 
     Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
-Container Image Names
----------------------
-This ECS service looks in the EC2 Container Registry for the Docker images it pulls for your service containers. It looks for images with the following naming pattern:
 
-.. code-block:: none
-
-    <appName>-<serviceName>-<containerName>:<environmentName>
-
-For example, in the below :ref:`ecs-example-handel-file`, the two images ECS looks for would be named the following:
-
-.. code-block:: none
-
-    my-ecs-app-webapp-mywebapp:dev
-    my-ecs-app-webapp-myothercontainer:dev
 
 .. _ecs-example-handel-file:
 
