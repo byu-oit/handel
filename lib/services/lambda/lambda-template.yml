@@ -43,7 +43,7 @@ Resources:
       Code:
         S3Bucket: {{s3ArtifactBucket}}
         S3Key: {{s3ArtifactKey}}
-      Description: Handel-created function {{functionName}}
+      Description: {{description}}
       {{#if environmentVariables}}
       Environment:
         Variables:
