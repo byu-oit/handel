@@ -41,6 +41,11 @@ Parameters
      - Yes
      - 
      - The `Lambda runtime <http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime>`_ that will execute your code
+   * - description
+     - string
+     - No
+     - Handel-created function
+     - The configuration description of your function
    * - memory
      - string
      - No
