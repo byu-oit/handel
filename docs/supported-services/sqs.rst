@@ -115,7 +115,7 @@ This Handel file shows an SQS service being configured with a `Dead-Letter Queue
 .. _dead-letter:
 
 DeadLetterQueue
-------------------
+~~~~~~~~~~~~~~~
 The `dead_letter_queue` section is defined by the following schema:
 
 .. code-block:: yaml
