@@ -5,17 +5,35 @@ Description: Handel-created SQS queue
 Resources:
   Queue:
     Type: AWS::SQS::Queue
-    Properties: 
+    Properties:
       {{#if fifoQueue}}
       FifoQueue: true
       ContentBasedDeduplication: {{contentBasedDeduplication}}
       {{/if}}
-      DelaySeconds: {{delaySeconds}}      
+      DelaySeconds: {{delaySeconds}}
       MaximumMessageSize: {{maxMessageSize}}
       MessageRetentionPeriod: {{messageRetentionPeriod}}
       QueueName: {{queueName}}
       ReceiveMessageWaitTimeSeconds: {{receiveMessageWaitTimeSeconds}}
       VisibilityTimeout: {{visibilityTimeout}}
+  {{#if redrivePolicy}}
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt deadLetterQueue.Arn
+        maxReceiveCount: {{deadLetterMaxReceiveCount}}
+  deadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      {{#if deadLetterFifoQueue}}
+      FifoQueue: true
+      ContentBasedDeduplication: {{deadLetterContentBasedDeduplication}}
+      {{/if}}
+      DelaySeconds: {{deadLetterDelaySeconds}}
+      MaximumMessageSize: {{deadLetterMaxMessageSize}}
+      MessageRetentionPeriod: {{deadLetterMessageRetentionPeriod}}
+      QueueName: {{deadLetterQueueName}}
+      ReceiveMessageWaitTimeSeconds: {{deadLetterReceiveMessageWaitTimeSeconds}}
+      VisibilityTimeout: {{deadLetterVisibilityTimeout}}
+  {{/if}}
 
 Outputs:
   QueueUrl:
@@ -23,13 +41,30 @@ Outputs:
     Value: !Ref Queue
   QueueArn:
     Description: The ARN of the queue
-    Value: 
-      Fn::GetAtt: 
+    Value:
+      Fn::GetAtt:
         - "Queue"
         - "Arn"
   QueueName:
     Description: The name of the queue
-    Value: 
-      Fn::GetAtt: 
+    Value:
+      Fn::GetAtt:
         - "Queue"
         - "QueueName"
+  {{#if deadLetterPolicy}}
+  DeadLetterQueueUrl:
+    Description: The URL of the dead letter queue
+    Value: !Ref deadLetterQueue
+  DeadLetterQueueArn:
+    Description: The ARN of the dead letter queue
+    Value:
+      Fn::GetAtt:
+        - "deadLetterQueue"
+        - "Arn"
+  DeadLetterQueueName:
+    Description: The name of the dead letter queue
+    Value:
+      Fn::GetAtt:
+        - "deadLetterQueue"
+        - "QueueName"
+  {{/if}}
