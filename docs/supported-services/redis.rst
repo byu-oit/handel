@@ -35,6 +35,11 @@ Parameters
      - Yes
      - 
      - The size of each Redis instance in your cluster. See `Choosing Your Node Size <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/CacheNodes.SelectSize.html>`_ for more details.
+   * - description
+     - string
+     - No
+     - Parameter group.
+     - The redis group description.
    * - maintenance_window
      - string
      - No

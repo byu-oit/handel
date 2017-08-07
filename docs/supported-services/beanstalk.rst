@@ -37,6 +37,16 @@ Parameters
      - Yes
      - 
      - The ElasticBeanstalk solution stack you wish to use. This determines what AMI your application runs on. See `Elastic Beanstalk Supported Platforms <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html>`_ for the list of solution stacks.
+   * - description_template
+     - string
+     - No
+     - Configuration template.
+     - The description in the configuration template.
+   * - description_version
+     - string
+     - No
+     - Application version.
+     - The description of the application version.
    * - key_name
      - string
      - No
