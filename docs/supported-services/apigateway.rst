@@ -58,6 +58,11 @@ Parameters
      - Yes
      - 
      - The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your 'main' method.
+   * - binary_media_types
+     - array
+     - No
+     -
+     - A sequence (array) of BinaryMediaType strings. *Note* The '/' character must be escaped with a '~1'. So 'image/jpeg' becomes 'image~1jpeg'.
    * - description
      - string
      - No
