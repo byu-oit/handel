@@ -62,7 +62,7 @@ Parameters
      - array
      - No
      -
-     - A sequence (array) of BinaryMediaType strings. *Note* The '/' character must be escaped with a '~1'. So 'image/jpeg' becomes 'image~1jpeg'.
+     - A sequence (array) of BinaryMediaType strings. *Note* The handel will do the '/' to '~1' `character escaping <http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-configure-with-control-service-api.html#api-gateway-payload-encodings-pass-binary-as-is>`_ for you.
    * - description
      - string
      - No

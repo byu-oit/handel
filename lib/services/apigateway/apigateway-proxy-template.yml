@@ -90,7 +90,7 @@ Resources:
       {{#if binaryMediaTypes}}
       BinaryMediaTypes:
       {{#each binaryMediaTypes}}
-      - {{this}}
+      - '{{{this}}}'
       {{/each}}
       {{/if}}
       Body:
