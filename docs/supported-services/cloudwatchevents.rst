@@ -20,6 +20,11 @@ Parameters
      - Yes
      - 
      - This must always be *cloudwatchevents* for this service type.
+   * - description
+     - string
+     - No
+     - Handel-created rule.
+     - The event description.
    * - schedule
      - string
      - No

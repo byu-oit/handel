@@ -44,7 +44,7 @@ Resources:
   ParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
-      Description: Parameter group for {{stackName}}
+      Description: {{description}}
       Family: {{parameterGroupFamily}}
       {{#if parameterGroupParams}}
       Parameters:

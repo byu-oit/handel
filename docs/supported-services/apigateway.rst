@@ -58,6 +58,11 @@ Parameters
      - Yes
      - 
      - The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your 'main' method.
+   * - description
+     - string
+     - No
+     - Handel-created function
+     - The configuration description of your Lambda function.
    * - provisioned_memory
      - number
      - No
