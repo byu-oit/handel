@@ -81,11 +81,14 @@ describe('sqs deployer', function () {
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
-        let serviceName = "FakeService";
+        let serviceName = "FakeService"; // FIXME: deadLetter versions?
         let serviceType = "sqs";
         let queueName = "FakeQueue";
         let queueArn = "FakeArn";
         let queueUrl = "FakeUrl";
+        let deadLetterQueueName = "FakeDeadLetterQueue";
+        let deadLetterQueueArn = "FakeDeadLetterArn";
+        let deadLetterQueueUrl = "FakeDeadLetterUrl";
 
         let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
             type: 'sqs',
@@ -94,7 +97,16 @@ describe('sqs deployer', function () {
             delay_seconds: 2,
             max_message_size: 262140,
             message_retention_period: 345601,
-            visibility_timeout: 40
+            visibility_timeout: 40,
+            dead_letter_queue: {
+              max_receive_count: 5,
+              queue_type: 'fifo',
+              content_based_deduplication: true,
+              delay_seconds: 2,
+              max_message_size: 262140,
+              message_retention_period: 345601,
+              visibility_timeout: 40
+            }
         });
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
@@ -112,6 +124,18 @@ describe('sqs deployer', function () {
                     {
                         OutputKey: 'QueueUrl',
                         OutputValue: queueUrl
+                    },
+                    {
+                        OutputKey: 'DeadLetterQueueName',
+                        OutputValue: deadLetterQueueName
+                    },
+                    {
+                        OutputKey: 'DeadLetterQueueArn',
+                        OutputValue: deadLetterQueueArn
+                    },
+                    {
+                        OutputKey: 'DeadLetterQueueUrl',
+                        OutputValue: deadLetterQueueUrl
                     }
                 ]
             }));
@@ -130,9 +154,17 @@ describe('sqs deployer', function () {
                     let queueArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_ARN`.toUpperCase()
                     expect(deployContext.environmentVariables[queueArnEnv]).to.equal(queueArn);
 
+                    let deadLetterQueueNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_NAME`.toUpperCase()
+                    expect(deployContext.environmentVariables[deadLetterQueueNameEnv]).to.equal(deadLetterQueueName);
+                    let deadLetterQueueUrlEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_URL`.toUpperCase()
+                    expect(deployContext.environmentVariables[deadLetterQueueUrlEnv]).to.equal(deadLetterQueueUrl);
+                    let deadLetterQueueArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_ARN`.toUpperCase()
+                    expect(deployContext.environmentVariables[deadLetterQueueArnEnv]).to.equal(deadLetterQueueArn);
+
                     //Should have exported 1 policy
                     expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
                     expect(deployContext.policies[0].Resource[0]).to.equal(queueArn);
+                    expect(deployContext.policies[0].Resource[1]).to.equal(deadLetterQueueArn);
                 });
         });
     });

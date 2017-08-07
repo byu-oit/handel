@@ -28,10 +28,10 @@ function printDeployUsage(errors) {
 Options:
 -c [required] -- Path to account config or base64 encoded JSON string of config
 -e [required] -- A comma-separated list of environments from your handel file to deploy
--v [required] -- An abitrary string for the version of the current deployment
+-v [required] -- An arbitrary string for the version of the current deployment
 -d -- If this flag is set, verbose debug output will be enabled
 
-Errors: 
+Errors:
   ${errors.join('\n  ')}`;
     printAndExit(usageMsg);
 }
@@ -44,7 +44,7 @@ Options:
 -e [required] -- A comma-separated list of environments from your handel file to deploy
 -d -- If this flag is set, verbose debug output will be enabled
 
-Errors: 
+Errors:
   ${errors.join('\n  ')}`;
     printAndExit(usageMsg);
 }
