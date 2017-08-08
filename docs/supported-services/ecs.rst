@@ -324,6 +324,8 @@ This Handel file shows an ECS service auto-scaling on its own CPU Utilization me
             routing:
               base_path: /mypath
 
+Auto-Scaling On Queue Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 This Handel file shows an ECS service scaling off the size of a queue it consumes:
 
 .. code-block:: yaml
