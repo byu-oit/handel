@@ -83,6 +83,11 @@ When specifying event consumers on the IoT service, you may specify the followin
      - Yes
      - 
      - This is where you specify the `IoT-compatible SQL statement <http://docs.aws.amazon.com/iot/latest/developerguide/iot-sql-reference.html>`_ that will cause your rule to fire.
+   * - description
+     - string
+     - No
+     - AWS IoT rule created by Handel.
+     - The description for the topic rule payload.
    * - rule_disabled:
      - boolean
      - No

@@ -44,6 +44,11 @@ Parameters
      - yes
      -
      - The version of Memcached to run. See `Comparing Memcached Versions <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.MemcachedVersions.html>`_ for a list of available versions.
+   * - description
+     - string
+     - No
+     - Parameter group for cluster.
+     - The parameter group description of your cluster.
    * - node_count:
      - number
      - no

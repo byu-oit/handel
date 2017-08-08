@@ -39,6 +39,11 @@ Parameters
      - yes
      - 
      - The name of your database in your PostgreSQL instance.
+   * - description
+     - string
+     - No
+     - Parameter group.
+     - The parameter group description.
    * - instance_type
      - string
      - no

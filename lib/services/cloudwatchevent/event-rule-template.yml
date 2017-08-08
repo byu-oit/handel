@@ -6,7 +6,7 @@ Resources:
   EventsRule:
     Type: "AWS::Events::Rule"
     Properties: 
-      Description: Handel-created rule for {{ruleName}}
+      Description: {{description}}
       {{#if scheduleExpression}}
       ScheduleExpression: {{scheduleExpression}}
       {{/if}}

@@ -53,7 +53,7 @@ Resources:
     Type: AWS::ElasticBeanstalk::ApplicationVersion
     Properties:
       ApplicationName: !Ref Application
-      Description: Application version for {{applicationName}}
+      Description: {{description}}
       SourceBundle:
         S3Bucket: {{applicationVersionBucket}}
         S3Key: {{applicationVersionKey}}
@@ -61,7 +61,7 @@ Resources:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
     Properties:
       ApplicationName: !Ref Application
-      Description: Configuration template for {{applicationName}}
+      Description: {{description}}
       OptionSettings:
       - Namespace: aws:autoscaling:launchconfiguration
         OptionName: IamInstanceProfile

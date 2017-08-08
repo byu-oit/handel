@@ -9,7 +9,7 @@ Resources:
       RuleName: {{ruleName}}
       TopicRulePayload:
         AwsIotSqlVersion: '2015-10-08'
-        Description: AWS IoT rule created by Handel for {{appName}}
+        Description: {{description}}
         RuleDisabled: {{ruleDisabled}}
         Sql: "{{{sql}}}"
         Actions:
