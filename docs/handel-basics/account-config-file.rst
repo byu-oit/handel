@@ -30,6 +30,5 @@ The account config file is a YAML file that must contain the following informati
   - <id for subnets in which to deploy private resources>
   data_subnets:
   - <id for subnets in which to deploy data resources>
-  ecs_ami: <AMI for the ECS agent>
+  elasticache_subnet_group: <name of the cache subnet group to use>
   ssh_bastion_sg: <id for the SSH bastion security group>
-  on_prem_cidr: <CIDR block for your on-prem resources>
