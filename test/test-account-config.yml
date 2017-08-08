@@ -10,5 +10,4 @@ private_subnets:
 data_subnets:
 - subnet-jjjjjjjj
 - subnet-jjjjjjjj
-ecs_ami: ami-00000000
 ssh_bastion_sg: sg-23456789
