@@ -195,7 +195,6 @@ Resources:
       {{/each}}
       Role: {{ecsServiceRoleArn}}
       {{/if}}
-      ServiceName: {{clusterName}}
       TaskDefinition:
         Ref: TaskDefinition
   TaskDefinition:
@@ -320,10 +319,17 @@ Resources:
       AlarmDescription: Handel-created alarm for ECS cluster '{{../clusterName}}'' application auto-scaling
       ComparisonOperator: {{comparisonOperator}}
       Dimensions:
+      {{#if dimensions}}
       {{#each dimensions}}
       - Name: {{name}}
         Value: {{value}}
       {{/each}}
+      {{else}}
+      - Name: ClusterName
+        Value: {{../clusterName}}
+      - Name: ServiceName
+        Value: !GetAtt EcsService.Name
+      {{/if}}
       EvaluationPeriods: 1
       {{#if scaleDown}}
       InsufficientDataActions:
