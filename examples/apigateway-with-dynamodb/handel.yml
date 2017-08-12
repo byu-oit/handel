@@ -1,0 +1,29 @@
+version: 1
+
+name: apigateway-example
+
+environments:
+  dev:
+    webapp:
+      type: apigateway
+      path_to_code: .
+      lambda_runtime: nodejs6.10
+      handler_function: index.handler
+      provisioned_memory: 128
+      function_timeout: 5
+      environment_variables:
+        MY_FIRST_VAR: my_first_value
+        MY_SECOND_VAR: my_second_value
+      tags:
+        mytag: myvalue
+      dependencies:
+      - table
+    table:
+      type: dynamodb
+      partition_key:
+        name: MyPartionKey
+        type: String
+      provisioned_throughput:
+        read_capacity_units: 2
+        write_capacity_units: 2
+
