@@ -1,0 +1,51 @@
+Resources:
+  # Turn off Beanstalk's default scaling policies
+  AWSEBCloudwatchAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: [ { "Ref" : "AWS::NoValue" } ]
+  AWSEBCloudwatchAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: [ { "Ref" : "AWS::NoValue" } ]
+
+  {{#each scalingPolicies}}
+  ScalingAlarm{{@index}}:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+      - Ref: ScalingPolicy{{@index}}
+      AlarmDescription: Handel-created alarm for Beanstalk app '{{../stackName}}' auto-scaling
+      ComparisonOperator: {{comparisonOperator}}
+      Dimensions:
+      {{#if dimensions}}
+      {{#each dimensions}}
+      - Name: {{name}}
+        Value: {{value}}
+      {{/each}}
+      {{else}}
+      - Name: AutoScalingGroupName
+        Value: 
+          Ref: AWSEBAutoScalingGroup
+      {{/if}}
+      EvaluationPeriods: 1
+      {{#if scaleDown}}
+      InsufficientDataActions:
+      - Ref: ScalingPolicy{{@index}}
+      {{/if}}
+      MetricName: {{metricName}}
+      Namespace: {{namespace}}
+      Period: {{period}}
+      Statistic: {{statistic}}
+      Threshold: {{threshold}}
+  ScalingPolicy{{@index}}:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: {{adjustmentType}}
+      AutoScalingGroupName: 
+        Ref: AWSEBAutoScalingGroup
+      Cooldown: {{cooldown}}
+      PolicyType: SimpleScaling
+      ScalingAdjustment: {{adjustmentValue}}
+  {{/each}}
