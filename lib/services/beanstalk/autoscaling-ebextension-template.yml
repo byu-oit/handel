@@ -1,81 +1,15 @@
 Resources:
-  {{#if scaleUpPolicy}}
+  # Turn off Beanstalk's default scaling policies
   AWSEBCloudwatchAlarmHigh:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      ActionsEnabled: true
-      AlarmActions:
-      - Ref: AWSEBAutoScalingScaleUpPolicy
-      AlarmDescription: Handel-created alarm for Beanstalk app '{{stackName}}' auto-scaling
-      ComparisonOperator: {{scaleUpPolicy.comparisonOperator}}
-      Dimensions:
-      {{#if scaleUpPolicy.dimensions}}
-      {{#each scaleUpPolicy.dimensions}}
-      - Name: {{name}}
-        Value: {{value}}
-      {{/each}}
-      {{else}}
-      - Name: AutoScalingGroupName
-        Value: 
-          Ref: AWSEBAutoScalingGroup
-      {{/if}}
-      EvaluationPeriods: 1
-      MetricName: {{scaleUpPolicy.metricName}}
-      Namespace: {{scaleUpPolicy.namespace}}
-      Period: {{scaleUpPolicy.period}}
-      Statistic: {{scaleUpPolicy.statistic}}
-      Threshold: {{scaleUpPolicy.threshold}}
-  AWSEBAutoScalingScaleUpPolicy:
-    Type: AWS::AutoScaling::ScalingPolicy
-    Properties:
-      AdjustmentType: {{scaleUpPolicy.adjustmentType}}
-      AutoScalingGroupName: 
-        Ref: AWSEBAutoScalingGroup
-      Cooldown: {{scaleUpPolicy.cooldown}}
-      PolicyType: SimpleScaling
-      ScalingAdjustment: {{scaleUpPolicy.adjustmentValue}}
-  {{/if}}
-
-  {{#if scaleDownPolicy}}
+      AlarmActions: [ { "Ref" : "AWS::NoValue" } ]
   AWSEBCloudwatchAlarmLow:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      ActionsEnabled: true
-      AlarmActions:
-      - Ref: AWSEBAutoScalingScaleDownPolicy
-      AlarmDescription: Handel-created alarm for Beanstalk app '{{stackName}}' auto-scaling
-      ComparisonOperator: {{scaleDownPolicy.comparisonOperator}}
-      Dimensions:
-      {{#if scaleDownPolicy.dimensions}}
-      {{#each scaleDownPolicy.dimensions}}
-      - Name: {{name}}
-        Value: {{value}}
-      {{/each}}
-      {{else}}
-      - Name: AutoScalingGroupName
-        Value: 
-          Ref: AWSEBAutoScalingGroup
-      {{/if}}
-      EvaluationPeriods: 1
-      InsufficientDataActions:
-      - Ref: AWSEBAutoScalingScaleDownPolicy
-      MetricName: {{scaleDownPolicy.metricName}}
-      Namespace: {{scaleDownPolicy.namespace}}
-      Period: {{scaleDownPolicy.period}}
-      Statistic: {{scaleDownPolicy.statistic}}
-      Threshold: {{scaleDownPolicy.threshold}}
-  AWSEBAutoScalingScaleDownPolicy:
-    Type: AWS::AutoScaling::ScalingPolicy
-    Properties:
-      AdjustmentType: {{scaleDownPolicy.adjustmentType}}
-      AutoScalingGroupName: 
-        Ref: AWSEBAutoScalingGroup
-      Cooldown: {{scaleDownPolicy.cooldown}}
-      PolicyType: SimpleScaling
-      ScalingAdjustment: {{scaleDownPolicy.adjustmentValue}}
-  {{/if}}
+      AlarmActions: [ { "Ref" : "AWS::NoValue" } ]
 
-  {{#each otherScalingPolicies}}
+  {{#each scalingPolicies}}
   ScalingAlarm{{@index}}:
     Type: AWS::CloudWatch::Alarm
     Properties:
