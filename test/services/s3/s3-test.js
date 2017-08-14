@@ -194,7 +194,7 @@ describe('s3 deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return s3.unDeploy(serviceContext)
                 .then(unDeployContext => {

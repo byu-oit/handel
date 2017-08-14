@@ -33,6 +33,17 @@ describe('s3Calls', function () {
         AWS.restore('S3');
     });
 
+    describe('deleteMatchingPrefix', function () {
+        it('should delete file(s) from a bucket matching a prefix', function () {
+            AWS.mock('S3', 'listObjectsV2', Promise.resolve({Name:'FakeBucket',Contents:[]}));
+
+            return s3Calls.deleteMatchingPrefix('FakeBucket', 'FakePrefix')
+                .then(data => {
+                    expect(data).to.be.null;
+                });
+        });
+    });
+
     describe('uploadFile', function () {
         it('should upload the file', function () {
             let filePath = `${__dirname}/test-upload-file.txt`;
