@@ -3,6 +3,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Handel-created ECS Cluster
 
 Resources:
+  #
+  # Configure IAM resources for ECS resources
+  #
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -57,6 +60,10 @@ Resources:
       Path: "/"
       Roles:
       - Ref: EcsIamRole
+  
+  #
+  # Configure ECS Cluster
+  #
   EcsLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -158,6 +165,10 @@ Resources:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: {{clusterName}}
+
+  # 
+  # Configure ECS Service that runs on the cluster
+  #
   EcsService:
     Type: AWS::ECS::Service
     DependsOn:
@@ -235,6 +246,106 @@ Resources:
         {{/each}}
         {{/if}}
       {{/each}}
+
+  #
+  # Configure Service Auto Scaling
+  #
+  {{#if autoScaling.scalingEnabled}}
+  ServiceAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{clusterName}}-service-autoscaling
+      Path: /services/
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 
+            - application-autoscaling.amazonaws.com
+          Action: 
+          - 'sts:AssumeRole'
+  ServiceAutoScalingPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{clusterName}}-service-autoscaling
+      Roles:
+      - !Ref ServiceAutoScalingRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action: 
+          - 'application-autoscaling:*'
+          - 'cloudwatch:DescribeAlarms'
+          - 'cloudwatch:PutMetricAlarm'
+          - 'ecs:DescribeServices'
+          - 'ecs:UpdateService'
+          Resource: 
+          - '*'
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: {{autoScaling.maxTasks}}
+      MinCapacity: {{autoScaling.minTasks}}
+      ResourceId: !Join ["", [ "service/{{clusterName}}/", !GetAtt EcsService.Name]]
+      RoleARN: !GetAtt ServiceAutoScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+  {{#each autoScaling.scalingPolicies}}
+  ServiceScalingPolicy{{@index}}:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: {{../clusterName}}-{{@index}}
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: {{adjustmentType}}
+        Cooldown: {{cooldown}}
+        MetricAggregationType: {{metricAggregationType}}
+        StepAdjustments:
+        - ScalingAdjustment: {{adjustmentValue}}
+          {{#if scaleUp}}
+          MetricIntervalLowerBound: 0
+          {{/if}}
+          {{#if scaleDown}}
+          MetricIntervalUpperBound: 0
+          {{/if}}
+  ServiceScalingAlarm{{@index}}:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+      - !Ref ServiceScalingPolicy{{@index}}
+      AlarmDescription: Handel-created alarm for ECS cluster '{{../clusterName}}'' application auto-scaling
+      ComparisonOperator: {{comparisonOperator}}
+      Dimensions:
+      {{#if dimensions}}
+      {{#each dimensions}}
+      - Name: {{name}}
+        Value: {{value}}
+      {{/each}}
+      {{else}}
+      - Name: ClusterName
+        Value: {{../clusterName}}
+      - Name: ServiceName
+        Value: !GetAtt EcsService.Name
+      {{/if}}
+      EvaluationPeriods: 1
+      {{#if scaleDown}}
+      InsufficientDataActions:
+      - !Ref ServiceScalingPolicy{{@index}}
+      {{/if}}
+      MetricName: {{metricName}}
+      Namespace: {{namespace}}
+      Period: {{period}}
+      Statistic: {{metricAggregationType}}
+      Threshold: {{threshold}}
+  {{/each}}
+  {{/if}}
+
+  # 
+  # Configure Load Balancer if requested
+  # 
   {{#if oneOrMoreTasksHasRouting}}
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer

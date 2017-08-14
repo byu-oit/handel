@@ -88,8 +88,39 @@ describe('beanstalk deployer', function () {
             return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
                 type: 'beanstalk',
                 solution_stack: '64bit Amazon Linux 2016.09 v4.0.1 running Node.js',
-                min_instances: 2,
-                max_instances: 4,
+                auto_scaling: {
+                    min_instances: 2,
+                    max_instances: 4,
+                    scaling_policies: [
+                        {
+                            type: "up",
+                            adjustment: {
+                              value: 1,
+                              cooldown: 60
+                            },
+                            alarm: {
+                              statistic: "Average",
+                              metric_name: "CPUUtilization",
+                              comparison_operator: "GreaterThanThreshold",
+                              threshold: 70,
+                              period: 60
+                            }
+                        },
+                        {
+                            type: "down",
+                            adjustment: {
+                              value: 1,
+                              cooldown: 60
+                            },
+                            alarm: {
+                              metric_name: "CPUUtilization",
+                              comparison_operator: "LessThanThreshold",
+                              threshold: 30,
+                              period: 60
+                            }
+                        }
+                    ]
+                },
                 key_name: 'MyKey',
                 instance_type: 't2.small'
             });

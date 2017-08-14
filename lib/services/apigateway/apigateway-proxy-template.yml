@@ -87,6 +87,12 @@ Resources:
   ServerlessRestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
+      {{#if binaryMediaTypes}}
+      BinaryMediaTypes:
+      {{#each binaryMediaTypes}}
+      - '{{{this}}}'
+      {{/each}}
+      {{/if}}
       Body:
         info:
           version: '1.0'

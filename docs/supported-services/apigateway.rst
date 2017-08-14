@@ -58,6 +58,11 @@ Parameters
      - Yes
      - 
      - The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your 'main' method.
+   * - binary_media_types
+     - array
+     - No
+     -
+     - A sequence (array) of BinaryMediaType strings. *Note* The handel will do the '/' to '~1' `character escaping <http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-configure-with-control-service-api.html#api-gateway-payload-encodings-pass-binary-as-is>`_ for you.
    * - description
      - string
      - No

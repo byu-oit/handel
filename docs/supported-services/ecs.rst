@@ -10,16 +10,11 @@ One service per cluster
 ~~~~~~~~~~~~~~~~~~~~~~~
 This service uses a model of one ECS service per ECS cluster. It does not support the model of one large cluster with multiple services running on it.
 
-Container auto-scaling
-~~~~~~~~~~~~~~~~~~~~~~
-Handel will auto-scale your EC2 cluster up and down, but does not yet support you configuring your own container auto-scaling. Support is planned to be added in the near future.
-
 Unsupported ECS task features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This service currently does not support the following ECS task features:
 
 * User-specified volumes from the EC2 host. You can specify services such as EFS that will mount a volume in your container for you, however.
-* Container links within a task.
 * Extra networking items such as manually specifying DNS Servers, DNS Search Domains, and extra hosts in the /etc/hosts file
 * Task definition options such as specifying an entry point, command, or working directory. These options are available in your Dockerfile and can be specified there.
 
@@ -112,7 +107,7 @@ If you don't specify an *image_name*, Handel will automatically choose an image 
 
     <appName>-<serviceName>-<containerName>:<environmentName>
 
-For example, if you don't specify an *image_name* in the below :ref:`ecs-example-handel-file`, the two images ECS looks for would be named the following:
+For example, if you don't specify an *image_name* in the below :ref:`ecs-example-handel-files`, the two images ECS looks for would be named the following:
 
 .. code-block:: none
 
@@ -131,10 +126,31 @@ The `auto_scaling` section is defined by the following schema:
     auto_scaling:
       min_tasks: <integer> # Required
       max_tasks: <integer> # Required
+      scaling_policies: # Optional
+      - type: <up|down>
+        adjustment:
+          type: <string> # Optional. Default: 'ChangeInCapacity'. See http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_StepScalingPolicyConfiguration.html for allowed values
+          value: <number> # Required
+          cooldown: <number> # Optional. Default: 300. 
+        alarm:
+          namespace: <string> # Optional. Default: 'AWS/ECS'
+          dimensions: # Optional. Default: Your ECS service dimensions
+            <string>: <string>
+          metric_name: <string> # Required
+          comparison_operator: <string> # Required. See http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-comparisonoperator for allowed values.
+          threshold: <number> # Required
+          period: <number> # Optional. Default: 300
+
+
+.. TIP::
+
+  Auto-scaling in AWS is based off the CloudWatch service. Configuring auto-scaling can be a bit daunting at first if you haven't used CloudWatch metrics or alarms. 
+  
+  See the below :ref:`ecs-example-handel-files` section for some examples of configuring auto-scaling.
 
 .. NOTE::
 
-  If you don't wish to configure auto scaling for your containers, just set `min_tasks` = `max_tasks` and don't configure any other options in auto_scaling.
+  If you don't wish to configure auto scaling for your containers, just set `min_tasks` = `max_tasks` and don't configure any *scaling_policies*.
 
 .. _ecs-cluster:
 
@@ -178,10 +194,59 @@ The `tags` section is defined by the following schema:
 
 
 
-.. _ecs-example-handel-file:
+.. _ecs-example-handel-files:
 
-Example Handel File
--------------------
+Example Handel Files
+--------------------
+Simplest Possible ECS Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This Handel file shows an ECS service with only the required parameters:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-ecs-app
+
+    environments:
+      dev:
+        webapp:
+          type: ecs
+          auto_scaling:
+            min_tasks: 1
+            max_tasks: 1
+          containers:
+          - name: mywebapp
+
+Web Service
+~~~~~~~~~~~
+This Handel file shows an ECS service configured with HTTP routing to it via a load balancer:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-ecs-app
+
+    environments:
+      dev:
+        webapp:
+          type: ecs
+          auto_scaling:
+            min_tasks: 1
+            max_tasks: 1
+          load_balancer:
+            type: http
+          containers:
+          - name: mywebapp
+            port_mappings:
+            - 5000
+            routing:
+              base_path: /mypath
+              health_check_path: /
+
+Multiple Containers
+~~~~~~~~~~~~~~~~~~~
 This Handel file shows an ECS service with two containers being configured:
 
 .. code-block:: yaml
@@ -217,6 +282,99 @@ This Handel file shows an ECS service with two containers being configured:
               health_check_path: /
           - name: myothercontainer
             max_mb: 256
+
+Auto-Scaling On Service CPU Utilization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This Handel file shows an ECS service auto-scaling on its own CPU Utilization metric. Note that in the *alarm* section you can leave off things like *namespace* and *dimensions* and it will default to your ECS service for those values:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-ecs-app
+
+    environments:
+      dev:
+        webapp:
+          type: ecs
+          auto_scaling:
+            min_tasks: 1
+            max_tasks: 11
+            scaling_policies:
+            - type: up
+              adjustment:
+                value: 5
+              alarm:
+                metric_name: CPUUtilization
+                comparison_operator: GreaterThanThreshold
+                threshold: 70
+            - type: down
+              adjustment:
+                value: 5
+              alarm:
+                metric_name: CPUUtilization
+                comparison_operator: LessThanThreshold
+                threshold: 30
+          load_balancer:
+            type: http
+          containers:
+          - name: ecstest
+            port_mappings:
+            - 5000
+            routing:
+              base_path: /mypath
+
+Auto-Scaling On Queue Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+This Handel file shows an ECS service scaling off the size of a queue it consumes:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-ecs-app
+
+    environments:
+      dev:
+        webapp:
+          type: ecs
+          auto_scaling:
+            min_tasks: 1
+            max_tasks: 11
+            scaling_policies:
+            - type: up
+              adjustment:
+                value: 5
+              alarm:
+                namespace: AWS/SQS
+                dimensions:
+                  QueueName: my-ecs-app-dev-queue-sqs
+                metric_name: ApproximateNumberOfMessagesVisible
+                comparison_operator: GreaterThanThreshold
+                threshold: 2000
+            - type: down
+              adjustment:
+                value: 5
+              alarm:
+                namespace: AWS/SQS
+                dimensions:
+                  QueueName: my-ecs-app-dev-queue-sqs
+                metric_name: ApproximateNumberOfMessagesVisible
+                comparison_operator: LessThanThreshold
+                threshold: 100
+          load_balancer:
+            type: http
+          containers:
+          - name: ecstest
+            port_mappings:
+            - 5000
+            routing:
+              base_path: /mypath
+          dependencies:
+          - queue
+        queue:
+          type: sqs
+
         
 Depending on this service
 -------------------------
