@@ -21,6 +21,7 @@ const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const deletePhasesCommon = require('../../lib/common/delete-phases-common');
 const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
 const ec2Calls = require('../../lib/aws/ec2-calls');
+const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -35,30 +36,34 @@ describe('Delete phases common module', function () {
         sandbox.restore();
     });
 
-    describe('unDeployCloudFormationStack', function () {
+    describe('unDeployService', function () {
         it('should delete the stack if it exists', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+            let deleteMatchingPrefix = sandbox.stub(s3Calls,'deleteMatchingPrefix').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
-            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+            return deletePhasesCommon.unDeployService(serviceContext, "DynamoDB")
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.calledOnce).to.be.true;
+                    expect(deleteMatchingPrefix.calledOnce).to.be.true;
                 });
         });
 
         it('should suceed even if the stack has been deleted', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
+            let deleteMatchingPrefix = sandbox.stub(s3Calls,'deleteMatchingPrefix').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
-            return deletePhasesCommon.unDeployCloudFormationStack(serviceContext, "DynamoDB")
+            return deletePhasesCommon.unDeployService(serviceContext, "DynamoDB")
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(deleteStackStub.notCalled).to.be.true;
+                    expect(deleteMatchingPrefix.calledOnce).to.be.true;
                 });
         });
     });

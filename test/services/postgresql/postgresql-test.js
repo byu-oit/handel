@@ -223,7 +223,7 @@ describe('postgresql deployer', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
             let unDeployContext = new UnDeployContext(serviceContext);
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(unDeployContext));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(unDeployContext));
             let deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));
 
             return postgresql.unDeploy(serviceContext)

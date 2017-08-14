@@ -213,7 +213,7 @@ describe('cloudwatchevent deployer', function () {
         it('should remove all targets and delete the stack', function () {
             let getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
             let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(true));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(true));
             
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
             return cloudWatchEvent.unDeploy(serviceContext)

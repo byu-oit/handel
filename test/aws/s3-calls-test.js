@@ -21,6 +21,8 @@ const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 const childProcess = require('child_process');
 
+console.log('args',process.argv);
+
 describe('s3Calls', function () {
     let sandbox;
 
@@ -31,6 +33,17 @@ describe('s3Calls', function () {
     afterEach(function () {
         sandbox.restore();
         AWS.restore('S3');
+    });
+
+    describe('deleteMatchingPrefix', function () {
+        it('should delete file(s) from a bucket matching a prefix', function () {
+            AWS.mock('S3', 'listObjectsV2', Promise.resolve({Name:'FakeBucket',Contents:[]}));
+
+            return s3Calls.deleteMatchingPrefix('FakeBucket', 'FakePrefix')
+                .then(data => {
+                    expect(data).to.be.null;
+                });
+        });
     });
 
     describe('uploadFile', function () {
