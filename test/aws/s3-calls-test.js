@@ -21,8 +21,6 @@ const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 const childProcess = require('child_process');
 
-console.log('args',process.argv);
-
 describe('s3Calls', function () {
     let sandbox;
 
