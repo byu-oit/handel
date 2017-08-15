@@ -182,6 +182,12 @@ The `load_balancer` section is defined by the following schema:
       type: <string> # Required. Allowed values: `http`, `https`. 
       timeout: <integer> # Optional. The connection timeout on the load balancer
       https_certificate: <string> # Required if type=https. The ID of the ACM certificate to use on the load balancer.
+      dns_names:
+       - <string> # Optional.
+
+DNS Names
+`````````
+The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
 .. _ecs-tags:
 

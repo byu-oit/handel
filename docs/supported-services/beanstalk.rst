@@ -72,11 +72,6 @@ Parameters
      - No
      - 
      - Any user-specified environment variables to inject in the application.
-   * - dns
-     - List<:ref:`route53zone-records`>
-     - No
-     -
-     - DNS records to create and associate with the load balancer for this application.
    * - tags
      - :ref:`beanstalk-tags`
      - No
@@ -140,6 +135,12 @@ The Routing element is defined by the following schema:
     routing:
       type: <http|https>
       https_certificate # Required if you select https as the routing type
+      dns_names:
+       - <string> # Optional
+
+DNS Names
+`````````
+The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
 .. _beanstalk-tags:
 
