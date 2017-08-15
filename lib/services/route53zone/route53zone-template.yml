@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Route53 Hosted Zone
+
+Resources:
+  Zone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      Name: {{name}}
+      HostedZoneConfig:
+        Comment: Handel-generated zone for {{name}}
+      {{#if vpcs}}
+      VPCs:
+      {{#each vpcs}}
+        - VPCId: {{this.id}}
+          VPCRegion: {{this.region}}
+      {{/each}}
+      {{/if}}
+      {{#if tags}}
+      HostedZoneTags:
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      
+Outputs:
+  ZoneId:
+    Description: The ID of the hosted zone
+    Value: !Ref Zone
+  ZoneNameServers:
+    Description: The hosted zone's name servers
+    Value:
+      Fn::Join:
+        - ","
+        - !GetAtt Zone.NameServers

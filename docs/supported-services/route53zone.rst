@@ -95,9 +95,11 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_DNS_NAME
+   * - <ENV_PREFIX>_ZONE_NAME
      - The DNS name of hosted zone.
-   * - <ENV_PREFIX>_NAME_SERVERS
+   * - <ENV_PREFIX>_ZONE_ID
+     - The id of the hosted zone
+   * - <ENV_PREFIX>_ZONE_NAME_SERVERS
      - A comma-delimited list of the name servers for this hosted zone. For example: ns1.example.com,ns2.example.co.uk
 
 
