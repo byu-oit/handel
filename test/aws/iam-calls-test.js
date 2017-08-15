@@ -245,4 +245,15 @@ describe('iam calls', function () {
                 });
         });
     });
+
+    describe('showAccount', function () {
+        it('should return the currently authenticated account id', function () {
+            AWS.mock('IAM', 'listRoles', Promise.resolve({Roles:[{Arn:`arn:aws:iam::${accountConfig.account_id}:stuff`}]}));
+
+            return iamCalls.showAccount()
+                .then(response => {
+                    expect(response).to.equal(`${accountConfig.account_id}`);
+                });
+        });
+    });
 });

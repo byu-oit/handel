@@ -16,6 +16,7 @@
  */
 const accountConfig = require('../../lib/common/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
 const deleteLifecycle = require('../../lib/lifecycles/delete');
+const iamCalls = require('../../lib/aws/iam-calls');
 const unDeployPhase = require('../../lib/phases/un-deploy');
 const unPreDeployPhase = require('../../lib/phases/un-pre-deploy');
 const unBindPhase = require('../../lib/phases/un-bind');
@@ -37,6 +38,7 @@ describe('delete lifecycle module', function () {
 
     describe('delete', function () {
         it('should delete the application environment', function () {
+            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(accountConfig.account_id));
             let unDeployServicesStub = sandbox.stub(unDeployPhase, 'unDeployServicesInLevel').returns({});
             let unBindServicesStub = sandbox.stub(unBindPhase, 'unBindServicesInLevel').returns({});
             let unPreDeployStub = sandbox.stub(unPreDeployPhase, 'unPreDeployServices').returns(Promise.resolve({

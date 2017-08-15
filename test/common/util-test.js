@@ -15,6 +15,7 @@
  *
  */
 const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
+const iamCalls = require('../../lib/aws/iam-calls');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -77,6 +78,27 @@ describe('util module', function () {
                 })
                 .catch(err => {
                     expect(err.message).to.equal("error");
+                });
+        });
+    });
+
+    describe('validateCredentials', function () {
+        it('should not throw an Error if credentials are valid and match the account id', function () {
+            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(accountConfig.account_id));
+            return util.validateCredentials(accountConfig)
+              .then(result => {
+                expect(result).to.be.undefined;
+              });
+        })
+
+        it('should return a rejected promise on error', function () {
+            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(''));
+            return util.validateCredentials(accountConfig)
+                .then(result => {
+                    expect(true).to.be.false; //Should not get here
+                })
+                .catch(err => {
+                    expect(err.name).to.equal('HandelAcct');
                 });
         });
     });
