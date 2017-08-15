@@ -63,6 +63,11 @@ This service takes the following parameters:
      - No 
      - error.html
      - The name of the file in S3 to serve as the error document.
+   * - dns
+     - :ref:`route53zone-records`
+     - No
+     -
+     - DNS records to create and associate with this bucket. If specified, the bucket name must match the record name.
    * - tags
      - :ref:`s3staticsite-tags`
      - No

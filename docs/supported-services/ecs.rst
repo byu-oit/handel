@@ -53,6 +53,11 @@ Parameters
      - No
      - 
      - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
+   * - dns
+     - List<:ref:`route53zone-records`>
+     - No
+     -
+     - DNS records to create and associate with the load balancer for this task.
    * - tags
      - :ref:`ecs-tags`
      - No

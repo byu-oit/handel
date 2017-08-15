@@ -72,6 +72,11 @@ Parameters
      - No
      - 
      - Any user-specified environment variables to inject in the application.
+   * - dns
+     - List<:ref:`route53zone-records`>
+     - No
+     -
+     - DNS records to create and associate with the load balancer for this application.
    * - tags
      - :ref:`beanstalk-tags`
      - No
