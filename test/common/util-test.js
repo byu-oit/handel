@@ -18,7 +18,8 @@ const accountConfig = require('../../lib/common/account-config')(`${__dirname}/.
 const iamCalls = require('../../lib/aws/iam-calls');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
-const expect = require('chai').expect;
+const sinonChai = require('sinon-chai');
+const expect = require('chai').use(sinonChai).expect;
 const fs = require('fs');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 
@@ -73,6 +74,32 @@ describe('util module', function () {
         it('should return a rejected promise on error', function () {
             sandbox.stub(fs, 'readFile').callsArgWith(2, new Error("error"), null);
             return util.readYamlFileAsync('somePath')
+                .then(result => {
+                    expect(true).to.be.false; //Should not get here
+                })
+                .catch(err => {
+                    expect(err.message).to.equal("error");
+                });
+        });
+    });
+
+    describe('replaceTagInFile', function () {
+        it('should replace regex strings in a file on success', function () {
+            sandbox.stub(fs, 'readFile').callsArgWithAsync(2, null, 'This is a string with a <sub_var> replacement tag.');
+            let stubWrite = sandbox.stub(fs, 'writeFile').callsArgWithAsync(2, null, '');
+            let lstTag = [
+              { regex: / a \<sub_var\>/g, value: 'out a' },
+              { regex: / replacement/g, value: '' }
+            ];
+            return util.replaceTagInFile(lstTag,'somePath','someFile')
+                .then(result => {
+                    expect(stubWrite).to.have.been.calledWith(sinon.match.string,'This is a string without a tag.');
+                });
+        });
+
+        it('should return a rejected promise on error', function () {
+            sandbox.stub(fs, 'readFile').callsArgWith(2, new Error("error"), null);
+            return util.replaceTagInFile(null,'somePath','someFile')
                 .then(result => {
                     expect(true).to.be.false; //Should not get here
                 })
