@@ -473,6 +473,24 @@ Resources:
       VpcId: {{../vpcId}}
   {{/if}}
   {{/each}}
+  {{#each loadBalancer.dnsNames}}
+  DnsName{{@index}}:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      Comment: Handel-created DNS Records for {{name}}
+      HostedZoneId: {{zoneId}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+  {{/each}}
   {{/if}}
 Outputs:
   EcsClusterId:

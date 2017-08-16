@@ -29,6 +29,7 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../../lib/datatypes/bind-context');
+const route53calls = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -43,7 +44,11 @@ const VALID_ECS_CONFIG = {
     },
     load_balancer: {
         type: 'https',
-        https_certificate: 'fakeid'
+        https_certificate: 'fakeid',
+        dns_names: [
+            'myapp.byu.edu',
+            'myapp.internal'
+        ]
     },
     tags: {
         mytag: 'myvalue'
@@ -118,6 +123,13 @@ describe('ecs deployer', function () {
             let errors = ecs.check(serviceContextToCheck);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`'https_certificate' parameter is required`);
+        });
+
+        it('should validate dns hostnames', function() {
+            configToCheck.load_balancer.dns_names = ['invalid hostname'];
+            let errors = ecs.check(serviceContextToCheck);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'dns_names' values must be valid hostnames`);
         });
 
         it('should require the container section be present', function () {
@@ -254,6 +266,13 @@ describe('ecs deployer', function () {
             let getLatestAmiByNameStub = sandbox.stub(ec2Calls, 'getLatestAmiByName').returns(Promise.resolve({
                 ImageId: 'FakeAmiId'
             }));
+            let getHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').returns(Promise.resolve([{
+                Id: '1',
+                Name: 'myapp.byu.edu.'
+            }, {
+                Id: '2',
+                Name: 'myapp.internal.'
+            }]));
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').returns(Promise.resolve({}));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
@@ -270,6 +289,11 @@ describe('ecs deployer', function () {
                     expect(createStackStub.callCount).to.equal(1);
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(createCustomRoleStub.callCount).to.equal(1);
+
+                    //DNS name setup
+                    expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
+                    expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
+                    expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
                 });
         });
     });

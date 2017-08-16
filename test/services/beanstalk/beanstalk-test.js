@@ -182,10 +182,10 @@ describe('beanstalk deployer', function () {
 
             sandbox.stub(route53, 'listHostedZones').returns(Promise.resolve([{
                 Id: '1',
-                Name: 'myapp.byu.edu'
+                Name: 'myapp.byu.edu.'
             }, {
                 Id: '2',
-                Name: 'myapp.internal'
+                Name: 'myapp.internal.'
             }]));
 
             let ownServiceContext = getServiceContext();
