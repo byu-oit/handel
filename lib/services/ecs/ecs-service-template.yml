@@ -351,7 +351,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
     Properties:
-      Name: {{clusterName}}
+      Name: {{loadBalancer.albName}}
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
@@ -370,7 +370,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{clusterName}}-alb
+        Value: {{loadBalancer.albName}}
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -394,7 +394,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{clusterName}}-alb
+        Value: {{loadBalancer.albName}}-alb
   EcsIngressFromAlb:
     Type: AWS::EC2::SecurityGroupIngress
     DependsOn: AlbSecurityGroup
@@ -457,7 +457,7 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      Name: {{../clusterName}}-{{name}}
+      Name: {{routingInfo.targetGroupName}}
       Port: 80
       Protocol: HTTP
       Tags:
@@ -468,7 +468,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{../clusterName}}-{{name}}-alb
+        Value: {{routingInfo.targetGroupName}}
       UnhealthyThresholdCount: 2
       VpcId: {{../vpcId}}
   {{/if}}
