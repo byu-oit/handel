@@ -27,6 +27,7 @@ const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-commo
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const yaml = require('js-yaml');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -166,6 +167,41 @@ describe('route53zone deployer', function () {
             return route53.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
                     expect(deployStackStub.callCount).to.equal(1);
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.policies).to.be.empty;
+                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
+                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
+                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
+                });
+        });
+
+        it('can deploy private zones', function () {
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'ZoneName',
+                    OutputValue: dnsName
+                }, {
+                    OutputKey: 'ZoneId',
+                    OutputValue: zoneId
+                }, {
+                    OutputKey: 'ZoneNameServers',
+                    OutputValue: zoneNameServers
+                }]
+            }));
+
+            let privateServiceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {
+                name: dnsName,
+                private: true,
+            });
+
+            return route53.deploy(privateServiceContext, preDeployContext, [])
+                .then(deployContext => {
+                    expect(deployStackStub.callCount).to.equal(1);
+
+                    expect(deployStackStub.firstCall.args[1]).to.contain(
+                        `VPCs:
+        - VPCId: ${accountConfig.vpc}
+          VPCRegion: ${accountConfig.region}`);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.be.empty;
                     expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
