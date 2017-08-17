@@ -185,8 +185,6 @@ The `load_balancer` section is defined by the following schema:
       dns_names:
        - <string> # Optional.
 
-DNS Names
-`````````
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
 .. _ecs-tags:
