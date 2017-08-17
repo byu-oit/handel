@@ -34,6 +34,20 @@ describe('util module', function () {
         sandbox.restore();
     });
 
+    describe('readDirSync', function () {
+      it('should return null on an error', function () {
+        sandbox.stub(fs, 'readdirSync').throws(new Error("someMessage"));
+        let result = util.readDirSync('somePath');
+        expect(result).to.be.null;
+      });
+
+      it('should return an array of names on success', function () {
+        sandbox.stub(fs, 'readdirSync').returns([]);
+        let result = util.readDirSync('somePath');
+        expect(result).to.be.an('array');
+      });
+    });
+
     describe('readFileSync', function () {
         it('should return null on an error', function () {
             sandbox.stub(fs, 'readFileSync').throws(new Error("someMessage"));
@@ -45,6 +59,20 @@ describe('util module', function () {
             sandbox.stub(fs, 'readFileSync').returns("");
             let result = util.readFileSync('somePath');
             expect(result).to.equal("");
+        });
+    });
+
+    describe('writeFileSync', function () {
+        it('should return null on an error', function () {
+            sandbox.stub(fs, 'writeFileSync').throws(new Error("someMessage"));
+            let result = util.writeFileSync('somePath');
+            expect(result).to.be.null;
+        });
+
+        it('should return undefined on success', function () {
+            sandbox.stub(fs, 'writeFileSync').returns(undefined);
+            let result = util.writeFileSync('somePath');
+            expect(result).to.be.undefined;
         });
     });
 
@@ -85,27 +113,20 @@ describe('util module', function () {
 
     describe('replaceTagInFile', function () {
         it('should replace regex strings in a file on success', function () {
-            sandbox.stub(fs, 'readFile').callsArgWithAsync(2, null, 'This is a string with a <sub_var> replacement tag.');
-            let stubWrite = sandbox.stub(fs, 'writeFile').callsArgWithAsync(2, null, '');
+            sandbox.stub(util, 'readFileSync').returns('This is a string with a <sub_var> replacement tag.');
+            let stubWrite = sandbox.stub(util, 'writeFileSync').returns(undefined);
             let lstTag = [
               { regex: / a \<sub_var\>/g, value: 'out a' },
               { regex: / replacement/g, value: '' }
             ];
-            return util.replaceTagInFile(lstTag,'somePath','someFile')
-                .then(result => {
-                    expect(stubWrite).to.have.been.calledWith(sinon.match.string,'This is a string without a tag.');
-                });
+            let result = util.replaceTagInFile(lstTag,'somePath','someFile');
+            expect(stubWrite).to.have.been.calledWith(sinon.match.string,'This is a string without a tag.');
         });
 
-        it('should return a rejected promise on error', function () {
-            sandbox.stub(fs, 'readFile').callsArgWith(2, new Error("error"), null);
-            return util.replaceTagInFile(null,'somePath','someFile')
-                .then(result => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.equal("error");
-                });
+        it('should return null on error', function () {
+            sandbox.stub(util, 'readFileSync').returns(null);
+            let result = util.replaceTagInFile(null,'somePath','someFile')
+            expect(result).to.be.null;
         });
     });
 

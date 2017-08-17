@@ -56,7 +56,7 @@ describe('deployable artifact module', function () {
             let deleteEbextensionsStub = sandbox.stub(ebextensions, 'deleteAddedEbExtensionsFromDirectory').returns(true);
             let copyDirectoryStub = sandbox.stub(util, 'copyDirectory').returns(Promise.resolve(true));
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(s3ArtifactInfo.Bucket).to.equal(bucket);
                     expect(s3ArtifactInfo.Key).to.equal(key);
@@ -76,7 +76,7 @@ describe('deployable artifact module', function () {
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(true).to.be.false; //Should not get here
                 })
@@ -106,7 +106,7 @@ describe('deployable artifact module', function () {
             }));
             let unlinkStub = sandbox.stub(fs, 'unlinkSync').returns(true);
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(s3ArtifactInfo.Bucket).to.equal(bucket);
                     expect(s3ArtifactInfo.Key).to.equal(key);
@@ -131,7 +131,7 @@ describe('deployable artifact module', function () {
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(true).to.be.false; //Should not get here
                 })
@@ -161,7 +161,7 @@ describe('deployable artifact module', function () {
             }));
             let unlinkStub = sandbox.stub(fs, 'unlinkSync').returns(true);
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(s3ArtifactInfo.Bucket).to.equal(bucket);
                     expect(s3ArtifactInfo.Key).to.equal(key);
@@ -199,7 +199,7 @@ describe('deployable artifact module', function () {
             }));
             let unlinkStub = sandbox.stub(fs, 'unlinkSync').returns(true);
 
-            return deployableArtifact.prepareAndUploadDeployableArtifact(accountConfig,serviceContext, [])
+            return deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, [])
                 .then(s3ArtifactInfo => {
                     expect(s3ArtifactInfo.Bucket).to.equal(bucket);
                     expect(s3ArtifactInfo.Key).to.equal(key);
