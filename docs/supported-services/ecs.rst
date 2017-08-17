@@ -140,6 +140,7 @@ The `auto_scaling` section is defined by the following schema:
           comparison_operator: <string> # Required. See http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-comparisonoperator for allowed values.
           threshold: <number> # Required
           period: <number> # Optional. Default: 300
+          evaluation_periods: <number> # Optional. Default: 5
 
 
 .. TIP::
