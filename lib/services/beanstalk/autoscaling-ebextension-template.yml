@@ -29,7 +29,7 @@ Resources:
         Value: 
           Ref: AWSEBAutoScalingGroup
       {{/if}}
-      EvaluationPeriods: 1
+      EvaluationPeriods: {{evaluationPeriods}}
       {{#if scaleDown}}
       InsufficientDataActions:
       - Ref: ScalingPolicy{{@index}}

@@ -330,7 +330,7 @@ Resources:
       - Name: ServiceName
         Value: !GetAtt EcsService.Name
       {{/if}}
-      EvaluationPeriods: 1
+      EvaluationPeriods: {{evaluationPeriods}}
       {{#if scaleDown}}
       InsufficientDataActions:
       - !Ref ServiceScalingPolicy{{@index}}
