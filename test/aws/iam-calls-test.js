@@ -252,7 +252,7 @@ describe('iam calls', function () {
 
             return iamCalls.showAccount()
                 .then(response => {
-                    expect(response).to.equal(`${accountConfig.account_id}`);
+                    expect(response).to.equal(accountConfig.account_id);
                 });
         });
     });
