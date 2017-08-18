@@ -1,0 +1,19 @@
+Resources:
+  {{#each names}}
+  DnsName{{@index}}:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      Comment: Handel-created DNS Records for {{name}}
+      HostedZoneId: {{zoneId}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt AWSEBV2LoadBalancer.DNSName
+            HostedZoneId: !GetAtt AWSEBV2LoadBalancer.CanonicalHostedZoneID
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            DNSName: !GetAtt AWSEBV2LoadBalancer.DNSName
+            HostedZoneId: !GetAtt AWSEBV2LoadBalancer.CanonicalHostedZoneID
+  {{/each}}

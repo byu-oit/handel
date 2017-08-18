@@ -151,6 +151,10 @@ The Routing element is defined by the following schema:
     routing:
       type: <http|https>
       https_certificate # Required if you select https as the routing type
+      dns_names:
+       - <string> # Optional
+
+The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
 .. _beanstalk-tags:
 

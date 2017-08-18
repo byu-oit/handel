@@ -53,6 +53,11 @@ Parameters
      - No
      - 
      - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
+   * - dns
+     - List<:ref:`route53zone-records`>
+     - No
+     -
+     - DNS records to create and associate with the load balancer for this task.
    * - tags
      - :ref:`ecs-tags`
      - No
@@ -177,6 +182,10 @@ The `load_balancer` section is defined by the following schema:
       type: <string> # Required. Allowed values: `http`, `https`. 
       timeout: <integer> # Optional. The connection timeout on the load balancer
       https_certificate: <string> # Required if type=https. The ID of the ACM certificate to use on the load balancer.
+      dns_names:
+       - <string> # Optional.
+
+The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
 .. _ecs-tags:
 

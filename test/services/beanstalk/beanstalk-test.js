@@ -28,6 +28,7 @@ const deployableArtifact = require('../../../lib/services/beanstalk/deployable-a
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const route53 = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -49,6 +50,18 @@ describe('beanstalk deployer', function () {
             let errors = beanstalk.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
+
+        it('should check for valid dns_names', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                routing: {
+                    dns_names: ['invalid hostname']
+                }
+            });
+            let errors = beanstalk.check(serviceContext);
+
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'dns_names' values must be valid hostnames")
+        })
     });
 
     describe('preDeploy', function () {
@@ -95,28 +108,28 @@ describe('beanstalk deployer', function () {
                         {
                             type: "up",
                             adjustment: {
-                              value: 1,
-                              cooldown: 60
+                                value: 1,
+                                cooldown: 60
                             },
                             alarm: {
-                              statistic: "Average",
-                              metric_name: "CPUUtilization",
-                              comparison_operator: "GreaterThanThreshold",
-                              threshold: 70,
-                              period: 60
+                                statistic: "Average",
+                                metric_name: "CPUUtilization",
+                                comparison_operator: "GreaterThanThreshold",
+                                threshold: 70,
+                                period: 60
                             }
                         },
                         {
                             type: "down",
                             adjustment: {
-                              value: 1,
-                              cooldown: 60
+                                value: 1,
+                                cooldown: 60
                             },
                             alarm: {
-                              metric_name: "CPUUtilization",
-                              comparison_operator: "LessThanThreshold",
-                              threshold: 30,
-                              period: 60
+                                metric_name: "CPUUtilization",
+                                comparison_operator: "LessThanThreshold",
+                                threshold: 30,
+                                period: 60
                             }
                         }
                     ]
@@ -156,6 +169,46 @@ describe('beanstalk deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                 });
         });
+
+        it('should set up dns records if requested', function () {
+            let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({
+                RoleName: "FakeServiceRole"
+            }));
+            let prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').returns(Promise.resolve({
+                Bucket: "FakeBucket",
+                Key: "FakeKey"
+            }));
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
+
+            sandbox.stub(route53, 'listHostedZones').returns(Promise.resolve([{
+                Id: '1',
+                Name: 'myapp.byu.edu.'
+            }, {
+                Id: '2',
+                Name: 'myapp.internal.'
+            }]));
+
+            let ownServiceContext = getServiceContext();
+            let sgGroupId = "FakeSgId";
+            let ownPreDeployContext = getPreDeployContext(ownServiceContext, sgGroupId);
+
+            ownServiceContext.params.routing = {
+                type: 'http',
+                dns_names: [
+                    'myapp.byu.edu',
+                    'myapp.internal'
+                ]
+            };
+
+            return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
+                .then(deployContext => {
+                    expect(createCustomRoleStub.calledOnce).to.be.true;
+                    expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
+                    expect(prepareAndUploadDeployableArtifactStub.firstCall.args[1]).to.have.property('02dns-names.config');
+                    expect(deployStackStub.calledOnce).to.be.true;
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                });
+        });
     });
 
     describe('consumeEvents', function () {
@@ -185,7 +238,7 @@ describe('beanstalk deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return beanstalk.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
