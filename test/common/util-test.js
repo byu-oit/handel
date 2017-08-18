@@ -81,28 +81,7 @@ describe('util module', function () {
                 });
         });
     });
-
-    describe('validateCredentials', function () {
-        it('should not throw an Error if credentials are valid and match the account id', function () {
-            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(accountConfig.account_id));
-            return util.validateCredentials(accountConfig)
-              .then(result => {
-                expect(result).to.be.undefined;
-              });
-        })
-
-        it('should return a rejected promise on error', function () {
-            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(''));
-            return util.validateCredentials(accountConfig)
-                .then(result => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.name).to.equal('HandelAcct');
-                });
-        });
-    });
-
+    
     describe('zipDirectoryToFile', function () {
         let zippedPath = `${__dirname}/zipped-test-file.zip`;
 

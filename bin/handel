@@ -82,7 +82,7 @@ switch (deployPhase.toLowerCase()) {
         }
         break;
     case "check":
-        cli.checkAction(handelFile);
+        cli.checkAction(handelFile, argv);
         break;
     case "delete":
         errors = cli.validateDeleteArgs(argv, handelFile);
