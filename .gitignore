@@ -1,4 +1,5 @@
 **/.DS_Store
+**/.*.swp
 docs/_build
 out/
 node_modules/

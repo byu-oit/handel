@@ -31,7 +31,7 @@ Parameters
      - string
      - Yes
      - 
-     - The location of your code to upload to Beanstalk. This can be a directory (which will be zipped up) or a single file (such as a deployable Java WAR file)
+     - The location of your code to upload to Beanstalk. This can be a directory (which will be zipped up) or a single file (such as a deployable Java WAR file). If this points to a directory containing a Dockerrun.aws.json file or points to a Dockerrun.aws.json file then the following :ref:`dockerrun-tag` will be substituted.
    * - solution_stack
      - string
      - Yes
@@ -77,6 +77,22 @@ Parameters
      - No
      - 
      - Any tags you want to apply to your Beanstalk environment
+
+.. _dockerrun-tag:
+
+Dockerrun.aws.json Replacement Tags
+-----------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tag
+     - Description
+   * - <aws_account_id>
+     - The account_id from the account config file specified at deployment.
+   * - <aws_region>
+     - The region from the account config file specified at deployment.
+
 
 .. _beanstalk-auto-scaling:
 
