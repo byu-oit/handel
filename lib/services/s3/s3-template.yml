@@ -15,6 +15,45 @@ Resources:
         DestinationBucketName: {{loggingBucketName}}
         LogFilePrefix: {{logFilePrefix}}
       {{/if}}
+      {{#if lifecycle_policy}}
+      LifecycleConfiguration:
+        Rules:
+          {{#each lifecycle_policy}}
+          - Id: {{name}}
+            Status: {{status}}
+            {{#if expiration_date}}
+            ExpirationDate: {{expiration_date}}
+            {{/if}}
+            {{#if expiration_days}}
+            ExpirationInDays: {{expiration_days}}
+            {{/if}}
+            {{#if noncurrent_version_expiration_days}}
+            NoncurrentVersionExpirationInDays: {{noncurrent_version_expiration_days}}
+            {{/if}}
+            {{#if noncurrent_version_transitions}}
+            NoncurrentVersionTransitions:
+            {{#each noncurrent_version_transitions}}
+              - StorageClass: {{type}}
+                TransitionInDays: {{days}}
+            {{/each}}
+            {{/if}}
+            {{#if prefix}}
+            Prefix: {{prefix}}
+            {{/if}}
+            {{#if transitions}}
+            Transitions:
+            {{#each transitions}}
+              - StorageClass: {{type}}
+                {{#if days}}
+                TransitionInDays: {{days}}
+                {{/if}}
+                {{#if date}}
+                TransitionDate: {{date}}
+                {{/if}}
+            {{/each}}
+            {{/if}}
+          {{/each}}
+      {{/if}}
       VersioningConfiguration: 
         Status: {{versioningStatus}}
       {{#if tags}}
