@@ -1,0 +1,20 @@
+version: 1
+
+name: beanstalk-example
+
+environments:
+  dev:
+    webapp:
+      type: beanstalk
+      path_to_code: .
+      solution_stack: 64bit Amazon Linux 2017.03 v4.1.0 running Node.js
+      min_instances: 1
+      max_instances: 2
+      environment_variables:
+        MY_INJECTED_VAR: myValue
+      routing:
+        type: http
+      dependencies:
+      - queue
+    queue:
+      type: sqs

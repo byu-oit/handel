@@ -14,9 +14,13 @@ Application Secrets in Handel
 -----------------------------
 Handel uses the `EC2 Systems Manager Parameter Store <https://aws.amazon.com/ec2/systems-manager/parameter-store/>`_ for secrets storage. This service provides a key/value store where you can securely store secrets in a named parameter. You can then call the AWS API from your application to obtain these secrets.
 
-Handel automatically wires up access to the Parameter Store in your applications, granting you access to get parameters whose names start with your application name from your Handel file.
+Handel automatically wires up access to the Parameter Store in your applications, granting you access to get parameters whose names start with a particular prefix. Handel wires up permissions for parameters with the following prefix:
 
-Consider the following example Handel file, which defines a single Lambda:
+.. code-block:: none
+
+    <appName>.<environmentName>
+
+To see a concrete illustration of this, consider the following example Handel file, which defines a single Lambda:
 
 .. code-block:: yaml
 
@@ -32,7 +36,7 @@ Consider the following example Handel file, which defines a single Lambda:
           handler: app.handler
           runtime: nodejs6.10
 
-This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters that start with "my-lambda-app". Thus, the parameter ``my-lambda-app.somesecret`` would be available to this application, but the ``some-other-app.somesecret`` parameter would not, because it does not start with the application name in the Handel file.
+This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters that start with "my-lambda-app.dev". Thus, the parameter ``my-lambda-app.dev.somesecret`` would be available to this application, but the ``some-other-app.dev.somesecret`` parameter would not, because it does not start with the proper prefix of *<appName>.<environmentName>* in the Handel file.
 
 Adding a Parameter to the Parameter Store
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

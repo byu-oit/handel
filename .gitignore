@@ -1,6 +1,8 @@
 **/.DS_Store
+**/.*.swp
 docs/_build
 out/
 node_modules/
 npm-debug.log
 coverage/
+.idea/

@@ -1,0 +1,39 @@
+version: 1
+
+name: ecs-test
+
+environments:
+  dev:
+    webapp:
+      type: ecs
+      auto_scaling:
+        min_tasks: 1
+        max_tasks: 4
+        scaling_policies:
+        - type: up
+          adjustment:
+            value: 1
+            cooldown: 300
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: GreaterThanThreshold
+            threshold: 70
+            period: 60
+        - type: downhand
+          adjustment:
+            value: 1
+            cooldown: 300
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: LessThanThreshold
+            threshold: 30
+            period: 60
+       load_balancer:
+         type: http
+      containers:
+      - name: ecstest
+         port_mappings:
+         - 5000
+         routing:
+           base_path: /mypath
+           health_check_path: /

@@ -335,8 +335,8 @@ describe('lambda deployer', function () {
         it('should delete the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').returns(Promise.resolve())
-            let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-
+            let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+          
             return lambda.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);

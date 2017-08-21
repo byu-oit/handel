@@ -201,7 +201,7 @@ describe('memcached deployer', function () {
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployCloudFormationStack').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return memcached.unDeploy(serviceContext)
                 .then(unDeployContext => {

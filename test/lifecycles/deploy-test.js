@@ -20,6 +20,7 @@ const bindPhase = require('../../lib/phases/bind');
 const deployPhase = require('../../lib/phases/deploy');
 const preDeployPhase = require('../../lib/phases/pre-deploy');
 const checkPhase = require('../../lib/phases/check');
+const iamCalls = require('../../lib/aws/iam-calls');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
@@ -38,6 +39,7 @@ describe('deploy lifecycle module', function () {
 
     describe('deploy', function () {
         it('should deploy the application environment on success', function () {
+            let validateCredentialsStub = sandbox.stub(iamCalls, 'showAccount').returns(Promise.resolve(accountConfig.account_id));
             let checkServicesStub = sandbox.stub(checkPhase, 'checkServices').returns([]);
             let preDeployServicesStub = sandbox.stub(preDeployPhase, 'preDeployServices').returns(Promise.resolve({
                 A: new PreDeployContext({}),
