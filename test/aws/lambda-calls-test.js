@@ -136,4 +136,27 @@ describe('lambdaCalls', function () {
                 });
         });
     });
+
+    describe('addLambdaEventSourceMapping', function () {
+        it('should should create the Event Source Mapping for the lambda function and dynamodb table', function () {
+            AWS.mock('Lambda', 'createEventSourceMapping', Promise.resolve({}));
+
+            return lambdaCalls.addLambdaEventSourceMapping("FakeFunctionName", "FakeTableName", "arn:aws:dynamodb:us-west-2:123456789012:table/TableName/stream/DATE", 100)
+                .then(statement => {
+                    expect(statement).to.be.undefined;
+                });
+        });
+
+        it('should should complete successfully if the Event Source Mapping already exists', function () {
+            AWS.mock('Lambda', 'createEventSourceMapping', Promise.reject({
+                code: 'ResourceConflictException',
+                message: "The event source arn (arn:aws:dynamodb:us-west-2:398230616010:table/my-table-dev-table-dynamodb/stream/2017-08-16T20:02:21.326)  and function (my-table-dev-mylambda-lambda) provided mapping already exists. Please update or delete the existing mapping with UUID 160c2db9-cbec-42be-8133-ff5337e7cac5"
+            }));
+
+            return lambdaCalls.addLambdaEventSourceMapping("FakeFunctionName", "FakeTableName", "arn:aws:dynamodb:us-west-2:123456789012:table/TableName/stream/DATE", 100)
+                .then(statement => {
+                    expect(statement).to.be.undefined;
+                });
+        });
+    });
 });

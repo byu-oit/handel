@@ -27,6 +27,7 @@ const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -70,6 +71,11 @@ const VALID_DYNAMODB_CONFIG = {
         attributes_to_copy: [
             "MyOtherLocalAttribute"
         ]
+    }],
+    stream_view_type: "NEW_AND_OLD_IMAGES",
+    event_consumers: [{
+        service_name: "myFakeLambda",
+        batch_size: 100
     }],
     tags: {
         name: "MyTagName"
@@ -246,14 +252,12 @@ describe('dynamodb deployer', function () {
     });
 
     describe('produceEvents', function () {
-        it('should throw an error because DynamoDB doesnt yet produce events for other services', function () {
+        it('should return an empty ProduceEventsContext', function () {
             return dynamodb.produceEvents(null, null, null, null)
                 .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
+                    console.log(produceEventsContext, '?=', new ProduceEventsContext(null, null));
+                    expect(produceEventsContext).to.deep.equal(new ProduceEventsContext(null, null));
                 })
-                .catch(err => {
-                    expect(err.message).to.contain("DynamoDB service doesn't produce events");
-                });
         });
     });
 
