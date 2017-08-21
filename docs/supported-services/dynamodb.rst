@@ -212,7 +212,7 @@ The largest number of records that AWS Lambda will retrieve from your event sour
 
 Events produced by this service
 -------------------------------
-The SNS service currently produces events for the following services types:
+The DynamoDB service currently produces events for the following services types:
 
 * Lambda
 
