@@ -146,8 +146,8 @@ describe('iam calls', function () {
         });
     });
 
-    describe('createPolicyVersion', function() {
-        it('should create the version on the existing policy', function() {
+    describe('createPolicyVersion', function () {
+        it('should create the version on the existing policy', function () {
             AWS.mock('IAM', 'createPolicyVersion', Promise.resolve({
                 PolicyVersion: {}
             }));
@@ -248,7 +248,7 @@ describe('iam calls', function () {
 
     describe('attachStreamPolicy', function () {
         it('should attach a stream policy to the existing lambda role', function () {
-            let constructPolicyDocStub = sandbox.stub(iamCalls, 'constructPolicyDoc').returns(Promise.resolve({    
+            let constructPolicyDocStub = sandbox.stub(iamCalls, 'constructPolicyDoc').returns(Promise.resolve({
                 "Version": "2012-10-17",
                 "Statement": [
                     {
@@ -274,8 +274,8 @@ describe('iam calls', function () {
         });
     });
 
-    describe('detachPoliciesFromRole', function() {
-        it('should detach all policies from role', function() {
+    describe('detachPoliciesFromRole', function () {
+        it('should detach all policies from role', function () {
             AWS.mock('IAM', 'listAttachedRolePolicies', Promise.resolve({
                 AttachedPolicies: [
                     {
@@ -291,11 +291,10 @@ describe('iam calls', function () {
                 })
         })
     })
-});
 
     describe('showAccount', function () {
         it('should return the currently authenticated account id', function () {
-            AWS.mock('IAM', 'listRoles', Promise.resolve({Roles:[{Arn:`arn:aws:iam::${accountConfig.account_id}:stuff`}]}));
+            AWS.mock('IAM', 'listRoles', Promise.resolve({ Roles: [{ Arn: `arn:aws:iam::${accountConfig.account_id}:stuff` }] }));
 
             return iamCalls.showAccount()
                 .then(response => {
