@@ -255,6 +255,7 @@ describe('lambda deployer', function () {
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
+            producerDeployContext.eventOutputs.tableStreamArn = "arn:aws:dynamodb:us-west-2:111122223333:table/consumerService/stream/2015-05-11T21:21:33.291"
 
             let attachStreamPolicyStub = sandbox.stub(iamCalls, 'attachStreamPolicy').returns(Promise.resolve({}));
             let addLambdaEventSourceMapping = sandbox.stub(lambdaCalls, 'addLambdaEventSourceMapping').returns(Promise.resolve({}));
