@@ -28,7 +28,7 @@ Resources:
         KeySchema:
         - AttributeName: {{indexPartitionKeyName}}
           KeyType: HASH
-        {{#if indexSortKeyName}} 
+        {{#if indexSortKeyName}}
         - AttributeName: {{indexSortKeyName}}
           KeyType: RANGE
         {{/if}}
@@ -61,6 +61,10 @@ Resources:
       {{/each}}
       {{/if}}
       TableName: {{tableName}}
+      {{#if streamViewType}}
+      StreamSpecification:
+        StreamViewType: {{streamViewType}}
+      {{/if}}
       {{#if tags}}
       Tags:
       {{#each tags}}
@@ -73,3 +77,8 @@ Outputs:
   TableName:
     Description: The name of the Dynamo table
     Value: !Ref Table
+  {{#if streamViewType}}
+  StreamArn:
+    Description: The ARN of the DynamoDB stream
+    Value: !GetAtt Table.StreamArn
+  {{/if}}
