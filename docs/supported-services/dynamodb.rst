@@ -10,7 +10,6 @@ The following features are currently not supported:
 
 * Local secondary indexes
 * Global secondary indexes
-* DynamoDB streams
 
 Parameters
 ----------
@@ -48,6 +47,11 @@ Parameters
      - No
      - 
      - You can configure `local secondary indexes <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html>`_ for fast queries on a different sort key within the same partition key.
+   * - stream_view_type
+     - :ref:`string`
+     - No
+     -
+     - When present, the `stream view type element <http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_StreamSpecification.html>`_ indicates that a dynamodb stream will be used and specifies what information is written to the stream. Options are KEYS_ONLY, NEW_IMAGE, OLD_IMAGE and NEW_AND_OLD_IMAGES.
    * - global_indexes
      - :ref:`dynamodb-global-indexes`
      - No
@@ -192,9 +196,25 @@ The DynamoDB service outputs the following environment variables:
 
 The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
 
+DynamoDB Streams
+-------------------------------
+A `DynamoDB Stream <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html>`_ sends an event to a lambda function when data in the table changes.  To configure a stream, include the stream_view_type element in your handel file and declare your lambda function as an `event_consumer <https://handel.readthedocs.io/en/latest/handel-basics/service-events.html>`_ with the following syntax:
+
+.. code-block:: yaml
+
+  event_consumers:
+  - service_name: <string> # Required.  The service name of the lambda function
+    batch_size: <number> # Optional.  Default: 100
+
+BatchSize
+~~~~~~~~~~~~
+The largest number of records that AWS Lambda will retrieve from your event source at the time of invoking your function. Your function receives an event with all the retrieved records. The default is 100 records.
+
 Events produced by this service
 -------------------------------
-The DynamoDB service does not currently produce events for other Handel services to consume. Support for events to services such as Lambda is planned to be added in the future.
+The DynamoDB service currently produces events for the following services types:
+
+* Lambda
 
 Events consumed by this service
 -------------------------------

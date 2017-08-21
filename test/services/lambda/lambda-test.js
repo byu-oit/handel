@@ -17,6 +17,7 @@
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const lambda = require('../../../lib/services/lambda');
 const lambdaCalls = require('../../../lib/aws/lambda-calls');
+const iamCalls = require('../../../lib/aws/iam-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
@@ -249,6 +250,29 @@ describe('lambda deployer', function () {
                 });
         });
 
+        it('should add permissions for the dynamodb service type', function () {
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "dynamodb", deployVersion, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.principal = "FakePrincipal";
+            producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
+            producerDeployContext.eventOutputs.tableStreamArn = "arn:aws:dynamodb:us-west-2:111122223333:table/consumerService/stream/2015-05-11T21:21:33.291"
+
+            let attachStreamPolicyStub = sandbox.stub(iamCalls, 'attachStreamPolicy').returns(Promise.resolve({}));
+            let addLambdaEventSourceMapping = sandbox.stub(lambdaCalls, 'addLambdaEventSourceMapping').returns(Promise.resolve({}));
+            producerDeployContext.eventOutputs.lambdaConsumers = [
+                {
+                    "serviceName": "consumerService",
+                    "batch_size": 100
+                }
+            ]
+            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+                    expect(attachStreamPolicyStub.callCount).to.equal(1);
+                    expect(addLambdaEventSourceMapping.callCount).to.equal(1);
+                });
+        });
+
         it('should return an error for any other service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
@@ -310,12 +334,14 @@ describe('lambda deployer', function () {
     describe('unDeploy', function () {
         it('should delete the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').returns(Promise.resolve())
             let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-
+          
             return lambda.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(unDeployStack.calledOnce).to.be.true;
+                    expect(detachPoliciesFromRoleStub.calledOnce).to.be.true;
                 });
         });
     });

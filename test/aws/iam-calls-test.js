@@ -146,8 +146,8 @@ describe('iam calls', function () {
         });
     });
 
-    describe('createPolicyVersion', function() {
-        it('should create the version on the existing policy', function() {
+    describe('createPolicyVersion', function () {
+        it('should create the version on the existing policy', function () {
             AWS.mock('IAM', 'createPolicyVersion', Promise.resolve({
                 PolicyVersion: {}
             }));
@@ -246,9 +246,55 @@ describe('iam calls', function () {
         });
     });
 
+    describe('attachStreamPolicy', function () {
+        it('should attach a stream policy to the existing lambda role', function () {
+            let constructPolicyDocStub = sandbox.stub(iamCalls, 'constructPolicyDoc').returns(Promise.resolve({
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": [
+                            "dynamodb:DescribeStream",
+                            "dynamodb:GetRecords",
+                            "dynamodb:GetShardIterator",
+                            "dynamodb:ListStreams"
+                        ],
+                        "Resource": "arn:aws:dynamodb:region:accountID:table/FakeTable/stream/*"
+                    }
+                ]
+            }))
+            let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({}))
+
+            let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
+
+            return iamCalls.attachPolicyToRole('FakeRole', constructPolicyDocStub)
+                .then((policy) => {
+                    expect(policy).to.deep.equal({});
+                })
+        });
+    });
+
+    describe('detachPoliciesFromRole', function () {
+        it('should detach all policies from role', function () {
+            AWS.mock('IAM', 'listAttachedRolePolicies', Promise.resolve({
+                AttachedPolicies: [
+                    {
+                        PolicyArn: "arn:aws:iam::398230616010:policy/services/LambdaDynamodbStream-my-table-dev-mylambda-lambda",
+                    }
+                ]
+            }))
+
+            AWS.mock('IAM', 'detachRolePolicy', Promise.resolve(null))
+            return iamCalls.detachPoliciesFromRole('FakeRoleName')
+                .then((response) => {
+                    expect(response).to.be.null;
+                })
+        })
+    })
+
     describe('showAccount', function () {
         it('should return the currently authenticated account id', function () {
-            AWS.mock('IAM', 'listRoles', Promise.resolve({Roles:[{Arn:`arn:aws:iam::${accountConfig.account_id}:stuff`}]}));
+            AWS.mock('IAM', 'listRoles', Promise.resolve({ Roles: [{ Arn: `arn:aws:iam::${accountConfig.account_id}:stuff` }] }));
 
             return iamCalls.showAccount()
                 .then(response => {
