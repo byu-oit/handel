@@ -66,7 +66,7 @@ This service takes the following parameters:
 
 .. _s3-lifecycles:
 
-lifecycles
+Lifecycles
 ~~~~~~~~~~
 A list of life cycle rules
 
@@ -74,6 +74,7 @@ A list of life cycle rules
 
       lifecycles:
         - name: <string> # Required
+          prefix: <string> # Optional
           transitions: # Optional but one of transitions or version_transitions are required
             - type: <ia, glacier, expiration> # type must be ia (Standard-IA infrequent Access), glacier, or expiration)
               days: 30
