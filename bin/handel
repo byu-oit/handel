@@ -43,6 +43,7 @@ Options:
 -c [required] -- Path to account config or base64 encoded JSON string of config
 -e [required] -- A comma-separated list of environments from your handel file to deploy
 -d -- If this flag is set, verbose debug output will be enabled
+-y -- If this flag is set, you will *not* be asked to confirm the delete action
 
 Errors:
   ${errors.join('\n  ')}`;
