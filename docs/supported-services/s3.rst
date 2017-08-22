@@ -13,7 +13,6 @@ Service Limitations
 This service currently only provisions a bare-bones S3 bucket for data storage. It does support versioning, but the following other features are not currently supported:
 
 * CORS configuration
-* Bucket lifecycle
 * Bucket logging
 * Cross-region replication
 
@@ -54,11 +53,80 @@ This service takes the following parameters:
      - No
      - disabled
      - Whether to enable logging on the bucket. Allowed values: *enabled*, *disabled*.
+   * - lifecycles
+     - :ref:`s3-lifecycles`
+     - No
+     - disabled
+     - Lifecycle Policies to apply to the bucket. See `AWS Docs for more info <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig-rule.html>`_
    * - tags
      - :ref:`s3-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
+
+.. _s3-lifecycles:
+
+Lifecycles
+~~~~~~~~~~
+A list of life cycle rules
+
+.. code-block:: yaml
+
+      lifecycles:
+        - name: <string> # Required
+          prefix: <string> # Optional
+          transitions: # Optional but one of transitions or version_transitions are required
+            - type: <ia, glacier, expiration> # type must be ia (Standard-IA infrequent Access), glacier, or expiration)
+              days: 30
+          version_transitions: # Optional but one of transitions or version_transitions are required, only days are supported
+            - type: <ia, glacier, expiration>
+              days: 30
+
+Transitions are defined by the following:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - type
+     - string
+     - Yes
+     - None
+     - Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)
+   * - days
+     - integer
+     - No
+     - None
+     - Number of days until transition *must specify all transition as days or dates not both*
+   * - date
+     - ISO 8601 UTC
+     - No
+     - None
+     - Date to transition in ISO 8602 UTC format *must specify all transition as days or dates not both*
+
+
+More complex example:
+
+.. code-block:: yaml
+
+      lifecycles:
+        - name: ia30glacier365expire720
+          transitions:
+            - type: ia
+              days: 30
+            - type: expiration
+              days: 720
+            - type: glacier
+              days: 365
+          version_transitions:
+            - type: ia
+              days: 30
+            - type: expiration
+              days: 90
 
 .. _s3-tags:
 

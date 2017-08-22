@@ -87,120 +87,120 @@ describe('s3 deployer', function () {
             let errors = s3.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
-    });
 
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
+        describe('preDeploy', function () {
+            it('should return an empty predeploy context', function () {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+                let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
-            return s3.preDeploy(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
+                return s3.preDeploy(serviceContext)
+                    .then(preDeployContext => {
+                        expect(preDeployNotRequiredStub.callCount).to.equal(1);
+                        expect(preDeployContext).to.be.instanceof(PreDeployContext);
+                    });
+            });
         });
-    });
 
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-            
-            return s3.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
+        describe('bind', function () {
+            it('should return an empty bind context', function () {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+                let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
+
+                return s3.bind(serviceContext)
+                    .then(bindContext => {
+                        expect(bindNotRequiredStub.callCount).to.equal(1);
+                        expect(bindContext).to.be.instanceof(BindContext);
+                    });
+            });
         });
-    });
 
-    describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let bucketName = "my-bucket";
-        let serviceContext = new ServiceContext(appName, envName, "FakeService", "s3", deployVersion, {
-            bucket_name: bucketName
+        describe('deploy', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let deployVersion = "1";
+            let bucketName = "my-bucket";
+            let serviceContext = new ServiceContext(appName, envName, "FakeService", "s3", deployVersion, {
+                bucket_name: bucketName
+            });
+            let preDeployContext = new PreDeployContext(serviceContext);
+
+            it('should deploy the bucket', function () {
+                let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                    Outputs: [{
+                        OutputKey: 'BucketName',
+                        OutputValue: bucketName
+                    }]
+                }));
+
+                return s3.deploy(serviceContext, preDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployContext.policies.length).to.equal(2);
+                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
+                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
+                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_REGION_ENDPOINT"]).to.exist;
+                    });
+            });
         });
-        let preDeployContext = new PreDeployContext(serviceContext);
 
-        it('should deploy the bucket', function () {
-            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: bucketName
-                }]
-            }));
-
-            return s3.deploy(serviceContext, preDeployContext, [])
-                .then(deployContext => {
-                    expect(deployStackStub.callCount).to.equal(2);
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.policies.length).to.equal(2);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
-                    expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_REGION_ENDPOINT"]).to.exist;
-                });
+        describe('consumeEvents', function () {
+            it('should return an error since it cant consume events', function () {
+                return s3.consumeEvents(null, null, null, null)
+                    .then(() => {
+                        expect(true).to.be.false; //Should not get here
+                    })
+                    .catch(err => {
+                        expect(err.message).to.contain("S3 service doesn't consume events");
+                    });
+            });
         });
-    });
 
-    describe('consumeEvents', function () {
-        it('should return an error since it cant consume events', function () {
-            return s3.consumeEvents(null, null, null, null)
-                .then(() => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("S3 service doesn't consume events");
-                });
+        describe('produceEvents', function () {
+            it('should return an error since it doesnt yet produce events', function () {
+                return s3.produceEvents(null, null, null, null)
+                    .then(() => {
+                        expect(true).to.be.false; //Should not get here
+                    })
+                    .catch(err => {
+                        expect(err.message).to.contain("S3 service doesn't currently produce events");
+                    });
+            });
         });
-    });
 
-    describe('produceEvents', function () {
-        it('should return an error since it doesnt yet produce events', function () {
-            return s3.produceEvents(null, null, null, null)
-                .then(() => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("S3 service doesn't currently produce events");
-                });
+        describe('unPreDeploy', function () {
+            it('should return an empty UnPreDeploy context', function () {
+                let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
+                return s3.unPreDeploy({})
+                    .then(unPreDeployContext => {
+                        expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                        expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
+                    });
+            });
         });
-    });
 
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return s3.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
+        describe('unBind', function () {
+            it('should return an empty UnBind context', function () {
+                let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
+                return s3.unBind({})
+                    .then(unBindContext => {
+                        expect(unBindContext).to.be.instanceof(UnBindContext);
+                        expect(unBindNotRequiredStub.callCount).to.equal(1);
+                    });
+            });
         });
-    });
 
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return s3.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
+        describe('unDeploy', function () {
+            it('should undeploy the stack', function () {
+                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
+                let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
-    describe('unDeploy', function () {
-        it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {});
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-
-            return s3.unDeploy(serviceContext)
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(unDeployStackStub.calledOnce).to.be.ture;
-                });
+                return s3.unDeploy(serviceContext)
+                    .then(unDeployContext => {
+                        expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                        expect(unDeployStackStub.calledOnce).to.be.ture;
+                    });
+            });
         });
     });
 });
