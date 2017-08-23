@@ -48,7 +48,7 @@ Parameters
      - 
      - You can configure `local secondary indexes <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/LSI.html>`_ for fast queries on a different sort key within the same partition key.
    * - stream_view_type
-     - :ref:`string`
+     - string
      - No
      -
      - When present, the `stream view type element <http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_StreamSpecification.html>`_ indicates that a dynamodb stream will be used and specifies what information is written to the stream. Options are KEYS_ONLY, NEW_IMAGE, OLD_IMAGE and NEW_AND_OLD_IMAGES.
