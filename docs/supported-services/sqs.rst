@@ -72,13 +72,17 @@ The `dead_letter_queue` section is defined by the following schema:
 
     dead_letter_queue:
       max_receive_count: <number> # Optional.  Default: 3
-      queue_type: <string> # Optional. Default: regular
-      content_based_deduplication: <boolean> # Optional. Default: false
       delay_seconds: <number> # Optional. Default: 0
       max_message_size: <number> # Optional. Default 1: queue max_message_size. Default 2: 262144
       message_retention_period: <number> # Optional. Default 1: queue message_retention_period. Default 2: 345600
       receive_message_wait_time_seconds: <number> # Optional. Default 1: queue receive_message_wait_time_seconds. Default 2: 0
       visibility_timeout: <number> # Optional. Default 1: queue visibility_timeout.  Default 2: 30
+
+If you want to use the default values, set `dead_letter_queue` to true:
+
+.. code-block:: yaml
+
+    dead_letter_queue: true
 
 
 Example Handel Files
