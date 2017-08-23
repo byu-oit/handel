@@ -23,9 +23,9 @@ Resources:
   deadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
-      {{#if deadLetterFifoQueue}}
+      {{#if fifoQueue}}
       FifoQueue: true
-      ContentBasedDeduplication: {{deadLetterContentBasedDeduplication}}
+      ContentBasedDeduplication: {{contentBasedDeduplication}}
       {{/if}}
       DelaySeconds: {{deadLetterDelaySeconds}}
       MaximumMessageSize: {{deadLetterMaxMessageSize}}
@@ -51,7 +51,7 @@ Outputs:
       Fn::GetAtt:
         - "Queue"
         - "QueueName"
-  {{#if deadLetterPolicy}}
+  {{#if redrivePolicy}}
   DeadLetterQueueUrl:
     Description: The URL of the dead letter queue
     Value: !Ref deadLetterQueue
