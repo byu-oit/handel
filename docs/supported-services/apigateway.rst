@@ -23,10 +23,6 @@ No Authorizer Lambdas
 ~~~~~~~~~~~~~~~~~~~~~
 This service doesn't yet support specifying authorizer lambdas.
 
-No VPC Support
-~~~~~~~~~~~~~~
-This service does not yet support running the Lambdas inside a VPC. It is easily added, but was not required by any apps thus far.
-
 Parameters
 ----------
 
@@ -78,6 +74,11 @@ Parameters
      - No
      - 3
      - The timeout to use for your Lambda function. Any functions that go over this timeout will be killed.
+   * - vpc
+     - boolean
+     - No
+     - false
+     - If true, the lambda will be deployed inside the VPC and private subnets defined in the account config file.
    * - environment_variables
      - :ref:`apigateway-environment-variables`
      - No
