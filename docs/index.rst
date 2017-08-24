@@ -1,6 +1,6 @@
 Welcome to Handel's documentation!
 ==================================
-Handel is a library that orchestrates your AWS deployments so you don't have to
+Handel is a library that orchestrates your AWS deployments so you don't have to.
 
 .. toctree::
    :maxdepth: 1
@@ -8,6 +8,7 @@ Handel is a library that orchestrates your AWS deployments so you don't have to
 
    getting-started/introduction
    getting-started/handel-vs-cloudformation
+   getting-started/installation
    getting-started/tutorial-creating-an-app
 
 .. _handel-basics:

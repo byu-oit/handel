@@ -4,6 +4,10 @@ Creating Your First Handel App
 ==============================
 This page contains a tutorial for writing a simple Node.js "Hello World!" app and deploying it to AWS with the Handel tool.
 
+.. IMPORTANT::
+
+    This tutorial assumes you have already installed Handel on your local machine, as shown in the :ref:`installation` section.
+
 Tutorial
 --------
 This tutorial contains the following steps:
