@@ -8,7 +8,6 @@ Service Limitations
 -------------------
 The following Lambda features are not currently supported in this service:
 
-* Running Lambdas inside VPCs. 
 * Encrypting environment variables with KMS keys
 
 Parameters
@@ -56,6 +55,11 @@ Parameters
      - No
      - 3
      - The timeout in seconds for your function. Max 300
+   * - vpc
+     - boolean
+     - No
+     - false
+     - If true, the lambda will be deployed inside the VPC and private subnets defined in the account config file.
    * - environment_variables
      - :ref:`lambda-environment-variables`
      - No
