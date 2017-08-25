@@ -1,0 +1,175 @@
+/*
+ * Copyright 2017 Brigham Young University
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
+const kms = require('../../../lib/services/kms');
+const ServiceContext = require('../../../lib/datatypes/service-context');
+const DeployContext = require('../../../lib/datatypes/deploy-context');
+const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const sinon = require('sinon');
+const expect = require('chai').expect;
+
+describe('kms deployer', function () {
+    let sandbox;
+
+    beforeEach(function () {
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(function () {
+        sandbox.restore();
+    });
+
+    describe('check', function () {
+        /*
+         * Alias names must:
+         *  - not start with 'AWS'
+         *  - contain only alphanumeric characters, '/', '_', or '-'
+         */
+        describe('alias name', function () {
+            it('should not allow keys starting with "AWS"', function () {
+                let errors = kms.check(ctx("AWS-mykey"));
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.contain("'alias' parameter must not begin with 'AWS'")
+            });
+
+            describe('character restrictions', function () {
+                let badChars = ['funkychar$', 'bad\\slash', 'has spaces'];
+
+                badChars.forEach(bad => {
+                    it(`should reject '${bad}'`, function () {
+                        let errors = kms.check(ctx(bad));
+                        expect(errors).to.have.lengthOf(1);
+                        expect(errors[0]).to.contain("'alias' parameter must only contain alphanumeric characters, dashes ('-'), underscores ('_'), or slashes ('/')")
+                    });
+                })
+            });
+
+            function ctx(name) {
+                return {
+                    params: {
+                        alias: name
+                    }
+                }
+            }
+        });
+
+        it('should work when there are no configuration errors', function () {
+            let serviceContext = {
+                params: {}
+            };
+            let errors = kms.check(serviceContext);
+            expect(errors).to.be.empty;
+        });
+
+    });
+
+    describe('deploy', function () {
+        let appName = "FakeApp";
+        let envName = "FakeEnv";
+        let deployVersion = "1";
+        let alias = 'myalias';
+        let keyId = '123ABC';
+        let keyArn = 'arn:aws:kms:us-west-2:000000000000:key/' + keyId;
+
+        it('should create the key', function () {
+            let serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {
+                alias
+            });
+            let preDeployContext = new PreDeployContext(serviceContext);
+
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'KeyId',
+                    OutputValue: keyId
+                }, {
+                    OutputKey: 'KeyArn',
+                    OutputValue: keyArn
+                }, {
+                    OutputKey: 'AliasName',
+                    OutputValue: 'alias/' + alias
+                }, {
+                    OutputKey: 'AliasArn',
+                    OutputValue: 'arn:aws:kms:us-west-2:000000000:alias/' + alias
+                }]
+            }));
+
+            return kms.deploy(serviceContext, preDeployContext, [])
+                .then(deployContext => {
+                    expect(deployStackStub.callCount).to.equal(1);
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.policies).to.have.lengthOf(1);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_KEY_ID"]).to.equal(keyId);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_KEY_ARN"]).to.equal(keyArn);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_NAME"]).to.equal('alias/' + alias);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_ARN"]).to.equal('arn:aws:kms:us-west-2:000000000:alias/' + alias);
+                });
+        });
+
+        it('should create a default alias if none is specified', function () {
+            let alias = `alias/${appName}/${envName}/FakeService`;
+            let aliasArn = 'arn:aws:kms:us-west-2:000000000:' + alias;
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'KeyId',
+                    OutputValue: keyId
+                }, {
+                    OutputKey: 'KeyArn',
+                    OutputValue: keyArn
+                }, {
+                    OutputKey: 'AliasName',
+                    OutputValue: alias
+                }, {
+                    OutputKey: 'AliasArn',
+                    OutputValue: aliasArn
+                }]
+            }));
+
+            let serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {});
+            let preDeployContext = new PreDeployContext(serviceContext);
+
+            return kms.deploy(serviceContext, preDeployContext, [])
+                .then(deployContext => {
+                    expect(deployStackStub.callCount).to.equal(1);
+
+                    console.log(deployStackStub.firstCall.args);
+                    expect(deployStackStub.firstCall.args[1]).to.contain('AliasName: ' + alias);
+
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(deployContext.policies).to.have.lengthOf(1);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_NAME"]).to.equal(alias);
+                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_ARN"]).to.equal(aliasArn);
+                });
+        });
+
+    });
+
+    describe('unDeploy', function () {
+        it('should undeploy the stack', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "kms", "1", {});
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+
+            return kms.unDeploy(serviceContext)
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
+                    expect(unDeployStackStub.calledOnce).to.be.ture;
+                });
+        });
+    });
+});
