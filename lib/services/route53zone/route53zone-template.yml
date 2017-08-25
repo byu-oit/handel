@@ -34,3 +34,6 @@ Outputs:
       Fn::Join:
         - ","
         - !GetAtt Zone.NameServers
+  ZoneName:
+    Description: Zone Name
+    Value: {{name}}
