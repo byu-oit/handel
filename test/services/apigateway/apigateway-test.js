@@ -74,11 +74,47 @@ describe('apigateway deployer', function () {
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'handler_function' parameter is required");
         });
+
+        it('should fail if vpc is false and a dependency producing security groups is declared', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                path_to_code: '.',
+                handler_function: 'index.handler',
+                lambda_runtime: 'node.js6.3',
+                dependencies: [
+                    "FakeDependency"
+                ]
+            });
+            let dependenciesServiceContexts = [];
+            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
+            let errors = apigateway.check(serviceContext, dependenciesServiceContexts);
+            console.log("ERRORS: ", errors);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain("'vpc' parameter is required and must be true when declaring dependencies of type");
+        });
     });
 
     describe('preDeploy', function () {
-        it('should return an empty preDeploy context', function () {
-            let serviceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {});
+        it('should create security groups and return the predeploy context when vpc is true', function () {
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+                "vpc": true
+            });
+            let response = new PreDeployContext(serviceContext)
+            response.securityGroups.push("FakeSecurityGroup")
+            let preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
+            .returns(Promise.resolve(response));
+
+            return apigateway.preDeploy(serviceContext)
+                .then(preDeployContext => {
+                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
+                    expect(preDeployCreateSecurityGroup.callCount).to.equal(1);
+                    expect(preDeployContext.securityGroups.length).to.equal(1);
+                });
+        });
+
+        it('should return an empty preDeploy context when vpc is false', function () {
+            let serviceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {
+                "vpc": false
+            });
             let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
             return apigateway.preDeploy(serviceContext)
@@ -182,12 +218,26 @@ describe('apigateway deployer', function () {
     });
 
     describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
+        it('should return an empty UnPreDeploy context if vpc is false', function () {
             let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return apigateway.unPreDeploy({})
+            let ownServiceContext = {};
+            ownServiceContext.params = {};
+            ownServiceContext.params.vpc = false;
+            return apigateway.unPreDeploy(ownServiceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
+                });
+        });
+        it('should delete the security groups if vpc is true and return the unPreDeploy context', function () {
+            let ownServiceContext = {};
+            ownServiceContext.params = {};
+            ownServiceContext.params.vpc = true;
+            let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(ownServiceContext)));
+            return apigateway.unPreDeploy(ownServiceContext)
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+                    expect(unPreDeploySecurityGroup.callCount).to.equal(1);
                 });
         });
     });
