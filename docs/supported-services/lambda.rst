@@ -59,7 +59,7 @@ Parameters
      - boolean
      - No
      - false
-     - If true, the lambda will be deployed inside the VPC and private subnets defined in the account config file.
+     - If true, the lambda will be deployed inside your VPC. Inside your VPC, it will be able to communicate with resources like RDS databases and ElastiCache clusters.
    * - environment_variables
      - :ref:`lambda-environment-variables`
      - No
