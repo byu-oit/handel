@@ -108,21 +108,6 @@ describe('route53zone deployer', function () {
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'private' parameter must be 'true' or 'false'");
         });
-
-
-    });
-
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
-
-            return route53.preDeploy(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        });
     });
 
     describe('bind', function () {

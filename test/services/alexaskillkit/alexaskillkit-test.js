@@ -56,23 +56,11 @@ describe('alexaskillkit deployer', function () {
             let serviceContext = {
                 params: {}
             }
-            old_region = accountConfig.region
+            let old_region = accountConfig.region
             accountConfig.region = 'us-east-1' //toggle region
             let errors = alexaSkillKit.check(serviceContext);
             accountConfig.region = old_region //reset the region
             expect(errors.length).to.equal(0);
-        });
-    });
-
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context since it doesnt do anything', function () {
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext({})));
-
-            return alexaSkillKit.preDeploy({})
-                .then(preDeployContext => {
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                });
         });
     });
 

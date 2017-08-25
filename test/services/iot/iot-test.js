@@ -78,18 +78,6 @@ describe('lambda deployer', function () {
         });
     });
 
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context since it doesnt do anything', function () {
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext({})));
-
-            return iot.preDeploy({})
-                .then(preDeployContext => {
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
     describe('bind', function () {
         it('should return an empty bind context since it doesnt do anything', function () {
             let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));

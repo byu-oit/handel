@@ -88,19 +88,6 @@ describe('s3 deployer', function () {
             expect(errors.length).to.equal(0);
         });
 
-        describe('preDeploy', function () {
-            it('should return an empty predeploy context', function () {
-                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-                let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
-
-                return s3.preDeploy(serviceContext)
-                    .then(preDeployContext => {
-                        expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                        expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                    });
-            });
-        });
-
         describe('bind', function () {
             it('should return an empty bind context', function () {
                 let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});

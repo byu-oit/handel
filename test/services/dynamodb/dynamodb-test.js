@@ -181,19 +181,6 @@ describe('dynamodb deployer', function () {
         });
     });
 
-    describe('preDeploy', function () {
-        it('should do nothing and just return an empty PreDeployContext', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
-
-            return dynamodb.preDeploy(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        });
-    });
-
     describe('bind', function () {
         it('should do nothing and just return an empty BindContext', function () {
             let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));

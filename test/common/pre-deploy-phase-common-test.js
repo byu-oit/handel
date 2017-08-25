@@ -82,14 +82,4 @@ describe('PreDeploy Phase Common module', function () {
                 });
         });
     });
-
-    describe('preDeployNotRequired', function() {
-        it('should return an empty predeploy context', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            return preDeployPhaseCommon.preDeployNotRequired(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        });
-    });
 });
