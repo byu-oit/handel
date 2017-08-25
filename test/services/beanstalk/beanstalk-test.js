@@ -19,14 +19,11 @@ const beanstalk = require('../../../lib/services/beanstalk');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const route53 = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
@@ -207,17 +204,6 @@ describe('beanstalk deployer', function () {
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return beanstalk.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

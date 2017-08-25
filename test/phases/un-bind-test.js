@@ -34,6 +34,38 @@ describe('unBind', function () {
     });
 
     describe('unBindServicesInLevel', function () {
+        //Construct EnvironmentContext
+        let appName = "FakeApp"
+        let deployVersion = "1";
+        let environmentName = "dev";
+        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+        //Construct ServiceContext B
+        let serviceNameB = "B";
+        let serviceTypeB = "efs"
+        let paramsB = {
+            other: "param"
+        }
+        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+        environmentContext.serviceContexts[serviceNameB] = serviceContextB;
+
+        //Construct ServiceContext A
+        let serviceNameA = "A";
+        let serviceTypeA = "ecs";
+        let paramsA = {
+            some: "param",
+            dependencies: [serviceNameB]
+        }
+        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+        environmentContext.serviceContexts[serviceNameA] = serviceContextA;
+
+        //Set deploy order 
+        let deployOrder = [
+            [serviceNameB],
+            [serviceNameA]
+        ]
+        let levelToUnBind = 0;
+
         it('should execute UnBind on all the services in parallel', function () {
             let serviceDeployers = {
                 ecs: {
@@ -48,37 +80,23 @@ describe('unBind', function () {
                 }
             }
 
-            //Construct EnvironmentContext
-            let appName = "FakeApp"
-            let deployVersion = "1";
-            let environmentName = "dev";
-            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+            return unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind)
+                .then(unBindContexts => {
+                    expect(unBindContexts['B']).to.be.instanceof(UnBindContext);
+                });
+        });
 
-            //Construct ServiceContext B
-            let serviceNameB = "B";
-            let serviceTypeB = "efs"
-            let paramsB = {
-                other: "param"
+        it('should return emtpy unbind contexts for services that dont implement unbind', function() {
+            let serviceDeployers = {
+                ecs: {
+                    unBind: function (toUnBindServiceContext) {
+                        return Promise.reject(new Error(`Should not have called ECS bind`));
+                    }
+                },
+                efs: {
+                    //Simulating that EFS doesn't implement unbind
+                }
             }
-            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
-            environmentContext.serviceContexts[serviceNameB] = serviceContextB;
-
-            //Construct ServiceContext A
-            let serviceNameA = "A";
-            let serviceTypeA = "ecs";
-            let paramsA = {
-                some: "param",
-                dependencies: [serviceNameB]
-            }
-            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
-            environmentContext.serviceContexts[serviceNameA] = serviceContextA;
-
-            //Set deploy order 
-            let deployOrder = [
-                [serviceNameB],
-                [serviceNameA]
-            ]
-            let levelToUnBind = 0;
 
             return unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind)
                 .then(unBindContexts => {

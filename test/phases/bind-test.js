@@ -22,7 +22,6 @@ const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const util = require('../../lib/common/util');
 
 describe('bind', function () {
     let sandbox;

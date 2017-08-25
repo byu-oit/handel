@@ -108,31 +108,4 @@ describe('Delete phases common module', function () {
                 });
         });
     });
-
-    describe('unPreDeployNotRequired', function() {
-        it('should return an empty UnPreDeployContext', function() {
-            return deletePhasesCommon.unPreDeployNotRequired({}, "FakeService")
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceOf(UnPreDeployContext);
-                });
-        });
-    });
-
-    describe('unBindNotRequired', function() {
-        it('should return an emtpy UnBindContext', function() {
-            return deletePhasesCommon.unBindNotRequired({}, "FakeService")
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                });
-        });
-    });
-
-    describe('unDeployNotRequired', function() {
-        it('should return an emtpy UnDeployContext', function() {
-            return deletePhasesCommon.unDeployNotRequired({}, "FakeService")
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                });
-        });
-    });
 });

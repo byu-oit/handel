@@ -20,6 +20,9 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const BindContext = require('../../lib/datatypes/bind-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
+const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
+const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../lib/datatypes/un-bind-context');
 const lifecyclesCommon = require('../../lib/common/lifecycles-common');
 
 describe('lifecycles common module', function () {
@@ -64,6 +67,33 @@ describe('lifecycles common module', function () {
             return lifecyclesCommon.deployNotRequired(ownServiceContext)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
+                });
+        });
+    });
+
+    describe('unPreDeployNotRequired', function() {
+        it('should return an empty UnPreDeployContext', function() {
+            return lifecyclesCommon.unPreDeployNotRequired({}, "FakeService")
+                .then(unPreDeployContext => {
+                    expect(unPreDeployContext).to.be.instanceOf(UnPreDeployContext);
+                });
+        });
+    });
+
+    describe('unBindNotRequired', function() {
+        it('should return an emtpy UnBindContext', function() {
+            return lifecyclesCommon.unBindNotRequired({}, "FakeService")
+                .then(unBindContext => {
+                    expect(unBindContext).to.be.instanceof(UnBindContext);
+                });
+        });
+    });
+
+    describe('unDeployNotRequired', function() {
+        it('should return an emtpy UnDeployContext', function() {
+            return lifecyclesCommon.unDeployNotRequired({}, "FakeService")
+                .then(unDeployContext => {
+                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
                 });
         });
     });

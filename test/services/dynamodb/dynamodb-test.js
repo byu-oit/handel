@@ -19,13 +19,8 @@ const dynamodb = require('../../../lib/services/dynamodb');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const sinon = require('sinon');
@@ -224,27 +219,6 @@ describe('dynamodb deployer', function () {
         });
     });
 
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return dynamodb.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return dynamodb.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});

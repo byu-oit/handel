@@ -34,6 +34,39 @@ describe('unDeploy', function () {
     });
 
     describe('unDeployServicesInLevel', function () {
+        //Create EnvironmentContext
+        let appName = "test";
+        let deployVersion = "1";
+        let environmentName = "dev";
+        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+
+        //Construct ServiceContext B
+        let serviceNameB = "B";
+        let serviceTypeB = "efs"
+        let paramsB = {
+            other: "param"
+        }
+        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+        environmentContext.serviceContexts[serviceNameB] = serviceContextB;
+
+        //Construct ServiceContext A
+        let serviceNameA = "A";
+        let serviceTypeA = "ecs";
+        let paramsA = {
+            some: "param",
+            dependencies: [serviceNameB]
+        }
+        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+        environmentContext.serviceContexts[serviceNameA] = serviceContextA;
+
+        //Set deploy order 
+        let deployOrder = [
+            [serviceNameB],
+            [serviceNameA]
+        ]
+        let levelToUnDeploy = 1;
+
         it('should UnDeploy the services in the given level', function () {
             let serviceDeployers = {
                 efs: {
@@ -48,38 +81,23 @@ describe('unDeploy', function () {
                 }
             }
 
-            //Create EnvironmentContext
-            let appName = "test";
-            let deployVersion = "1";
-            let environmentName = "dev";
-            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+            return unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnDeploy)
+                .then(unDeployContexts => {
+                    expect(unDeployContexts[serviceNameA]).to.be.instanceOf(UnDeployContext);
+                });
+        });
 
-
-            //Construct ServiceContext B
-            let serviceNameB = "B";
-            let serviceTypeB = "efs"
-            let paramsB = {
-                other: "param"
+        it('should return emtpy undeploy contexts for services that dont implment undeploy', function() {
+            let serviceDeployers = {
+                efs: {
+                    unDeploy: function (toUnDeployServiceContext) {
+                        throw new Error("Should not have called ECS in this level");
+                    }
+                },
+                ecs: {
+                    //Simulating that ECS doesn't implement undeploy
+                }
             }
-            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
-            environmentContext.serviceContexts[serviceNameB] = serviceContextB;
-
-            //Construct ServiceContext A
-            let serviceNameA = "A";
-            let serviceTypeA = "ecs";
-            let paramsA = {
-                some: "param",
-                dependencies: [serviceNameB]
-            }
-            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
-            environmentContext.serviceContexts[serviceNameA] = serviceContextA;
-
-            //Set deploy order 
-            let deployOrder = [
-                [serviceNameB],
-                [serviceNameA]
-            ]
-            let levelToUnDeploy = 1;
 
             return unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnDeploy)
                 .then(unDeployContexts => {

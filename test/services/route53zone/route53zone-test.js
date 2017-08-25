@@ -19,15 +19,9 @@ const route53 = require('../../../lib/services/route53zone');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const yaml = require('js-yaml');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -179,28 +173,6 @@ describe('route53zone deployer', function () {
                     expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
                     expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
                     expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
-                });
-        });
-    });
-
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return route53.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return route53.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

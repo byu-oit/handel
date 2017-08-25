@@ -20,15 +20,10 @@ const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls'
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -145,28 +140,6 @@ describe('cloudwatchevent deployer', function () {
                 .catch(err => {
                     expect(err.message).to.contain("Unsupported event consumer type");
                     expect(addTargetStub.notCalled).to.be.true;
-                });
-        });
-    });
-
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return cloudWatchEvent.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return cloudWatchEvent.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });
