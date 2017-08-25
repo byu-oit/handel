@@ -9,11 +9,15 @@ Resources:
         - Name: {{name}}
           Type: A
           AliasTarget:
-            DNSName: !GetAtt AWSEBV2LoadBalancer.DNSName
-            HostedZoneId: !GetAtt AWSEBV2LoadBalancer.CanonicalHostedZoneID
+            DNSName:
+              Fn::GetAtt: [ AWSEBV2LoadBalancer, DNSName ]
+            HostedZoneId:
+              Fn::GetAtt: [ AWSEBV2LoadBalancer, CanonicalHostedZoneID ]
         - Name: {{name}}
           Type: AAAA
           AliasTarget:
-            DNSName: !GetAtt AWSEBV2LoadBalancer.DNSName
-            HostedZoneId: !GetAtt AWSEBV2LoadBalancer.CanonicalHostedZoneID
+            DNSName:
+              Fn::GetAtt: [ AWSEBV2LoadBalancer, DNSName ]
+            HostedZoneId:
+              Fn::GetAtt: [ AWSEBV2LoadBalancer, CanonicalHostedZoneID ]
   {{/each}}
