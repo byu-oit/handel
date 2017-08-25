@@ -57,6 +57,17 @@ Resources:
       Role: !GetAtt Role.Arn
       Runtime: {{runtime}}
       Timeout: {{timeout}}
+      {{#if vpc}}
+      VpcConfig:
+        SecurityGroupIds: 
+        {{#each vpcSecurityGroupIds}}
+        - {{this}}
+        {{/each}}
+        SubnetIds: 
+        {{#each vpcSubnetIds}}
+        - {{this}}
+        {{/each}}
+      {{/if}}
       {{#if tags}}
       Tags:
       {{#each tags}}
