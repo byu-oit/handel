@@ -276,20 +276,31 @@ describe('iam calls', function () {
 
     describe('detachPoliciesFromRole', function () {
         it('should detach all policies from role', function () {
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
             AWS.mock('IAM', 'listAttachedRolePolicies', Promise.resolve({
                 AttachedPolicies: [
                     {
                         PolicyArn: "arn:aws:iam::398230616010:policy/services/LambdaDynamodbStream-my-table-dev-mylambda-lambda",
                     }
                 ]
-            }))
+            }));
+            AWS.mock('IAM', 'detachRolePolicy', Promise.resolve({}));
 
-            AWS.mock('IAM', 'detachRolePolicy', Promise.resolve(null))
             return iamCalls.detachPoliciesFromRole('FakeRoleName')
                 .then((response) => {
-                    expect(response).to.be.null;
-                })
-        })
+                    expect(getRoleStub.callCount).to.equal(1);
+                    expect(response).to.deep.equal([{}]);
+                });
+        });
+
+        it('should return successful if the role was already deleted', function () {
+            let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
+            return iamCalls.detachPoliciesFromRole('FakeRoleName')
+                .then((response) => {
+                    expect(getRoleStub.callCount).to.equal(1);
+                    expect(response).to.deep.equal([]);
+                });
+        });
     })
 
     describe('showAccount', function () {
