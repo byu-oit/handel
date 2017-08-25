@@ -15,7 +15,6 @@
  *
  */
 const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
-const iamCalls = require('../../lib/aws/iam-calls');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');

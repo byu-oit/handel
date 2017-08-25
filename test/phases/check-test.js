@@ -28,10 +28,9 @@ function getServiceDeployers() {
             }
         },
         efs: {
-            check: function (serviceContext) {
-                return [];
-            }
+
         }
+        //We're pretending that EFS doesn't implement check (even though it really does) for the purposes of this test.
     }
 }
 
@@ -64,7 +63,7 @@ function getEnvironmentContext() {
 
 describe('check', function () {
     describe('checkServices', function () {
-        it('should run check services on all services in the environment', function () {
+        it('should run check services on all services in the environment that implement check', function () {
             let serviceDeployers = getServiceDeployers();
             let environmentContext = getEnvironmentContext();
 
@@ -78,14 +77,10 @@ describe('check', function () {
             serviceDeployers['ecs'].check = function () {
                 return ecsErrors
             }
-            let efsErrors = ['EFS Errors'];
-            serviceDeployers['efs'].check = function () {
-                return efsErrors;
-            }
             let environmentContext = getEnvironmentContext();
 
             let checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
-            expect(checkResults).to.deep.equal(ecsErrors.concat(efsErrors));
+            expect(checkResults).to.deep.equal(ecsErrors);
         });
     });
 });

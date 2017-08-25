@@ -21,13 +21,8 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -85,32 +80,6 @@ describe('sns deployer', function () {
         });
     });
 
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
-
-            return sns.preDeploy(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        });
-    });
-
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return sns.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
@@ -152,18 +121,6 @@ describe('sns deployer', function () {
                     //Should have exported 1 policy
                     expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
                     expect(deployContext.policies[0].Resource[0]).to.equal(topicArn);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because SNS cant consume event services', function () {
-            return sns.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SNS service doesn't consume events");
                 });
         });
     });
@@ -212,28 +169,6 @@ describe('sns deployer', function () {
                     expect(err.message).to.contain('Unsupported event consumer type given');
                     expect(subscribeToTopicStub.notCalled).to.be.true;
                 })
-        });
-    });
-
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return sns.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return sns.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
-                });
         });
     });
 

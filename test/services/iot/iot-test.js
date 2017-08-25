@@ -19,16 +19,9 @@ const iot = require('../../../lib/services/iot');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -78,47 +71,11 @@ describe('lambda deployer', function () {
         });
     });
 
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context since it doesnt do anything', function () {
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext({})));
-
-            return iot.preDeploy({})
-                .then(preDeployContext => {
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('bind', function () {
-        it('should return an empty bind context since it doesnt do anything', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return iot.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindContext).to.be.instanceof(BindContext);
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
     describe('deploy', function () {
         it('should return an empty deploy context', function () {
             return iot.deploy({}, {}, {})
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because IOT cant consume event services', function () {
-            return iot.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("IOT service doesn't consume events");
                 });
         });
     });
@@ -170,28 +127,6 @@ describe('lambda deployer', function () {
                     expect(err.message).to.contain("Unsupported event consumer type")
                 })
         })
-    });
-
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return iot.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return iot.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
     });
 
     describe('unDeploy', function () {

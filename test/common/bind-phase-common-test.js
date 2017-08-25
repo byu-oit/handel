@@ -58,20 +58,5 @@ describe('bind phases common module', function () {
                     expect(addIngressRuleToSgIfNotExistsStub.callCount).to.equal(1);
                 });
         })
-    })
-
-    describe('bindNotRequired', function () {
-        it('should return an empty bind context', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", "1", {});
-            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentService", "ecs", "1", {});
-            
-            return bindPhaseCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext, "FakeService")
-                .then(bindContext => {
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
     });
-
 });

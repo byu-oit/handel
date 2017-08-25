@@ -23,6 +23,32 @@ const expect = require('chai').expect;
 
 describe('preDeploy', function () {
     describe('preDeployServices', function () {
+        //Create EnvironmentContext
+        let appName = "test";
+        let deployVersion = "1";
+        let environmentName = "dev";
+        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+
+        //Construct ServiceContext B
+        let serviceNameB = "B";
+        let serviceTypeB = "efs"
+        let paramsB = {
+            other: "param"
+        }
+        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+        environmentContext.serviceContexts[serviceNameB] = serviceContextB;
+
+        //Construct ServiceContext A
+        let serviceNameA = "A";
+        let serviceTypeA = "ecs";
+        let paramsA = {
+            some: "param",
+            dependencies: [serviceNameB]
+        }
+        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+        environmentContext.serviceContexts[serviceNameA] = serviceContextA;
+
         it('should execute predeploy on all services, even across levels', function () {
             let serviceDeployers = {
                 efs: {
@@ -37,31 +63,24 @@ describe('preDeploy', function () {
                 }
             }
 
-            //Create EnvironmentContext
-            let appName = "test";
-            let deployVersion = "1";
-            let environmentName = "dev";
-            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+            return preDeployPhase.preDeployServices(serviceDeployers, environmentContext)
+                .then(preDeployContexts => {
+                    expect(preDeployContexts[serviceNameA]).to.be.instanceof(PreDeployContext);
+                    expect(preDeployContexts[serviceNameB]).to.be.instanceof(PreDeployContext);
+                });
+        });
 
-
-            //Construct ServiceContext B
-            let serviceNameB = "B";
-            let serviceTypeB = "efs"
-            let paramsB = {
-                other: "param"
+        it('should return empty preDeployContexts for services that dont implement preDeploy', function() {
+            let serviceDeployers = {
+                efs: {
+                    preDeploy: function (serviceContext) {
+                        return Promise.resolve(new PreDeployContext(serviceContext));
+                    }
+                },
+                ecs: {
+                    //We're pretending here that ECS doesn't implement predeploy for the purposes of this test, even though it really does
+                }
             }
-            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
-            environmentContext.serviceContexts[serviceNameB] = serviceContextB;
-
-            //Construct ServiceContext A
-            let serviceNameA = "A";
-            let serviceTypeA = "ecs";
-            let paramsA = {
-                some: "param",
-                dependencies: [serviceNameB]
-            }
-            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
-            environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             return preDeployPhase.preDeployServices(serviceDeployers, environmentContext)
                 .then(preDeployContexts => {

@@ -150,30 +150,6 @@ describe('memcached deployer', function () {
         });
     });
 
-    describe('consumerEvents', function () {
-        it('should throw an error because Memcached cant consume event services', function () {
-            return memcached.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Memcached service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because Memcached cant produce events for other services', function () {
-            return memcached.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Memcached service doesn't produce events");
-                });
-        });
-    });
-
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));

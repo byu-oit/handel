@@ -21,13 +21,8 @@ const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const ConsumeEventsContext = require('../../../lib/datatypes/consume-events-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
@@ -50,33 +45,6 @@ describe('sqs deployer', function () {
             expect(errors).to.deep.equal([]);
         });
     });
-
-    describe('preDeploy', function () {
-        it('should return an empty predeploy context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
-
-            return sqs.preDeploy(serviceContext)
-                .then(preDeployContext => {
-                    expect(preDeployNotRequiredStub.callCount).to.equal(1);
-                    expect(preDeployContext).to.be.instanceof(PreDeployContext);
-                });
-        });
-    });
-
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return sqs.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
 
     describe('deploy', function () {
         let appName = "FakeApp";
@@ -189,40 +157,6 @@ describe('sqs deployer', function () {
                 .then(consumeEventsContext => {
                     expect(addSqsPermissionStub.calledOnce).to.be.true;
                     expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because SQS cant produce events for other services', function () {
-            return sqs.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SQS service doesn't produce events");
-                });
-        });
-    });
-
-    describe('unPreDeploy', function () {
-        it('should return an empty UnPreDeploy context', function () {
-            let unPreDeployNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            return sqs.unPreDeploy({})
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return sqs.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });

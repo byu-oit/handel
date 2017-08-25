@@ -35,6 +35,48 @@ describe('deploy', function () {
     });
 
     describe('deployServicesInLevel', function () {
+        //Create EnvironmentContext
+        let appName = "test";
+        let deployVersion = "1";
+        let environmentName = "dev";
+        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+
+
+        //Construct ServiceContext B
+        let serviceNameB = "B";
+        let serviceTypeB = "efs"
+        let paramsB = {
+            other: "param"
+        }
+        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+        environmentContext.serviceContexts[serviceNameB] = serviceContextB;
+
+        //Construct ServiceContext A
+        let serviceNameA = "A";
+        let serviceTypeA = "ecs";
+        let paramsA = {
+            some: "param",
+            dependencies: [serviceNameB]
+        }
+        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+        environmentContext.serviceContexts[serviceNameA] = serviceContextA;
+
+        //Construct PreDeployContexts
+        let preDeployContexts = {}
+        preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
+        preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
+
+        //Construct DeployContexts 
+        let deployContexts = {}
+        deployContexts[serviceNameB] = new DeployContext(serviceContextB);
+
+        //Set deploy order 
+        let deployOrder = [
+            [serviceNameB],
+            [serviceNameA]
+        ]
+        let levelToDeploy = 1;
+
         it('should deploy the services in the given level', function () {
             let serviceDeployers = {
                 efs: {
@@ -49,47 +91,23 @@ describe('deploy', function () {
                 }
             }
 
-            //Create EnvironmentContext
-            let appName = "test";
-            let deployVersion = "1";
-            let environmentName = "dev";
-            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+            return deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy)
+                .then(deployContexts => {
+                    expect(deployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
+                });
+        });
 
-
-            //Construct ServiceContext B
-            let serviceNameB = "B";
-            let serviceTypeB = "efs"
-            let paramsB = {
-                other: "param"
+        it('should return empty deploy contexts for the phases that dont implement deploy', function () {
+            let serviceDeployers = {
+                efs: {
+                    deploy: function (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) {
+                        throw new Error("Should not have called ECS in this level");
+                    }
+                },
+                ecs: {
+                    //Simulating that ECS doesnt implement deploy
+                }
             }
-            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
-            environmentContext.serviceContexts[serviceNameB] = serviceContextB;
-
-            //Construct ServiceContext A
-            let serviceNameA = "A";
-            let serviceTypeA = "ecs";
-            let paramsA = {
-                some: "param",
-                dependencies: [serviceNameB]
-            }
-            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
-            environmentContext.serviceContexts[serviceNameA] = serviceContextA;
-
-            //Construct PreDeployContexts
-            let preDeployContexts = {}
-            preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
-            preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
-
-            //Construct DeployContexts 
-            let deployContexts = {}
-            deployContexts[serviceNameB] = new DeployContext(serviceContextB);
-
-            //Set deploy order 
-            let deployOrder = [
-                [serviceNameB],
-                [serviceNameA]
-            ]
-            let levelToDeploy = 1;
 
             return deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy)
                 .then(deployContexts => {

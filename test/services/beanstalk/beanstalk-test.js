@@ -19,14 +19,11 @@ const beanstalk = require('../../../lib/services/beanstalk');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
 const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const route53 = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
@@ -80,18 +77,6 @@ describe('beanstalk deployer', function () {
                     expect(preDeployContext.securityGroups.length).to.equal(1);
                     expect(preDeployContext.securityGroups[0].GroupId).to.equal(groupId);
                     expect(preDeployCreateSgStub.calledOnce).to.be.true;
-                });
-        });
-    });
-
-    describe('bind', function () {
-        it('should do nothing and just return an empty BindContext', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return beanstalk.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
                 });
         });
     });
@@ -211,30 +196,6 @@ describe('beanstalk deployer', function () {
         });
     });
 
-    describe('consumeEvents', function () {
-        it('should throw an error because Beanstalk cant consume event services', function () {
-            return beanstalk.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Beanstalk service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because Beanstalk doesnt yet produce events for other services', function () {
-            return beanstalk.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Beanstalk service doesn't produce events");
-                });
-        });
-    });
-
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
@@ -243,17 +204,6 @@ describe('beanstalk deployer', function () {
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployStub.callCount).to.equal(1);
-                });
-        });
-    });
-
-    describe('unBind', function () {
-        it('should return an empty UnBind context', function () {
-            let unBindNotRequiredStub = sandbox.stub(deletePhasesCommon, 'unBindNotRequired').returns(Promise.resolve(new UnBindContext({})));
-            return beanstalk.unBind({})
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindNotRequiredStub.callCount).to.equal(1);
                 });
         });
     });
