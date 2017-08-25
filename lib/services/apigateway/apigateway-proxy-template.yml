@@ -76,6 +76,17 @@ Resources:
       Handler: {{handlerFunction}}
       Role: !GetAtt LambdaRole.Arn
       Timeout: {{functionTimeout}}
+      {{#if vpc}}
+      VpcConfig:
+        SecurityGroupIds: 
+        {{#each vpcSecurityGroupIds}}
+        - {{this}}
+        {{/each}}
+        SubnetIds: 
+        {{#each vpcSubnetIds}}
+        - {{this}}
+        {{/each}}
+      {{/if}}
       Runtime: {{lambdaRuntime}}
       {{#if tags}}
       Tags:
