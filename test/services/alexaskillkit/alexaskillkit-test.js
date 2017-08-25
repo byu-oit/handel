@@ -64,35 +64,11 @@ describe('alexaskillkit deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context since it doesnt do anything', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return alexaSkillKit.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindContext).to.be.instanceof(BindContext);
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
     describe('deploy', function () {
         it('should return an empty deploy context', function () {
             return alexaSkillKit.deploy({}, {}, {})
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because Alexa Skill Kit cant consume event services', function () {
-            return alexaSkillKit.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Alexa Skill Kit service doesn't consume events");
                 });
         });
     });

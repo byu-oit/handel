@@ -78,35 +78,11 @@ describe('lambda deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context since it doesnt do anything', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return iot.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindContext).to.be.instanceof(BindContext);
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                });
-        });
-    });
-
     describe('deploy', function () {
         it('should return an empty deploy context', function () {
             return iot.deploy({}, {}, {})
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because IOT cant consume event services', function () {
-            return iot.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("IOT service doesn't consume events");
                 });
         });
     });

@@ -85,19 +85,6 @@ describe('sns deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return sns.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
@@ -139,18 +126,6 @@ describe('sns deployer', function () {
                     //Should have exported 1 policy
                     expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
                     expect(deployContext.policies[0].Resource[0]).to.equal(topicArn);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because SNS cant consume event services', function () {
-            return sns.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SNS service doesn't consume events");
                 });
         });
     });

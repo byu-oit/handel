@@ -18,6 +18,8 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const ServiceContext = require('../../lib/datatypes/service-context');
 const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
+const BindContext = require('../../lib/datatypes/bind-context');
+const DeployContext = require('../../lib/datatypes/deploy-context');
 const lifecyclesCommon = require('../../lib/common/lifecycles-common');
 
 describe('lifecycles common module', function () {
@@ -41,4 +43,28 @@ describe('lifecycles common module', function () {
         });
     });
 
+    describe('bindNotRequired', function () {
+        it('should return an empty bind context', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", "1", {});
+            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentService", "ecs", "1", {});
+            
+            return lifecyclesCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext, "FakeService")
+                .then(bindContext => {
+                    expect(bindContext).to.be.instanceof(BindContext);
+                });
+        });
+    });
+    
+    describe('deployNotRequired', function() {
+        it('should return an empty deploy context', function() {
+            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+
+            return lifecyclesCommon.deployNotRequired(ownServiceContext)
+                .then(deployContext => {
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                });
+        });
+    });
 });

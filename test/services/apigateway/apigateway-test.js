@@ -25,6 +25,7 @@ const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
+const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
 const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
@@ -115,7 +116,7 @@ describe('apigateway deployer', function () {
             let serviceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {
                 "vpc": false
             });
-            let preDeployNotRequiredStub = sandbox.stub(preDeployPhaseCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
+            let preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
             return apigateway.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -124,19 +125,7 @@ describe('apigateway deployer', function () {
                 });
         });
     });
-
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return apigateway.bind(null, null, null, null)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
+    
     describe('deploy', function () {
         function getOwnServiceContext(appName, envName, deployVersion) {
             let ownServiceName = "OwnService";
@@ -189,30 +178,6 @@ describe('apigateway deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
                     expect(deployStackStub.calledOnce).to.be.true;
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because API gateway cant consume event services', function () {
-            return apigateway.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("API Gateway service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because our API gateway service doesnt produce events for other services', function () {
-            return apigateway.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("API Gateway service doesn't produce events");
                 });
         });
     });

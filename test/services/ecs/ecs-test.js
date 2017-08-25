@@ -192,18 +192,6 @@ describe('ecs deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should do nothing and just return an empty BindContext', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return ecs.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         function getOwnServiceContextForDeploy(appName, envName, deployVersion) {
             //Set up ServiceContext
@@ -294,30 +282,6 @@ describe('ecs deployer', function () {
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
                     expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because ECS cant consume event services', function () {
-            return ecs.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("ECS service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because ECS cant produce events for other services', function () {
-            return ecs.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("ECS service doesn't produce events");
                 });
         });
     });

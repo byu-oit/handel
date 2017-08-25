@@ -64,19 +64,6 @@ describe('cloudwatchevent deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-            
-            return cloudWatchEvent.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
@@ -101,18 +88,6 @@ describe('cloudwatchevent deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.eventOutputs.principal).to.equal("events.amazonaws.com");
                     expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should return an error since it cant consume events', function () {
-            return cloudWatchEvent.consumeEvents(null, null, null, null)
-                .then(() => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("CloudWatch Events service doesn't consume events");
                 });
         });
     });

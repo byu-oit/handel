@@ -180,19 +180,7 @@ describe('dynamodb deployer', function () {
             expect(errors[0]).to.include("The 'type' field in the 'sort_key' section is required in the 'local_indexes' section");
         });
     });
-
-    describe('bind', function () {
-        it('should do nothing and just return an empty BindContext', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return dynamodb.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
+    
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
@@ -225,19 +213,7 @@ describe('dynamodb deployer', function () {
                 });
         });
     });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because DynamoDB cant consume event services', function () {
-            return dynamodb.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("DynamoDB service doesn't consume events");
-                });
-        });
-    });
-
+    
     describe('produceEvents', function () {
         it('should return an empty ProduceEventsContext', function () {
             return dynamodb.produceEvents(null, null, null, null)

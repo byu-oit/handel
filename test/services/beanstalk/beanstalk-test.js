@@ -84,18 +84,6 @@ describe('beanstalk deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should do nothing and just return an empty BindContext', function () {
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return beanstalk.bind({}, {}, {}, {})
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         function getServiceContext() {
             return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
@@ -207,30 +195,6 @@ describe('beanstalk deployer', function () {
                     expect(prepareAndUploadDeployableArtifactStub.firstCall.args[1]).to.have.property('02dns-names.config');
                     expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should throw an error because Beanstalk cant consume event services', function () {
-            return beanstalk.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Beanstalk service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because Beanstalk doesnt yet produce events for other services', function () {
-            return beanstalk.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Beanstalk service doesn't produce events");
                 });
         });
     });

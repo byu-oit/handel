@@ -88,19 +88,6 @@ describe('s3 deployer', function () {
             expect(errors.length).to.equal(0);
         });
 
-        describe('bind', function () {
-            it('should return an empty bind context', function () {
-                let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-                let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-                return s3.bind(serviceContext)
-                    .then(bindContext => {
-                        expect(bindNotRequiredStub.callCount).to.equal(1);
-                        expect(bindContext).to.be.instanceof(BindContext);
-                    });
-            });
-        });
-
         describe('deploy', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
@@ -127,30 +114,6 @@ describe('s3 deployer', function () {
                         expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
                         expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
                         expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_REGION_ENDPOINT"]).to.exist;
-                    });
-            });
-        });
-
-        describe('consumeEvents', function () {
-            it('should return an error since it cant consume events', function () {
-                return s3.consumeEvents(null, null, null, null)
-                    .then(() => {
-                        expect(true).to.be.false; //Should not get here
-                    })
-                    .catch(err => {
-                        expect(err.message).to.contain("S3 service doesn't consume events");
-                    });
-            });
-        });
-
-        describe('produceEvents', function () {
-            it('should return an error since it doesnt yet produce events', function () {
-                return s3.produceEvents(null, null, null, null)
-                    .then(() => {
-                        expect(true).to.be.false; //Should not get here
-                    })
-                    .catch(err => {
-                        expect(err.message).to.contain("S3 service doesn't currently produce events");
                     });
             });
         });

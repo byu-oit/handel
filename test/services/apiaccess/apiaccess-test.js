@@ -59,19 +59,6 @@ describe('apiaccess deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext(serviceContext, {})));
-
-            return apiaccess.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
     describe('deploy', function () {
         it('should return a deploy context with the given policies', function () {
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {
@@ -86,30 +73,6 @@ describe('apiaccess deployer', function () {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(2);
-                });
-        });
-    });
-
-    describe('consumeEvents', function () {
-        it('should return an error since it cant consume events', function () {
-            return apiaccess.consumeEvents(null, null, null, null)
-                .then(() => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("API Access service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should return an error since it doesnt yet produce events', function () {
-            return apiaccess.produceEvents(null, null, null, null)
-                .then(() => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("API Access service doesn't currently produce");
                 });
         });
     });

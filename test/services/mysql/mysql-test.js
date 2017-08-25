@@ -187,30 +187,6 @@ describe('mysql deployer', function () {
         });
     });
 
-    describe('consumeEvents', function () {
-        it('should throw an error because MySQL cant consume event services', function () {
-            return mysql.consumeEvents(null, null, null, null)
-                .then(consumeEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("MySQL service doesn't consume events");
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because MySQL cant produce events for other services', function () {
-            return mysql.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("MySQL service doesn't produce events");
-                });
-        });
-    });
-
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));

@@ -51,20 +51,6 @@ describe('sqs deployer', function () {
         });
     });
 
-    describe('bind', function () {
-        it('should return an empty bind context', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-            let bindNotRequiredStub = sandbox.stub(bindPhaseCommon, 'bindNotRequired').returns(Promise.resolve(new BindContext({}, {})));
-
-            return sqs.bind(serviceContext)
-                .then(bindContext => {
-                    expect(bindNotRequiredStub.callCount).to.equal(1);
-                    expect(bindContext).to.be.instanceof(BindContext);
-                });
-        });
-    });
-
-
     describe('deploy', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
@@ -176,18 +162,6 @@ describe('sqs deployer', function () {
                 .then(consumeEventsContext => {
                     expect(addSqsPermissionStub.calledOnce).to.be.true;
                     expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
-                });
-        });
-    });
-
-    describe('produceEvents', function () {
-        it('should throw an error because SQS cant produce events for other services', function () {
-            return sqs.produceEvents(null, null, null, null)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Shouldnt get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("SQS service doesn't produce events");
                 });
         });
     });
