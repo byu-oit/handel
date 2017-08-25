@@ -6,7 +6,7 @@ This page contains a tutorial for writing a simple Node.js "Hello World!" app an
 
 .. IMPORTANT::
 
-    This tutorial assumes you have already installed Handel on your local machine, as shown in the :ref:`installation` section.
+    Before going through this tutorial, make sure you have installed Handel on your machine as shown in the :ref:`installation` section.
 
 Tutorial
 --------
@@ -103,21 +103,21 @@ Now that you've got a working app, you need to create a Handel file specifying h
 
 Create the account config file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Handel needs a base account configuration on which it can deploy your services. In particular, it needs to know about the VPC information for your account so it can know where to deploy things.
+In additon to your Handel file that specifies your application configuration, Handel needs to know account-level information such as which VPC and subnets to use.
 
 In order to provide this information, Handel requires that you give it an :ref:`account-config-file`, which contains this VPC information. This account config file is created once for your entire AWS account, and every app you deploy in that account can use this same file.
 
-VPC setup and configuration is pretty painful, so for the purposes of this tutorial we're assuming you don't want to do this yourself. You have one of three options to generate this account config file:
+For the purposes of this tutorial, we're assuming you're running in your own personal account where you haven't set up a custom VPC. Use the `Handel-Quickstart <http://handel-quickstart.readthedocs.io>`_ tool to help you automatically configure the account config file.
 
-1. If you're deploying in an account where someone else is already using Handel, that means they've already set up the VPCs and created the account config file. Just get the account config file from them.
-2. If you're deploying in an account that doesn't use Handel yet, but already has a VPC configuration specified, get the person who set up the VPC to help you generate the account config file.
-3. If you're deploying in an account that doesn't have any VPC stuff set up yet, you can use `Handel-Quickstart <http://handel-quickstart.readthedocs.io>`_ to help you easily set up a reasonable VPC. This tool will auto-generate the account config file for you. 
+.. IMPORTANT::
 
-Once you've obtained your account config file using one of the three above methods, put it in a file called *account-config.yml* in your home directory.
+    If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
+
+Once you've created your account config file, put it in a file called *aws-account-config.yml* in your home directory.
 
 .. DANGER::
 
-    The account-config file contains sensitive information such as VPC IDs, account IDs, and regions. **Do not** commit this file to your repository on GitHub or anywhere else that is publicly visible.
+    The account config file contains sensitive information such as VPC IDs, account IDs, and regions. **Do not** commit this file to your repository on GitHub or anywhere else that is publicly visible.
 
 Deploy using Handel
 ~~~~~~~~~~~~~~~~~~~
@@ -125,7 +125,7 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
 .. code-block:: bash
 
-    handel deploy -c ~/account-config.yml -e dev -v 1
+    handel deploy -c ~/aws-account-config.yml -e dev -v 1
 
 .. NOTE::
 
