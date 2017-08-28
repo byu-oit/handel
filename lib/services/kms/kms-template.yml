@@ -10,15 +10,15 @@ Resources:
       Enabled: true
       EnableKeyRotation: {{autoRotate}}
       KeyPolicy:
-        Version: "2017-10-17"
-        Id: "key-default-1"
+        Version: "2012-10-17"
         Statement:
-          - "Sid": "Enable IAM User Permissions",
-            "Effect": "Allow",
-            "Principal":
-              "AWS": !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            "Action": "kms:*",
-            "Resource": "*"
+          - Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
 
   Alias:
     Type: "AWS::KMS::Alias"
