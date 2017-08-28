@@ -41,6 +41,7 @@ Handel is a library that orchestrates your AWS deployments so you don't have to.
    supported-services/ecs
    supported-services/efs
    supported-services/iot
+   supported-services/kms
    supported-services/lambda
    supported-services/memcached
    supported-services/mysql

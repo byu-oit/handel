@@ -1,0 +1,41 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created KMS Key
+
+Resources:
+  Key:
+    Type: "AWS::KMS::Key"
+    Properties:
+      Description: Handel-generated key
+      Enabled: true
+      EnableKeyRotation: {{autoRotate}}
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+
+  Alias:
+    Type: "AWS::KMS::Alias"
+    Properties:
+      AliasName: alias/{{alias}}
+      TargetKeyId: !Ref Key
+
+Outputs:
+  KeyId:
+    Description: The ID of the key
+    Value: !Ref Key
+  KeyArn:
+    Description: ARN of the key
+    Value: !GetAtt Key.Arn
+  AliasName:
+    Description: Alias Name
+    Value: !Ref Alias
+  AliasArn:
+    Description: Alias Arn
+    Value: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:${Alias}"
