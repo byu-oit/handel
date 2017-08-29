@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sns = require('../../../lib/services/sns');
 const snsCalls = require('../../../lib/aws/sns-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
@@ -26,6 +25,8 @@ const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
 
 describe('sns deployer', function () {
     let sandbox;

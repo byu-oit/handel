@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const s3StaticSite = require('../../../lib/services/s3staticsite');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -26,10 +25,17 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('s3staticsite deployer', function () {
     let sandbox;
+    let ownServiceContext;
 
     beforeEach(function () {
+        let serviceParams = {
+            path_to_code: "."
+        }
+        ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
@@ -39,26 +45,24 @@ describe('s3staticsite deployer', function () {
 
     describe('check', function () {
         it('should require the path_to_code parameter', function () {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {});
+            delete ownServiceContext.params.path_to_code;
             let errors = s3StaticSite.check(ownServiceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("The 'path_to_code' parameter is required");
         });
 
         it('should work when all required parameters are given', function () {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {
-                path_to_code: '.'
-            });
             let errors = s3StaticSite.check(ownServiceContext);
             expect(errors.length).to.equal(0);
         })
     });
 
     describe('deploy', function () {
-        let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {
-            path_to_code: '.'
+        let ownPreDeployContext;
+
+        beforeEach(function() {
+            ownPreDeployContext = new PreDeployContext(ownServiceContext);
         });
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         it('should deploy the static site bucket', function () {
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
@@ -87,10 +91,9 @@ describe('s3staticsite deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", {});
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
 
-            return s3StaticSite.unDeploy(serviceContext)
+            return s3StaticSite.unDeploy(ownServiceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(unDeployStackStub.calledOnce).to.be.ture;

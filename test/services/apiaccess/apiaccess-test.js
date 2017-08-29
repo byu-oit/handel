@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const apiaccess = require('../../../lib/services/apiaccess');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -22,11 +21,15 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('apiaccess deployer', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -35,31 +38,41 @@ describe('apiaccess deployer', function () {
 
     describe('check', function () {
         it('should require the aws_services parameter', function () {
-            let serviceContext = {
-                params: {}
-            }
             let errors = apiaccess.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'aws_services' parameter is required");
         });
 
         it('should require the provided aws_services to be from the supported list', function () {
-
+            serviceContext.params = {
+                aws_services: [
+                    'unknownservice'
+                ]
+            }
+            let errors = apiaccess.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain("'aws_service' value 'unknownservice' is not supported");
         });
 
         it('should work when there are no configuration errors', function () {
-
+            serviceContext.params = {
+                aws_services: [
+                    'ecs'
+                ]
+            }
+            let errors = apiaccess.check(serviceContext);
+            expect(errors.length).to.equal(0);
         });
     });
 
     describe('deploy', function () {
         it('should return a deploy context with the given policies', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {
+            serviceContext.params = {
                 aws_services: [
                     "organizations",
                     "ec2"
                 ]
-            });
+            }
             let preDeployContext = new PreDeployContext(serviceContext);
 
             return apiaccess.deploy(serviceContext, preDeployContext, [])

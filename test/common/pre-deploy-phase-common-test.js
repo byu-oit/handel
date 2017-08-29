@@ -22,11 +22,15 @@ const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('PreDeploy Phase Common module', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -44,8 +48,6 @@ describe('PreDeploy Phase Common module', function () {
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
-
             return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, "FakeService")
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceOf(PreDeployContext);
@@ -58,8 +60,6 @@ describe('PreDeploy Phase Common module', function () {
         });
 
         it('should update the security group when it exists', function () {
-            let sgName = "FakeSg";
-
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({
                 Outputs: [{
@@ -68,8 +68,6 @@ describe('PreDeploy Phase Common module', function () {
                 }]
             }))
             let getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').returns(Promise.resolve({}));
-
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
 
             return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, "FakeService")
                 .then(preDeployContext => {

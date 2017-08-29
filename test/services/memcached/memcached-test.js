@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const memcached = require('../../../lib/services/memcached');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -30,11 +29,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('memcached deployer', function () {
     let sandbox;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -43,10 +49,8 @@ describe('memcached deployer', function () {
 
     describe('check', function () {
         it('should do require the instance_type parameter', function () {
-            let serviceContext = {
-                params: {
-                    memcached_version: '1.4.34'
-                }
+            serviceContext.params = {
+                memcached_version: '1.4.34'
             }
             let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -54,10 +58,8 @@ describe('memcached deployer', function () {
         });
 
         it('should require the memcached_version parameter', function () {
-            let serviceContext = {
-                params: {
-                    instance_type: 'cache.t2.micro'
-                }
+            serviceContext.params = {
+                instance_type: 'cache.t2.micro'
             }
             let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -65,11 +67,9 @@ describe('memcached deployer', function () {
         });
 
         it('should return ok when all required parameters are given', function () {
-            let serviceContext = {
-                params: {
-                    memcached_version: '1.4.34',
-                    instance_type: 'cache.t2.micro'
-                }
+            serviceContext.params = {
+                memcached_version: '1.4.34',
+                instance_type: 'cache.t2.micro'
             }
             let errors = memcached.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -79,7 +79,6 @@ describe('memcached deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -109,22 +108,25 @@ describe('memcached deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {
-            memcached_version: '3.2.4',
-            instance_type: 'cache.t2.micro'
-        });
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-        ownPreDeployContext.securityGroups.push({
-            GroupId: 'FakeId'
-        });
-        let dependenciesDeployContexts = [];
-
+        let ownPreDeployContext;
+        let dependenciesDeployContexts;
         let cacheAddress = "fakeaddress.byu.edu";
         let cachePort = 11211;
         let envPrefix = `MEMCACHED_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+
+        beforeEach(function() {
+            serviceContext.params = {
+                memcached_version: '3.2.4',
+                instance_type: 'cache.t2.micro'
+            }
+            
+            ownPreDeployContext = new PreDeployContext(serviceContext);
+            ownPreDeployContext.securityGroups.push({
+                GroupId: 'FakeId'
+            });
+            
+            dependenciesDeployContexts = [];
+        });
 
         it('should deploy the cluster', function () {
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
@@ -140,7 +142,7 @@ describe('memcached deployer', function () {
                 ]
             }));
 
-            return memcached.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return memcached.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);

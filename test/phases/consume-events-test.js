@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const ConsumeEventsContext = require('../../lib/datatypes/consume-events-context');
 const DeployContext = require('../../lib/datatypes/deploy-context');
 const ServiceContext = require('../../lib/datatypes/service-context');

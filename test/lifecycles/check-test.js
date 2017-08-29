@@ -14,12 +14,13 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
 const checkLifecycle = require('../../lib/lifecycles/check');
 const checkPhase = require('../../lib/phases/check');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
 
 describe('check lifecycle module', function () {
     let sandbox;

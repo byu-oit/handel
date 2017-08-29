@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
@@ -25,11 +24,15 @@ const path = require('path');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('deployable artifact module', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -41,9 +44,9 @@ describe('deployable artifact module', function () {
         let key = "FakeKey";
 
         it("should prepare and upload a directory", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "."
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return true; } })
             let addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
@@ -70,9 +73,9 @@ describe('deployable artifact module', function () {
         });
 
         it("should return a not implemented error for a WAR", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "./mysubdir/test.war"
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
 
@@ -87,9 +90,9 @@ describe('deployable artifact module', function () {
         });
 
         it("should prepare and upload a JAR", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "./mysubdir/test.jar"
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
             let resolveStub = sandbox.stub(path, 'resolve').returns('/fake/path/to/test.jar');
@@ -125,9 +128,9 @@ describe('deployable artifact module', function () {
         });
 
         it("should return a not implemented error with a ZIP", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "./mysubdir/test.zip"
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
 
@@ -142,9 +145,9 @@ describe('deployable artifact module', function () {
         });
 
         it("should prepare and upload a Dockerrun.aws.json file", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "./mysubdir/Dockerrun.aws.json"
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
             let resolveStub = sandbox.stub(path, 'resolve').returns('/fake/path/to/test.jar');
@@ -180,9 +183,9 @@ describe('deployable artifact module', function () {
         });
 
         it("should prepare and upload any other type of file", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+            serviceContext.params = {
                 path_to_code: "./mysubdir/mybinary"
-            });
+            }
 
             let lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: function () { return false; } });
             let resolveStub = sandbox.stub(path, 'resolve').returns('/fake/path/to/test.jar');

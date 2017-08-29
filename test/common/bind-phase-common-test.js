@@ -22,11 +22,18 @@ const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('bind phases common module', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -35,11 +42,7 @@ describe('bind phases common module', function () {
 
     describe('bindDependentSecurityGroupToSelf', function() {
         it('should add an ssh ingress on the security group', function() {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {});
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+            let ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'
             });
@@ -52,7 +55,7 @@ describe('bind phases common module', function () {
 
             let addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
-            return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22, "FakeService")
+            return bindPhaseCommon.bindDependentSecurityGroupToSelf(serviceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22, "FakeService")
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
                     expect(addIngressRuleToSgIfNotExistsStub.callCount).to.equal(1);

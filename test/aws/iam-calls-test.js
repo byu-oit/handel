@@ -14,14 +14,16 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const iamCalls = require('../../lib/aws/iam-calls');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('iam calls', function () {
     let sandbox;
+
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
@@ -264,12 +266,13 @@ describe('iam calls', function () {
                 ]
             }))
             let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({}))
-
             let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
 
-            return iamCalls.attachPolicyToRole('FakeRole', constructPolicyDocStub)
+            return iamCalls.attachStreamPolicy('FakeRole', constructPolicyDocStub, accountConfig)
                 .then((policy) => {
                     expect(policy).to.deep.equal({});
+                    expect(createOrUpdatePolicyStub.callCount).to.equal(1);
+                    expect(attachPolicyToRoleStub.callCount).to.equal(1);
                 })
         });
     });

@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const efs = require('../../../lib/services/efs');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -30,11 +29,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('efs deployer', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -44,9 +50,9 @@ describe('efs deployer', function () {
     describe('check', function () {
         it('should require either max_io or general_purpose for the performance_mode parameter', function () {
             //Errors expected
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {
+            serviceContext.params = {
                 performance_mode: 'other_param'
-            });
+            }
             let errors = efs.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("'performance_mode' parameter must be either");
@@ -66,7 +72,6 @@ describe('efs deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -96,18 +101,14 @@ describe('efs deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {});
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-        ownPreDeployContext.securityGroups.push({
-            GroupId: 'FakeId'
-        });
-        let dependenciesDeployContexts = [];
-        let fileSystemId = "FakeFileSystemId";
-
         it('should deploy the file system', function () {
+            let ownPreDeployContext = new PreDeployContext(serviceContext);
+            ownPreDeployContext.securityGroups.push({
+                GroupId: 'FakeId'
+            });
+            let dependenciesDeployContexts = [];
+            let fileSystemId = "FakeFileSystemId";
+
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: "EFSFileSystemId",
@@ -115,7 +116,7 @@ describe('efs deployer', function () {
                 }]
             }));
 
-            return efs.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return efs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);

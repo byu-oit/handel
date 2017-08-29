@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
 const deleteLifecycle = require('../../lib/lifecycles/delete');
 const iamCalls = require('../../lib/aws/iam-calls');
 const unDeployPhase = require('../../lib/phases/un-deploy');
@@ -24,6 +23,8 @@ const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
 
 describe('delete lifecycle module', function () {
     let sandbox;

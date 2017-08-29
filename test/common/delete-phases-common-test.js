@@ -25,11 +25,15 @@ const s3Calls = require('../../lib/aws/s3-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('Delete phases common module', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -42,7 +46,6 @@ describe('Delete phases common module', function () {
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
             let deleteMatchingPrefix = sandbox.stub(s3Calls,'deleteMatchingPrefix').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return deletePhasesCommon.unDeployService(serviceContext, "DynamoDB")
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
@@ -57,7 +60,6 @@ describe('Delete phases common module', function () {
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
             let deleteMatchingPrefix = sandbox.stub(s3Calls,'deleteMatchingPrefix').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {});
             return deletePhasesCommon.unDeployService(serviceContext, "DynamoDB")
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
@@ -73,7 +75,6 @@ describe('Delete phases common module', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, "FakeService")
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -86,7 +87,6 @@ describe('Delete phases common module', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, "FakeService")
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -100,7 +100,6 @@ describe('Delete phases common module', function () {
         it('should remove all ingress from the given security group', function () {
             let removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             return deletePhasesCommon.unBindSecurityGroups(serviceContext, "FakeService")
                 .then(unBindContext => {
                     expect(unBindContext).to.be.instanceof(UnBindContext);

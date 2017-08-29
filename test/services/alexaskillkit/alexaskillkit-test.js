@@ -14,18 +14,22 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const alexaSkillKit = require('../../../lib/services/alexaskillkit');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
+const ServiceContext = require('../../../lib/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('alexaskillkit deployer', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("Fakepp", "FakeEnv", "FakeService", "alexaskillkit", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -33,23 +37,8 @@ describe('alexaskillkit deployer', function () {
     });
 
     describe('check', function () {
-        it('should require the region to be us-east-1 or eu-west-1', function () {
-            let serviceContext = {
-                params: {}
-            }
+        it('should return no errors', function() {
             let errors = alexaSkillKit.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("You must deploy to");
-        });
-
-        it('should work when the region is us-east-1 or eu-west-1', function () {
-            let serviceContext = {
-                params: {}
-            }
-            let old_region = accountConfig.region
-            accountConfig.region = 'us-east-1' //toggle region
-            let errors = alexaSkillKit.check(serviceContext);
-            accountConfig.region = old_region //reset the region
             expect(errors.length).to.equal(0);
         });
     });

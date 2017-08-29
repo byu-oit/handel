@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const sqs = require('../../../lib/services/sqs');
 const sqsCalls = require('../../../lib/aws/sqs-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
@@ -26,6 +25,8 @@ const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
 
 describe('sqs deployer', function () {
     let sandbox;

@@ -19,6 +19,8 @@ const iotDeployersCommon = require('../../lib/common/iot-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('iot deployers common module', function () {
     let sandbox;
 
@@ -50,7 +52,7 @@ describe('iot deployers common module', function () {
     
     describe('getTopicRuleArnPrefix', function() {
         it('should return the prefix of the arn of the topic rule for the given producer/consumer combo', function() {
-            let arnPrefix = iotDeployersCommon.getTopicRuleArnPrefix('FakeApp_FakeEnv_FakeService');
+            let arnPrefix = iotDeployersCommon.getTopicRuleArnPrefix('FakeApp_FakeEnv_FakeService', accountConfig);
             expect(arnPrefix).to.equal('arn:aws:iot:us-west-2:123456789012:rule/FakeApp_FakeEnv_FakeService');
         });
     });

@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const beanstalk = require('../../../lib/services/beanstalk');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -29,12 +28,15 @@ const route53 = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
 
 describe('beanstalk deployer', function () {
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -43,17 +45,16 @@ describe('beanstalk deployer', function () {
 
     describe('check', function () {
         it('should check parameters for correctness', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let errors = beanstalk.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
 
         it('should check for valid dns_names', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 routing: {
                     dns_names: ['invalid hostname']
                 }
-            });
+            }
             let errors = beanstalk.check(serviceContext);
 
             expect(errors.length).to.equal(1);
@@ -64,7 +65,6 @@ describe('beanstalk deployer', function () {
     describe('preDeploy', function () {
         it('should call the predeploy common to create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -82,8 +82,8 @@ describe('beanstalk deployer', function () {
     });
 
     describe('deploy', function () {
-        function getServiceContext() {
-            return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {
+        beforeEach(function() {
+            serviceContext.params = {
                 type: 'beanstalk',
                 solution_stack: '64bit Amazon Linux 2016.09 v4.0.1 running Node.js',
                 auto_scaling: {
@@ -121,8 +121,8 @@ describe('beanstalk deployer', function () {
                 },
                 key_name: 'MyKey',
                 instance_type: 't2.small'
-            });
-        }
+            }
+        });
 
         function getPreDeployContext(serviceContext, sgGroupId) {
             let ownPreDeployContext = new PreDeployContext(serviceContext);
@@ -142,11 +142,10 @@ describe('beanstalk deployer', function () {
             }));
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
-            let ownServiceContext = getServiceContext();
             let sgGroupId = "FakeSgId";
-            let ownPreDeployContext = getPreDeployContext(ownServiceContext, sgGroupId);
+            let ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
 
-            return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
+            return beanstalk.deploy(serviceContext, ownPreDeployContext, [])
                 .then(deployContext => {
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
@@ -173,11 +172,10 @@ describe('beanstalk deployer', function () {
                 Name: 'myapp.internal.'
             }]));
 
-            let ownServiceContext = getServiceContext();
             let sgGroupId = "FakeSgId";
-            let ownPreDeployContext = getPreDeployContext(ownServiceContext, sgGroupId);
+            let ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
 
-            ownServiceContext.params.routing = {
+            serviceContext.params.routing = {
                 type: 'http',
                 dns_names: [
                     'myapp.byu.edu',
@@ -185,7 +183,7 @@ describe('beanstalk deployer', function () {
                 ]
             };
 
-            return beanstalk.deploy(ownServiceContext, ownPreDeployContext, [])
+            return beanstalk.deploy(serviceContext, ownPreDeployContext, [])
                 .then(deployContext => {
                     expect(createCustomRoleStub.calledOnce).to.be.true;
                     expect(prepareAndUploadDeployableArtifactStub.calledOnce).to.be.true;
@@ -210,7 +208,6 @@ describe('beanstalk deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "beanstalk", "1", {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return beanstalk.unDeploy(serviceContext)
