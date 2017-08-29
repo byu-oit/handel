@@ -273,6 +273,10 @@ describe('ecs deployer', function () {
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
                     expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
+
+                    //Container Logging Setup
+                    expect(deployStackStub.firstCall.args[1]).to.include('awslogs');
+                    expect(deployStackStub.firstCall.args[1]).to.include('LogConfiguration');
                 });
         });
     });

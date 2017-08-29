@@ -233,6 +233,14 @@ Resources:
           Protocol: tcp
         {{/each}}
         {{/if}}
+        {{#if logging}}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: {{logging.group}}
+            awslogs-region: !Ref "AWS::Region"
+            awslogs-stream-prefix: {{logging.prefix}}
+        {{/if}}
         Environment:
         {{#each environmentVariables}}
         - Name: {{@key}}
