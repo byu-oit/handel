@@ -231,7 +231,7 @@ describe('Deploy phase common module', function () {
 
             let uploadFileToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
 
-            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
+            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName, accountConfig)
                 .then(s3ObjectInfo => {
                     expect(uploadFileToHandelBucketStub.callCount).to.equal(1);
                     expect(s3ObjectInfo).to.deep.equal({});
@@ -248,7 +248,7 @@ describe('Deploy phase common module', function () {
             let uploadFileToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
             let unlinkSyncStub = sandbox.stub(fs, 'unlinkSync').returns(null);
 
-            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName)
+            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName, accountConfig)
                 .then(s3ObjectInfo => {
                     expect(zipDirectoryToFileStub.callCount).to.equal(1);
                     expect(uploadFileToHandelBucketStub.callCount).to.equal(1);
