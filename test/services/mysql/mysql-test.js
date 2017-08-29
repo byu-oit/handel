@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const mysql = require('../../../lib/services/mysql');
 const ssmCalls = require('../../../lib/aws/ssm-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
@@ -31,11 +30,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('mysql deployer', function () {
     let sandbox;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -44,19 +50,14 @@ describe('mysql deployer', function () {
 
     describe('check', function () {
         it('should do require the database_name parameter', function () {
-            let serviceContext = {
-                params: {}
-            }
             let errors = mysql.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should work when all required parameters are provided properly', function () {
-            let serviceContext = {
-                params: {
-                    database_name: 'mydb',
-                }
+            serviceContext.params = {
+                database_name: 'mydb'
             }
             let errors = mysql.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -66,7 +67,6 @@ describe('mysql deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -96,23 +96,26 @@ describe('mysql deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {
-            database_name: 'mydb'
-        });
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-        ownPreDeployContext.securityGroups.push({
-            GroupId: 'FakeId'
-        });
-        let dependenciesDeployContexts = [];
-
         let envPrefix = `MYSQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
         let databaseUsername = "handel";
         let databaseName = "mydb";
+        let ownPreDeployContext;
+        let dependenciesDeployContexts;
+
+        beforeEach(function() {
+            serviceContext.params = {
+                database_name: 'mydb'
+            }
+            
+            ownPreDeployContext = new PreDeployContext(serviceContext);
+            ownPreDeployContext.securityGroups.push({
+                GroupId: 'FakeId'
+            });
+            
+            dependenciesDeployContexts = [];
+        })
 
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
@@ -138,7 +141,7 @@ describe('mysql deployer', function () {
             }));
             let putParameterStub = sandbox.stub(ssmCalls, 'storeParameter').returns(Promise.resolve({}));
 
-            return mysql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -174,7 +177,7 @@ describe('mysql deployer', function () {
             }));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
 
-            return mysql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.notCalled).to.be.true;

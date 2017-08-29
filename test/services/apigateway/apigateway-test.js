@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const apigateway = require('../../../lib/services/apigateway');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -28,11 +27,18 @@ const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('apigateway deployer', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -41,10 +47,10 @@ describe('apigateway deployer', function () {
 
     describe('check', function () {
         it("should require the 'path_to_code' param", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 lambda_runtime: 'FakeRuntime',
                 handler_function: 'FakeFunction'
-            });
+            }
 
             let errors = apigateway.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -52,10 +58,10 @@ describe('apigateway deployer', function () {
         });
 
         it("should require the 'lambda_runtime' param", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: './',
                 handler_function: 'FakeFunction'
-            });
+            }
 
             let errors = apigateway.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -63,10 +69,10 @@ describe('apigateway deployer', function () {
         });
 
         it("should require the 'handler_function' param", function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: './',
                 lambda_runtime: 'FakeRuntime'
-            });
+            }
 
             let errors = apigateway.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -74,14 +80,14 @@ describe('apigateway deployer', function () {
         });
 
         it('should fail if vpc is false and a dependency producing security groups is declared', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: '.',
                 handler_function: 'index.handler',
                 lambda_runtime: 'node.js6.3',
                 dependencies: [
                     "FakeDependency"
                 ]
-            });
+            }
             let dependenciesServiceContexts = [];
             dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
             let errors = apigateway.check(serviceContext, dependenciesServiceContexts);
@@ -93,9 +99,9 @@ describe('apigateway deployer', function () {
 
     describe('preDeploy', function () {
         it('should create security groups and return the predeploy context when vpc is true', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
-                "vpc": true
-            });
+            serviceContext.params = {
+                vpc: true
+            }
             let response = new PreDeployContext(serviceContext)
             response.securityGroups.push("FakeSecurityGroup")
             let preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
@@ -110,9 +116,9 @@ describe('apigateway deployer', function () {
         });
 
         it('should return an empty preDeploy context when vpc is false', function () {
-            let serviceContext = new ServiceContext("FakeName", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 "vpc": false
-            });
+            }
             let preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
             return apigateway.preDeploy(serviceContext)
@@ -124,17 +130,13 @@ describe('apigateway deployer', function () {
     });
     
     describe('deploy', function () {
-        function getOwnServiceContext(appName, envName, deployVersion) {
-            let ownServiceName = "OwnService";
-            let ownServiceType = "apigateway";
-            let ownServiceParams = {
+        beforeEach(function() {
+            serviceContext.params = {
                 path_to_code: `${__dirname}/mytestartifact.war`,
                 lambda_runtime: 'nodejs6.10',
                 handler_runtime: 'index.handler'
-            };
-            let ownServiceContext = new ServiceContext(appName, envName, ownServiceName, ownServiceType, deployVersion, ownServiceParams);
-            return ownServiceContext;
-        }
+            }
+        });
 
         function getDependencyDeployContexts(appName, envName, deployVersion) {
             let dependenciesDeployContexts = [];
@@ -149,11 +151,7 @@ describe('apigateway deployer', function () {
 
         it('should deploy the service', function () {
             //Set up input parameters
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = getOwnServiceContext(appName, envName, deployVersion);
-            let ownPreDeployContext = new PreDeployContext(ownServiceContext);
+            let ownPreDeployContext = new PreDeployContext(serviceContext);
             let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName, deployVersion);
 
             //Stub out dependent services
@@ -170,7 +168,7 @@ describe('apigateway deployer', function () {
                 }]
             }));
 
-            return apigateway.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return apigateway.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
@@ -182,10 +180,10 @@ describe('apigateway deployer', function () {
     describe('unPreDeploy', function () {
         it('should return an empty UnPreDeploy context if vpc is false', function () {
             let unPreDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            let ownServiceContext = {};
-            ownServiceContext.params = {};
-            ownServiceContext.params.vpc = false;
-            return apigateway.unPreDeploy(ownServiceContext)
+            serviceContext.params = {
+                vpc: false
+            }
+            return apigateway.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
@@ -193,11 +191,11 @@ describe('apigateway deployer', function () {
         });
 
         it('should delete the security groups if vpc is true and return the unPreDeploy context', function () {
-            let ownServiceContext = {};
-            ownServiceContext.params = {};
-            ownServiceContext.params.vpc = true;
-            let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(ownServiceContext)));
-            return apigateway.unPreDeploy(ownServiceContext)
+            serviceContext.params = {
+                vpc: true
+            }
+            let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(serviceContext)));
+            return apigateway.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeploySecurityGroup.callCount).to.equal(1);
@@ -207,7 +205,6 @@ describe('apigateway deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apigateway", "1", {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return apigateway.unDeploy(serviceContext)

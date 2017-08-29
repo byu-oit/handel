@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
 const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
@@ -27,11 +26,18 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('cloudwatchevent deployer', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "cloudwatchevent", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -40,19 +46,14 @@ describe('cloudwatchevent deployer', function () {
 
     describe('check', function () {
         it('should require the schedule or event_pattern parameter to be present', function () {
-            let serviceContext = {
-                params: {}
-            }
             let errors = cloudWatchEvent.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("You must specify at least one of the 'schedule' or 'event_pattern' parameters");
         });
 
         it('should work when there are no configuration errors', function () {
-            let serviceContext = {
-                params: {
-                    schedule: 'rate(1 minute)'
-                }
+            serviceContext.params = {
+                schedule: 'rate(1 minute)'
             }
             let errors = cloudWatchEvent.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -60,16 +61,13 @@ describe('cloudwatchevent deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let serviceContext = new ServiceContext(appName, envName, "FakeService", "cloudwatchevent", deployVersion, {
-            schedule: 'rate(1 minute)'
-        });
-        let preDeployContext = new PreDeployContext(serviceContext);
-        let eventRuleArn = "FakeEventRuleArn";
-
         it('should deploy the event rule', function () {
+            serviceContext.params = {
+                schedule: 'rate(1 minute)'
+            }
+            let preDeployContext = new PreDeployContext(serviceContext);
+            let eventRuleArn = "FakeEventRuleArn";
+            
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
@@ -88,29 +86,25 @@ describe('cloudwatchevent deployer', function () {
     });
 
     describe('produceEvents', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-
         it('should add a target for the lambda service type', function () {
             let consumerServiceName = "ConsumerService";
             let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.lambdaArn = "FakeLambdaArn";
 
-            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "cloudwatchevent", deployVersion, {
+            serviceContext.params = {
                 event_consumers: [
                     {
                         service_name: consumerServiceName,
                         input: '{"notify": false}'
                     }
                 ]
-            });
-            let producerDeployContext = new DeployContext(producerServiceContext);
+            }
+            let producerDeployContext = new DeployContext(serviceContext);
 
             let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
 
-            return cloudWatchEvent.produceEvents(producerServiceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
+            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
                     expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
                     expect(addTargetStub.calledOnce).to.be.truel
@@ -122,18 +116,18 @@ describe('cloudwatchevent deployer', function () {
             let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
 
-            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "cloudwatchevent", deployVersion, {
+            serviceContext.params = {
                 event_consumers: [
                     {
                         service_name: consumerServiceName
                     }
                 ]
-            });
-            let producerDeployContext = new DeployContext(producerServiceContext);
+            }
+            let producerDeployContext = new DeployContext(serviceContext);
 
             let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
 
-            return cloudWatchEvent.produceEvents(producerServiceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
+            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
                     expect(true).to.be.false; //Should not get here
                 })
@@ -150,7 +144,6 @@ describe('cloudwatchevent deployer', function () {
             let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(true));
             
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "cloudwatchevent", "1", {});
             return cloudWatchEvent.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);

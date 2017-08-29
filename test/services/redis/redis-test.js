@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const redis = require('../../../lib/services/redis');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -30,11 +29,17 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('redis deployer', function () {
     let sandbox;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "redis", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -43,10 +48,8 @@ describe('redis deployer', function () {
 
     describe('check', function () {
         it('should do require the instance_type parameter', function () {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4'
-                }
+            serviceContext.params = {
+                redis_version: '3.2.4'
             }
             let errors = redis.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -54,10 +57,8 @@ describe('redis deployer', function () {
         });
 
         it('should require the redis_version parameter', function () {
-            let serviceContext = {
-                params: {
-                    instance_type: 'cache.t2.micro'
-                }
+            serviceContext.params = {
+                instance_type: 'cache.t2.micro'
             }
             let errors = redis.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -65,12 +66,10 @@ describe('redis deployer', function () {
         });
 
         it('should fail if the read_replicas parameter is not between 0-5', function () {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.m3.medium',
-                    read_replicas: 6
-                }
+            serviceContext.params = {
+                redis_version: '3.2.4',
+                instance_type: 'cache.m3.medium',
+                read_replicas: 6
             }
             let errors = redis.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -78,12 +77,10 @@ describe('redis deployer', function () {
         });
 
         it('should fail if the instance_type is a t* class when using replication', function () {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.t2.micro',
-                    read_replicas: 5
-                }
+            serviceContext.params = {
+                redis_version: '3.2.4',
+                instance_type: 'cache.t2.micro',
+                read_replicas: 5
             }
             let errors = redis.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -91,12 +88,10 @@ describe('redis deployer', function () {
         });
 
         it('should work when all parameters are provided properly', function () {
-            let serviceContext = {
-                params: {
-                    redis_version: '3.2.4',
-                    instance_type: 'cache.m3.medium',
-                    read_replicas: 5
-                }
+            serviceContext.params = {
+                redis_version: '3.2.4',
+                instance_type: 'cache.m3.medium',
+                read_replicas: 5
             }
             let errors = redis.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -106,7 +101,6 @@ describe('redis deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -136,24 +130,21 @@ describe('redis deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "redis", deployVersion, {
-            redis_version: '3.2.4',
-            instance_type: 'cache.t2.micro'
-        });
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-        ownPreDeployContext.securityGroups.push({
-            GroupId: 'FakeId'
-        });
-        let dependenciesDeployContexts = [];
-
-        let cacheAddress = "fakeaddress.byu.edu";
-        let cachePort = 6379;
-        let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
-
         it('should deploy the cluster', function () {
+            serviceContext.params = {
+                redis_version: '3.2.4',
+                instance_type: 'cache.t2.micro'
+            }
+            let ownPreDeployContext = new PreDeployContext(serviceContext);
+            ownPreDeployContext.securityGroups.push({
+                GroupId: 'FakeId'
+            });
+            let dependenciesDeployContexts = [];
+    
+            let cacheAddress = "fakeaddress.byu.edu";
+            let cachePort = 6379;
+            let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
@@ -167,7 +158,7 @@ describe('redis deployer', function () {
                 ]
             }));
 
-            return redis.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return redis.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);

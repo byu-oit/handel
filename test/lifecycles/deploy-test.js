@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/test-account-config.yml`).getAccountConfig();
 const deployLifecycle = require('../../lib/lifecycles/deploy');
 const bindPhase = require('../../lib/phases/bind');
 const deployPhase = require('../../lib/phases/deploy');
@@ -25,6 +24,8 @@ const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
 
 describe('deploy lifecycle module', function () {
     let sandbox;

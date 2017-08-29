@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const lambda = require('../../../lib/services/lambda');
 const lambdaCalls = require('../../../lib/aws/lambda-calls');
 const iamCalls = require('../../../lib/aws/iam-calls');
@@ -31,11 +30,18 @@ const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('lambda deployer', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -44,54 +50,54 @@ describe('lambda deployer', function () {
 
     describe('check', function () {
         it('should require the path_to_code parameter', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 handler: 'index.handler',
                 runtime: 'nodejs6.11'
-            });
+            }
             let errors = lambda.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'path_to_code' parameter is required");
         });
 
         it('should require the handler parameter', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: '.',
                 runtime: 'nodejs6.11'
-            });
+            }
             let errors = lambda.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'handler' parameter is required");
         });
 
         it('should require the runtime parameter', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: '.',
                 handler: 'index.handler'
-            });
+            }
             let errors = lambda.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'runtime' parameter is required");
         });
 
         it('should work when things are configured properly', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: '.',
                 runtime: 'nodejs6.11',
                 handler: 'index.handler'
-            });
+            }
             let errors = lambda.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
 
         it('should fail if vpc is false and a dependency producing security groups is declared', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: '.',
                 handler: 'index.handler',
                 runtime: 'node.js6.3',
                 dependencies: [
                     "FakeDependency"
                 ]
-            });
+            }
             let dependenciesServiceContexts = [];
             dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
             let errors = lambda.check(serviceContext, dependenciesServiceContexts);
@@ -103,9 +109,9 @@ describe('lambda deployer', function () {
 
     describe('preDeploy', function () {
         it('should create security groups and return the predeploy context when vpc is true', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 "vpc": true
-            });
+            }
             let response = new PreDeployContext(serviceContext)
             response.securityGroups.push("FakeSecurityGroup")
             let preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
@@ -120,9 +126,9 @@ describe('lambda deployer', function () {
         });
 
         it('should return an empty predeploy context when vpc is false', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 "vpc": false
-            });
+            }
             let preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
             return lambda.preDeploy(serviceContext)
@@ -134,8 +140,8 @@ describe('lambda deployer', function () {
     });
 
     describe('deploy', function () {
-        function getServiceContext() {
-            return new ServiceContext("FakeApp", "FakeEnv", "FakeService", "lambda", "1", {
+        beforeEach(function() {
+            serviceContext.params = {
                 memory: 256,
                 timeout: 5,
                 path_to_code: ".",
@@ -144,8 +150,8 @@ describe('lambda deployer', function () {
                 environment_variables: {
                     MY_FIRST_VAR: 'my_first_value'
                 }
-            });
-        }
+            }
+        });
 
         function getPreDeployContext(serviceContext) {
             return new PreDeployContext(serviceContext);
@@ -154,9 +160,7 @@ describe('lambda deployer', function () {
         function getDependenciesDeployContexts() {
             let dependenciesDeployContexts = [];
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {
-
-            });
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {}, accountConfig);
             let deployContext = new DeployContext(serviceContext);
             deployContext.environmentVariables['INJECTED_VAR'] = 'injectedValue';
             deployContext.policies.push({});
@@ -185,11 +189,10 @@ describe('lambda deployer', function () {
                 ]
             }));
 
-            let ownServiceContext = getServiceContext();
-            let ownPreDeployContext = getPreDeployContext(ownServiceContext);
+            let ownPreDeployContext = getPreDeployContext(serviceContext);
             let dependenciesDeployContexts = getDependenciesDeployContexts();
 
-            return lambda.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return lambda.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.eventOutputs.lambdaArn).to.equal(functionArn);
@@ -201,13 +204,13 @@ describe('lambda deployer', function () {
     });
 
     describe('consumeEvents', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-        let ownDeployContext = new DeployContext(ownServiceContext);
-        ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+        let ownDeployContext;
 
+        beforeEach(function() {
+            ownDeployContext = new DeployContext(serviceContext);
+            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
+        });
+ 
         it('should add permissions for the sns service type', function () {
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
@@ -216,7 +219,7 @@ describe('lambda deployer', function () {
 
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(addLambdaPermissionStub.calledOnce).to.be.true;
@@ -231,7 +234,7 @@ describe('lambda deployer', function () {
 
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(addLambdaPermissionStub.calledOnce).to.be.true;
@@ -239,18 +242,11 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the alexaskillkit service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
-
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "alexaskillkit", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(addLambdaPermissionStub.callCount).to.equal(1);
@@ -265,7 +261,7 @@ describe('lambda deployer', function () {
 
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(addLambdaPermissionStub.callCount).to.equal(1);
@@ -277,17 +273,17 @@ describe('lambda deployer', function () {
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
-            producerDeployContext.eventOutputs.tableStreamArn = "arn:aws:dynamodb:us-west-2:111122223333:table/consumerService/stream/2015-05-11T21:21:33.291"
+            producerDeployContext.eventOutputs.tableStreamArn = "arn:aws:dynamodb:us-west-2:111122223333:table/FakeService/stream/2015-05-11T21:21:33.291"
 
             let attachStreamPolicyStub = sandbox.stub(iamCalls, 'attachStreamPolicy').returns(Promise.resolve({}));
             let addLambdaEventSourceMapping = sandbox.stub(lambdaCalls, 'addLambdaEventSourceMapping').returns(Promise.resolve({}));
             producerDeployContext.eventOutputs.lambdaConsumers = [
                 {
-                    "serviceName": "consumerService",
+                    "serviceName": "FakeService",
                     "batch_size": 100
                 }
             ]
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
                     expect(attachStreamPolicyStub.callCount).to.equal(1);
@@ -296,19 +292,12 @@ describe('lambda deployer', function () {
         });
 
         it('should return an error for any other service type', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "lambda", deployVersion, {});
-            let ownDeployContext = new DeployContext(ownServiceContext);
-            ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
-
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
 
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
-            return lambda.consumeEvents(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
+            return lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext)
                 .then(consumeEventsContext => {
                     expect(true).to.be.false; //Should not get here
                 })
@@ -322,10 +311,10 @@ describe('lambda deployer', function () {
     describe('unPreDeploy', function () {
         it('should return an empty UnPreDeploy context if vpc is false', function () {
             let unPreDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
-            let ownServiceContext = {};
-            ownServiceContext.params = {};
-            ownServiceContext.params.vpc = false;
-            return lambda.unPreDeploy(ownServiceContext)
+            serviceContext.params = {
+                vpc: false
+            }
+            return lambda.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
@@ -333,11 +322,11 @@ describe('lambda deployer', function () {
         });
 
         it('should delete the security groups if vpc is true and return the unPreDeploy context', function () {
-            let ownServiceContext = {};
-            ownServiceContext.params = {};
-            ownServiceContext.params.vpc = true;
-            let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(ownServiceContext)));
-            return lambda.unPreDeploy(ownServiceContext)
+            serviceContext.params = {
+                vpc: true
+            }
+            let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(serviceContext)));
+            return lambda.unPreDeploy(serviceContext)
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeploySecurityGroup.callCount).to.equal(1);
@@ -347,7 +336,6 @@ describe('lambda deployer', function () {
 
     describe('unDeploy', function () {
         it('should delete the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').returns(Promise.resolve())
             let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
           

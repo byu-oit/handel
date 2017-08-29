@@ -25,6 +25,8 @@ const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../lib/datatypes/un-bind-context');
 const lifecyclesCommon = require('../../lib/common/lifecycles-common');
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('lifecycles common module', function () {
     let sandbox;
 

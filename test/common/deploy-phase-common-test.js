@@ -25,11 +25,19 @@ const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('Deploy phase common module', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let serviceName = "FakeService";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, serviceName, "FakeType", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -38,7 +46,6 @@ describe('Deploy phase common module', function () {
 
     describe('getInjectedEnvVarName', function () {
         it('should return the environment variable name from the given ServiceContext and suffix', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let envVarName = deployPhaseCommon.getInjectedEnvVarName(serviceContext, "SOME_INFO");
             expect(envVarName).to.equal("FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_SOME_INFO");
         });
@@ -46,7 +53,6 @@ describe('Deploy phase common module', function () {
 
     describe('getSsmParamName', function() {
         it('should return a consistent name for SSM params', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let paramName = deployPhaseCommon.getSsmParamName(serviceContext, 'myparamname');
             expect(paramName).to.equal("FakeApp.FakeEnv.FakeService.myparamname");
         });
@@ -54,11 +60,6 @@ describe('Deploy phase common module', function () {
 
     describe('getEnvVarsFromServiceContext', function () {
         it('should return an object with the env vars to inject from the service context', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let deployVersion = "1";
-            let serviceContext = new ServiceContext(appName, envName, serviceName, "apigateway", deployVersion, {});
             let returnEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext);
             expect(returnEnvVars['HANDEL_APP_NAME']).to.equal(appName);
             expect(returnEnvVars['HANDEL_ENVIRONMENT_NAME']).to.equal(envName);
@@ -70,14 +71,14 @@ describe('Deploy phase common module', function () {
     describe('getEnvVarsFromDependencyDeployContexts', function () {
         it('should return an object with the env vars from all given DeployContexts', function () {
             let deployContexts = []
-            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {});
+            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {}, accountConfig);
             let deployContext1 = new DeployContext(serviceContext1);
             let envVarName1 = "ENV_VAR_1";
             let envVarValue1 = "someValue1";
             deployContext1.environmentVariables[envVarName1] = envVarValue1;
             deployContexts.push(deployContext1);
 
-            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {});
+            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {}, accountConfig);
             let deployContext2 = new DeployContext(serviceContext2);
             let envVarName2 = "ENV_VAR_2";
             let envVarValue2 = "someValue2";
@@ -100,7 +101,7 @@ describe('Deploy phase common module', function () {
             let attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
             let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve(null));
 
-            return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [{}])
+            return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [{}], {})
                 .then(role => {
                     expect(getRoleStub.callCount).to.equal(2);
                     expect(createRoleStub.callCount).to.equal(1);
@@ -113,7 +114,7 @@ describe('Deploy phase common module', function () {
             let createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
             let getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
 
-            return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [])
+            return deployPhaseCommon.createCustomRole("ecs.amazonaws.com", "MyRole", [], {})
                 .then(role => {
                     expect(getRoleStub.callCount).to.equal(1);
                     expect(createRoleStub.callCount).to.equal(0);
@@ -137,7 +138,7 @@ describe('Deploy phase common module', function () {
             }];
 
             let dependenciesDeployContexts = [];
-            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {}, accountConfig);
             let dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.policies.push({
                 "Effect": "Allow",
@@ -203,7 +204,6 @@ describe('Deploy phase common module', function () {
 
     describe('uploadFileToHandelBucket', function () {
         it('should upload the given file to the bucket', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let diskFilePath = "FakePath";
             let s3FileName = "SomeFileName";
 
@@ -212,7 +212,7 @@ describe('Deploy phase common module', function () {
             let uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({});
             let cleanupOldVersionsStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').returns(Promise.resolve(null));
 
-            return deployPhaseCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName)
+            return deployPhaseCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName, accountConfig)
                 .then(s3ObjectInfo => {
                     expect(createBucketStub.callCount).to.equal(1);
                     expect(uploadFileStub.callCount).to.equal(1);
@@ -224,9 +224,9 @@ describe('Deploy phase common module', function () {
 
     describe('uploadDeployableArtifactToHandelBucket', function () {
         it('should upload a file to the given s3 location', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: `${__dirname}/mytestartifact.war`
-            });
+            }
             let s3FileName = "FakeS3Filename";
 
             let uploadFileToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
@@ -239,9 +239,9 @@ describe('Deploy phase common module', function () {
         });
 
         it('should zip and upload a directory to the given s3 location', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 path_to_code: __dirname
-            });
+            }
             let s3FileName = "FakeS3Filename";
 
             let zipDirectoryToFileStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve({}));
@@ -260,10 +260,6 @@ describe('Deploy phase common module', function () {
 
     describe('getAppSecretsAccessPolicyStatements', function () {
         it('should return an array of two permissions allowing it to access secrets in its namespace', function () {
-            let appName = "FakeApp";
-            let envName = "FakeEnv";
-            let serviceName = "FakeService";
-            let serviceContext = new ServiceContext(appName, envName, serviceName, "lambda", "1", {});
             let policyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
             expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`)
@@ -272,7 +268,6 @@ describe('Deploy phase common module', function () {
 
     describe('getResourceName', function() {
         it('should return a consistent name for Handel-created resources from the service context', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
             let resourceName = deployPhaseCommon.getResourceName(serviceContext);
             expect(resourceName).to.equal("FakeApp-FakeEnv-FakeService-FakeType");
         });
@@ -280,11 +275,11 @@ describe('Deploy phase common module', function () {
 
     describe('getTags', function() {
         it('should return the Handel-injected tags, plus any user-defined tags', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {
+            serviceContext.params = {
                 tags: {
                     mytag: 'myvalue'
                 }
-            });
+            }
             
             let returnTags = deployPhaseCommon.getTags(serviceContext);
             expect(returnTags.app).to.equal('FakeApp');

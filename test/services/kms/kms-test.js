@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const kms = require('../../../lib/services/kms');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -25,11 +24,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('kms deployer', function () {
     let sandbox;
+    let serviceContext;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -71,9 +77,6 @@ describe('kms deployer', function () {
         });
 
         it('should work when there are no configuration errors', function () {
-            let serviceContext = {
-                params: {}
-            };
             let errors = kms.check(serviceContext);
             expect(errors).to.be.empty;
         });
@@ -81,17 +84,14 @@ describe('kms deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
         let alias = 'myalias';
         let keyId = '123ABC';
         let keyArn = 'arn:aws:kms:us-west-2:000000000000:key/' + keyId;
 
         it('should create the key', function () {
-            let serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {
+            serviceContext.params = {
                 alias
-            });
+            }
             let preDeployContext = new PreDeployContext(serviceContext);
 
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
@@ -141,7 +141,6 @@ describe('kms deployer', function () {
                 }]
             }));
 
-            let serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {});
             let preDeployContext = new PreDeployContext(serviceContext);
 
             return kms.deploy(serviceContext, preDeployContext, [])
@@ -162,7 +161,6 @@ describe('kms deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "kms", "1", {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return kms.unDeploy(serviceContext)

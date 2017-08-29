@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const iot = require('../../../lib/services/iot');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
@@ -25,11 +24,18 @@ const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-describe('lambda deployer', function () {
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
+describe('iot deployer', function () {
     let sandbox;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "iot", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -38,34 +44,34 @@ describe('lambda deployer', function () {
 
     describe('check', function () {
         it('should return an error when the service_name param is not specified in event_consumers', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "iot", "1", {
+            serviceContext.params = {
                 event_consumers: [{
                     sql: "select * from 'something'"
                 }]
-            });
+            }
             let errors = iot.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("The 'service_name' parameter is required");
         });
 
         it('should return an error when the sql parameter is not specified in the event_consumers seciton', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "iot", "1", {
+            serviceContext.params = {
                 event_consumers: [{
                     service_name: 'myconsumer',
                 }]
-            });
+            }
             let errors = iot.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("The 'sql' parameter is required");
         });
 
         it('should return no errors when configured properly', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "iot", "1", {
+            serviceContext.params = {
                 event_consumers: [{
                     service_name: 'myconsumer',
                     sql: "select * from 'something'"
                 }]
-            });
+            }
             let errors = iot.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
@@ -73,7 +79,7 @@ describe('lambda deployer', function () {
 
     describe('deploy', function () {
         it('should return an empty deploy context', function () {
-            return iot.deploy({}, {}, {})
+            return iot.deploy(serviceContext, {}, {})
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                 });
@@ -81,21 +87,23 @@ describe('lambda deployer', function () {
     });
 
     describe('produceEvents', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let version = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeProducer", "iot", version, {
-            event_consumers: [{
-                service_name: "FakeConsumer",
-                sql: "select * from something;",
-                ruleDisabled: false
-            }]
+        let ownDeployContext;
+
+        beforeEach(function() {
+            serviceContext.params = {
+                event_consumers: [{
+                    service_name: "FakeConsumer",
+                    sql: "select * from something;",
+                    ruleDisabled: false
+                }]
+            }
+
+            ownDeployContext = new DeployContext(serviceContext);
         });
-        let ownDeployContext = new DeployContext(ownServiceContext);
 
 
         it('should create topic rules when lambda is the event consumer', function () {
-            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "lambda", version, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "lambda", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = "FakeArn";
 
@@ -108,7 +116,7 @@ describe('lambda deployer', function () {
                 ]
             }));
 
-            return iot.produceEvents(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
+            return iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
                     expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
                     expect(deployStackStub.callCount).to.equal(1);
@@ -116,10 +124,10 @@ describe('lambda deployer', function () {
         });
 
         it('should return an error if any other consumer type is specified', function () {
-            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "unknowntype", version, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "unknowntype", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             
-            return iot.produceEvents(ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
+            return iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
                     expect(true).to.equal(false); //Should not get here
                 })
@@ -131,7 +139,7 @@ describe('lambda deployer', function () {
 
     describe('unDeploy', function () {
         it('should delete the topic rule stacks', function () {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "iot", "1", {
+            serviceContext.params = {
                 event_consumers: [
                     {
                         service_name: "A"
@@ -139,13 +147,13 @@ describe('lambda deployer', function () {
                     {
                         service_name: "B"
                     }
-                ]
-            });
+                ]  
+            }
 
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve({}));
 
-            return iot.unDeploy(ownServiceContext)
+            return iot.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
                     expect(getStackStub.callCount).to.equal(2);

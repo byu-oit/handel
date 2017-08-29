@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`).getAccountConfig();
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const ec2Calls = require('../../lib/aws/ec2-calls');

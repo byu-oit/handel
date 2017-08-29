@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const route53 = require('../../../lib/services/route53zone');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -25,11 +24,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('route53zone deployer', function () {
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let deployVersion = "1";
     let sandbox;
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {}, accountConfig);
     });
 
     afterEach(function () {
@@ -38,10 +44,6 @@ describe('route53zone deployer', function () {
 
     describe('check', function () {
         it('should require the name parameter', function () {
-            let serviceContext = {
-                params: {}
-            };
-
             let errors = route53.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'name' parameter must be specified");
@@ -53,11 +55,9 @@ describe('route53zone deployer', function () {
 
             invalidNames.forEach(function (invalid) {
                 it(`should reject '${invalid}'`, function () {
-                    let serviceContext = {
-                        params: {
-                            name: invalid
-                        }
-                    };
+                    serviceContext.params = {
+                        name: invalid
+                    }
 
                     let errors = route53.check(serviceContext);
                     expect(errors.length).to.equal(1);
@@ -67,11 +67,9 @@ describe('route53zone deployer', function () {
 
             validNames.forEach(function (valid) {
                 it(`should accept '${valid}'`, function () {
-                    let serviceContext = {
-                        params: {
-                            name: valid
-                        }
-                    };
+                    serviceContext.params = {
+                        name: valid
+                    }
 
                     let errors = route53.check(serviceContext);
                     expect(errors.length).to.be.empty;
@@ -81,22 +79,18 @@ describe('route53zone deployer', function () {
         });
 
         it('should work when there are no configuration errors', function () {
-            let serviceContext = {
-                params: {
-                    name: 'somename',
-                    private: true
-                }
+            serviceContext.params = {
+                name: 'somename',
+                private: true
             }
             let errors = route53.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
 
         it('should fail if private is not a boolean', function () {
-            let serviceContext = {
-                params: {
-                    name: 'somename',
-                    private: 'foobar'
-                }
+            serviceContext.params = {
+                name: 'somename',
+                private: 'foobar'
             }
             let errors = route53.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -105,16 +99,17 @@ describe('route53zone deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
         let dnsName = "myapp.byu.edu";
         let zoneId = '123ABC';
         let zoneNameServers = 'ns1.amazonaws.com,ns2.amazonaws.co.uk';
-        let serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {
-            name: dnsName
+        let preDeployContext;
+
+        beforeEach(function() {
+            serviceContext.params = {
+                dns_name: dnsName
+            }
+            preDeployContext = new PreDeployContext(serviceContext);
         });
-        let preDeployContext = new PreDeployContext(serviceContext);
 
         it('should deploy the hosted zone', function () {
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
@@ -155,19 +150,19 @@ describe('route53zone deployer', function () {
                 }]
             }));
 
-            let privateServiceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {
+            serviceContext.params = {
                 name: dnsName,
                 private: true,
-            });
+            }
 
-            return route53.deploy(privateServiceContext, preDeployContext, [])
+            return route53.deploy(serviceContext, preDeployContext, [])
                 .then(deployContext => {
                     expect(deployStackStub.callCount).to.equal(1);
 
                     expect(deployStackStub.firstCall.args[1]).to.contain(
                         `VPCs:
-        - VPCId: ${accountConfig.vpc}
-          VPCRegion: ${accountConfig.region}`);
+        - VPCId: ${serviceContext.accountConfig.vpc}
+          VPCRegion: ${serviceContext.accountConfig.region}`);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.be.empty;
                     expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
@@ -179,7 +174,6 @@ describe('route53zone deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "route53", "1", {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return route53.unDeploy(serviceContext)

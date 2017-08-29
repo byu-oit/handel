@@ -14,9 +14,7 @@
  * limitations under the License.
  *
  */
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`).getAccountConfig();
 const postgresql = require('../../../lib/services/postgresql');
-const ec2Calls = require('../../../lib/aws/ec2-calls');
 const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
 const ServiceContext = require('../../../lib/datatypes/service-context');
 const DeployContext = require('../../../lib/datatypes/deploy-context');
@@ -32,11 +30,17 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+
 describe('postgresql deployer', function () {
     let sandbox;
+    let appName = "FakeApp";
+    let envName = "FakeEnv";
+    let serviceContext;
 
     beforeEach(function () {
         sandbox = sinon.sandbox.create();
+        serviceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", "1", {}, accountConfig);
     });
 
     afterEach(function () {
@@ -45,19 +49,14 @@ describe('postgresql deployer', function () {
 
     describe('check', function () {
         it('should do require the database_name parameter', function () {
-            let serviceContext = {
-                params: {}
-            }
             let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should work when all required parameters are provided properly', function () {
-            let serviceContext = {
-                params: {
-                    database_name: 'mydb',
-                }
+            serviceContext.params = {
+                database_name: 'mydb'
             }
             let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -67,7 +66,6 @@ describe('postgresql deployer', function () {
     describe('preDeploy', function () {
         it('should create a security group', function () {
             let groupId = "FakeSgGroupId";
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
             let preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
@@ -97,24 +95,13 @@ describe('postgresql deployer', function () {
     });
 
     describe('deploy', function () {
-        let appName = "FakeApp";
-        let envName = "FakeEnv";
-        let deployVersion = "1";
-        let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", deployVersion, {
-            database_name: 'mydb'
-        });
-        let ownPreDeployContext = new PreDeployContext(ownServiceContext);
-        ownPreDeployContext.securityGroups.push({
-            GroupId: 'FakeId'
-        });
-        let dependenciesDeployContexts = [];
-
-        let envPrefix = `POSTGRESQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        let ownPreDeployContext;
+        let envPrefix;
+        let dependenciesDeployContexts;
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
         let databaseUsername = "handel";
         let databaseName = "mydb";
-
         let deployedStack = {
             Outputs: [
                 {
@@ -136,12 +123,28 @@ describe('postgresql deployer', function () {
             ]
         }
 
+        beforeEach(function () {
+            serviceContext.params = {
+                database_name: 'mydb'
+            }
+            
+            ownPreDeployContext = new PreDeployContext(serviceContext);
+            ownPreDeployContext.securityGroups.push({
+                GroupId: 'FakeId'
+            });
+            
+            dependenciesDeployContexts = [];
+            
+            envPrefix = `POSTGRESQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        });
+
+
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve(deployedStack));
             let addDbCredentialStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore').returns(Promise.resolve(deployedStack));
 
-            return postgresql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
@@ -158,7 +161,7 @@ describe('postgresql deployer', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(deployedStack));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
 
-            return postgresql.deploy(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+            return postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(updateStackStub.notCalled).to.be.true;
@@ -174,7 +177,7 @@ describe('postgresql deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return postgresql.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);

@@ -19,6 +19,8 @@ const produceEventsPhaseCommon = require('../../lib/common/produce-events-phase-
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
+const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+
 describe('produce events phase common module', function () {
     let sandbox;
 
