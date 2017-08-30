@@ -53,6 +53,16 @@ Parameters
      - No
      - 
      - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
+   * - logging
+     - string
+     - No
+     - "enabled"
+     - Turns CloudWatch logging on or off. Must be either "enabled" or "disabled". See :ref:`ecs-logging` for more.
+   * - log_retention_in_days
+     - number
+     - No
+     - 0
+     - Configures the log retention duration for CloudWatch logs. If set to `0`, logs are kept indefinitely.
    * - tags
      - :ref:`ecs-tags`
      - No
@@ -197,7 +207,13 @@ The `tags` section is defined by the following schema:
 
     Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
+.. _ecs-logging:
 
+Logging
+~~~~~~~
+If logging is enabled, a CloudWatch log group will be created, with a name like ecs/<appName>-<environmentName>-<serviceName>.
+Each container in the container configuration will have a log prefix matching its name. The retention time for the log
+group is set with `log_retention_in_days`, and defaults to keeping the logs indefinitely.
 
 .. _ecs-example-handel-files:
 
