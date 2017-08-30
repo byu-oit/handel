@@ -259,7 +259,7 @@ Resources:
   ContainerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: ecs/{{clusterName}}
+      LogGroupName: ecs/{{logGroupName}}
       {{#if logRetentionInDays}}
       RetentionInDays: {{logRetentionInDays}}
       {{/if}}

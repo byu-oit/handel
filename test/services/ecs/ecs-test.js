@@ -306,6 +306,7 @@ describe('ecs deployer', function () {
                     //Container Logging Setup
                     expect(deployStackStub.firstCall.args[1]).to.include('awslogs');
                     expect(deployStackStub.firstCall.args[1]).to.include('LogConfiguration');
+                    expect(deployStackStub.firstCall.args[1]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
                 });
         });
     });
