@@ -172,6 +172,35 @@ describe('ecs deployer', function () {
             let errors = ecs.check(serviceContext);
             expect(errors.length).to.equal(0);
         });
+
+        describe("'logging' validation", function() {
+            it("should allow 'enabled'", function() {
+                serviceContext.params.logging = 'enabled';
+                let errors = ecs.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+
+            it("should allow 'disabled'", function() {
+                serviceContext.params.logging = 'disabled';
+                let errors = ecs.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+
+            it("should reject anything else", function() {
+                serviceContext.params.logging = 'something else';
+                let errors = ecs.check(serviceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.contain("'logging' parameter must be either 'enabled' or 'disabled'")
+            });
+        });
+
+        it("should require that 'log_retention_in_days' be a number", function() {
+            serviceContext.params.log_retention_in_days = 'a number';
+
+            let errors = ecs.check(serviceContext);
+            expect(errors).to.have.lengthOf(1);
+            expect(errors[0]).to.contain("'log_retention_in_days' parameter must be a number")
+        });
     });
 
     describe('preDeploy', function () {

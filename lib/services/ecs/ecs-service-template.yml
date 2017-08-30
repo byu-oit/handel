@@ -233,13 +233,13 @@ Resources:
           Protocol: tcp
         {{/each}}
         {{/if}}
-        {{#if logging}}
+        {{#if ../logging}}
         LogConfiguration:
           LogDriver: awslogs
           Options:
-            awslogs-group: {{logging.group}}
+            awslogs-group: !Ref ContainerLogGroup
             awslogs-region: !Ref "AWS::Region"
-            awslogs-stream-prefix: {{logging.prefix}}
+            awslogs-stream-prefix: {{name}}
         {{/if}}
         Environment:
         {{#each environmentVariables}}
@@ -254,6 +254,16 @@ Resources:
         {{/each}}
         {{/if}}
       {{/each}}
+
+  {{#if logging}}
+  ContainerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: ecs/{{clusterName}}
+      {{#if logRetentionInDays}}
+      RetentionInDays: {{logRetentionInDays}}
+      {{/if}}
+  {{/if}}
 
   #
   # Configure Service Auto Scaling
