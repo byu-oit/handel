@@ -61,8 +61,8 @@ Parameters
    * - log_retention_in_days
      - number
      - No
-     -
-     - Configures the log retention duration for CloudWatch logs. If not set, logs are kept indefinitely.
+     - 0
+     - Configures the log retention duration for CloudWatch logs. If set to `0`, logs are kept indefinitely.
    * - tags
      - :ref:`ecs-tags`
      - No
