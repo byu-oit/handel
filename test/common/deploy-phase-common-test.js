@@ -44,10 +44,15 @@ describe('Deploy phase common module', function () {
         sandbox.restore();
     });
 
-    describe('getInjectedEnvVarName', function () {
-        it('should return the environment variable name from the given ServiceContext and suffix', function () {
-            let envVarName = deployPhaseCommon.getInjectedEnvVarName(serviceContext, "SOME_INFO");
-            expect(envVarName).to.equal("FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_SOME_INFO");
+    describe('getInjectedEnvVarsFor', function() {
+        it('should return environment variables with the service name', function() {
+            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {FOO: 'bar'});
+            expect(vars).to.have.property('FAKESERVICE_FOO', 'bar');
+        });
+
+        it('should return environment variables with the legacy format', function() {
+            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {FOO: 'bar'});
+            expect(vars).to.have.property('FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_FOO', 'bar');
         });
     });
 
