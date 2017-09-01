@@ -96,7 +96,7 @@ describe('postgresql deployer', function () {
 
     describe('deploy', function () {
         let ownPreDeployContext;
-        let envPrefix;
+        let envPrefix = 'FAKESERVICE';
         let dependenciesDeployContexts;
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
@@ -134,8 +134,6 @@ describe('postgresql deployer', function () {
             });
             
             dependenciesDeployContexts = [];
-            
-            envPrefix = `POSTGRESQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
         });
 
 

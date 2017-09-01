@@ -115,10 +115,10 @@ describe('kms deployer', function () {
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.have.lengthOf(1);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_KEY_ID"]).to.equal(keyId);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_KEY_ARN"]).to.equal(keyArn);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_NAME"]).to.equal('alias/' + alias);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_ARN"]).to.equal('arn:aws:kms:us-west-2:000000000:alias/' + alias);
+                    expect(deployContext.environmentVariables["FAKESERVICE_KEY_ID"]).to.equal(keyId);
+                    expect(deployContext.environmentVariables["FAKESERVICE_KEY_ARN"]).to.equal(keyArn);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ALIAS_NAME"]).to.equal('alias/' + alias);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ALIAS_ARN"]).to.equal('arn:aws:kms:us-west-2:000000000:alias/' + alias);
                 });
         });
 
@@ -152,8 +152,8 @@ describe('kms deployer', function () {
 
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.have.lengthOf(1);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_NAME"]).to.equal(alias);
-                    expect(deployContext.environmentVariables["KMS_FAKEAPP_FAKEENV_FAKESERVICE_ALIAS_ARN"]).to.equal(aliasArn);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ALIAS_NAME"]).to.equal(alias);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ALIAS_ARN"]).to.equal(aliasArn);
                 });
         });
 

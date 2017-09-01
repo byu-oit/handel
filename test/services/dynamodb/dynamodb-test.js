@@ -203,8 +203,7 @@ describe('dynamodb deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies.length).to.equal(1);
                     expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
-                    let tableNameVar = `${serviceType}_${appName}_${envName}_${serviceName}_TABLE_NAME`.toUpperCase();
-                    expect(deployContext.environmentVariables[tableNameVar]).to.equal(tableName);
+                    expect(deployContext.environmentVariables[`${serviceName}_TABLE_NAME`.toUpperCase()]).to.equal(tableName);
                 });
         });
     });

@@ -115,20 +115,16 @@ describe('sqs deployer', function () {
 
                     expect(deployContext).to.be.instanceof(DeployContext);
 
-                    //Should have exported 3 env vars
-                    let queueNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_NAME`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueNameEnv]).to.equal(queueName);
-                    let queueUrlEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_URL`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueUrlEnv]).to.equal(queueUrl);
-                    let queueArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_QUEUE_ARN`.toUpperCase()
-                    expect(deployContext.environmentVariables[queueArnEnv]).to.equal(queueArn);
+                    let envPrefix = serviceName.toUpperCase();
 
-                    let deadLetterQueueNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_NAME`.toUpperCase()
-                    expect(deployContext.environmentVariables[deadLetterQueueNameEnv]).to.equal(deadLetterQueueName);
-                    let deadLetterQueueUrlEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_URL`.toUpperCase()
-                    expect(deployContext.environmentVariables[deadLetterQueueUrlEnv]).to.equal(deadLetterQueueUrl);
-                    let deadLetterQueueArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_DEAD_LETTER_QUEUE_ARN`.toUpperCase()
-                    expect(deployContext.environmentVariables[deadLetterQueueArnEnv]).to.equal(deadLetterQueueArn);
+                    //Should have exported 3 env vars
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_QUEUE_NAME`, queueName);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_QUEUE_URL`, queueUrl);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_QUEUE_ARN`, queueArn);
+
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_DEAD_LETTER_QUEUE_NAME`,deadLetterQueueName);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_DEAD_LETTER_QUEUE_URL`, deadLetterQueueUrl);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_DEAD_LETTER_QUEUE_ARN`, deadLetterQueueArn);
 
                     //Should have exported 1 policy
                     expect(deployContext.policies.length).to.equal(1); //Should have exported one policy
