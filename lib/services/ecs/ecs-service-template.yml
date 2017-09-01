@@ -197,6 +197,9 @@ Resources:
       {{/if}}
       TaskDefinition:
         Ref: TaskDefinition
+      PlacementStrategies:
+        - Type: spread
+          Field: instanceId
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
