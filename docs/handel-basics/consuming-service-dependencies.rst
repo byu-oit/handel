@@ -31,10 +31,10 @@ The following Handel file defines a Beanstalk service that depends on an SQS que
 
 Handel will inject environment variables in the Beanstalk application for the SQS queue, such as the queue's ARN, name, and URL. You can read these environment variables when you are writing code to communicate with the queue.
 
-.. _environment-variable-prefix:
+.. _environment-variable-names:
 
-Environment Variable Name
--------------------------
+Environment Variable Names
+--------------------------
 Every environment variable injected by Handel for service dependencies has a common structure.
 
 This environment variable name consists of the dependency's name (as defined in the Handel file), followed by the name of the value being injected.
