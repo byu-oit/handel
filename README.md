@@ -9,7 +9,7 @@ resources, automatically wiring up the painful security bits between resources.
 See the [Handel docs](https://handel.readthedocs.io) on ReadTheDocs for documentation on this library.
 
 # Contributing
-See the [Wiki](https://github.com/byu-oit-appdev/handel/wiki) for information on contributing to Handel.
+See the [Contributing](CONTRIBUTING.md) page for information on contributing to Handel.
 
 # Credits
 The concepts in this library were originally introduced by the platform engineers at [FamilySearch](https://familysearch.org/). I've adapted their concept of Blueprints for use in this library.
