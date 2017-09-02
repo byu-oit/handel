@@ -70,12 +70,12 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_TOPIC_ARN
+   * - <SERVICE_NAME>_TOPIC_ARN
      - The AWS ARN of the created topic
-   * - <ENV_PREFIX>_TOPIC_NAME
+   * - <SERVICE_NAME>_TOPIC_NAME
      - The name of the created topic
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 Events produced by this service
 -------------------------------

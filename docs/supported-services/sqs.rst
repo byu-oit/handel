@@ -145,11 +145,11 @@ The SQS service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_QUEUE_NAME
+   * - <SERVICE_NAME>_QUEUE_NAME
      - The name of the created queue
-   * - <ENV_PREFIX>_QUEUE_URL
+   * - <SERVICE_NAME>_QUEUE_URL
      - The HTTPS URL of the created queue
-   * - <ENV_PREFIX>_QUEUE_ARN
+   * - <SERVICE_NAME>_QUEUE_ARN
      - The AWS ARN of the created queue
 
 If you have a Dead-Letter Queue, the SQS service also outputs the following environment variables:
@@ -159,14 +159,14 @@ If you have a Dead-Letter Queue, the SQS service also outputs the following envi
 
     * - Environment Variable
       - Description
-    * - <ENV_PREFIX>_DEAD_LETTER_QUEUE_NAME
+    * - <SERVICE_NAME>_DEAD_LETTER_QUEUE_NAME
       - The name of the created dead-letter queue
-    * - <ENV_PREFIX>_DEAD_LETTER_QUEUE_URL
+    * - <SERVICE_NAME>_DEAD_LETTER_QUEUE_URL
       - The HTTPS URL of the created dead-letter queue
-    * - <ENV_PREFIX>_DEAD_LETTER_QUEUE_ARN
+    * - <SERVICE_NAME>_DEAD_LETTER_QUEUE_ARN
       - The AWS ARN of the created dead-letter queue
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 Events produced by this service
 -------------------------------
