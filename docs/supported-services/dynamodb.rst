@@ -189,12 +189,12 @@ The DynamoDB service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_TABLE_NAME
+   * - <SERVICE_NAME>_TABLE_NAME
      - The name of the created DynamoDB table
-   * - <ENV_PREFIX>_TABLE_ARN
+   * - <SERVICE_NAME>_TABLE_ARN
      - The ARN of the created DynamoDB table
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 DynamoDB Streams
 -------------------------------

@@ -66,16 +66,16 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_KEY_ID
+   * - <SERVICE_NAME>_KEY_ID
      - The id of the created key
-   * - <ENV_PREFIX>_KEY_ARN
+   * - <SERVICE_NAME>_KEY_ARN
      - The ARN of the created key
-   * - <ENV_PREFIX>_ALIAS_NAME
+   * - <SERVICE_NAME>_ALIAS_NAME
      - The name of the created alias
-   * - <ENV_PREFIX>_ALIAS_ARN
+   * - <SERVICE_NAME>_ALIAS_ARN
      - The ARN of the created alias
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 Events produced by this service
 -------------------------------

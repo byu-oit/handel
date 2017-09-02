@@ -71,10 +71,10 @@ The EFS service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_MOUNT_DIR
+   * - <SERVICE_NAME>_MOUNT_DIR
      - The directory on the host where the EFS volume was mounted.
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 Events produced by this service
 -------------------------------
