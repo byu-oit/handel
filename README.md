@@ -13,3 +13,5 @@ See the [Wiki](https://github.com/byu-oit-appdev/handel/wiki) for information on
 
 # Credits
 The concepts in this library were originally introduced by the platform engineers at [FamilySearch](https://familysearch.org/). I've adapted their concept of Blueprints for use in this library.
+
+In addition, see the [Credits page](CREDITS.md) for the list of individuals who have made valuable contributions to Handel.
