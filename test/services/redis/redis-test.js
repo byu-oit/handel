@@ -143,7 +143,7 @@ describe('redis deployer', function () {
     
             let cacheAddress = "fakeaddress.byu.edu";
             let cachePort = 6379;
-            let envPrefix = `REDIS_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+            let envPrefix = 'FAKESERVICE';
 
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [

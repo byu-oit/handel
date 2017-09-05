@@ -63,11 +63,10 @@ describe('RDS deployers common module', function () {
             }
 
             let deployContext = rdsDeployersCommon.getDeployContext(serviceContext, rdsCfStack);
-            console.log(deployContext.environmentVariables);
-            expect(deployContext.environmentVariables['FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_ADDRESS']).to.equal(dbAddress);
-            expect(deployContext.environmentVariables['FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_PORT']).to.equal(dbPort);
-            expect(deployContext.environmentVariables['FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_USERNAME']).to.equal(dbUsername);
-            expect(deployContext.environmentVariables['FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_DATABASE_NAME']).to.equal(dbName);
+            expect(deployContext.environmentVariables['FAKESERVICE_ADDRESS']).to.equal(dbAddress);
+            expect(deployContext.environmentVariables['FAKESERVICE_PORT']).to.equal(dbPort);
+            expect(deployContext.environmentVariables['FAKESERVICE_USERNAME']).to.equal(dbUsername);
+            expect(deployContext.environmentVariables['FAKESERVICE_DATABASE_NAME']).to.equal(dbName);
         });
     });
 

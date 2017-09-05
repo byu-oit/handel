@@ -113,11 +113,11 @@ describe('sns deployer', function () {
                     expect(deployStackStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
 
+                    let envPrefix = serviceName.toUpperCase();
+
                     //Should have exported 2 env vars
-                    let topicNameEnv = `${serviceType}_${appName}_${envName}_${serviceName}_TOPIC_NAME`.toUpperCase()
-                    expect(deployContext.environmentVariables[topicNameEnv]).to.equal(topicName);
-                    let topicArnEnv = `${serviceType}_${appName}_${envName}_${serviceName}_TOPIC_ARN`.toUpperCase()
-                    expect(deployContext.environmentVariables[topicArnEnv]).to.equal(topicArn);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_TOPIC_NAME`, topicName);
+                    expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_TOPIC_ARN`, topicArn);
 
                     //Should have exported 1 policy
                     expect(deployContext.policies.length).to.equal(1); //Should have exported one policy

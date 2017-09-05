@@ -130,9 +130,9 @@ describe('route53zone deployer', function () {
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.be.empty;
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
                 });
         });
 
@@ -165,9 +165,9 @@ describe('route53zone deployer', function () {
           VPCRegion: ${serviceContext.accountConfig.region}`);
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.policies).to.be.empty;
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
-                    expect(deployContext.environmentVariables["ROUTE53_FAKEAPP_FAKEENV_FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_NAME"]).to.equal(dnsName);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_ID"]).to.equal(zoneId);
+                    expect(deployContext.environmentVariables["FAKESERVICE_ZONE_NAME_SERVERS"]).to.equal(zoneNameServers);
                 });
         });
     });

@@ -169,14 +169,14 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_BUCKET_NAME
+   * - <SERVICE_NAME>_BUCKET_NAME
      - The name of the created bucket
-   * - <ENV_PREFIX>_BUCKET_URL
+   * - <SERVICE_NAME>_BUCKET_URL
      - The HTTPS URL of the created bucket
-   * - <ENV_PREFIX>_REGION_ENDPOINT
+   * - <SERVICE_NAME>_REGION_ENDPOINT
      - The domain of the S3 region endpoint, which you can use when configuring your AWS SDK
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 Events produced by this service
 -------------------------------
