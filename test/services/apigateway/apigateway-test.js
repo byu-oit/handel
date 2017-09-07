@@ -16,16 +16,16 @@
  */
 const apigateway = require('../../../lib/services/apigateway');
 const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
+const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const proxyPassthroughDeployType = require('../../../lib/services/apigateway/proxy/proxy-passthrough-deploy-type');
+const swaggerDeployType = require('../../../lib/services/apigateway/swagger/swagger-deploy-type');
+const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 
 const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
 
@@ -46,54 +46,32 @@ describe('apigateway deployer', function () {
     });
 
     describe('check', function () {
-        it("should require the 'path_to_code' param", function () {
-            serviceContext.params = {
-                lambda_runtime: 'FakeRuntime',
-                handler_function: 'FakeFunction'
-            }
+        describe('when using proxy passthrough', function () {
+            it("should run check from the proxy passthrough module", function () {
+                let checkStub = sandbox.stub(proxyPassthroughDeployType, 'check').returns([]);
 
-            let errors = apigateway.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'path_to_code' parameter is required");
+                serviceContext.params = {
+                    proxy: {}
+                }
+
+                let errors = apigateway.check(serviceContext);
+                expect(errors.length).to.equal(0);
+                expect(checkStub.callCount).to.equal(1);
+            });
         });
 
-        it("should require the 'lambda_runtime' param", function () {
-            serviceContext.params = {
-                path_to_code: './',
-                handler_function: 'FakeFunction'
-            }
+        describe('when using swagger configuration', function () {
+            it('should run check from the swagger module', function () {
+                let checkStub = sandbox.stub(swaggerDeployType, 'check').returns([]);
 
-            let errors = apigateway.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'lambda_runtime' parameter is required");
-        });
+                serviceContext.params = {
+                    swagger: 'fakeswagger.json'
+                }
 
-        it("should require the 'handler_function' param", function () {
-            serviceContext.params = {
-                path_to_code: './',
-                lambda_runtime: 'FakeRuntime'
-            }
-
-            let errors = apigateway.check(serviceContext);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'handler_function' parameter is required");
-        });
-
-        it('should fail if vpc is false and a dependency producing security groups is declared', function () {
-            serviceContext.params = {
-                path_to_code: '.',
-                handler_function: 'index.handler',
-                lambda_runtime: 'node.js6.3',
-                dependencies: [
-                    "FakeDependency"
-                ]
-            }
-            let dependenciesServiceContexts = [];
-            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
-            let errors = apigateway.check(serviceContext, dependenciesServiceContexts);
-            console.log("ERRORS: ", errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'vpc' parameter is required and must be true when declaring dependencies of type");
+                let errors = apigateway.check(serviceContext);
+                expect(checkStub.callCount).to.equal(1);
+                expect(errors.length).to.equal(0);
+            });
         });
     });
 
@@ -102,10 +80,10 @@ describe('apigateway deployer', function () {
             serviceContext.params = {
                 vpc: true
             }
-            let response = new PreDeployContext(serviceContext)
+            let response = new PreDeployContext(serviceContext, "API Gateway")
             response.securityGroups.push("FakeSecurityGroup")
             let preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
-            .returns(Promise.resolve(response));
+                .returns(Promise.resolve(response));
 
             return apigateway.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -121,59 +99,45 @@ describe('apigateway deployer', function () {
             }
             let preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').returns(Promise.resolve(new PreDeployContext(serviceContext)));
 
-            return apigateway.preDeploy(serviceContext)
+            return apigateway.preDeploy(serviceContext, "API Gateway")
                 .then(preDeployContext => {
                     expect(preDeployNotRequiredStub.callCount).to.equal(1);
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
                 });
         });
     });
-    
+
     describe('deploy', function () {
-        beforeEach(function() {
-            serviceContext.params = {
-                path_to_code: `${__dirname}/mytestartifact.war`,
-                lambda_runtime: 'nodejs6.10',
-                handler_runtime: 'index.handler'
-            }
+        describe('when using proxy passthrough', function() {
+            it('should call the proxy deploy', function() {
+                serviceContext.params = {
+                    proxy: {}
+                }
+    
+                let deployStub = sandbox.stub(proxyPassthroughDeployType, 'deploy').returns(Promise.resolve({}));
+    
+                return apigateway.deploy(serviceContext, {}, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.deep.equal({});
+                        expect(deployStub.callCount).to.equal(1);
+                    });
+            });
         });
 
-        function getDependencyDeployContexts(appName, envName, deployVersion) {
-            let dependenciesDeployContexts = [];
-            let dependencyServiceName = "DependencyService";
-            let dependencyServiceType = "dynamodb";
-            let dependencyServiceParams = {}
-            let dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, deployVersion, dependencyServiceParams);
-            let dependencyDeployContext = new DeployContext(dependencyServiceContext);
-            dependenciesDeployContexts.push(dependencyDeployContext);
-            return dependenciesDeployContexts;
-        }
-
-        it('should deploy the service', function () {
-            //Set up input parameters
-            let ownPreDeployContext = new PreDeployContext(serviceContext);
-            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName, deployVersion);
-
-            //Stub out dependent services
-            let bucketName = "FakeBucket";
-            let bucketKey = "FakeBucketKey";
-            let uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({
-                Bucket: bucketName,
-                Key: bucketKey
-            }));
-            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'RestApiId',
-                    OutputValue: 'someApiId'
-                }]
-            }));
-
-            return apigateway.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(uploadDeployableArtifactToHandelBucketStub.calledOnce).to.be.true;
-                    expect(deployStackStub.calledOnce).to.be.true;
-                });
+        describe('when using swagger configuration', function() {
+            it('should call the swagger deploy', function() {
+                serviceContext.params = {
+                    swagger: 'fakeswagger.json'
+                }
+    
+                let deployStub = sandbox.stub(swaggerDeployType, 'deploy').returns(Promise.resolve({}));
+    
+                return apigateway.deploy(serviceContext, {}, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.deep.equal({});
+                        expect(deployStub.callCount).to.equal(1);
+                    });
+            });
         });
     });
 
@@ -183,7 +147,7 @@ describe('apigateway deployer', function () {
             serviceContext.params = {
                 vpc: false
             }
-            return apigateway.unPreDeploy(serviceContext)
+            return apigateway.unPreDeploy(serviceContext, "API Gateway")
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
@@ -195,7 +159,7 @@ describe('apigateway deployer', function () {
                 vpc: true
             }
             let unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext(serviceContext)));
-            return apigateway.unPreDeploy(serviceContext)
+            return apigateway.unPreDeploy(serviceContext, "API Gateway")
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
                     expect(unPreDeploySecurityGroup.callCount).to.equal(1);

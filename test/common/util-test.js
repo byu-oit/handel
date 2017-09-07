@@ -76,6 +76,20 @@ describe('util module', function () {
         });
     });
 
+    describe('readJsonFileSync', function() {
+        it('should return null on an error', function () {
+            sandbox.stub(fs, 'readFileSync').throws(new Error("someMessage"));
+            let result = util.readJsonFileSync('somePath');
+            expect(result).to.be.null;
+        });
+
+        it('should return the yaml object on success', function () {
+            sandbox.stub(fs, 'readFileSync').returns(`{"key": "value"}`);
+            let result = util.readJsonFileSync('somePath');
+            expect(result.key).to.equal("value");
+        });
+    });
+
     describe('readYamlFileSync', function () {
         it('should return null on an error', function () {
             sandbox.stub(fs, 'readFileSync').throws(new Error("someMessage"));

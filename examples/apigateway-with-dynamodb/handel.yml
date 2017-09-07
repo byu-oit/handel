@@ -6,14 +6,8 @@ environments:
   dev:
     webapp:
       type: apigateway
-      path_to_code: .
-      lambda_runtime: nodejs6.10
-      handler_function: index.handler
-      provisioned_memory: 128
-      function_timeout: 5
-      environment_variables:
-        MY_FIRST_VAR: my_first_value
-        MY_SECOND_VAR: my_second_value
+      description: My Description
+      swagger: ./swagger.json
       tags:
         mytag: myvalue
       dependencies:
