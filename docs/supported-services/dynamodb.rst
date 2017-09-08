@@ -98,6 +98,13 @@ The ProvisionedThroughput element tells many IOPS to provision for your table fo
     provisioned_throughput:
       read_capacity_units: <number>
       write_capacity_units: <number>
+      autoscaling: <enabled|disabled>
+      min_read_capacity_units: <number>
+      max_read_capacity_units: <number>
+      read-target-utilization: <percentage>
+      min_write_capacity_units: <number>
+      max_write_capacity_units: <number>
+      write-target-utilization: <percentage>
 
 .. _dynamodb-local-indexes:
 
@@ -136,6 +143,13 @@ The GlobalIndexes element allows you to configure global secondary indexes on yo
       provisioned_throughput: # Optional
         read_capacity_units: <number> # Default: 1
         write_capacity_units: <number> # Default: 1
+        autoscaling: <enabled|disabled> # Default: Matches table config
+        min_read_capacity_units: <number> # Default: Matches table config
+        max_read_capacity_units: <number> # Default: Matches table config
+        read-target-utilization: <percentage> # Default: Matches table config
+        min_write_capacity_units: <number> # Default: Matches table config
+        max_write_capacity_units: <number> # Default: Matches table config
+        write-target-utilization: <percentage> # Default: Matches table config
 
 .. WARNING::
 
