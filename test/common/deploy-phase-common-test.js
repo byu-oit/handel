@@ -59,7 +59,7 @@ describe('Deploy phase common module', function () {
     describe('getSsmParamName', function() {
         it('should return a consistent name for SSM params', function() {
             let paramName = deployPhaseCommon.getSsmParamName(serviceContext, 'myparamname');
-            expect(paramName).to.equal("FakeApp.FakeEnv.FakeService.myparamname");
+            expect(paramName).to.equal("FakeApp.FakeEnv.myparamname");
         });
     });
 
