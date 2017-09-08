@@ -229,14 +229,12 @@ describe('Deploy phase common module', function () {
 
     describe('uploadDeployableArtifactToHandelBucket', function () {
         it('should upload a file to the given s3 location', function () {
-            serviceContext.params = {
-                path_to_code: `${__dirname}/mytestartifact.war`
-            }
+            let pathToArtifact = `${__dirname}/mytestartifact.war`;
             let s3FileName = "FakeS3Filename";
 
             let uploadFileToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
 
-            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName, accountConfig)
+            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName)
                 .then(s3ObjectInfo => {
                     expect(uploadFileToHandelBucketStub.callCount).to.equal(1);
                     expect(s3ObjectInfo).to.deep.equal({});
@@ -244,16 +242,14 @@ describe('Deploy phase common module', function () {
         });
 
         it('should zip and upload a directory to the given s3 location', function () {
-            serviceContext.params = {
-                path_to_code: __dirname
-            }
+            let pathToArtifact = __dirname;
             let s3FileName = "FakeS3Filename";
 
             let zipDirectoryToFileStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve({}));
             let uploadFileToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').returns(Promise.resolve({}));
             let unlinkSyncStub = sandbox.stub(fs, 'unlinkSync').returns(null);
 
-            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, s3FileName, accountConfig)
+            return deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName)
                 .then(s3ObjectInfo => {
                     expect(zipDirectoryToFileStub.callCount).to.equal(1);
                     expect(uploadFileToHandelBucketStub.callCount).to.equal(1);

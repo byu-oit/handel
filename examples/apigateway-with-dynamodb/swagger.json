@@ -1,0 +1,43 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "dsw88-test",
+        "description": "Test API",
+        "version:": "1.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-lambda-function": "my-function-1"
+            }
+        },
+        "/test1": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-lambda-function": "my-function-2"
+            }
+        }
+    },
+    "x-lambda-functions": {
+        "my-function-1": {
+            "runtime": "nodejs6.10",
+            "handler": "index.handler",
+            "memory": "128",
+            "path_to_code": "./function1",
+            "environment_variables": {
+                "MY_VAR_1": "Hello"
+            }
+        },
+        "my-function-2": {
+            "runtime": "nodejs6.10",
+            "handler": "index.handler",
+            "memory": "256",
+            "path_to_code": "./function2"
+        }
+    }
+}
