@@ -9,7 +9,21 @@ Handel requires two pieces of information in order to deploy your application:
 
 The account configuration file contains the low-level information that can be shared by all Handel apps deploying to a single account. This file is a bit more tricky to build than your Handel file, as it requires some knowledge of the network topology of your account.
 
+Using the AWS default VPC
+-------------------------
+If you're using Handel in a personal AWS account, it's likely that you don't want to have to set up a VPC and create your own account config file. In this case, Handel can just use the default VPC that AWS provides. You tell Handel to use these defaults in this way:
+
+.. code-block:: none
+
+    handel deploy -c default -e dev -v 1
+
+Notice that in the *-c* parameter, we are passing the string "default", which tells Handel not to use an account config file and to use the AWS default VPC instead.
+
+Using Handel at a company or organization
+-----------------------------------------
 It is best if someone with a knowledge of the account-level network configuration creates this account configuration file. This file can then be shared by all services that deploy in that account.
+
+If you're using Handel in a company or organization account, talk to your platform/network group that administers the VPCs in your account. They can help you know what values to put in your account config file.
 
 Account Config File Specification
 ---------------------------------
@@ -34,8 +48,3 @@ The account config file is a YAML file that must contain the following informati
 
     If you're using the default VPC in your account, it doesn't have separate public, private, and data subnets. In this case, just use the same subnet IDs in each of the subnet sections in the account config file.
 
-Defining Your Account Config File
----------------------------------
-If you're using your own personal account and just want to use the default VPC that AWS gives you, use the `Handel-Quickstart <http://handel-quickstart.readthedocs.io>`_ tool to help you automatically configure the account config file.
-
-If you're using Handel in a company or organization account, talk to your platform/network group that administers the VPCs in your account. They can help you know what values to put in your account config file.

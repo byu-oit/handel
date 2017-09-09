@@ -2,6 +2,35 @@ Welcome to Handel's documentation!
 ==================================
 Handel is a library that orchestrates your AWS deployments so you don't have to.
 
+Handel is built on top of CloudFormation with an aim towards easier AWS provisioning and deployments. 
+You give Handel a configuration file (the *Handel file*) telling it what services you want in your application, and it 
+wires them together for you. 
+
+Here's an example Handel file defining a Beanstalk application to be deployed with an SQS queue and S3 bucket:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-first-handel-app
+
+    environments:
+      dev:
+        webapp:
+          type: beanstalk
+          path_to_code: .
+          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          dependencies:
+          - bucket
+          - queue
+        bucket:
+          type: s3
+        queue:
+          type: sqs
+
+From this Handel file, Handel creates the appropriate CloudFormation templates for you,
+including taking care of all the tricky security bits wiring services together.
+
 .. toctree::
    :maxdepth: 1
    :caption: Getting Started
