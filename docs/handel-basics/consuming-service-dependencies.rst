@@ -62,7 +62,7 @@ Each parameter Handel puts in the parameter store has a common prefix, which is 
 
 .. code-block:: none
 
-    <app_name>.<environment_name>.<service_name>
+    <app_name>.<environment_name>
 
 You can use the :ref:`consuming-service-dependencies-common-vars` to obtain the value of this prefix.
 
@@ -86,4 +86,4 @@ In addition to environment variables injected by services your applications cons
    * - HANDEL_SERVICE_VERSION
      - This is the value of the version of the application being deployed. It is set to whatever the *-v* parameter was when Handel last deployed your application.
    * - HANDEL_PARAMETER_STORE_PREFIX
-     - This is the prefix used for secrets stored in Parameter Store.
+     - This is the :ref:`prefix <parameter-store-prefix>` used for secrets stored in Parameter Store.
