@@ -63,11 +63,82 @@ This service takes the following parameters:
      - No 
      - error.html
      - The name of the file in S3 to serve as the error document.
+   * - cdn
+     - :ref:`s3staticsite-cdn`
+     - No
+     -
+     - The configuration of the CloudFront CDN for this site.
    * - tags
      - :ref:`s3staticsite-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
+
+
+.. _s3staticsite-cdn:
+
+CDN Configuration
+~~~~~~~~~~~~~~~~~
+The CloudFront CDN configuration is defined by the following schema:
+
+.. code-block:: yaml
+
+   cdn:
+     price_class: <price class> #defaults to 100
+     logging: <enabled|disabled> #defaults to enabled
+     min_ttl: <ttl time> #defaults to 0
+     max_ttl: <ttl time> #defaults to 1 year
+     default_ttl: <ttl time> #defaults to 1 day
+     https_certificate: <string> # Required to use HTTPs. The ID of the ACM certificate to use on the CloudFront distribution.
+     dns_names: #Optional
+       - <DNS Name>
+
+
+.. _s3staticsite-cdn-price-class:
+
+Price Classes
+`````````````
+
+Valid price class values are `100`, `200`, and `all`. For more information on what each value means, see
+`CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_
+
+
+.. _s3staticsite-cdn-times:
+
+TTL Values
+``````````
+
+`min_ttl`, `max_ttl`, and `default_ttl` control how often CloudFront will check the origin for updated objects.
+They are specified in seconds. In the interest of readability, Handel also offers some duration shortcuts:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Alias
+     - Duration in seconds
+   * - second(s)
+     - 1
+   * - minute(s)
+     - 60
+   * - hour(s)
+     - 3600
+   * - day(s)
+     - 86400
+   * - year
+     - 31536000
+
+So, writing this:
+
+
+.. code-block:: yaml
+
+    max_ttl: 2 days
+
+is equivalent to:
+
+.. code-block:: yaml
+
+    max_ttl: 172800
 
 .. _s3staticsite-tags:
 
@@ -102,6 +173,9 @@ This Handel file shows an S3 Static Site service being configured:
           versioning: enabled
           index_document: index.html
           error_document: error.html
+          cdn:
+            price_class: all
+            https_certificate: 6afbc85f-de0c-4ee9-b7d7-28b961eca135
           tags:
             mytag: myvalue
 
