@@ -180,6 +180,83 @@ describe('dynamodb deployer', function () {
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include("The 'type' field in the 'sort_key' section is required in the 'local_indexes' section");
         });
+
+        describe('provisioned_throughput', function() {
+            it('should validate read_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    read_capacity_units: 'abc'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'read_capacity_units' must be either a number or a numeric range")
+            });
+            it('should allow numbers in read_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    read_capacity_units: 1
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+            it('should allow ranges in read_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    read_capacity_units: '1-100'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+
+
+            it('should validate write_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    write_capacity_units: 'abc'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'write_capacity_units' must be either a number or a numeric range")
+            });
+            it('should allow numbers in write_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    write_capacity_units: 1
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+            it('should allow ranges in write_capacity_units', function() {
+                configToCheck.provisioned_throughput = {
+                    write_capacity_units: '1-100'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.be.empty;
+            });
+
+            it('should require read_target_utilization to be a number', function() {
+                configToCheck.provisioned_throughput = {
+                    read_capacity_units: '1-100',
+                    read_target_utilization: 'a'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'read_target_utilization' must be a number");
+            });
+
+            it('should require write_target_utilization to be a number', function() {
+                configToCheck.provisioned_throughput = {
+                    write_capacity_units: '1-100',
+                    write_target_utilization: 'a'
+                };
+
+                let errors = dynamodb.check(serviceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'write_target_utilization' must be a number");
+            });
+        });
     });
     
     describe('deploy', function () {
