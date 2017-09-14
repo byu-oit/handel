@@ -63,6 +63,11 @@ This service takes the following parameters:
      - No 
      - error.html
      - The name of the file in S3 to serve as the error document.
+   * - cloudfront
+     - enabled|disabled
+     - No
+     - enabled
+     - Whether or not to set up a Cloudfront distribution. Features such as custom DNS names and HTTPS support require CloudFront.
    * - https_certificate
      - string
      - No

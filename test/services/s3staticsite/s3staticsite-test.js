@@ -73,6 +73,23 @@ describe('s3staticsite deployer', function () {
                 expect(errors[0]).to.include("'versioning' parameter must be either 'enabled' or 'disabled'")
             });
         });
+        describe('cloudfront', function () {
+            const valid = ['enabled', 'disabled'];
+            for (let validValue of valid) {
+                it(`should allow '${validValue}'`, function () {
+                    ownServiceContext.params.cloudfront = validValue;
+
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.be.empty;
+                });
+            }
+            it("should reject invalid values", function () {
+                ownServiceContext.params.cloudfront = 'off';
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'cloudfront' parameter must be either 'enabled' or 'disabled'")
+            });
+        });
         describe('cloudfront_logging', function () {
             const valid = ['enabled', 'disabled'];
             for (let validValue of valid) {
