@@ -54,13 +54,110 @@ describe('s3staticsite deployer', function () {
         it('should work when all required parameters are given', function () {
             let errors = s3StaticSite.check(ownServiceContext);
             expect(errors.length).to.equal(0);
-        })
+        });
+
+        describe('versioning', function () {
+            const valid = ['enabled', 'disabled'];
+            for (let validValue of valid) {
+                it(`should allow '${validValue}'`, function () {
+                    ownServiceContext.params.versioning = validValue;
+
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.be.empty;
+                });
+            }
+            it("should reject invalid values", function () {
+                ownServiceContext.params.versioning = 'off';
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'versioning' parameter must be either 'enabled' or 'disabled'")
+            });
+        });
+        describe('cloudfront_logging', function () {
+            const valid = ['enabled', 'disabled'];
+            for (let validValue of valid) {
+                it(`should allow '${validValue}'`, function () {
+                    ownServiceContext.params.cloudfront_logging = validValue;
+
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.be.empty;
+                });
+            }
+            it("should reject invalid values", function () {
+                ownServiceContext.params.cloudfront_logging = 'off';
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'cloudfront_logging' parameter must be either 'enabled' or 'disabled'")
+            });
+        });
+        describe('cloudfront_price_class', function () {
+            const valid = ['100', '200', 'all'];
+            for (let validValue of valid) {
+                it(`should allow '${validValue}'`, function () {
+                    ownServiceContext.params.cloudfront_price_class = validValue;
+
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.be.empty;
+                });
+            }
+            it("should reject invalid values", function () {
+                ownServiceContext.params.cloudfront_price_class = 'off';
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'cloudfront_price_class' parameter must be one of '100', '200', or 'all'");
+            });
+        });
+        describe('TTLs', function () {
+            const ttlFields = ['min', 'max', 'default'];
+            const aliases = ['second', 'minute', 'hour', 'day', 'year'];
+            for (let field of ttlFields.map(it => `cloudfront_${it}_ttl`)) {
+                it(`should allow numbers in '${field}`, function() {
+                    ownServiceContext.params[field] = 100;
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.be.empty;
+                });
+                for (let alias of aliases) {
+                    it(`should allow ${alias} aliases in '${field}`, function() {
+                        ownServiceContext.params[field] = `2 ${alias}`;
+                        let errors = s3StaticSite.check(ownServiceContext);
+                        expect(errors).to.be.empty;
+
+                        //plural
+                        ownServiceContext.params[field] = `2 ${alias}s`;
+                        errors = s3StaticSite.check(ownServiceContext);
+                        expect(errors).to.be.empty;
+                    });
+                }
+                it(`should reject invalid values in '${field}`, function() {
+                    ownServiceContext.params[field] = 'foobar';
+
+                    let errors = s3StaticSite.check(ownServiceContext);
+                    expect(errors).to.have.lengthOf(1);
+                    expect(errors[0]).to.include(`'${field}' parameter must be a valid TTL value`);
+                });
+            }
+        });
+        describe('dns_name', function () {
+            it('should allow valid hostnames', function() {
+                ownServiceContext.params.dns_name = 'valid.dns.name.com';
+
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.be.empty;
+            });
+            it("should reject invalid values", function() {
+                ownServiceContext.params.dns_name = 'invalid hostname';
+
+                let errors = s3StaticSite.check(ownServiceContext);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include("'dns_name' parameter must be a valid DNS hostname");
+            });
+        });
     });
 
     describe('deploy', function () {
         let ownPreDeployContext;
 
-        beforeEach(function() {
+        beforeEach(function () {
             ownPreDeployContext = new PreDeployContext(ownServiceContext);
         });
 
