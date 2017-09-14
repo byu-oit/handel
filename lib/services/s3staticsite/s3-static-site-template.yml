@@ -96,13 +96,61 @@ Resources:
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2
             DNSName: !GetAtt Cloudfront.DomainName
-# TODO: Add IPV6 support to CloudFront distro. It'll require a custom resource, since Cloudformation still doesn't support it.
-#        - Name: {{dnsName}}
-#          Type: AAAA
-#          AliasTarget:
-#            HostedZoneId: Z2FDTNDATAQYW2
-#            DNSName: !GetAtt Cloudfront.DomainName
+        - Name: {{dnsName}}
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt Cloudfront.DomainName
+    DependsOn: SetIPV6
   {{/if}}
+
+  SetIPV6:
+    Type: Custom::SetIPV6
+    Properties:
+      ServiceToken: !GetAtt SetIPV6Function.Arn
+      DistributionId: !Ref Cloudfront
+
+  SetIPV6Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: {{{setIPV6FunctionBody}}}
+      Handler: "index.handler"
+      Runtime: nodejs6.10
+      Timeout: 30
+      Role: !GetAtt SetIPV6FunctionRole.Arn
+
+  SetIPV6FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - cloudfront:GetDistribution
+            - cloudfront:GetDistributionConfig
+            - cloudfront:UpdateDistribution
+            #Uggh. Cloudfront requires these to be granted on everything.
+            Resource: "*"
   {{/if}}
 
 Outputs:
