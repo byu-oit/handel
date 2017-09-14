@@ -115,8 +115,11 @@ Certain supported services can create an alias record in this zone.  The current
 
 * Beanstalk
 * ECS
+* S3 Static Site
 
-Each service can support multiple DNS entries. See the individual service documentation for how to define the DNS names.
+Beanstalk and ECS can support multiple DNS entries.
+
+See the individual service documentation for how to define the DNS names.
 
 The DNS name must either match or be a subdomain of an existing Route 53 hosted zone name. If the hosted zone is configured
 in the same Handel environment, you must declare it as a dependency of the service consuming it, so that Handel can make

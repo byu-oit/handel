@@ -2,7 +2,7 @@
 
 S3 Static Site
 ==============
-This document contains information about the S3 Static Site service supported in Handel. This Handel service sets up an S3 bucket for your static website.
+This document contains information about the S3 Static Site service supported in Handel. This Handel service sets up an S3 bucket and CloudFront distribution for your static website.
 
 .. ATTENTION::
 
@@ -63,11 +63,46 @@ This service takes the following parameters:
      - No 
      - error.html
      - The name of the file in S3 to serve as the error document.
-   * - cdn
-     - :ref:`s3staticsite-cdn`
+   * - https_certificate
+     - string
      - No
      -
-     - The configuration of the CloudFront CDN for this site.
+     - The ID of an Amazon Certificate Manager certificate to use for this site
+   * - dns_name
+     - string
+     - No
+     -
+     - The DNS name to use for the CloudFront distribution. See :ref:`route53zone-records`.
+   * - cloudfront_price_class
+     - string
+     - No
+     - all
+     - one of `100`, `200`, or `all`. See `CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_.
+   * - cloudfront_logging
+     - enabled|disabled
+     - No
+     - enabled
+     - Whether or not to log all calls to Cloudfront.
+   * - cloudfront_min_ttl
+     - :ref:`s3staticsite-ttl`
+     - No
+     - 0
+     - Minimum time to cache objects in CloudFront
+   * - cloudfront_max_ttl
+     - :ref:`s3staticsite-ttl`
+     - No
+     - 1 year
+     - Maximum time to cache objects in CloudFront
+   * - cloudfront_default_ttl
+     - :ref:`s3staticsite-ttl`
+     - No
+     - 1 day
+     - Default time to cache objects in CloudFront
+   * - https_certificate
+     - string
+     - No
+     -
+     - The ID of an Amazon Certificate Manager certificate to use for this site
    * - tags
      - :ref:`s3staticsite-tags`
      - No
@@ -75,41 +110,14 @@ This service takes the following parameters:
      - Any tags you want to apply to your S3 bucket
 
 
-.. _s3staticsite-cdn:
-
-CDN Configuration
-~~~~~~~~~~~~~~~~~
-The CloudFront CDN configuration is defined by the following schema:
-
-.. code-block:: yaml
-
-   cdn:
-     price_class: <price class> #defaults to 100
-     logging: <enabled|disabled> #defaults to enabled
-     min_ttl: <ttl time> #defaults to 0
-     max_ttl: <ttl time> #defaults to 1 year
-     default_ttl: <ttl time> #defaults to 1 day
-     https_certificate: <string> # Required to use HTTPs. The ID of the ACM certificate to use on the CloudFront distribution.
-     dns_names: #Optional
-       - <DNS Name>
-
-
-.. _s3staticsite-cdn-price-class:
-
-Price Classes
-`````````````
-
-Valid price class values are `100`, `200`, and `all`. For more information on what each value means, see
-`CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_
-
-
-.. _s3staticsite-cdn-times:
+.. _s3staticsite-ttl:
 
 TTL Values
-``````````
+~~~~~~~~~~
 
-`min_ttl`, `max_ttl`, and `default_ttl` control how often CloudFront will check the origin for updated objects.
-They are specified in seconds. In the interest of readability, Handel also offers some duration shortcuts:
+`cloudfront_min_ttl`, `cloudfront_max_ttl`, and `cloudfront_default_ttl` control how often CloudFront will check the
+source bucket for updated objects. They are specified in seconds.
+In the interest of readability, Handel also offers some duration shortcuts:
 
 .. list-table::
    :header-rows: 1
@@ -132,13 +140,13 @@ So, writing this:
 
 .. code-block:: yaml
 
-    max_ttl: 2 days
+    cloudfront_max_ttl: 2 days
 
 is equivalent to:
 
 .. code-block:: yaml
 
-    max_ttl: 172800
+    cloudfront_max_ttl: 172800
 
 .. _s3staticsite-tags:
 
