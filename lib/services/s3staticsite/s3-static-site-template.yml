@@ -49,6 +49,11 @@ Resources:
         {{/if}}
         Enabled: 'true'
         HttpVersion: http2
+        {{#if cfLogging}}
+        Logging:
+          Bucket: {{loggingBucketName}}.s3.amazonaws.com
+          Prefix: {{logFilePrefix}}cloudfront/
+        {{/if}}
         {{#if httpsCertificateId}}
         ViewerCertificate:
           AcmCertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/{{httpsCertificateId}}"
