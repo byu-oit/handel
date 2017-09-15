@@ -96,36 +96,14 @@ The Swagger section is defined by the following schema:
 
     swagger: <string> # The path to the Swagger file in your repository
 
-Handel Swagger Extensions
+Lambda Swagger Extensions
 *************************
 For the most part, the Swagger document you provide in the *swagger* section is just a regular Swagger document, 
-specifying the API paths you want your app to use. Handel makes use of certain Swagger extensions in your Swagger document 
-to know which Lambdas to create, and how to wire them to your API.
+specifying the API paths you want your app to use. If you're using Lambdas to service your API Gateway resources, 
+Handel makes use of certain Swagger extensions in your Swagger document so that it can create and wire your Lambdas
+for your.
 
-Consider the following vanilla Swagger document:
-
-.. code-block:: json
-
-    {
-      "swagger": "2.0",
-      "info": {
-        "title": "my-cool-app",
-        "description": "Test Swagger API",
-        "version:": "1.0"
-      },
-      "paths": {
-        "/": {
-          "get": {
-            "responses": {
-              "200": {}
-            }
-          }
-        }
-      }
-    }
-
-This simple Swagger defines a single path "/" that will make up the API. In order for Handel to be able to create the API,
-you need to add some custom extensions to your Handel file, telling how to create the Lambdas and wire them:
+Consider the following Swagger document:
 
 .. code-block:: json
 
@@ -156,7 +134,8 @@ you need to add some custom extensions to your Handel file, telling how to creat
       }
     }
 
-Notice that the Swagger document now contains an *x-lambda-functions* section. This section contains a list of elements that define Lambda configurations. 
+Notice that this is just a vanilla Swagger document for the most part. It does have some Handel-provided extensions, however. Notice that the Swagger 
+document contains an *x-lambda-functions* section. This section contains a list of elements that define Lambda configurations. 
 For each item in this list, Handel will create a Lambda function for you. These objects are defined by the following schema:
 
 .. code-block:: none
@@ -173,6 +152,35 @@ For each item in this list, Handel will create a Lambda function for you. These 
     }
 
 Also notice that the paths in your document have an *x-lambda-function* element. This element tells Handel which Lambda function from the *x-lambda-functions* section you want that API path to be serviced by.
+
+HTTP Passthrough Swagger Extensions
+***********************************
+In addition to servicing your API methods with Lambdas, you can configure API Gateway to just do an HTTP passthrough to some other HTTP endpoint, be it an AWS EC2 server or something else outside of AWS entirely.
+
+Handel supports this with another swagger extension, called *x-http-passthrough-url* that you configure on your resource methods. Here's an example:
+
+.. code-block:: json
+
+    {
+      "swagger": "2.0",
+      "info": {
+        "title": "my-cool-app",
+        "description": "Test Swagger API",
+        "version:": "1.0"
+      },
+      "paths": {
+        "/": {
+          "get": {
+            "responses": {
+              "200": {}
+            },
+            "x-http-passthrough-url": "https://my.cool.fake.url.com"
+          }
+        }
+      }
+    }
+
+The above Swagger document will route GET on the "/" path to "https://my.cool.fake.url.com". All request headers, parameters, and body will be passed through directly to the given URL, and the response from the URL will be passed through API Gateway without modification.
 
 .. _apigateway-tags:
 
