@@ -22,6 +22,8 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const route53calls = require('../../../lib/aws/route53-calls');
+const handlebarsUtils = require('../../../lib/common/handlebars-utils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -111,13 +113,13 @@ describe('s3staticsite deployer', function () {
             const ttlFields = ['min', 'max', 'default'];
             const aliases = ['second', 'minute', 'hour', 'day', 'year'];
             for (let field of ttlFields.map(it => `${it}_ttl`)) {
-                it(`should allow numbers in '${field}`, function() {
+                it(`should allow numbers in '${field}`, function () {
                     ownServiceContext.params.cloudfront = {[field]: 100};
                     let errors = s3StaticSite.check(ownServiceContext);
                     expect(errors).to.be.empty;
                 });
                 for (let alias of aliases) {
-                    it(`should allow ${alias} aliases in '${field}`, function() {
+                    it(`should allow ${alias} aliases in '${field}`, function () {
                         ownServiceContext.params.cloudfront = {[field]: `2 ${alias}`};
                         let errors = s3StaticSite.check(ownServiceContext);
                         expect(errors).to.be.empty;
@@ -128,7 +130,7 @@ describe('s3staticsite deployer', function () {
                         expect(errors).to.be.empty;
                     });
                 }
-                it(`should reject invalid values in '${field}`, function() {
+                it(`should reject invalid values in '${field}`, function () {
                     ownServiceContext.params.cloudfront = {[field]: 'foobar'};
 
                     let errors = s3StaticSite.check(ownServiceContext);
@@ -138,13 +140,13 @@ describe('s3staticsite deployer', function () {
             }
         });
         describe('cloudfront.dns_name', function () {
-            it('should allow valid hostnames', function() {
+            it('should allow valid hostnames', function () {
                 ownServiceContext.params.cloudfront = {dns_names: ['valid.dns.name.com']};
 
                 let errors = s3StaticSite.check(ownServiceContext);
                 expect(errors).to.be.empty;
             });
-            it("should reject invalid values", function() {
+            it("should reject invalid values", function () {
                 ownServiceContext.params.cloudfront = {dns_names: ['invalid hostname', 'valid.dns.name.com']};
 
                 let errors = s3StaticSite.check(ownServiceContext);
@@ -156,9 +158,11 @@ describe('s3staticsite deployer', function () {
 
     describe('deploy', function () {
         let ownPreDeployContext;
+        let handlebarsSpy;
 
         beforeEach(function () {
             ownPreDeployContext = new PreDeployContext(ownServiceContext);
+            handlebarsSpy = sandbox.spy(handlebarsUtils, 'compileTemplate');
         });
 
         it('should deploy the static site bucket', function () {
@@ -182,7 +186,133 @@ describe('s3staticsite deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployStackStub.callCount).to.equal(2);
                     expect(uploadDirectoryStub.callCount).to.equal(1);
+                    expect(handlebarsSpy.called).to.be.true;
+
+                    let params = handlebarsSpy.lastCall.args[1];
+
+                    expect(params.cloudfront).to.not.exist;
                 });
+        });
+
+        describe('cloudfront', function () {
+            let listHostedZonesStub;
+            let deployStackStub;
+
+            beforeEach(function () {
+                ownServiceContext.params.cloudfront = {};
+                listHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').returns(Promise.resolve([]));
+
+                deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
+                deployStackStub.onCall(0).returns(Promise.resolve({
+                    Outputs: [{
+                        OutputKey: 'BucketName',
+                        OutputValue: 'logging-bucket'
+                    }]
+                }));
+                deployStackStub.onCall(1).returns(Promise.resolve({
+                    Outputs: [{
+                        OutputKey: 'BucketName',
+                        OutputValue: 'my-static-site-bucket'
+                    }]
+                }));
+                sandbox.stub(s3Calls, 'uploadDirectory').returns(Promise.resolve({}));
+
+            });
+
+            it('should deploy cloudfront with default parameters', function () {
+                return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(handlebarsSpy.called).to.be.true;
+                        let params = handlebarsSpy.lastCall.args[1];
+
+                        expect(params).to.have.property('cloudfront')
+                            .that.includes({
+                            logging: true,
+                            minTTL: 0,
+                            maxTTL: 31536000,
+                            defaultTTL: 86400,
+                            priceClass: 'PriceClass_All'
+                        }).and.has.property('setIPV6FunctionBody');
+                    });
+            });
+
+            it('should allow DNS names to be set', function () {
+                ownServiceContext.params.cloudfront.dns_names = ['test.dns.com'];
+
+                listHostedZonesStub.returns(Promise.resolve([{
+                    Name: 'dns.com.',
+                    Id: 'dnscom'
+                }]));
+
+                return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(handlebarsSpy.called).to.be.true;
+                        let params = handlebarsSpy.lastCall.args[1];
+
+                        expect(params).to.have.property('cloudfront')
+                            .which.has.property('dnsNames')
+                            .which.deep.includes({
+                            name: 'test.dns.com',
+                            zoneId: 'dnscom'
+                        });
+                    });
+            });
+
+            it('should allow an HTTPS cert to be configured', function () {
+                ownServiceContext.params.cloudfront.https_certificate = 'abc123';
+
+                return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(handlebarsSpy.called).to.be.true;
+                        let params = handlebarsSpy.lastCall.args[1];
+
+                        expect(params).to.have.property('cloudfront')
+                            .which.has.property('httpsCertificateId', 'abc123');
+                    });
+            });
+
+            it('should allow cloudfront logging to be disabled', function () {
+                ownServiceContext.params.cloudfront.logging = 'disabled';
+
+                return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(handlebarsSpy.called).to.be.true;
+                        let params = handlebarsSpy.lastCall.args[1];
+
+                        expect(params).to.have.property('cloudfront')
+                            .which.has.property('logging', false);
+                    });
+            });
+
+            it('should allow cloudfront TTLs to be customized', function () {
+                let cf = ownServiceContext.params.cloudfront;
+                cf.min_ttl = '1 minute';
+                cf.default_ttl = '2 hours';
+                cf.max_ttl = '30days';
+
+                return s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, [])
+                    .then(deployContext => {
+                        expect(deployContext).to.be.instanceof(DeployContext);
+                        expect(deployStackStub.callCount).to.equal(2);
+                        expect(handlebarsSpy.called).to.be.true;
+                        let params = handlebarsSpy.lastCall.args[1];
+
+                        expect(params).to.have.property('cloudfront')
+                            .which.includes({
+                            minTTL: 60,
+                            defaultTTL: 3600 * 2,
+                            maxTTL: 3600 * 24 * 30,
+                        });
+                    });
+            });
         });
     });
 
