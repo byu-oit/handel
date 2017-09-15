@@ -64,63 +64,74 @@ This service takes the following parameters:
      - error.html
      - The name of the file in S3 to serve as the error document.
    * - cloudfront
-     - enabled|disabled
-     - No
-     - enabled
-     - Whether or not to set up a Cloudfront distribution. Features such as custom DNS names and HTTPS support require CloudFront.
-   * - https_certificate
-     - string
+     - :ref:`s3staticsite-cloudfront`
      - No
      -
-     - The ID of an Amazon Certificate Manager certificate to use for this site
-   * - dns_name
-     - string
-     - No
-     -
-     - The DNS name to use for the CloudFront distribution. See :ref:`route53zone-records`.
-   * - cloudfront_price_class
-     - string
-     - No
-     - all
-     - one of `100`, `200`, or `all`. See `CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_.
-   * - cloudfront_logging
-     - enabled|disabled
-     - No
-     - enabled
-     - Whether or not to log all calls to Cloudfront.
-   * - cloudfront_min_ttl
-     - :ref:`s3staticsite-ttl`
-     - No
-     - 0
-     - Minimum time to cache objects in CloudFront
-   * - cloudfront_max_ttl
-     - :ref:`s3staticsite-ttl`
-     - No
-     - 1 year
-     - Maximum time to cache objects in CloudFront
-   * - cloudfront_default_ttl
-     - :ref:`s3staticsite-ttl`
-     - No
-     - 1 day
-     - Default time to cache objects in CloudFront
-   * - https_certificate
-     - string
-     - No
-     -
-     - The ID of an Amazon Certificate Manager certificate to use for this site
+     - Configuration for CloudFront. If not specified, CloudFront is not enabled.
    * - tags
      - :ref:`s3staticsite-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
 
+.. _s3staticsite-cloudfront:
 
-.. _s3staticsite-ttl:
+CloudFront Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `cloudfront` section is defined by the following schema:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - https_certificate
+     - string
+     - No
+     -
+     - The ID of an Amazon Certificate Manager certificate to use for this site
+   * - dns_names
+     - List<string>
+     - No
+     -
+     - The DNS names to use for the CloudFront distribution. See :ref:`route53zone-records`.
+   * - price_class
+     - string
+     - No
+     - all
+     - one of `100`, `200`, or `all`. See `CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_.
+   * - logging
+     - enabled|disabled
+     - No
+     - enabled
+     - Whether or not to log all calls to Cloudfront.
+   * - min_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 0
+     - Minimum time to cache objects in CloudFront
+   * - max_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 1 year
+     - Maximum time to cache objects in CloudFront
+   * - default_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 1 day
+     - Default time to cache objects in CloudFront
+
+
+.. _s3staticsite-cloudfront-ttl:
 
 TTL Values
-~~~~~~~~~~
+``````````
 
-`cloudfront_min_ttl`, `cloudfront_max_ttl`, and `cloudfront_default_ttl` control how often CloudFront will check the
+`min_ttl`, `max_ttl`, and `default_ttl` control how often CloudFront will check the
 source bucket for updated objects. They are specified in seconds.
 In the interest of readability, Handel also offers some duration shortcuts:
 
