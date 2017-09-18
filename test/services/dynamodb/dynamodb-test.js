@@ -22,6 +22,9 @@ const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
+const handlebarsUtils = require('../../../lib/common/handlebars-utils');
+const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
+const clone = require('clone');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -100,8 +103,8 @@ describe('dynamodb deployer', function () {
         let configToCheck;
 
         beforeEach(function () {
-            configToCheck = JSON.parse(JSON.stringify(VALID_DYNAMODB_CONFIG))
-            serviceContext.params = configToCheck; 
+            configToCheck = clone(VALID_DYNAMODB_CONFIG);
+            serviceContext.params = configToCheck;
         });
 
         it('should require a partition key section', function () {
@@ -181,8 +184,8 @@ describe('dynamodb deployer', function () {
             expect(errors[0]).to.include("The 'type' field in the 'sort_key' section is required in the 'local_indexes' section");
         });
 
-        describe('provisioned_throughput', function() {
-            it('should validate read_capacity_units', function() {
+        describe('provisioned_throughput', function () {
+            it('should validate read_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     read_capacity_units: 'abc'
                 };
@@ -191,7 +194,7 @@ describe('dynamodb deployer', function () {
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include("'read_capacity_units' must be either a number or a numeric range")
             });
-            it('should allow numbers in read_capacity_units', function() {
+            it('should allow numbers in read_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     read_capacity_units: 1
                 };
@@ -199,7 +202,7 @@ describe('dynamodb deployer', function () {
                 let errors = dynamodb.check(serviceContext);
                 expect(errors).to.be.empty;
             });
-            it('should allow ranges in read_capacity_units', function() {
+            it('should allow ranges in read_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     read_capacity_units: '1-100'
                 };
@@ -209,7 +212,7 @@ describe('dynamodb deployer', function () {
             });
 
 
-            it('should validate write_capacity_units', function() {
+            it('should validate write_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     write_capacity_units: 'abc'
                 };
@@ -218,7 +221,7 @@ describe('dynamodb deployer', function () {
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include("'write_capacity_units' must be either a number or a numeric range")
             });
-            it('should allow numbers in write_capacity_units', function() {
+            it('should allow numbers in write_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     write_capacity_units: 1
                 };
@@ -226,7 +229,7 @@ describe('dynamodb deployer', function () {
                 let errors = dynamodb.check(serviceContext);
                 expect(errors).to.be.empty;
             });
-            it('should allow ranges in write_capacity_units', function() {
+            it('should allow ranges in write_capacity_units', function () {
                 configToCheck.provisioned_throughput = {
                     write_capacity_units: '1-100'
                 };
@@ -235,7 +238,7 @@ describe('dynamodb deployer', function () {
                 expect(errors).to.be.empty;
             });
 
-            it('should require read_target_utilization to be a number', function() {
+            it('should require read_target_utilization to be a number', function () {
                 configToCheck.provisioned_throughput = {
                     read_capacity_units: '1-100',
                     read_target_utilization: 'a'
@@ -246,7 +249,7 @@ describe('dynamodb deployer', function () {
                 expect(errors[0]).to.include("'read_target_utilization' must be a number");
             });
 
-            it('should require write_target_utilization to be a number', function() {
+            it('should require write_target_utilization to be a number', function () {
                 configToCheck.provisioned_throughput = {
                     write_capacity_units: '1-100',
                     write_target_utilization: 'a'
@@ -258,16 +261,16 @@ describe('dynamodb deployer', function () {
             });
         });
     });
-    
+
     describe('deploy', function () {
         it('should deploy the table', function () {
             serviceContext.params = VALID_DYNAMODB_CONFIG;
             let ownPreDeployContext = new PreDeployContext(serviceContext);
             let dependenciesDeployContexts = [];
-    
+
             let tableName = "FakeTable";
             let tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`
-            
+
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
@@ -283,8 +286,155 @@ describe('dynamodb deployer', function () {
                     expect(deployContext.environmentVariables[`${serviceName}_TABLE_NAME`.toUpperCase()]).to.equal(tableName);
                 });
         });
+
+        describe("autoscaling", function () {
+            let templateSpy;
+            let deployStackStub;
+            let ownPreDeployContext;
+            let dependenciesDeployContexts;
+            beforeEach(function () {
+                templateSpy = sandbox.spy(handlebarsUtils, 'compileTemplate');
+
+                ownPreDeployContext = new PreDeployContext(serviceContext);
+                dependenciesDeployContexts = [];
+
+                let tableName = "FakeTable";
+                let tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`
+
+                deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                    Outputs: [{
+                        OutputKey: 'TableName',
+                        OutputValue: tableName
+                    }]
+                }));
+            });
+
+            it("Should not set up autoscaling by default", function () {
+                serviceContext.params = clone(VALID_DYNAMODB_CONFIG);
+                return dynamodb.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
+                    .then(deployContext => {
+                        //If it was only called once, we didn't deploy the autoscaling stack
+                        expect(deployStackStub.calledOnce).to.be.true;
+                    });
+            });
+
+            it("Should handle basic autoscaling", function () {
+                let config = serviceContext.params = clone(VALID_DYNAMODB_CONFIG);
+                config.provisioned_throughput.read_capacity_units = '1-10';
+                config.provisioned_throughput.write_capacity_units = '2-5';
+                config.provisioned_throughput.write_target_utilization = 99;
+
+                return dynamodb.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
+                    .then(deployContext => {
+                        //If it was only called once, we didn't deploy the autoscaling stack
+                        expect(deployStackStub.calledTwice).to.be.true;
+                        expect(templateSpy.calledTwice).to.be.true;
+                        let tableParams = templateSpy.firstCall.args[1];
+                        let autoscaleParams = templateSpy.lastCall.args[1];
+
+                        expect(tableParams).to.have.property('tableReadCapacityUnits', '1');
+                        expect(tableParams).to.have.property('tableWriteCapacityUnits', '2');
+
+                        expect(autoscaleParams).to.have.property('read')
+                            .which.includes({
+                            max: '10',
+                            min: '1',
+                            target: '70',
+                            scaled: true
+                        });
+                        expect(autoscaleParams).to.have.property('write')
+                            .which.includes({
+                            max: '5',
+                            min: '2',
+                            target: '99',
+                            scaled: true
+                        });
+                    });
+            });
+
+            it("global secondary indexes should default to match table autoscaling", function () {
+                let config = serviceContext.params = clone(VALID_DYNAMODB_CONFIG);
+                config.provisioned_throughput.read_capacity_units = '1-10';
+                config.provisioned_throughput.write_capacity_units = '2-5';
+                config.provisioned_throughput.write_target_utilization = 99;
+                delete config.global_indexes[0].provisioned_throughput;
+
+                return dynamodb.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
+                    .then(deployContext => {
+                        //If it was only called once, we didn't deploy the autoscaling stack
+                        expect(deployStackStub.calledTwice).to.be.true;
+                        expect(templateSpy.calledTwice).to.be.true;
+                        let tableParams = templateSpy.firstCall.args[1];
+                        let autoscaleParams = templateSpy.lastCall.args[1];
+
+                        expect(tableParams).to.have.property('globalIndexes').which.has.lengthOf(1);
+                        expect(tableParams.globalIndexes[0]).to.have.property('indexReadCapacityUnits', '1');
+                        expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', '2');
+                        expect(tableParams).to.have.property('tableWriteCapacityUnits', '2');
+
+                        expect(autoscaleParams).to.have.property('read')
+                            .which.includes({
+                            max: '10',
+                            min: '1',
+                            target: '70',
+                            scaled: true
+                        });
+                        expect(autoscaleParams).to.have.property('write')
+                            .which.includes({
+                            max: '5',
+                            min: '2',
+                            target: '99',
+                            scaled: true
+                        });
+                    });
+            });
+
+            it("global secondary indexes should be independently configurable", function () {
+                let config = serviceContext.params = clone(VALID_DYNAMODB_CONFIG);
+                let globalConfig = config.global_indexes[0];
+                globalConfig.provisioned_throughput.read_capacity_units = '1-10';
+                globalConfig.provisioned_throughput.write_capacity_units = '2-5';
+                globalConfig.provisioned_throughput.write_target_utilization = 99;
+
+                return dynamodb.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
+                    .then(deployContext => {
+                        //If it was only called once, we didn't deploy the autoscaling stack
+                        expect(deployStackStub.calledTwice).to.be.true;
+                        expect(templateSpy.calledTwice).to.be.true;
+                        let tableParams = templateSpy.firstCall.args[1];
+                        let autoscaleParams = templateSpy.lastCall.args[1];
+
+                        expect(tableParams).to.have.property('tableReadCapacityUnits', '3');
+                        expect(tableParams).to.have.property('tableWriteCapacityUnits', '3');
+
+                        expect(tableParams).to.have.property('globalIndexes').which.has.lengthOf(1);
+                        expect(tableParams.globalIndexes[0]).to.have.property('indexReadCapacityUnits', '1');
+                        expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', '2');
+                        expect(tableParams).to.have.property('tableWriteCapacityUnits', '3');
+
+                        expect(autoscaleParams).to.have.property('globalIndexes').which.has.lengthOf(1);
+
+                        expect(autoscaleParams.globalIndexes[0]).to.have.property('read')
+                            .which.includes({
+                            max: '10',
+                            min: '1',
+                            target: '70',
+                            scaled: true
+                        });
+                        expect(autoscaleParams.globalIndexes[0]).to.have.property('write')
+                            .which.includes({
+                            max: '5',
+                            min: '2',
+                            target: '99',
+                            scaled: true
+                        });
+                    });
+            });
+
+
+        });
     });
-    
+
     describe('produceEvents', function () {
         it('should return an empty ProduceEventsContext', function () {
             return dynamodb.produceEvents(null, null, null, null)
@@ -297,6 +447,7 @@ describe('dynamodb deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return dynamodb.unDeploy(serviceContext)
