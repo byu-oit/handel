@@ -291,10 +291,10 @@ describe('ecs deployer', function () {
             return ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(getStackStub.callCount).to.equal(1);
-                    expect(uploadDirStub.callCount).to.equal(1);
+                    expect(getStackStub.callCount).to.equal(2);
+                    expect(uploadDirStub.callCount).to.equal(2);
                     expect(getLatestAmiByNameStub.callCount).to.equal(1);
-                    expect(createStackStub.callCount).to.equal(1);
+                    expect(createStackStub.callCount).to.equal(2);
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(createCustomRoleStub.callCount).to.equal(1);
 
