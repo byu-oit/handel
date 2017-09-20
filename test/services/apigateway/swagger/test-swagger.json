@@ -21,6 +21,22 @@
                 },
                 "x-lambda-function": "my-function-2"
             }
+        },
+        "/test3": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-http-passthrough-url": "https://my.fake.url.com"
+            }
+        },
+        "/test4": {
+            "put": {
+                "responses": {
+                    "200": {}
+                },
+                "x-http-passthrough-url": "https://my.other.fake.url.com"
+            }
         }
     },
     "x-lambda-functions": {
