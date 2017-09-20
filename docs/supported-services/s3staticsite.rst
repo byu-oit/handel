@@ -2,7 +2,7 @@
 
 S3 Static Site
 ==============
-This document contains information about the S3 Static Site service supported in Handel. This Handel service sets up an S3 bucket for your static website.
+This document contains information about the S3 Static Site service supported in Handel. This Handel service sets up an S3 bucket and CloudFront distribution for your static website.
 
 .. ATTENTION::
 
@@ -63,11 +63,106 @@ This service takes the following parameters:
      - No 
      - error.html
      - The name of the file in S3 to serve as the error document.
+   * - cloudfront
+     - :ref:`s3staticsite-cloudfront`
+     - No
+     -
+     - Configuration for CloudFront. If not specified, CloudFront is not enabled.
    * - tags
      - :ref:`s3staticsite-tags`
      - No
      -
      - Any tags you want to apply to your S3 bucket
+
+.. _s3staticsite-cloudfront:
+
+CloudFront Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `cloudfront` section is defined by the following schema:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - https_certificate
+     - string
+     - No
+     -
+     - The ID of an Amazon Certificate Manager certificate to use for this site
+   * - dns_names
+     - List<string>
+     - No
+     -
+     - The DNS names to use for the CloudFront distribution. See :ref:`route53zone-records`.
+   * - price_class
+     - string
+     - No
+     - all
+     - one of `100`, `200`, or `all`. See `CloudFront Pricing <https://aws.amazon.com/cloudfront/pricing/>`_.
+   * - logging
+     - enabled|disabled
+     - No
+     - enabled
+     - Whether or not to log all calls to Cloudfront.
+   * - min_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 0
+     - Minimum time to cache objects in CloudFront
+   * - max_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 1 year
+     - Maximum time to cache objects in CloudFront
+   * - default_ttl
+     - :ref:`s3staticsite-cloudfront-ttl`
+     - No
+     - 1 day
+     - Default time to cache objects in CloudFront
+
+
+.. _s3staticsite-cloudfront-ttl:
+
+TTL Values
+``````````
+
+`min_ttl`, `max_ttl`, and `default_ttl` control how often CloudFront will check the
+source bucket for updated objects. They are specified in seconds.
+In the interest of readability, Handel also offers some duration shortcuts:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Alias
+     - Duration in seconds
+   * - second(s)
+     - 1
+   * - minute(s)
+     - 60
+   * - hour(s)
+     - 3600
+   * - day(s)
+     - 86400
+   * - year
+     - 31536000
+
+So, writing this:
+
+
+.. code-block:: yaml
+
+    cloudfront_max_ttl: 2 days
+
+is equivalent to:
+
+.. code-block:: yaml
+
+    cloudfront_max_ttl: 172800
 
 .. _s3staticsite-tags:
 
@@ -102,6 +197,9 @@ This Handel file shows an S3 Static Site service being configured:
           versioning: enabled
           index_document: index.html
           error_document: error.html
+          cdn:
+            price_class: all
+            https_certificate: 6afbc85f-de0c-4ee9-b7d7-28b961eca135
           tags:
             mytag: myvalue
 
