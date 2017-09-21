@@ -182,6 +182,34 @@ Handel supports this with another swagger extension, called *x-http-passthrough-
 
 The above Swagger document will route GET on the "/" path to "https://my.cool.fake.url.com". All request headers, parameters, and body will be passed through directly to the given URL, and the response from the URL will be passed through API Gateway without modification.
 
+If you need to use path params with the HTTP passthrough, you can use the *x-http-passthrough-path-params* Swagger extension to map the path parameters from the API Gateway request to the HTTP backend request. Here's an example Swagger document doing this:
+
+.. code-block:: json
+
+    {
+      "swagger": "2.0",
+      "info": {
+        "title": "my-cool-app",
+        "description": "Test Swagger API",
+        "version:": "1.0"
+      },
+      "paths": {
+        "/user/{name}": {
+          "get": {
+            "responses": {
+              "200": {}
+            },
+            "x-http-passthrough-url": "https://my.cool.fake.url.com/{person}",
+            "x-http-passthrough-path-params": {
+              "name": "person"
+            }
+          }
+        }
+      }
+    }
+
+The above example shows mapping the "name" path parameter in the API Gateway request to the "person" path parameter in the backend request.
+
 .. _apigateway-tags:
 
 Tags
