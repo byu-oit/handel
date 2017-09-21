@@ -135,16 +135,16 @@ The PostgreSQL service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_ADDRESS
+   * - <SERVICE_NAME>_ADDRESS
      - The DNS name of the PostgreSQL database address.
-   * - <ENV_PREFIX>_PORT
+   * - <SERVICE_NAME>_PORT
      - The port on which the PostgreSQL instance is listening.
-   * - <ENV_PREFIX>_USERNAME
+   * - <SERVICE_NAME>_USERNAME
      - The username you can use to access the database.
-   * - <ENV_PREFIX>_DATABASE_NAME
+   * - <SERVICE_NAME>_DATABASE_NAME
      - The name of the database in your PostgreSQL instance.
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 In addition, the PostgreSQL service puts the following credentials into the EC2 parameter store:
 

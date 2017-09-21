@@ -96,8 +96,27 @@ The ProvisionedThroughput element tells many IOPS to provision for your table fo
 .. code-block:: yaml
 
     provisioned_throughput:
-      read_capacity_units: <number>
-      write_capacity_units: <number>
+      read_capacity_units: <number or range>
+      write_capacity_units: <number or range>
+      read_target_utilization: <percentage> # Default: 70 (if autoscaling is enabled)
+      write_target_utilization: <percentage> # Default: 70 (if autoscaling is enabled)
+
+Autoscaling Throughput
+``````````````````````
+
+If a range (ex: 1-10) is provided to `read_capacity_units` or `write_capacity_units`, an autoscaling rule will be created
+with the min and max values from the range and target utilization as specified by `read_target_utilization` and
+`write_target_utilization`.
+
+The following configuration will cause the read capacity to be automatically scaled between 10 and 100, with a target
+usage of 50%. The write capacity will scale between 1-10, with a target usage of 70% (the default).
+
+.. code-block:: yaml
+
+    provisioned_throughput:
+      read_capacity_units: 10-100
+      read_target_utilization: 50
+      write_capacity_units: 1-10
 
 .. _dynamodb-local-indexes:
 
@@ -134,8 +153,13 @@ The GlobalIndexes element allows you to configure global secondary indexes on yo
       attributes_to_copy: # Required
       - <string>
       provisioned_throughput: # Optional
-        read_capacity_units: <number> # Default: 1
-        write_capacity_units: <number> # Default: 1
+        read_capacity_units: <number or range> # Default: Matches table config
+        write_capacity_units: <number or range> # Default: Matches table config
+        read_target_utilization: <percentage> # Default: Matches table config
+        write_target_utilization: <percentage> # Default: Matches table config
+
+The provisioned throughput configuration for Global Secondary Indexes matches that for the table. If the provisioned
+throughput is not configured for the index, the table's configuration will be used, including any autoscaling configuration.
 
 .. WARNING::
 
@@ -175,7 +199,7 @@ Example Handel File
             name: MySortKey
             type: Number
           provisioned_throughput:
-            read_capcity_units: 6
+            read_capacity_units: 1-20 #Autoscale reads, but not writes
             write_capacity_units: 6
           tags:
             name: my-dynamodb-tag
@@ -189,12 +213,12 @@ The DynamoDB service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_TABLE_NAME
+   * - <SERVICE_NAME>_TABLE_NAME
      - The name of the created DynamoDB table
-   * - <ENV_PREFIX>_TABLE_ARN
+   * - <SERVICE_NAME>_TABLE_ARN
      - The ARN of the created DynamoDB table
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 DynamoDB Streams
 -------------------------------

@@ -95,15 +95,15 @@ This service outputs the following environment variables:
 
    * - Environment Variable
      - Description
-   * - <ENV_PREFIX>_ZONE_NAME
+   * - <SERVICE_NAME>_ZONE_NAME
      - The DNS name of hosted zone.
-   * - <ENV_PREFIX>_ZONE_ID
+   * - <SERVICE_NAME>_ZONE_ID
      - The id of the hosted zone
-   * - <ENV_PREFIX>_ZONE_NAME_SERVERS
+   * - <SERVICE_NAME>_ZONE_NAME_SERVERS
      - A comma-delimited list of the name servers for this hosted zone. For example: ns1.example.com,ns2.example.co.uk
 
 
-The <ENV_PREFIX> is a consistent prefix applied to all information injected for service dependencies.  See :ref:`environment-variable-prefix` for information about the structure of this prefix.
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 
 .. _route53zone-records:
@@ -115,8 +115,11 @@ Certain supported services can create an alias record in this zone.  The current
 
 * Beanstalk
 * ECS
+* S3 Static Site
 
-Each service can support multiple DNS entries. See the individual service documentation for how to define the DNS names.
+Beanstalk and ECS can support multiple DNS entries.
+
+See the individual service documentation for how to define the DNS names.
 
 The DNS name must either match or be a subdomain of an existing Route 53 hosted zone name. If the hosted zone is configured
 in the same Handel environment, you must declare it as a dependency of the service consuming it, so that Handel can make

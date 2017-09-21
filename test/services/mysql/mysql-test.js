@@ -96,7 +96,7 @@ describe('mysql deployer', function () {
     });
 
     describe('deploy', function () {
-        let envPrefix = `MYSQL_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        let envPrefix = 'FAKESERVICE';
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
         let databaseUsername = "handel";

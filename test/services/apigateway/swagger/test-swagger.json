@@ -1,0 +1,58 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "test-swagger",
+        "description": "Test API",
+        "version:": "1.0"
+    },
+    "paths": {
+        "/test1": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-lambda-function": "my-function-1"
+            }
+        },
+        "/test2": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-lambda-function": "my-function-2"
+            }
+        },
+        "/test3": {
+            "get": {
+                "responses": {
+                    "200": {}
+                },
+                "x-http-passthrough-url": "https://my.fake.url.com"
+            }
+        },
+        "/test4": {
+            "put": {
+                "responses": {
+                    "200": {}
+                },
+                "x-http-passthrough-url": "https://my.other.fake.url.com"
+            }
+        }
+    },
+    "x-lambda-functions": {
+        "my-function-1": {
+            "description": "test lambda",
+            "runtime": "nodejs6.10",
+            "handler": "index.handler",
+            "memory": "128",
+            "path_to_code": "./function1"
+        },
+        "my-function-2": {
+            "description": "test lambda",
+            "runtime": "nodejs6.10",
+            "handler": "index.handler",
+            "memory": "256",
+            "path_to_code": "./function2"
+        }
+    }
+}

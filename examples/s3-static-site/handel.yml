@@ -1,0 +1,11 @@
+version: 1
+
+name: my-static-site
+
+environments:
+  dev:
+    site:
+      type: s3staticsite
+      path_to_code: ./site/
+      index_document: index.html
+      error_document: error.html
