@@ -47,7 +47,7 @@ Parameters
      - No
      - None
      - The name of the EC2 keypair to use for SSH access to the instance.
-   * - auto_scaling:
+   * - auto_scaling
      - :ref:`beanstalk-auto-scaling`
      - No
      - 
