@@ -18,6 +18,8 @@ const ecs = require('../../../lib/services/ecs');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
+const ecsCalls = require('../../../lib/aws/ecs-calls');
+const autoScalingCalls = require('../../../lib/aws/auto-scaling-calls');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
@@ -286,6 +288,8 @@ describe('ecs deployer', function () {
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
             let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
+
+            let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve({ec2:[]}));
 
             //Run the test
             return ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
