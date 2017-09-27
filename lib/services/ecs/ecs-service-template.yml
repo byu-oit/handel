@@ -161,6 +161,13 @@ Resources:
       EvaluationPeriods: '1'
       Namespace: Handel/ECS
       Threshold: '0'
+  EcsAutoScalingLifecycle:
+    Type: AWS::AutoScaling::LifecycleHook
+    Properties:
+      AutoScalingGroupName:
+        Ref: EcsAutoScalingGroup
+      HeartbeatTimeout: 300
+      LifecycleTransition: autoscaling:EC2_INSTANCE_TERMINATING
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:

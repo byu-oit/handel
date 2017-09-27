@@ -1,0 +1,83 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function used by Handel for draining ec2 instances which are part of an ecs cluster as part of a terminate lifecycle action
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: HandelEcsDrainingRole
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "lambda.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: HandelEcsDrainingPolicy
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - 'logs:CreateLogGroup'
+          - 'logs:CreateLogStream'
+          - 'logs:PutLogEvents'
+          Resource:
+          - 'arn:aws:logs:*:*:*'
+        - Effect: Allow
+          Action:
+          - 'ecs:ListClusters'
+          - 'ecs:DescribeClusters'
+          - 'ecs:ListContainerInstances'
+          - 'ecs:DescribeContainerInstances'
+          - 'ecs:DescribeTasks'
+          - 'ecs:DescribeTaskDefinition'
+          - 'ecs:ListTasks'
+          - 'ecs:UpdateContainerInstancesState'
+          Resource:
+          - '*'
+        - Effect: Allow
+          Action:
+          - 'cloudwatch:PutMetricData'
+          Resource:
+          - '*'
+  LambdaFunctionForDrn:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: {{s3Bucket}}
+        S3Key: {{s3Key}}
+      Description: Lambda function used by Handel for draining ec2 instances which are part of an ecs cluster as part of a terminate lifecycle action
+      FunctionName: HandelEcsDrainingLambda
+      Handler: index.handler
+      MemorySize: 128
+      Role: !GetAtt Role.Arn
+      Runtime: nodejs6.10
+      Timeout: 300
+  Event:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: This rule will trigger lambda to set the terminating ec2 ecs instance to drain prior to termination
+      EventPattern: '{ "source": [ "aws.autoscaling" ], "detail-type": [ "EC2 Instance-terminate Lifecycle Action" ] }'
+      Name: HandelEcsDrainingRule
+      Targets:
+        - Arn: !GetAtt LambdaFunctionForDrn.Arn
+          Id: handel-ecs-drain
+  LambdaDrainNotifyAllow:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaFunctionForDrn.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt
+        - Event
+        - Arn
