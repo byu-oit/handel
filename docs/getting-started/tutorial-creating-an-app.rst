@@ -14,8 +14,7 @@ This tutorial contains the following steps:
 
 1. Write the app
 2. Create your Handel file
-3. Create the account config file
-4. Deploy using Handel
+3. Deploy using Handel
 
 Follow along with each of these steps in the sections below in order to complete the tutorial.
 
@@ -101,39 +100,25 @@ Now that you've got a working app, you need to create a Handel file specifying h
 
     We only specified the required parameters for Beanstalk. There are others that have defaults if you don't specify them. See the :ref:`beanstalk` service documentation for full information on all the different parameters for the service.
 
-Create the account config file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In additon to your Handel file that specifies your application configuration, Handel needs to know account-level information such as which VPC and subnets to use.
-
-In order to provide this information, Handel requires that you give it an :ref:`account-config-file`, which contains this VPC information. This account config file is created once for your entire AWS account, and every app you deploy in that account can use this same file.
-
-For the purposes of this tutorial, we're assuming you're running in your own personal account where you haven't set up a custom VPC. Use the `Handel-Quickstart <http://handel-quickstart.readthedocs.io>`_ tool to help you automatically configure the account config file.
-
-.. IMPORTANT::
-
-    If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
-
-Once you've created your account config file, put it in a file called *aws-account-config.yml* in your home directory.
-
-.. DANGER::
-
-    The account config file contains sensitive information such as VPC IDs, account IDs, and regions. **Do not** commit this file to your repository on GitHub or anywhere else that is publicly visible.
-
 Deploy using Handel
 ~~~~~~~~~~~~~~~~~~~
 Now that you've written your app, created your Handel file, and obtained your account config file, you can run Handel to deploy:
 
 .. code-block:: bash
 
-    handel deploy -c ~/aws-account-config.yml -e dev -v 1
+    handel deploy -c default -e dev -v 1
 
-.. NOTE::
+In the above command, the following arguments are provided:
 
-    In the above command, the following arguments are provided:
+* The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying "default" here tells Handel you don't have one and just want to use the default VPC AWS provides.
+* The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
+* The *-v* parameter is an arbitrary string specifying the current version being deployed.
 
-    * The -c parameter specifies where your account config file is located
-    * The -e parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
-    * The -v parameter is an arbitrary string specifying the current version being deployed. We're just using "1" in our example
+.. IMPORTANT::
+
+    The *-c* parameter in the *handel deploy* command above specifies which :ref:`account-config-file` you want to use. By specifying *default*, you're telling Handel you don't have a custom configured VPC and that it should just use the account defaults.
+
+    If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
 
 Once you've executed that command, Handel should start up and deploy your application. You can sign into the AWS Console and go to the "ElasticBeanstalk" service to see your deployed application.
 

@@ -112,7 +112,7 @@ describe('memcached deployer', function () {
         let dependenciesDeployContexts;
         let cacheAddress = "fakeaddress.byu.edu";
         let cachePort = 11211;
-        let envPrefix = `MEMCACHED_${appName}_${envName}_FAKESERVICE`.toUpperCase();
+        let envPrefix = 'FAKESERVICE';
 
         beforeEach(function() {
             serviceContext.params = {

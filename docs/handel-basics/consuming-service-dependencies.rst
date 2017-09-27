@@ -25,44 +25,33 @@ The following Handel file defines a Beanstalk service that depends on an SQS que
           min_instances: 1
           max_instances: 1
           dependencies:
-          - queue
-        queue:
+          - my-queue
+        my-queue:
           type: sqs
 
 Handel will inject environment variables in the Beanstalk application for the SQS queue, such as the queue's ARN, name, and URL. You can read these environment variables when you are writing code to communicate with the queue.
 
-.. _environment-variable-prefix:
+.. _environment-variable-names:
 
-Environment Variable Prefix
----------------------------
-Every environment variable injected by Handel for service dependencies has a common prefix in the environment variable name. 
+Environment Variable Names
+--------------------------
+Every environment variable injected by Handel for service dependencies has a common structure.
 
-This environment variable prefix is defined with the following structure:
+This environment variable name consists of the dependency's name (as defined in the Handel file), followed by the name of the value being injected.
+
+.. code-block:: none
+
+   <SERVICE_NAME>_<VALUE_NAME>
+
+In the above example, the referencing Beanstalk application would need to use the following name to get the URL of the SQS Queue:
 
 .. code-block:: none
 
-   <SERVICE_TYPE>_<APP_NAME>_<ENVIRONMENT_NAME>_<SERVICE_NAME>
-
-These values come from the service dependency in your Handel file. In the above example, the referencing Beanstalk application would need to use the following values in that prefix:
-
-.. code-block:: none
-   
-    service_type = "sqs"
-    app_name = "beanstalk-example"
-    environment_name = "dev"
-    service_name = "queue"
-
-You can use the :ref:`consuming-service-dependencies-common-vars` to dynamically obtain values such as *environment_name* that will be different depending on which environment your code is currently running in.
+    MY_QUEUE_QUEUE_URL
 
 .. NOTE::
-   All Handel injected environment variables will be all upper-cased, with dashes converted to underscores. In the above example, the Beanstalk application would need to use the following prefix for the SQS queue: 
+   All Handel injected environment variables will be all upper-cased, with dashes converted to underscores.
    
-   .. code-block:: none
-
-      SQS_BEANSTALK_EXAMPLE_DEV_QUEUE
-
-   Note that everything in the above prefix is upper-cased, and the app name "beanstalk-example" has been converted to to use underscores instead of dashes
-
 .. _parameter-store-prefix:
 
 Parameter Store Prefix
@@ -73,17 +62,9 @@ Each parameter Handel puts in the parameter store has a common prefix, which is 
 
 .. code-block:: none
 
-    <app_name>.<environment_name>.<service_name>
+    <app_name>.<environment_name>
 
-These values come from the service dependency in your Handel file. In the above example, the referencing Beanstalk application would need to use the following values in that prefix:
-
-.. code-block:: none
-   
-    app_name = "beanstalk-example"
-    environment_name = "dev"
-    service_name = "queue"
-
-You can use the :ref:`consuming-service-dependencies-common-vars` to dynamically obtain values such as *environment_name* that will be different depending on which environment your code is currently running in.
+You can use the :ref:`consuming-service-dependencies-common-vars` to obtain the value of this prefix.
 
 .. _consuming-service-dependencies-common-vars:
 
@@ -104,3 +85,5 @@ In addition to environment variables injected by services your applications cons
      - This is the value of the *\<service_name>* field from your Handel file. It is the name of the currently deployed service.
    * - HANDEL_SERVICE_VERSION
      - This is the value of the version of the application being deployed. It is set to whatever the *-v* parameter was when Handel last deployed your application.
+   * - HANDEL_PARAMETER_STORE_PREFIX
+     - This is the :ref:`prefix <parameter-store-prefix>` used for secrets stored in Parameter Store.

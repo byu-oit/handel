@@ -96,9 +96,9 @@ describe('s3 deployer', function () {
                         expect(deployStackStub.callCount).to.equal(2);
                         expect(deployContext).to.be.instanceof(DeployContext);
                         expect(deployContext.policies.length).to.equal(2);
-                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
-                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
-                        expect(deployContext.environmentVariables["S3_FAKEAPP_FAKEENV_FAKESERVICE_REGION_ENDPOINT"]).to.exist;
+                        expect(deployContext.environmentVariables["FAKESERVICE_BUCKET_NAME"]).to.equal(bucketName);
+                        expect(deployContext.environmentVariables["FAKESERVICE_BUCKET_URL"]).to.contain(bucketName);
+                        expect(deployContext.environmentVariables["FAKESERVICE_REGION_ENDPOINT"]).to.exist;
                     });
             });
         });
