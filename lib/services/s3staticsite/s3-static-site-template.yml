@@ -37,8 +37,136 @@ Resources:
           Resource:
           - 'arn:aws:s3:::{{bucketName}}/*'
 
+  {{#if cloudfront}}
+  Cloudfront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: CDN for {{bucketName}}
+        {{#if cloudfront.dnsNames}}
+        Aliases:
+        {{#each cloudfront.dnsNames}}
+         - {{name}}
+        {{/each}}
+        {{/if}}
+        Enabled: 'true'
+        HttpVersion: http2
+        {{#if cloudformation.logging}}
+        Logging:
+          Bucket: {{loggingBucketName}}.s3.amazonaws.com
+          Prefix: {{logFilePrefix}}cloudfront/
+        {{/if}}
+        {{#if cloudfront.httpsCertificateId}}
+        ViewerCertificate:
+          AcmCertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/{{cloudfront.httpsCertificateId}}"
+          SslSupportMethod: sni-only
+        {{/if}}
+        DefaultCacheBehavior:
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          MinTTL: {{cloudfront.minTTL}}
+          MaxTTL: {{cloudfront.maxTTL}}
+          DefaultTTL: {{cloudfront.defaultTTL}}
+          TargetOriginId: only-origin
+          ForwardedValues:
+            QueryString: true
+          {{#if cloudfront.httpsCertificateId}}
+          ViewerProtocolPolicy: redirect-to-https
+          {{else}}
+          ViewerProtocolPolicy: allow-all
+          {{/if}}
+        DefaultRootObject: {{indexDocument}}
+        PriceClass: {{cloudfront.priceClass}}
+        Origins:
+        # We're using a custom origin instead of an S3 origin to allow for future support of redirects, etc.
+        - Id: only-origin
+          DomainName: !Select [ 1, !Split [ "://", !GetAtt Bucket.WebsiteURL ] ]
+          CustomOriginConfig:
+            HTTPPort: 80
+            HTTPSPort: 443
+            OriginProtocolPolicy: http-only
+
+  {{#if cloudfront.dnsNames}}
+  {{#each cloudfront.dnsNames}}
+  DNS{{logicalId name}}:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: {{zoneId}}
+      Comment: DNS for S3 Static Site {{bucketName}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt Cloudfront.DomainName
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt Cloudfront.DomainName
+    DependsOn: SetIPV6
+  {{/each}}
+  {{/if}}
+
+  SetIPV6:
+    Type: Custom::SetIPV6
+    Properties:
+      ServiceToken: !GetAtt SetIPV6Function.Arn
+      DistributionId: !Ref Cloudfront
+
+  SetIPV6Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: {{{cloudfront.setIPV6FunctionBody}}}
+      Handler: "index.handler"
+      Runtime: nodejs6.10
+      Timeout: 30
+      Role: !GetAtt SetIPV6FunctionRole.Arn
+
+  SetIPV6FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - cloudfront:GetDistribution
+            - cloudfront:GetDistributionConfig
+            - cloudfront:UpdateDistribution
+            #Uggh. Cloudfront requires these to be granted on everything.
+            Resource: "*"
+  {{/if}}
+
 Outputs:
   BucketName:
     Description: The name of the bucket
     Value: 
       Ref: Bucket
+  {{#if cloudfront}}
+  CloudfrontDistribution:
+    Description: The Cloudfront Distribution ID
+    Value: !Ref Cloudfront
+  CloudfrontUrl:
+    Description: The Cloudfront domain name
+    Value: !GetAtt Cloudfront.DomainName
+  {{/if}}

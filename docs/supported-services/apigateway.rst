@@ -101,7 +101,7 @@ Lambda Swagger Extensions
 For the most part, the Swagger document you provide in the *swagger* section is just a regular Swagger document, 
 specifying the API paths you want your app to use. If you're using Lambdas to service your API Gateway resources, 
 Handel makes use of certain Swagger extensions in your Swagger document so that it can create and wire your Lambdas
-for your.
+for you.
 
 Consider the following Swagger document:
 
@@ -153,6 +153,80 @@ For each item in this list, Handel will create a Lambda function for you. These 
 
 Also notice that the paths in your document have an *x-lambda-function* element. This element tells Handel which Lambda function from the *x-lambda-functions* section you want that API path to be serviced by.
 
+The above example just shows the easy Lambda proxy functionality in API Gateway. This will effectively pass all requests through to your Lambda without modification. If you want to use API Gateway's integration 
+functionality to have more complex transformations before sending requests to your Lambda, you can use Handel to do this. Just provide the regular Amazon *x-amazon-apigateway-integration* value in your Swagger file:
+
+.. code-block:: none
+
+    {
+      "swagger": "2.0",
+      "info": {
+        "version": "2016-09-12T23:19:28Z",
+        "title": "MyAPI"
+      },
+      "basePath": "/test",
+      "schemes": [
+        "https"
+      ],
+      "paths": {
+        "/{myparam}": {
+          "get": {
+            "produces": [
+              "application/json"
+            ],
+            "responses": {},
+            "x-lambda-function": "my-function-1"
+            "x-amazon-apigateway-integration": {
+              "requestTemplates": {
+                "application/json": "#set ($root=$input.path('$')) { \"stage\": \"$root.name\", \"user-id\": \"$root.key\" }",
+                "application/xml": "#set ($root=$input.path('$')) <stage>$root.name</stage> "
+              },
+              "requestParameters": {
+                "integration.request.path.myparam": "method.request.querystring.version",
+                "integration.request.querystring.provider": "method.request.querystring.vendor"
+              },
+              "cacheNamespace": "cache namespace",
+              "cacheKeyParameters": [],
+              "responses": {
+                "2\\d{2}": {
+                  "statusCode": "200",
+                  "responseParameters": {
+                    "method.response.header.requestId": "integration.response.header.cid"
+                  },
+                  "responseTemplates": {
+                    "application/json": "#set ($root=$input.path('$')) { \"stage\": \"$root.name\", \"user-id\": \"$root.key\" }",
+                    "application/xml": "#set ($root=$input.path('$')) <stage>$root.name</stage> "
+                  }
+                },
+                "302": {
+                  "statusCode": "302",
+                  "responseParameters": {
+                    "method.response.header.Location": "integration.response.body.redirect.url"
+                  }
+                },
+                "default": {
+                  "statusCode": "400",
+                  "responseParameters": {
+                    "method.response.header.test-method-response-header": "'static value'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      "x-lambda-functions": {
+        "my-function-1": {
+          "runtime": "nodejs6.10",
+          "handler": "index.handler",
+          "memory": "128",
+          "path_to_code": "./function1"
+        }
+      }
+    }
+
+Notice that the above example has omitted the Lambda-specific properties in the integration object, such as *uri*. Handel will still create and wire the Lambdas for you.
+
 HTTP Passthrough Swagger Extensions
 ***********************************
 In addition to servicing your API methods with Lambdas, you can configure API Gateway to just do an HTTP passthrough to some other HTTP endpoint, be it an AWS EC2 server or something else outside of AWS entirely.
@@ -181,6 +255,34 @@ Handel supports this with another swagger extension, called *x-http-passthrough-
     }
 
 The above Swagger document will route GET on the "/" path to "https://my.cool.fake.url.com". All request headers, parameters, and body will be passed through directly to the given URL, and the response from the URL will be passed through API Gateway without modification.
+
+If you need to use path params with the HTTP passthrough, you can use the *x-http-passthrough-path-params* Swagger extension to map the path parameters from the API Gateway request to the HTTP backend request. Here's an example Swagger document doing this:
+
+.. code-block:: json
+
+    {
+      "swagger": "2.0",
+      "info": {
+        "title": "my-cool-app",
+        "description": "Test Swagger API",
+        "version:": "1.0"
+      },
+      "paths": {
+        "/user/{name}": {
+          "get": {
+            "responses": {
+              "200": {}
+            },
+            "x-http-passthrough-url": "https://my.cool.fake.url.com/{person}",
+            "x-http-passthrough-path-params": {
+              "name": "person"
+            }
+          }
+        }
+      }
+    }
+
+The above example shows mapping the "name" path parameter in the API Gateway request to the "person" path parameter in the backend request.
 
 .. _apigateway-tags:
 
