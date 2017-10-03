@@ -22,15 +22,18 @@ const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('PreDeploy Phase Common module', function () {
     let sandbox;
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
+        return config(`${__dirname}/../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
+            });
     });
 
     afterEach(function () {

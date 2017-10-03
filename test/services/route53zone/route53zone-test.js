@@ -24,7 +24,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('route53zone deployer', function () {
     let appName = "FakeApp";
@@ -34,8 +34,11 @@ describe('route53zone deployer', function () {
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -104,7 +107,7 @@ describe('route53zone deployer', function () {
         let zoneNameServers = 'ns1.amazonaws.com,ns2.amazonaws.co.uk';
         let preDeployContext;
 
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 dns_name: dnsName
             }

@@ -28,15 +28,18 @@ const route53 = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('beanstalk deployer', function () {
     let sandbox;
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -82,7 +85,7 @@ describe('beanstalk deployer', function () {
     });
 
     describe('deploy', function () {
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 type: 'beanstalk',
                 solution_stack: '64bit Amazon Linux 2016.09 v4.0.1 running Node.js',

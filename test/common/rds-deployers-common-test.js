@@ -20,8 +20,6 @@ const ServiceContext = require('../../lib/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
-
 describe('RDS deployers common module', function () {
     let sandbox;
 

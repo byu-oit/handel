@@ -19,7 +19,7 @@ const iotDeployersCommon = require('../../lib/common/iot-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('iot deployers common module', function () {
     let sandbox;
@@ -41,24 +41,27 @@ describe('iot deployers common module', function () {
         });
     });
 
-    describe('getTopicRuleName', function() {
-        it('should return the topic rule name from the service information', function() {
+    describe('getTopicRuleName', function () {
+        it('should return the topic rule name from the service information', function () {
             let ruleName = iotDeployersCommon.getTopicRuleName(producerServiceContext, {
                 service_name: "FakeConsumer"
             });
             expect(ruleName).to.equal("FakeApp_FakeEnv_FakeService_Name_FakeConsumer");
         });
     });
-    
-    describe('getTopicRuleArnPrefix', function() {
-        it('should return the prefix of the arn of the topic rule for the given producer/consumer combo', function() {
-            let arnPrefix = iotDeployersCommon.getTopicRuleArnPrefix('FakeApp_FakeEnv_FakeService', accountConfig);
-            expect(arnPrefix).to.equal('arn:aws:iot:us-west-2:123456789012:rule/FakeApp_FakeEnv_FakeService');
+
+    describe('getTopicRuleArnPrefix', function () {
+        it('should return the prefix of the arn of the topic rule for the given producer/consumer combo', function () {
+            return config(`${__dirname}/../test-account-config.yml`)
+                .then(accountConfig => {
+                    let arnPrefix = iotDeployersCommon.getTopicRuleArnPrefix('FakeApp_FakeEnv_FakeService', accountConfig);
+                    expect(arnPrefix).to.equal('arn:aws:iot:us-west-2:123456789012:rule/FakeApp_FakeEnv_FakeService');
+                });
         });
     });
 
-    describe('getTopicRuleArn', function() {
-        it("should return the arn of the topic rule for the given producer/consumer combo", function() {
+    describe('getTopicRuleArn', function () {
+        it("should return the arn of the topic rule for the given producer/consumer combo", function () {
             let arn = iotDeployersCommon.getTopicRuleArn('arn:aws:iot:us-west-2:123456789012:rule/FakeApp_FakeEnv_FakeService', "Consumer-Service");
             expect(arn).to.equal('arn:aws:iot:us-west-2:123456789012:rule/FakeApp_FakeEnv_FakeService_Consumer_Service');
         });

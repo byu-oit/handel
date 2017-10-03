@@ -20,7 +20,7 @@ const deployPhaseCommon = require('../../lib/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('S3 deployers common module', function () {
     let sandbox;
@@ -43,11 +43,14 @@ describe('S3 deployers common module', function () {
                 }]
             }));
 
-            return s3DeployersCommon.createLoggingBucketIfNotExists(accountConfig)
-                .then(returnBucketName => {
-                    expect(returnBucketName).to.equal(bucketName);
-                    expect(deployStackStub.callCount).to.equal(1);
-                })
+            return config(`${__dirname}/../test-account-config.yml`)
+                .then(accountConfig => {
+                    return s3DeployersCommon.createLoggingBucketIfNotExists(accountConfig)
+                        .then(returnBucketName => {
+                            expect(returnBucketName).to.equal(bucketName);
+                            expect(deployStackStub.callCount).to.equal(1);
+                        })
+                });
         });
     });
 

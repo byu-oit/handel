@@ -28,7 +28,7 @@ const clone = require('clone');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 const VALID_DYNAMODB_CONFIG = {
     partition_key: {
@@ -91,8 +91,11 @@ describe('dynamodb deployer', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -337,18 +340,18 @@ describe('dynamodb deployer', function () {
 
                         expect(autoscaleParams).to.have.property('read')
                             .which.includes({
-                            max: '10',
-                            min: '1',
-                            target: '70',
-                            scaled: true
-                        });
+                                max: '10',
+                                min: '1',
+                                target: '70',
+                                scaled: true
+                            });
                         expect(autoscaleParams).to.have.property('write')
                             .which.includes({
-                            max: '5',
-                            min: '2',
-                            target: '99',
-                            scaled: true
-                        });
+                                max: '5',
+                                min: '2',
+                                target: '99',
+                                scaled: true
+                            });
                     });
             });
 
@@ -374,18 +377,18 @@ describe('dynamodb deployer', function () {
 
                         expect(autoscaleParams).to.have.property('read')
                             .which.includes({
-                            max: '10',
-                            min: '1',
-                            target: '70',
-                            scaled: true
-                        });
+                                max: '10',
+                                min: '1',
+                                target: '70',
+                                scaled: true
+                            });
                         expect(autoscaleParams).to.have.property('write')
                             .which.includes({
-                            max: '5',
-                            min: '2',
-                            target: '99',
-                            scaled: true
-                        });
+                                max: '5',
+                                min: '2',
+                                target: '99',
+                                scaled: true
+                            });
                     });
             });
 
@@ -416,18 +419,18 @@ describe('dynamodb deployer', function () {
 
                         expect(autoscaleParams.globalIndexes[0]).to.have.property('read')
                             .which.includes({
-                            max: '10',
-                            min: '1',
-                            target: '70',
-                            scaled: true
-                        });
+                                max: '10',
+                                min: '1',
+                                target: '70',
+                                scaled: true
+                            });
                         expect(autoscaleParams.globalIndexes[0]).to.have.property('write')
                             .which.includes({
-                            max: '5',
-                            min: '2',
-                            target: '99',
-                            scaled: true
-                        });
+                                max: '5',
+                                min: '2',
+                                target: '99',
+                                scaled: true
+                            });
                     });
             });
 
