@@ -106,17 +106,17 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
 .. code-block:: bash
 
-    handel deploy -c default -e dev -v 1
+    handel deploy -c default-us-east-1 -e dev -v 1
 
 In the above command, the following arguments are provided:
 
-* The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying "default" here tells Handel you don't have one and just want to use the default VPC AWS provides.
+* The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying *default-us-east-1* here tells Handel you don't have one and just want to use the default VPC AWS provides in the us-east-1 region.
 * The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
 * The *-v* parameter is an arbitrary string specifying the current version being deployed.
 
 .. IMPORTANT::
 
-    The *-c* parameter in the *handel deploy* command above specifies which :ref:`account-config-file` you want to use. By specifying *default*, you're telling Handel you don't have a custom configured VPC and that it should just use the account defaults.
+    The *-c* parameter in the *handel deploy* command above specifies which :ref:`account-config-file` you want to use. By specifying *default-us-east-1*, you're telling Handel you don't have a custom configured VPC and that it should just use the one AWS provides.
 
     If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
 

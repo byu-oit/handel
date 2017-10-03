@@ -15,9 +15,19 @@ If you're using Handel in a personal AWS account, it's likely that you don't wan
 
 .. code-block:: none
 
-    handel deploy -c default -e dev -v 1
+    handel deploy -c default-us-east-1 -e dev -v 1
 
-Notice that in the *-c* parameter, we are passing the string "default", which tells Handel not to use an account config file and to use the AWS default VPC instead.
+Notice that in the *-c* parameter, we are passing the string *default-us-east-1*, which tells Handel to use the default VPC in the us-east-1 region.
+
+.. NOTE::
+
+    To use a default VPC, specify it with the following pattern:
+    
+    .. code-block:: none
+
+        default-<region>
+
+    The <region> parameter is the name of the AWS region, such as *us-east-1* or *us-west-2*, where you want to run your app.
 
 Using Handel at a company or organization
 -----------------------------------------
