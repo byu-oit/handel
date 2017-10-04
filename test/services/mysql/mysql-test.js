@@ -30,7 +30,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('mysql deployer', function () {
     let sandbox;
@@ -40,8 +40,11 @@ describe('mysql deployer', function () {
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -104,16 +107,16 @@ describe('mysql deployer', function () {
         let ownPreDeployContext;
         let dependenciesDeployContexts;
 
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 database_name: 'mydb'
             }
-            
+
             ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'
             });
-            
+
             dependenciesDeployContexts = [];
         })
 
@@ -193,7 +196,7 @@ describe('mysql deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return mysql.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);

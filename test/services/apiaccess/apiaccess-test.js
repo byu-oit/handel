@@ -21,15 +21,18 @@ const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('apiaccess deployer', function () {
     let sandbox;
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {}, accountConfig);
+            });
     });
 
     afterEach(function () {

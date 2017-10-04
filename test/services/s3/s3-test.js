@@ -24,15 +24,18 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('s3 deployer', function () {
     let sandbox;
     let ownServiceContext;
-    
+
     beforeEach(function () {
-        ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {}, accountConfig);
-        sandbox = sinon.sandbox.create();
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {}, accountConfig);
+                sandbox = sinon.sandbox.create();
+            });
     });
 
     afterEach(function () {
@@ -102,7 +105,7 @@ describe('s3 deployer', function () {
                     });
             });
         });
-        
+
         describe('unDeploy', function () {
             it('should undeploy the stack', function () {
                 let bucketName = "my-bucket";

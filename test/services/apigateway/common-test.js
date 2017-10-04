@@ -20,7 +20,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('apigateway common module', function () {
     let sandbox;
@@ -30,8 +30,11 @@ describe('apigateway common module', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -39,7 +42,7 @@ describe('apigateway common module', function () {
     });
 
     describe('getRestApiUrl', function () {
-        it('should return the constructed URL from the CloudFormation stack', function() {
+        it('should return the constructed URL from the CloudFormation stack', function () {
             let cfStack = {
                 Outputs: [{
                     OutputKey: 'RestApiId',
@@ -52,8 +55,8 @@ describe('apigateway common module', function () {
         });
     });
 
-    describe('getPolicyStatementsForLambdaRole', function() {
-        it('should return the list of policy statements for the service role', function() {
+    describe('getPolicyStatementsForLambdaRole', function () {
+        it('should return the list of policy statements for the service role', function () {
             let getAppSecretsPolicyStub = sandbox.stub(deployPhaseCommon, 'getAppSecretsAccessPolicyStatements').returns([]);
             let getPolicyStatementsStub = sandbox.stub(deployPhaseCommon, 'getAllPolicyStatementsForServiceRole').returns(Promise.resolve([]))
 

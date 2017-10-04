@@ -29,7 +29,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('memcached deployer', function () {
     let sandbox;
@@ -39,8 +39,11 @@ describe('memcached deployer', function () {
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -114,17 +117,17 @@ describe('memcached deployer', function () {
         let cachePort = 11211;
         let envPrefix = 'FAKESERVICE';
 
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 memcached_version: '3.2.4',
                 instance_type: 'cache.t2.micro'
             }
-            
+
             ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'
             });
-            
+
             dependenciesDeployContexts = [];
         });
 
@@ -155,7 +158,7 @@ describe('memcached deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return memcached.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);

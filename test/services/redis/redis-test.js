@@ -29,7 +29,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('redis deployer', function () {
     let sandbox;
@@ -38,8 +38,11 @@ describe('redis deployer', function () {
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "redis", "1", {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "redis", "1", {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -140,7 +143,7 @@ describe('redis deployer', function () {
                 GroupId: 'FakeId'
             });
             let dependenciesDeployContexts = [];
-    
+
             let cacheAddress = "fakeaddress.byu.edu";
             let cachePort = 6379;
             let envPrefix = 'FAKESERVICE';
@@ -171,7 +174,7 @@ describe('redis deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return redis.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);

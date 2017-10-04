@@ -19,7 +19,6 @@ const cli = require('../../lib/cli');
 const sinon = require('sinon');
 const fs = require('fs');
 const util = require('../../lib/common/util');
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
 
 describe('cli module', function () {
     let sandbox;

@@ -29,7 +29,7 @@ const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('efs deployer', function () {
     let sandbox;
@@ -39,8 +39,11 @@ describe('efs deployer', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "efs", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -91,7 +94,7 @@ describe('efs deployer', function () {
     describe('bind', function () {
         it('should add the source sg to its own sg as an ingress rule', function () {
             let bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').returns(Promise.resolve(new BindContext({}, {})));
-            
+
             return efs.bind({}, {}, {}, {})
                 .then(bindContext => {
                     expect(bindContext).to.be.instanceof(BindContext);
@@ -128,7 +131,7 @@ describe('efs deployer', function () {
     describe('unPreDeploy', function () {
         it('should delete the security group', function () {
             let unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').returns(Promise.resolve(new UnPreDeployContext({})));
-            
+
             return efs.unPreDeploy({})
                 .then(unPreDeployContext => {
                     expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);

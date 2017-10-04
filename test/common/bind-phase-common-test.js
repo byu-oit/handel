@@ -22,7 +22,7 @@ const ec2Calls = require('../../lib/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('bind phases common module', function () {
     let sandbox;
@@ -32,16 +32,19 @@ describe('bind phases common module', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
         sandbox.restore();
     });
 
-    describe('bindDependentSecurityGroupToSelf', function() {
-        it('should add an ssh ingress on the security group', function() {
+    describe('bindDependentSecurityGroupToSelf', function () {
+        it('should add an ssh ingress on the security group', function () {
             let ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'

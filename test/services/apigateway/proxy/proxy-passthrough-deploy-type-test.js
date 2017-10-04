@@ -22,7 +22,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../../lib/common/deploy-phase-common');
 
-const accountConfig = require('../../../../lib/common/account-config')(`${__dirname}/../../../test-account-config.yml`);
+const config = require('../../../../lib/account-config/account-config');
 
 describe('apigateway proxy deploy type', function () {
     let sandbox;
@@ -32,8 +32,11 @@ describe('apigateway proxy deploy type', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {

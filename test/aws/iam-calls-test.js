@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('iam calls', function () {
     let sandbox;
@@ -268,12 +268,15 @@ describe('iam calls', function () {
             let createOrUpdatePolicyStub = sandbox.stub(iamCalls, 'createOrUpdatePolicy').returns(Promise.resolve({}))
             let attachPolicyToRoleStub = sandbox.stub(iamCalls, 'attachPolicyToRole').returns(Promise.resolve({}));
 
-            return iamCalls.attachStreamPolicy('FakeRole', constructPolicyDocStub, accountConfig)
-                .then((policy) => {
-                    expect(policy).to.deep.equal({});
-                    expect(createOrUpdatePolicyStub.callCount).to.equal(1);
-                    expect(attachPolicyToRoleStub.callCount).to.equal(1);
-                })
+            return config(`${__dirname}/../test-account-config.yml`)
+                .then(accountConfig => {
+                    return iamCalls.attachStreamPolicy('FakeRole', constructPolicyDocStub, accountConfig)
+                        .then((policy) => {
+                            expect(policy).to.deep.equal({});
+                            expect(createOrUpdatePolicyStub.callCount).to.equal(1);
+                            expect(attachPolicyToRoleStub.callCount).to.equal(1);
+                        });
+                });
         });
     });
 
@@ -302,17 +305,6 @@ describe('iam calls', function () {
                 .then((response) => {
                     expect(getRoleStub.callCount).to.equal(1);
                     expect(response).to.deep.equal([]);
-                });
-        });
-    })
-
-    describe('showAccount', function () {
-        it('should return the currently authenticated account id', function () {
-            AWS.mock('IAM', 'listRoles', Promise.resolve({ Roles: [{ Arn: `arn:aws:iam::${accountConfig.account_id}:stuff` }] }));
-
-            return iamCalls.showAccount()
-                .then(response => {
-                    expect(response).to.equal(accountConfig.account_id);
                 });
         });
     });
