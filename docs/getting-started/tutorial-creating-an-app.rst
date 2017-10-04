@@ -12,11 +12,13 @@ Tutorial
 --------
 This tutorial contains the following steps:
 
-1. Write the app
-2. Create your Handel file
-3. Deploy using Handel
+1. :ref:`creating-first-handel-app-write-the-app`
+2. :ref:`creating-first-handel-app-create-handel-file`
+3. :ref:`creating-first-handel-app-deploy`
 
 Follow along with each of these steps in the sections below in order to complete the tutorial.
+
+.. _creating-first-handel-app-write-the-app:
 
 Write the app
 ~~~~~~~~~~~~~
@@ -75,6 +77,8 @@ Test your app by starting it up:
 
 Once it's started up, you should be able to go to `http://localhost:3000/ <http://localhost:3000>`_ to see it working. You should see a page that says "Hello World!" on it.
 
+.. _creating-first-handel-app-create-handel-file:
+
 Create your Handel file
 ~~~~~~~~~~~~~~~~~~~~~~~
 Now that you've got a working app, you need to create a Handel file specifying how you want your app deployed. Create a file called *handel.yml* with the following contents:
@@ -100,6 +104,8 @@ Now that you've got a working app, you need to create a Handel file specifying h
 
     We only specified the required parameters for Beanstalk. There are others that have defaults if you don't specify them. See the :ref:`beanstalk` service documentation for full information on all the different parameters for the service.
 
+.. _creating-first-handel-app-deploy:
+
 Deploy using Handel
 ~~~~~~~~~~~~~~~~~~~
 Now that you've written your app, created your Handel file, and obtained your account config file, you can run Handel to deploy:
@@ -108,17 +114,13 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
     handel deploy -c default-us-east-1 -e dev -v 1
 
-In the above command, the following arguments are provided:
+.. NOTE::
 
-* The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying *default-us-east-1* here tells Handel you don't have one and just want to use the default VPC AWS provides in the us-east-1 region.
-* The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
-* The *-v* parameter is an arbitrary string specifying the current version being deployed.
+    In the above command, the following arguments are provided:
 
-.. IMPORTANT::
-
-    The *-c* parameter in the *handel deploy* command above specifies which :ref:`account-config-file` you want to use. By specifying *default-us-east-1*, you're telling Handel you don't have a custom configured VPC and that it should just use the one AWS provides.
-
-    If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
+    * The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying *default-us-east-1* here tells Handel you don't have one and just want to use the default VPC AWS provides in the us-east-1 region.
+    * The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
+    * The *-v* parameter is an arbitrary string specifying the current version being deployed.
 
 Once you've executed that command, Handel should start up and deploy your application. You can sign into the AWS Console and go to the "ElasticBeanstalk" service to see your deployed application.
 
@@ -135,17 +137,20 @@ Read through the following documents in the :ref:`handel-basics` section:
 * :ref:`consuming-service-dependencies`
 * :ref:`service-events`
 
-Those documents will give you the information you need to get started using Handel. 
+Those documents will give you more information on the design and usage of Handel, particularly how you can use Handel's dependencies to wire services together.
 
 Learn how to configure the different service types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-See the :ref:`supported-services` section, which contains information about the different services you can deploy using Handel. Each service page in that section will give the following information:
+Once you understand Handel's basic configuration, see the :ref:`supported-services` section, which contains information about the different services you can deploy using Handel. 
+Each service page in that section will give the following information:
 
-* Service features that aren't yet supported in Handel.
-* Configuring the service in your Handel file
+* How to configure the service in your Handel file.
 * How to consume the service in other services (if applicable).
 * How to produce events to other services (if applicable).
 
 Set up a continuous delivery pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Handel itself can run anywhere, but the best way to run Handel is inside a continuous delivery pipeline. AWS provides the CodePipeline service for continuous delivery pipelines. Handel provides a companion tool, called `Handel-CodePipeline <http://handel-codepipeline.readthedocs.io>`_, that helps you easily create these pipelines running Handel for your deploy.
+Handel can run anywhere, from your laptop to a build server. The recommended way to run Handel is inside a `Continuous Delivery <https://en.wikipedia.org/wiki/Continuous_delivery>`_ pipeline. 
+There are many options available on the market, and AWS provides the CodePipeline service for creating these pipelines. 
+
+Handel provides a companion tool, called `Handel-CodePipeline <http://handel-codepipeline.readthedocs.io>`_, that helps you easily create these CodePipelines    running Handel for your deploy.
