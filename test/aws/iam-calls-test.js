@@ -307,19 +307,5 @@ describe('iam calls', function () {
                     expect(response).to.deep.equal([]);
                 });
         });
-    })
-
-    describe('showAccount', function () {
-        it('should return the currently authenticated account id', function () {
-            return config(`${__dirname}/../test-account-config.yml`)
-                .then(accountConfig => {
-                    AWS.mock('IAM', 'listRoles', Promise.resolve({ Roles: [{ Arn: `arn:aws:iam::${accountConfig.account_id}:stuff` }] }));
-
-                    return iamCalls.showAccount()
-                        .then(response => {
-                            expect(response).to.equal(accountConfig.account_id);
-                        });
-                });
-        });
     });
 });
