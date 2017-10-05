@@ -92,7 +92,12 @@ Dockerrun.aws.json Replacement Tags
      - The account_id from the account config file specified at deployment.
    * - <aws_region>
      - The region from the account config file specified at deployment.
-
+   * - <handel_app_name>
+     - The name of the Handel application
+   * - <handel_environment_name>
+     - The name of the Handel environment that the deployed service is contained in.
+   * - <handel_service_name>
+     - The name of the Handel service being deployed.
 
 .. _beanstalk-auto-scaling:
 
