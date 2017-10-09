@@ -22,7 +22,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../../lib/common/deploy-phase-common');
 
-const accountConfig = require('../../../../lib/common/account-config')(`${__dirname}/../../../test-account-config.yml`);
+const config = require('../../../../lib/account-config/account-config');
 
 describe('apigateway swagger deploy type', function () {
     let sandbox;
@@ -32,11 +32,14 @@ describe('apigateway swagger deploy type', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        let params = {
-            swagger: `${__dirname}/test-swagger.json`
-        }
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, params, accountConfig);
+        return config(`${__dirname}/../../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                let params = {
+                    swagger: `${__dirname}/test-swagger.json`
+                }
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, params, accountConfig);
+            });
     });
 
     afterEach(function () {

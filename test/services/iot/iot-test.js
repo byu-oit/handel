@@ -24,7 +24,7 @@ const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('iot deployer', function () {
     let sandbox;
@@ -34,8 +34,11 @@ describe('iot deployer', function () {
     let serviceContext;
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "iot", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "iot", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -43,7 +46,7 @@ describe('iot deployer', function () {
     });
 
     describe('check', function () {
-        it('should return an error when the service_name param is not specified in event_consumers', function() {
+        it('should return an error when the service_name param is not specified in event_consumers', function () {
             serviceContext.params = {
                 event_consumers: [{
                     sql: "select * from 'something'"
@@ -54,7 +57,7 @@ describe('iot deployer', function () {
             expect(errors[0]).to.include("The 'service_name' parameter is required");
         });
 
-        it('should return an error when the sql parameter is not specified in the event_consumers seciton', function() {
+        it('should return an error when the sql parameter is not specified in the event_consumers seciton', function () {
             serviceContext.params = {
                 event_consumers: [{
                     service_name: 'myconsumer',
@@ -89,7 +92,7 @@ describe('iot deployer', function () {
     describe('produceEvents', function () {
         let ownDeployContext;
 
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 event_consumers: [{
                     service_name: "FakeConsumer",
@@ -126,7 +129,7 @@ describe('iot deployer', function () {
         it('should return an error if any other consumer type is specified', function () {
             let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "unknowntype", deployVersion, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
-            
+
             return iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)
                 .then(produceEventsContext => {
                     expect(true).to.equal(false); //Should not get here
@@ -147,7 +150,7 @@ describe('iot deployer', function () {
                     {
                         service_name: "B"
                     }
-                ]  
+                ]
             }
 
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));

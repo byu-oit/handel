@@ -5,9 +5,14 @@ Account Config File
 Handel requires two pieces of information in order to deploy your application:
 
 * Your handel.yml file that contains your service specification
-* An account configuration YAML file that contains account-level information for things such as VPCs, subnets, etc.
+* Account configuration information that contains items like VPCs and subnets to use when deploying applications.
 
-The account configuration file contains the low-level information that can be shared by all Handel apps deploying to a single account. This file is a bit more tricky to build than your Handel file, as it requires some knowledge of the network topology of your account.
+You can either choose to let Handel just use the AWS default VPC, or you can provide it with an Account Config File that contains the information about your own custom VPC to use.
+
+.. IMPORTANT::
+
+    If you're running Handel inside a company or organization AWS account, it is likely your company has already set up VPCs how they want them. In this case, get your platform/network group to help you configure this account config file for your VPC.
+
 
 Using the AWS default VPC
 -------------------------
@@ -15,9 +20,19 @@ If you're using Handel in a personal AWS account, it's likely that you don't wan
 
 .. code-block:: none
 
-    handel deploy -c default -e dev -v 1
+    handel deploy -c default-us-east-1 -e dev -v 1
 
-Notice that in the *-c* parameter, we are passing the string "default", which tells Handel not to use an account config file and to use the AWS default VPC instead.
+Notice that in the *-c* parameter, we are passing the string *default-us-east-1*, which tells Handel to use the default VPC in the us-east-1 region.
+
+.. NOTE::
+
+    To use a default VPC, specify it with the following pattern:
+    
+    .. code-block:: none
+
+        default-<region>
+
+    The <region> parameter is the name of the AWS region, such as *us-east-1* or *us-west-2*, where you want to run your app.
 
 Using Handel at a company or organization
 -----------------------------------------
@@ -43,8 +58,3 @@ The account config file is a YAML file that must contain the following informati
   ssh_bastion_sg: <string> # The ID of the security group you
   elasticache_subnet_group: <string> # The name of the ElastiCache subnet group to use when deploying ElastiCache clusters.
   rds_subnet_group: <string> # The name of the RDS subnet group to use when deploying RDS clusters.
-
-.. NOTE::
-
-    If you're using the default VPC in your account, it doesn't have separate public, private, and data subnets. In this case, just use the same subnet IDs in each of the subnet sections in the account config file.
-

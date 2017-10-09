@@ -21,8 +21,6 @@ const expect = require('chai').use(sinonChai).expect;
 const fs = require('fs');
 const EnvironmentContext = require('../../lib/datatypes/environment-context');
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
-
 describe('util module', function () {
     let sandbox;
 

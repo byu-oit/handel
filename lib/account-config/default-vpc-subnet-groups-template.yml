@@ -1,0 +1,31 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created subnet groups for default VPC
+
+Resources:
+  RdsSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: {{stackName}}
+      SubnetIds:
+      {{#each subnetIds}}
+      - {{this}}
+      {{/each}}
+  
+  ElastiCacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      CacheSubnetGroupName: {{stackName}}
+      Description: {{subnetGroupDescription}}
+      SubnetIds:
+      {{#each subnetIds}}
+      - {{this}}
+      {{/each}}
+
+Outputs:
+  RdsSubnetGroupName:
+    Description: The name of the RDS subnet group
+    Value: !Ref RdsSubnetGroup
+  ElastiCacheSubnetGroupName:
+    Description: The name of the ElastiCache subnet group
+    Value: !Ref ElastiCacheSubnetGroup

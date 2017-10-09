@@ -126,7 +126,20 @@ To run a scheduled Lambda, you can use this service in conjunction with the Clou
 
 Depending on this service
 -------------------------
-The Lambda service cannot currently be consumed by any other services. It is intended as an event consumer for other services such as SNS.
+The Lambda service outputs the following environment variables:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Environment Variable
+     - Description
+   * - <SERVICE_NAME>_FUNCTION_NAME
+     - The name of the created Lambda function
+   * - <SERVICE_NAME>_FUCNTION_ARN
+     - The ARN of the created Lambda function
+
+See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
+
 
 Events produced by this service
 -------------------------------
@@ -136,4 +149,8 @@ Events consumed by this service
 -------------------------------
 The Lambda service can consume events from the following service types:
 
+* Alexa Skill Kit
+* CloudWatch Events
+* DynamoDB
+* IoT
 * SNS

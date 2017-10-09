@@ -27,7 +27,7 @@ const handlebarsUtils = require('../../../lib/common/handlebars-utils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('s3staticsite deployer', function () {
     let sandbox;
@@ -37,8 +37,11 @@ describe('s3staticsite deployer', function () {
         let serviceParams = {
             path_to_code: ".",
         };
-        ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", serviceParams, accountConfig);
+                sandbox = sinon.sandbox.create();
+            });
     });
 
     afterEach(function () {
@@ -79,14 +82,14 @@ describe('s3staticsite deployer', function () {
             const valid = ['enabled', 'disabled'];
             for (let validValue of valid) {
                 it(`should allow '${validValue}'`, function () {
-                    ownServiceContext.params.cloudfront = {logging: validValue};
+                    ownServiceContext.params.cloudfront = { logging: validValue };
 
                     let errors = s3StaticSite.check(ownServiceContext);
                     expect(errors).to.be.empty;
                 });
             }
             it("should reject invalid values", function () {
-                ownServiceContext.params.cloudfront = {logging: 'off'};
+                ownServiceContext.params.cloudfront = { logging: 'off' };
                 let errors = s3StaticSite.check(ownServiceContext);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include("'logging' parameter must be either 'enabled' or 'disabled'")
@@ -96,14 +99,14 @@ describe('s3staticsite deployer', function () {
             const valid = ['100', '200', 'all'];
             for (let validValue of valid) {
                 it(`should allow '${validValue}'`, function () {
-                    ownServiceContext.params.cloudfront = {price_class: validValue};
+                    ownServiceContext.params.cloudfront = { price_class: validValue };
 
                     let errors = s3StaticSite.check(ownServiceContext);
                     expect(errors).to.be.empty;
                 });
             }
             it("should reject invalid values", function () {
-                ownServiceContext.params.cloudfront = {price_class: 'off'};
+                ownServiceContext.params.cloudfront = { price_class: 'off' };
                 let errors = s3StaticSite.check(ownServiceContext);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include("'price_class' parameter must be one of '100', '200', or 'all'");
@@ -114,24 +117,24 @@ describe('s3staticsite deployer', function () {
             const aliases = ['second', 'minute', 'hour', 'day', 'year'];
             for (let field of ttlFields.map(it => `${it}_ttl`)) {
                 it(`should allow numbers in '${field}`, function () {
-                    ownServiceContext.params.cloudfront = {[field]: 100};
+                    ownServiceContext.params.cloudfront = { [field]: 100 };
                     let errors = s3StaticSite.check(ownServiceContext);
                     expect(errors).to.be.empty;
                 });
                 for (let alias of aliases) {
                     it(`should allow ${alias} aliases in '${field}`, function () {
-                        ownServiceContext.params.cloudfront = {[field]: `2 ${alias}`};
+                        ownServiceContext.params.cloudfront = { [field]: `2 ${alias}` };
                         let errors = s3StaticSite.check(ownServiceContext);
                         expect(errors).to.be.empty;
 
                         //plural
-                        ownServiceContext.params.cloudfront = {[field]: `2 ${alias}s`};
+                        ownServiceContext.params.cloudfront = { [field]: `2 ${alias}s` };
                         errors = s3StaticSite.check(ownServiceContext);
                         expect(errors).to.be.empty;
                     });
                 }
                 it(`should reject invalid values in '${field}`, function () {
-                    ownServiceContext.params.cloudfront = {[field]: 'foobar'};
+                    ownServiceContext.params.cloudfront = { [field]: 'foobar' };
 
                     let errors = s3StaticSite.check(ownServiceContext);
                     expect(errors).to.have.lengthOf(1);
@@ -141,13 +144,13 @@ describe('s3staticsite deployer', function () {
         });
         describe('cloudfront.dns_name', function () {
             it('should allow valid hostnames', function () {
-                ownServiceContext.params.cloudfront = {dns_names: ['valid.dns.name.com']};
+                ownServiceContext.params.cloudfront = { dns_names: ['valid.dns.name.com'] };
 
                 let errors = s3StaticSite.check(ownServiceContext);
                 expect(errors).to.be.empty;
             });
             it("should reject invalid values", function () {
-                ownServiceContext.params.cloudfront = {dns_names: ['invalid hostname', 'valid.dns.name.com']};
+                ownServiceContext.params.cloudfront = { dns_names: ['invalid hostname', 'valid.dns.name.com'] };
 
                 let errors = s3StaticSite.check(ownServiceContext);
                 expect(errors).to.have.lengthOf(1);
@@ -229,12 +232,12 @@ describe('s3staticsite deployer', function () {
 
                         expect(params).to.have.property('cloudfront')
                             .that.includes({
-                            logging: true,
-                            minTTL: 0,
-                            maxTTL: 31536000,
-                            defaultTTL: 86400,
-                            priceClass: 'PriceClass_All'
-                        }).and.has.property('setIPV6FunctionBody');
+                                logging: true,
+                                minTTL: 0,
+                                maxTTL: 31536000,
+                                defaultTTL: 86400,
+                                priceClass: 'PriceClass_All'
+                            }).and.has.property('setIPV6FunctionBody');
                     });
             });
 
@@ -256,9 +259,9 @@ describe('s3staticsite deployer', function () {
                         expect(params).to.have.property('cloudfront')
                             .which.has.property('dnsNames')
                             .which.deep.includes({
-                            name: 'test.dns.com',
-                            zoneId: 'dnscom'
-                        });
+                                name: 'test.dns.com',
+                                zoneId: 'dnscom'
+                            });
                     });
             });
 
@@ -307,10 +310,10 @@ describe('s3staticsite deployer', function () {
 
                         expect(params).to.have.property('cloudfront')
                             .which.includes({
-                            minTTL: 60,
-                            defaultTTL: 3600 * 2,
-                            maxTTL: 3600 * 24 * 30,
-                        });
+                                minTTL: 60,
+                                defaultTTL: 3600 * 2,
+                                maxTTL: 3600 * 24 * 30,
+                            });
                     });
             });
         });

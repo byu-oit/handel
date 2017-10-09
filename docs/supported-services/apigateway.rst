@@ -317,10 +317,10 @@ This Handel file shows an API Gateway service being configured, where all your r
           type: apigateway
           proxy:
             path_to_code: .
-            lambda_runtime: nodejs6.10
-            handler_function: index.handler
-            provisioned_memory: 256
-            function_timeout: 5
+            runtime: nodejs6.10
+            handler: index.handler
+            memory: 256
+            timeout: 5
             environment_variables:
               MY_FIRST_VAR: my_first_value
               MY_SECOND_VAR: my_second_value

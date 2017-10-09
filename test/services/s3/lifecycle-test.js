@@ -18,8 +18,6 @@ const s3Lifecycle = require('../../../lib/services/s3/lifecycles');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
-
 describe('s3 lifecycle helper', function () {
     let sandbox;
 

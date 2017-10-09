@@ -27,7 +27,7 @@ const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('apigateway deployer', function () {
     let sandbox;
@@ -37,8 +37,11 @@ describe('apigateway deployer', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -108,14 +111,14 @@ describe('apigateway deployer', function () {
     });
 
     describe('deploy', function () {
-        describe('when using proxy passthrough', function() {
-            it('should call the proxy deploy', function() {
+        describe('when using proxy passthrough', function () {
+            it('should call the proxy deploy', function () {
                 serviceContext.params = {
                     proxy: {}
                 }
-    
+
                 let deployStub = sandbox.stub(proxyPassthroughDeployType, 'deploy').returns(Promise.resolve({}));
-    
+
                 return apigateway.deploy(serviceContext, {}, [])
                     .then(deployContext => {
                         expect(deployContext).to.deep.equal({});
@@ -124,14 +127,14 @@ describe('apigateway deployer', function () {
             });
         });
 
-        describe('when using swagger configuration', function() {
-            it('should call the swagger deploy', function() {
+        describe('when using swagger configuration', function () {
+            it('should call the swagger deploy', function () {
                 serviceContext.params = {
                     swagger: 'fakeswagger.json'
                 }
-    
+
                 let deployStub = sandbox.stub(swaggerDeployType, 'deploy').returns(Promise.resolve({}));
-    
+
                 return apigateway.deploy(serviceContext, {}, [])
                     .then(deployContext => {
                         expect(deployContext).to.deep.equal({});

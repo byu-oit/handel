@@ -31,7 +31,7 @@ const route53calls = require('../../../lib/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 const VALID_ECS_CONFIG = {
     cluster: {
@@ -78,8 +78,11 @@ describe('ecs deployer', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "ecs", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "ecs", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -129,7 +132,7 @@ describe('ecs deployer', function () {
             expect(errors[0]).to.include(`'https_certificate' parameter is required`);
         });
 
-        it('should validate dns hostnames', function() {
+        it('should validate dns hostnames', function () {
             configToCheck.load_balancer.dns_names = ['invalid hostname'];
             let errors = ecs.check(serviceContext);
             expect(errors.length).to.equal(1);
@@ -175,20 +178,20 @@ describe('ecs deployer', function () {
             expect(errors.length).to.equal(0);
         });
 
-        describe("'logging' validation", function() {
-            it("should allow 'enabled'", function() {
+        describe("'logging' validation", function () {
+            it("should allow 'enabled'", function () {
                 serviceContext.params.logging = 'enabled';
                 let errors = ecs.check(serviceContext);
                 expect(errors).to.be.empty;
             });
 
-            it("should allow 'disabled'", function() {
+            it("should allow 'disabled'", function () {
                 serviceContext.params.logging = 'disabled';
                 let errors = ecs.check(serviceContext);
                 expect(errors).to.be.empty;
             });
 
-            it("should reject anything else", function() {
+            it("should reject anything else", function () {
                 serviceContext.params.logging = 'something else';
                 let errors = ecs.check(serviceContext);
                 expect(errors).to.have.lengthOf(1);
@@ -196,7 +199,7 @@ describe('ecs deployer', function () {
             });
         });
 
-        it("should require that 'log_retention_in_days' be a number", function() {
+        it("should require that 'log_retention_in_days' be a number", function () {
             serviceContext.params.log_retention_in_days = 'a number';
 
             let errors = ecs.check(serviceContext);
@@ -225,7 +228,7 @@ describe('ecs deployer', function () {
     });
 
     describe('deploy', function () {
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = VALID_ECS_CONFIG;
         })
 
@@ -329,7 +332,7 @@ describe('ecs deployer', function () {
                 });
         });
     });
-    
+
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));

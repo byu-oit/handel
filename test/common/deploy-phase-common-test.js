@@ -25,7 +25,7 @@ const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../lib/common/account-config')(`${__dirname}/../test-account-config.yml`);
+const config = require('../../lib/account-config/account-config');
 
 describe('Deploy phase common module', function () {
     let sandbox;
@@ -36,28 +36,31 @@ describe('Deploy phase common module', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, serviceName, "FakeType", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, serviceName, "FakeType", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
         sandbox.restore();
     });
 
-    describe('getInjectedEnvVarsFor', function() {
-        it('should return environment variables with the service name', function() {
-            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {FOO: 'bar'});
+    describe('getInjectedEnvVarsFor', function () {
+        it('should return environment variables with the service name', function () {
+            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, { FOO: 'bar' });
             expect(vars).to.have.property('FAKESERVICE_FOO', 'bar');
         });
 
-        it('should return environment variables with the legacy format', function() {
-            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {FOO: 'bar'});
+        it('should return environment variables with the legacy format', function () {
+            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, { FOO: 'bar' });
             expect(vars).to.have.property('FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_FOO', 'bar');
         });
     });
 
-    describe('getSsmParamName', function() {
-        it('should return a consistent name for SSM params', function() {
+    describe('getSsmParamName', function () {
+        it('should return a consistent name for SSM params', function () {
             let paramName = deployPhaseCommon.getSsmParamName(serviceContext, 'myparamname');
             expect(paramName).to.equal("FakeApp.FakeEnv.myparamname");
         });
@@ -76,14 +79,14 @@ describe('Deploy phase common module', function () {
     describe('getEnvVarsFromDependencyDeployContexts', function () {
         it('should return an object with the env vars from all given DeployContexts', function () {
             let deployContexts = []
-            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {}, accountConfig);
+            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {}, serviceContext.accountConfig);
             let deployContext1 = new DeployContext(serviceContext1);
             let envVarName1 = "ENV_VAR_1";
             let envVarValue1 = "someValue1";
             deployContext1.environmentVariables[envVarName1] = envVarValue1;
             deployContexts.push(deployContext1);
 
-            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {}, accountConfig);
+            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {}, serviceContext.accountConfig);
             let deployContext2 = new DeployContext(serviceContext2);
             let envVarName2 = "ENV_VAR_2";
             let envVarValue2 = "someValue2";
@@ -143,7 +146,7 @@ describe('Deploy phase common module', function () {
             }];
 
             let dependenciesDeployContexts = [];
-            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {}, accountConfig);
+            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {}, serviceContext.accountConfig);
             let dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.policies.push({
                 "Effect": "Allow",
@@ -172,8 +175,8 @@ describe('Deploy phase common module', function () {
         });
     });
 
-    describe('deployCloudFormationStack', function() {
-        it('should create the stack if it doesnt exist yet', function() {
+    describe('deployCloudFormationStack', function () {
+        it('should create the stack if it doesnt exist yet', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
             return deployPhaseCommon.deployCloudFormationStack("FakeStack", "", [], true, "FakeService")
@@ -184,7 +187,7 @@ describe('Deploy phase common module', function () {
                 });
         });
 
-        it('should update the stack if it exists and updates are supported', function() {
+        it('should update the stack if it exists and updates are supported', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
             return deployPhaseCommon.deployCloudFormationStack("FakeStack", "", [], true, "FakeService")
@@ -195,7 +198,7 @@ describe('Deploy phase common module', function () {
                 });
         });
 
-        it('should just return the stack if it exists and updates are not supported', function() {
+        it('should just return the stack if it exists and updates are not supported', function () {
             let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             let updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve(null));
             return deployPhaseCommon.deployCloudFormationStack("FakeStack", "", [], false, "FakeService")
@@ -217,7 +220,7 @@ describe('Deploy phase common module', function () {
             let uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({});
             let cleanupOldVersionsStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').returns(Promise.resolve(null));
 
-            return deployPhaseCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName, accountConfig)
+            return deployPhaseCommon.uploadFileToHandelBucket(serviceContext, diskFilePath, s3FileName, serviceContext.accountConfig)
                 .then(s3ObjectInfo => {
                     expect(createBucketStub.callCount).to.equal(1);
                     expect(uploadFileStub.callCount).to.equal(1);
@@ -267,21 +270,21 @@ describe('Deploy phase common module', function () {
         });
     });
 
-    describe('getResourceName', function() {
-        it('should return a consistent name for Handel-created resources from the service context', function() {
+    describe('getResourceName', function () {
+        it('should return a consistent name for Handel-created resources from the service context', function () {
             let resourceName = deployPhaseCommon.getResourceName(serviceContext);
             expect(resourceName).to.equal("FakeApp-FakeEnv-FakeService-FakeType");
         });
     });
 
-    describe('getTags', function() {
-        it('should return the Handel-injected tags, plus any user-defined tags', function() {
+    describe('getTags', function () {
+        it('should return the Handel-injected tags, plus any user-defined tags', function () {
             serviceContext.params = {
                 tags: {
                     mytag: 'myvalue'
                 }
             }
-            
+
             let returnTags = deployPhaseCommon.getTags(serviceContext);
             expect(returnTags.app).to.equal('FakeApp');
             expect(returnTags.env).to.equal("FakeEnv");

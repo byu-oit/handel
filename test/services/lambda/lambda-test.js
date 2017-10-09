@@ -30,7 +30,7 @@ const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const accountConfig = require('../../../lib/common/account-config')(`${__dirname}/../../test-account-config.yml`);
+const config = require('../../../lib/account-config/account-config');
 
 describe('lambda deployer', function () {
     let sandbox;
@@ -40,8 +40,11 @@ describe('lambda deployer', function () {
     let deployVersion = "1";
 
     beforeEach(function () {
-        sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+        return config(`${__dirname}/../../test-account-config.yml`)
+            .then(accountConfig => {
+                sandbox = sinon.sandbox.create();
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+            });
     });
 
     afterEach(function () {
@@ -115,7 +118,7 @@ describe('lambda deployer', function () {
             let response = new PreDeployContext(serviceContext)
             response.securityGroups.push("FakeSecurityGroup")
             let preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
-            .returns(Promise.resolve(response));
+                .returns(Promise.resolve(response));
 
             return lambda.preDeploy(serviceContext)
                 .then(preDeployContext => {
@@ -140,7 +143,7 @@ describe('lambda deployer', function () {
     });
 
     describe('deploy', function () {
-        beforeEach(function() {
+        beforeEach(function () {
             serviceContext.params = {
                 memory: 256,
                 timeout: 5,
@@ -160,8 +163,8 @@ describe('lambda deployer', function () {
         function getDependenciesDeployContexts() {
             let dependenciesDeployContexts = [];
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {}, accountConfig);
-            let deployContext = new DeployContext(serviceContext);
+            let otherServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {}, serviceContext.accountConfig);
+            let deployContext = new DeployContext(otherServiceContext);
             deployContext.environmentVariables['INJECTED_VAR'] = 'injectedValue';
             deployContext.policies.push({});
 
@@ -206,11 +209,11 @@ describe('lambda deployer', function () {
     describe('consumeEvents', function () {
         let ownDeployContext;
 
-        beforeEach(function() {
+        beforeEach(function () {
             ownDeployContext = new DeployContext(serviceContext);
             ownDeployContext.eventOutputs.lambdaName = "FakeLambda";
         });
- 
+
         it('should add permissions for the sns service type', function () {
             let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
@@ -307,7 +310,7 @@ describe('lambda deployer', function () {
                 });
         });
     });
-    
+
     describe('unPreDeploy', function () {
         it('should return an empty UnPreDeploy context if vpc is false', function () {
             let unPreDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'unPreDeployNotRequired').returns(Promise.resolve(new UnPreDeployContext({})));
@@ -338,7 +341,7 @@ describe('lambda deployer', function () {
         it('should delete the stack', function () {
             let detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').returns(Promise.resolve())
             let unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
-          
+
             return lambda.unDeploy(serviceContext)
                 .then(unDeployContext => {
                     expect(unDeployContext).to.be.instanceof(UnDeployContext);
