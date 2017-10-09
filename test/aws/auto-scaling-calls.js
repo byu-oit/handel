@@ -44,4 +44,18 @@ describe('autoScalingCalls', function () {
       .then(result=>{expect(result).to.be.an('array');});
     });
   });
+
+  describe('describeLaunchConfigurationsByInstanceIds', function () {
+    it('should return null on error', function () {
+      AWS.mock('AutoScaling', 'describeAutoScalingInstances', Promise.reject(new Error('someMessage')));
+      return autoScalingCalls.describeLaunchConfigurationsByInstanceIds([])
+      .then(result=>{expect(result).to.be.null});
+    });
+
+    it('should return an array of results on success', function () {
+      AWS.mock('AutoScaling', 'describeAutoScalingInstances', Promise.resolve({AutoScalingInstances:[]}));
+      return autoScalingCalls.describeLaunchConfigurationsByInstanceIds([])
+      .then(result=>{expect(result.LaunchConfigurations).to.be.an('array');});
+    });
+  });
 });

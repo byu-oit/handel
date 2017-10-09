@@ -290,6 +290,7 @@ describe('ecs deployer', function () {
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
             let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve({ec2:[]}));
+            let describeASGlaunchStub = sandbox.stub(autoScalingCalls,'describeLaunchConfigurationsByInstanceIds').returns(Promise.resolve({LaunchConfigurations:[]}));
 
             //Run the test
             return ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
@@ -301,6 +302,8 @@ describe('ecs deployer', function () {
                     expect(createStackStub.callCount).to.equal(2);
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(createCustomRoleStub.callCount).to.equal(1);
+                    expect(listECSinstancesStub.callCount).to.equal(1);
+                    expect(describeASGlaunchStub.callCount).to.equal(1);
 
                     //DNS name setup
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
