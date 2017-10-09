@@ -18,6 +18,8 @@ const ecs = require('../../../lib/services/ecs');
 const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
 const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
 const ec2Calls = require('../../../lib/aws/ec2-calls');
+const ecsCalls = require('../../../lib/aws/ecs-calls');
+const autoScalingCalls = require('../../../lib/aws/auto-scaling-calls');
 const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
@@ -290,6 +292,9 @@ describe('ecs deployer', function () {
             let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
+            let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve({ec2:[]}));
+            let describeASGlaunchStub = sandbox.stub(autoScalingCalls,'describeLaunchConfigurationsByInstanceIds').returns(Promise.resolve({LaunchConfigurations:[]}));
+
             //Run the test
             return ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
@@ -300,6 +305,8 @@ describe('ecs deployer', function () {
                     expect(createStackStub.callCount).to.equal(2);
                     expect(deployStackStub.callCount).to.equal(1);
                     expect(createCustomRoleStub.callCount).to.equal(1);
+                    expect(listECSinstancesStub.callCount).to.equal(1);
+                    expect(describeASGlaunchStub.callCount).to.equal(1);
 
                     //DNS name setup
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
