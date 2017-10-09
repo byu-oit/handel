@@ -1,0 +1,31 @@
+{
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "integer",
+            "description": "The version of the Handel schema",
+            "minimum": 1,
+            "maximum": 1
+        },
+        "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+$",
+            "errorMessage": "Some custom error message"
+        },
+        "environments": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9-]+$": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": ["version", "name", "environments"],
+    "errorMessage": {
+        "required": {
+            "name": "The name field is required"
+        }
+    }
+}
