@@ -1,6 +1,6 @@
 version: 1
 
-name: apigateway-example
+# name: apigateway-example
 
 environments:
   dev:
@@ -20,4 +20,3 @@ environments:
       provisioned_throughput:
         read_capacity_units: 2
         write_capacity_units: 2
-

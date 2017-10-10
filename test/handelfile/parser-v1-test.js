@@ -17,7 +17,7 @@
 const parserV1 = require('../../lib/handelfile/parser-v1');
 const expect = require('chai').expect;
 
-describe('parser-v1', function() {
+describe('parser-v1', function () {
     let serviceDeployers = {
         lambda: {
             producedDeployOutputTypes: [],
@@ -67,32 +67,55 @@ describe('parser-v1', function() {
     }
 
 
-    describe('validateHandelFile', function() {
-        it('should complain about a missing version', function() {
-            let handelFile = {}
+    describe('validateHandelFile', function () {
+        let validHandelFile;
+
+        beforeEach(function () {
+            validHandelFile = {
+                version: 1,
+                name: "my-app-name",
+                environments: {
+                    dev: {
+                        webapp: {
+                            type: "apigateway",
+                            some: "param"
+                        },
+                        table: {
+                            type: "dynamodb",
+                            other: "param"
+                        }
+                    }
+                }
+            }
+        });
+
+        it('should complain about a missing version', function () {
             try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
+                let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+                delete validHandelFile.version;
+                console.log(errors);
+                process.exit(0);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'version' field is required");
             }
         });
 
-        it('should complain about a missing name field', function() {
+        it('should complain about a missing name field', function () {
             let handelFile = {
-                version: 1
+                version: 1,
             }
             try {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'name' field is required");
             }
         });
 
-        it('should complain about a name field that doesnt match the regex', function() {   
+        it('should complain about a name field that doesnt match the regex', function () {
             let handelFile = {
                 version: 1,
                 name: "some&bad$chars"
@@ -101,12 +124,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'name' field may contain only alphanumeric");
             }
         });
 
-        it('should complain about a name field that is too long', function() {
+        it('should complain about a name field that is too long', function () {
             let handelFile = {
                 version: 1,
                 name: "thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday"
@@ -115,12 +138,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'name' field may not be greater");
             }
         });
 
-        it('should complain about a missing environments field', function() {
+        it('should complain about a missing environments field', function () {
             let handelFile = {
                 version: 1,
                 name: 'test'
@@ -129,12 +152,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'environments' field is required");
             }
         });
 
-        it('should complain about an empty environments field', function() {
+        it('should complain about an empty environments field', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -144,12 +167,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("'environments' field must contain");
             }
         });
 
-        it('should complain about an environment name that contains the wrong characters', function() {
+        it('should complain about an environment name that contains the wrong characters', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -161,12 +184,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Environment name fields may only contain alphanumeric");
             }
         });
 
-        it('should complain about an environment name that is too long', function() {
+        it('should complain about an environment name that is too long', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -178,12 +201,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Environment name fields may not be greater than");
             }
         });
 
-        it('should complain about a service name that contains the wrong characters', function() {
+        it('should complain about a service name that contains the wrong characters', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -197,12 +220,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Service name fields may only contain alphanumeric");
             }
         });
 
-        it('should complain about a service name that is too long', function() {
+        it('should complain about a service name that is too long', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -216,12 +239,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Service name fields may not be greater than");
             }
         });
 
-        it('should complain about a service that doesnt contain the type field', function() {
+        it('should complain about a service that doesnt contain the type field', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -235,12 +258,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Services must declare service type in the 'type' field");
             }
         });
 
-        it('should complain if an unsupported service type is specified', function() {
+        it('should complain if an unsupported service type is specified', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -256,12 +279,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("Unsupported service type specified");
             }
         });
 
-        it('should complain about a service that depends on a service it cant consume', function() {
+        it('should complain about a service that depends on a service it cant consume', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -283,12 +306,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("service type is not consumable");
             }
         });
 
-        it('should complain about a service that produces events to a service that cant consume them', function() {
+        it('should complain about a service that produces events to a service that cant consume them', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -310,12 +333,12 @@ describe('parser-v1', function() {
                 parserV1.validateHandelFile(handelFile, serviceDeployers);
                 expect(true).to.be.false; //Should not get here
             }
-            catch(e) {
+            catch (e) {
                 expect(e.message).to.include("service type can't consume events");
             }
         });
 
-        it('should work on a handel file that has valid top-level information', function() {
+        it('should work on a handel file that has valid top-level information', function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
@@ -343,8 +366,8 @@ describe('parser-v1', function() {
         });
     });
 
-    describe('createEnvironmentContext', function() {
-        it("should build the environment context from the deploy spec", function() {
+    describe('createEnvironmentContext', function () {
+        it("should build the environment context from the deploy spec", function () {
             let handelFile = {
                 version: 1,
                 name: 'test',
