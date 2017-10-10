@@ -90,279 +90,112 @@ describe('parser-v1', function () {
         });
 
         it('should complain about a missing version', function () {
-            try {
-                let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
-                delete validHandelFile.version;
-                console.log(errors);
-                process.exit(0);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'version' field is required");
-            }
+            delete validHandelFile.version;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'version' field is required");
         });
 
         it('should complain about a missing name field', function () {
-            let handelFile = {
-                version: 1,
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'name' field is required");
-            }
+            delete validHandelFile.name;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'name' field is required");
         });
 
         it('should complain about a name field that doesnt match the regex', function () {
-            let handelFile = {
-                version: 1,
-                name: "some&bad$chars"
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'name' field may contain only alphanumeric");
-            }
+            validHandelFile.name = "invalid_name";
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'name' field may only use alphanumeric characters and dashes");
         });
 
         it('should complain about a name field that is too long', function () {
-            let handelFile = {
-                version: 1,
-                name: "thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday"
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'name' field may not be greater");
-            }
+            validHandelFile.name = "thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday";
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'name' field may not be greater");
         });
 
         it('should complain about a missing environments field', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test'
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'environments' field is required");
-            }
+            delete validHandelFile.environments;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'environments' field is required");
         });
 
         it('should complain about an empty environments field', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {}
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("'environments' field must contain");
-            }
+            validHandelFile.environments = {};
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'environments' field must contain at least 1 environment definition");
         });
 
         it('should complain about an environment name that contains the wrong characters', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    'jk$jk': {}
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Environment name fields may only contain alphanumeric");
-            }
+            validHandelFile.environments.dev_test = validHandelFile.environments.dev;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("Environment name fields may only contain alphanumeric characters and dashes, and be no greater than 10 characters in length");
         });
 
         it('should complain about an environment name that is too long', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    'thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday': {}
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Environment name fields may not be greater than");
-            }
+            validHandelFile.environments['thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday'] = validHandelFile.environments.dev;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("Environment name fields may only contain alphanumeric characters and dashes, and be no greater than 10 characters in length");
         });
 
         it('should complain about a service name that contains the wrong characters', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    valid: {
-                        'jk$jk': {}
-                    }
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Service name fields may only contain alphanumeric");
-            }
+            validHandelFile.environments.dev.other_service = validHandelFile.environments.dev.webapp;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("Service name fields may only contain alphanumeric characters and dashes, and be no greater than 20 characters in length");
         });
 
         it('should complain about a service name that is too long', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    valid: {
-                        'thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday': {}
-                    }
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Service name fields may not be greater than");
-            }
+            validHandelFile.environments.dev['thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday'] = validHandelFile.environments.dev.webapp;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("Service name fields may only contain alphanumeric characters and dashes, and be no greater than 20 characters in length");
         });
 
         it('should complain about a service that doesnt contain the type field', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    valid: {
-                        valid: {}
-                    }
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Services must declare service type in the 'type' field");
-            }
+            delete validHandelFile.environments.dev.webapp.type;
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("'type' field is required in each service definition");
         });
 
         it('should complain if an unsupported service type is specified', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    myenv: {
-                        myunsupportedservice: {
-                            type: 'unsupportedtype'
-                        }
-                    }
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("Unsupported service type specified");
-            }
+            validHandelFile.environments.dev.webapp.type = "unsupportedtype";
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("Unsupported service type specified");
         });
 
         it('should complain about a service that depends on a service it cant consume', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    myenv: {
-                        myapigateway: {
-                            type: 'apigateway',
-                            dependencies: [
-                                'myefs'
-                            ]
-                        },
-                        myefs: {
-                            type: 'efs'
-                        }
-                    }
-                }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("service type is not consumable");
-            }
+            validHandelFile.environments.dev.table.dependencies = [
+                "webapp" //Dynamo can't depend on API Gateway
+            ]
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'apigateway' service type is not consumable by the 'dynamodb' service type");
         });
 
         it('should complain about a service that produces events to a service that cant consume them', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    myenv: {
-                        mydynamo: {
-                            type: 'dynamodb',
-                            event_consumers: [{
-                                service_name: 'myefs'
-                            }]
-                        },
-                        myefs: {
-                            type: 'efs'
-                        }
-                    }
+            validHandelFile.environments.dev.table.event_consumers = [
+                {
+                    service_name: "webapp"
                 }
-            }
-            try {
-                parserV1.validateHandelFile(handelFile, serviceDeployers);
-                expect(true).to.be.false; //Should not get here
-            }
-            catch (e) {
-                expect(e.message).to.include("service type can't consume events");
-            }
+            ]
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include("The 'apigateway' service type can't consume events from the 'dynamodb' service type");
         });
 
         it('should work on a handel file that has valid top-level information', function () {
-            let handelFile = {
-                version: 1,
-                name: 'test',
-                environments: {
-                    dev: {
-                        myapi: {
-                            type: 'apigateway',
-                            dependencies: [
-                                'mydynamo'
-                            ]
-                        },
-                        mydynamo: {
-                            type: 'dynamodb',
-                            event_consumers: [{
-                                service_name: 'mylambda'
-                            }]
-                        },
-                        mylambda: {
-                            type: 'lambda'
-                        }
-                    }
-                }
-            }
-            parserV1.validateHandelFile(handelFile, serviceDeployers);
+            let errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(0);
         });
     });
 
