@@ -72,7 +72,7 @@ let handelFile = loadHandelFile();
 let deployPhase = process.argv[2];
 let argv = minimist(process.argv.slice(2));
 let errors = [];
-switch (deployPhase.toLowerCase()) {
+switch (deployPhase?deployPhase.toLowerCase():'') {
     case "deploy":
         errors = cli.validateDeployArgs(argv, handelFile);
         if (errors.length > 0) {
