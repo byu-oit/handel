@@ -23,6 +23,7 @@ const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+const handelFileParser = require('../../lib/handelfile/parser-v1');
 
 describe('deploy lifecycle module', function () {
     let sandbox;
@@ -45,7 +46,8 @@ describe('deploy lifecycle module', function () {
             let bindServicesInLevelStub = sandbox.stub(bindPhase, 'bindServicesInLevel').returns({});
             let deployServicesInlevelStub = sandbox.stub(deployPhase, 'deployServicesInLevel').returns({});
             let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-            return deployLifecycle.deploy(`${__dirname}/../test-account-config.yml`, handelFile, ["dev", "prod"], "1")
+            let serviceDeployers = util.getServiceDeployers();
+            return deployLifecycle.deploy(`${__dirname}/../test-account-config.yml`, handelFile, ["dev", "prod"], "1", handelFileParser, serviceDeployers)
                 .then(results => {
                     expect(checkServicesStub.calledTwice).to.be.true;
                     expect(preDeployServicesStub.calledTwice).to.be.true;
