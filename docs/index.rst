@@ -79,5 +79,6 @@ including taking care of all the tricky security bits wiring services together.
    supported-services/route53zone
    supported-services/s3
    supported-services/s3staticsite
+   supported-services/ses
    supported-services/sns
    supported-services/sqs
