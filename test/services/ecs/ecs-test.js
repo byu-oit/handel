@@ -319,6 +319,55 @@ describe('ecs deployer', function () {
                     expect(deployStackStub.firstCall.args[1]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
                 });
         });
+
+        it('should deploy a new ECS service stack', function () {
+            let ownPreDeployContext = getOwnPreDeployContextForDeploy(serviceContext);
+            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
+
+            //Stub out AWS calls
+            let getLatestAmiByNameStub = sandbox.stub(ec2Calls, 'getLatestAmiByName').returns(Promise.resolve({
+                ImageId: 'FakeAmiId'
+            }));
+            let getHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').returns(Promise.resolve([{
+                Id: '1',
+                Name: 'myapp.byu.edu.'
+            }, {
+                Id: '2',
+                Name: 'myapp.internal.'
+            }]));
+            let getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
+            let uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').returns(Promise.resolve({}));
+            let createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
+            let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
+
+            let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve(null));
+            let describeASGlaunchStub = sandbox.stub(autoScalingCalls,'describeLaunchConfigurationsByInstanceIds').returns(Promise.resolve({LaunchConfigurations:[]}));
+
+            //Run the test
+            return ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
+                .then(deployContext => {
+                    expect(deployContext).to.be.instanceof(DeployContext);
+                    expect(getStackStub.callCount).to.equal(2);
+                    expect(uploadDirStub.callCount).to.equal(2);
+                    expect(getLatestAmiByNameStub.callCount).to.equal(1);
+                    expect(createStackStub.callCount).to.equal(2);
+                    expect(deployStackStub.callCount).to.equal(1);
+                    expect(createCustomRoleStub.callCount).to.equal(1);
+                    expect(listECSinstancesStub.callCount).to.equal(1);
+                    expect(describeASGlaunchStub.callCount).to.equal(0);
+
+                    //DNS name setup
+                    expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
+                    expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
+                    expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
+
+                    //Container Logging Setup
+                    expect(deployStackStub.firstCall.args[1]).to.include('awslogs');
+                    expect(deployStackStub.firstCall.args[1]).to.include('LogConfiguration');
+                    expect(deployStackStub.firstCall.args[1]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
+                });
+        });
     });
 
     describe('unPreDeploy', function () {
