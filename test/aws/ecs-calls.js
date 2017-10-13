@@ -33,7 +33,9 @@ describe('ecsCalls', function () {
 
   describe('listInstances', function () {
     it('should return null on error', function () {
-      AWS.mock('ECS', 'listContainerInstances',     Promise.reject(new Error('someMessage')));
+      AWS.mock('ECS', 'listContainerInstances', Promise.reject({
+        code: "ClusterNotFoundException"
+      }));
       AWS.mock('ECS', 'describeContainerInstances', Promise.resolve(
         {
           "containerInstances":
@@ -49,11 +51,13 @@ describe('ecsCalls', function () {
         }
       ));
       return ecsCalls.listInstances('ecs-cluster-name')
-      then(result=>{expect(result).to.be.null;});
+        .then(result => {
+          expect(result).to.be.null;
+        });
     });
 
-    it('should return null on error', function () {
-      AWS.mock('ECS', 'listContainerInstances',     Promise.resolve(
+    it('should return null when describeinstances returns nothing', function () {
+      AWS.mock('ECS', 'listContainerInstances', Promise.resolve(
         {
           "containerInstanceArns":
           [
@@ -61,9 +65,13 @@ describe('ecsCalls', function () {
           ]
         }
       ));
-      AWS.mock('ECS', 'describeContainerInstances', Promise.reject(new Error('someMessage')));
+      AWS.mock('ECS', 'describeContainerInstances', Promise.reject({
+        code: "ClusterNotFoundException"
+      }));
       return ecsCalls.listInstances('ecs-cluster-name')
-      .then(result=>{expect(result).to.be.null;});
+        .then(result => {
+          expect(result).to.be.null;
+        });
     });
 
     it('should return an object containing an array of ec2 instances on success', function () {
@@ -90,7 +98,9 @@ describe('ecsCalls', function () {
         }
       ));
       return ecsCalls.listInstances('ecs-cluster-name')
-      .then(result=>{expect(result.ec2[0].id).to.equal('i-instance');});
+        .then(result => { 
+          expect(result.ec2[0].id).to.equal('i-instance');
+        });
     });
   });
 });
