@@ -31,6 +31,10 @@ Parameters
 
     Handel does not support verification of entire domains at this time.
 
+.. WARNING::
+
+    To allow multiple applications to share an email address, Handel does not delete an SES identity upon deletion of the Handel SES service.
+
 Example Handel File
 -------------------
 This Handel file shows an SQS service being configured:
