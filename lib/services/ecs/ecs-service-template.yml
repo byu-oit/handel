@@ -67,7 +67,6 @@ Resources:
   EcsLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      AssociatePublicIpAddress: false
       BlockDeviceMappings:
       - DeviceName: "/dev/xvda"
         Ebs:

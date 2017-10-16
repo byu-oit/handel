@@ -23,6 +23,7 @@ const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
 const util = require('../../lib/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+const handelFileParser = require('../../lib/handelfile/parser-v1');
 
 describe('delete lifecycle module', function () {
     let sandbox;
@@ -42,8 +43,9 @@ describe('delete lifecycle module', function () {
             let unPreDeployStub = sandbox.stub(unPreDeployPhase, 'unPreDeployServices').returns(Promise.resolve({
                 A: new UnPreDeployContext({})
             }));
+            let serviceDeployers = util.getServiceDeployers();
             let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-            return deleteLifecycle.delete(`${__dirname}/../test-account-config.yml`, handelFile, "dev")
+            return deleteLifecycle.delete(`${__dirname}/../test-account-config.yml`, handelFile, "dev", handelFileParser, serviceDeployers)
                 .then(results => {
                     expect(unPreDeployStub.callCount).to.equal(1);
                     expect(unBindServicesStub.callCount).to.equal(2);
