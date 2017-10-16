@@ -48,4 +48,4 @@ Getting Parameters from the Parameter Store
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Once you've added a parameter to the Parameter Store with the proper prefix, your deployed application should be able to access it. See the example of CLI access for the get-parameters call in the `Walkthrough <http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-walk.html>`_ for information on how to do this.
 
-The example in the walkthrough shows an example using the CLI, but you can use the AWS language SDKs with the getParameters call in a similar manner. See the docuemntation of the SDK you are using for examples.
+The example in the walkthrough shows an example using the CLI, but you can use the AWS language SDKs with the getParameters call in a similar manner. See the documentation of the SDK you are using for examples.
