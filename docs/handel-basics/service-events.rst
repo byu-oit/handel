@@ -8,7 +8,7 @@ Handel allows you to specify event consumers for a particular service in your Ha
 
 Specifying Service Events
 -------------------------
-To configure service events on a particular Handel service, add an 'event_consumers' list in your producer service definition. This list contains information about the services that will be consuming events from that producer service.
+To configure service events on a particular Handel service, add an *event_consumers* list in your producer service definition. This list contains information about the services that will be consuming events from that producer service.
 
 The following example shows an SNS topic specifying producing events to an SQS queue:
 
