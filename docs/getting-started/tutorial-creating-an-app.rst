@@ -108,6 +108,12 @@ Now that you've got a working app, you need to create a Handel file specifying h
 
 Deploy using Handel
 ~~~~~~~~~~~~~~~~~~~
+.. IMPORTANT::
+
+    In order to run Handel to deploy your app, you must be logged into your AWS account on the command line. You can do this by setting your AWS access keys using the `AWS CLI <https://aws.amazon.com/cli/>`_.
+
+    See `Configuring the AWS CLI <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_ for help on doing this once you've installed the AWS CLI.
+
 Now that you've written your app, created your Handel file, and obtained your account config file, you can run Handel to deploy:
 
 .. code-block:: bash
