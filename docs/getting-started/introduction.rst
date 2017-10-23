@@ -16,19 +16,10 @@ Why does Handel exist?
 Handel runs on top of CloudFormation, so why not use CloudFormation directly?
 
 CloudFormation is a great tool to provision and deploy applications in the AWS cloud, 
-but it is difficult and time-consuming to get started using CloudFormation directly.
-
-When you deploy an application to AWS, you're almost always going to use a
-combination of multiple AWS services. For example, using the EC2 Container
-Service (ECS) involves using many different CloudFormation resources. All 
-these resources must be wired together with IAM roles and EC2
-security groups. In order to do this securely, you must have an in-depth
-knowledge of the IAM and VPC services.
-
-The complexity of combining these resources together means you have a 
-steep learning curve when you want to create a CloudFormation template 
-that will securely deploy your application and the services on which 
-it depends.
+but it can be difficult and time-consuming to become proficient at using it. One
+of the biggest difficulties in using CloudFormation is that you must become proficient
+in wiring services together with IAM roles and EC2 security groups. This makes for
+a steep learning curve when you want to deploy an application in AWS.
 
 Handel takes some of this responsibility for you in order to ease the
 work you have to do for your deployments. It takes over the process of
@@ -54,9 +45,6 @@ Handel provides the following benefits over using CloudFormation directly:
 -  Services are securely wired together for you with EC2 security
    groups.
 -  Services are securely wired together with IAM roles.
--  Your application is injected with environment variables at run-time.
-   These environment variables provide information about the location
-   and configuration of consumed AWS services.
 
 What AWS services are supported?
 --------------------------------
