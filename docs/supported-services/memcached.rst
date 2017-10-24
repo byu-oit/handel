@@ -49,12 +49,12 @@ Parameters
      - No
      - Parameter group for cluster.
      - The parameter group description of your cluster.
-   * - node_count:
+   * - node_count
      - number
      - No
      - 1
      - The number of memcached nodes you want in your cluster.
-   * - cache_parameters:
+   * - cache_parameters
      - Map<string,string>
      - No
      - 
