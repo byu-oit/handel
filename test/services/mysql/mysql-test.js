@@ -36,14 +36,13 @@ describe('mysql deployer', function () {
     let sandbox;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
     let serviceContext;
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", {}, accountConfig);
             });
     });
 
@@ -219,7 +218,7 @@ describe('mysql deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "mysql", {}, {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
             let deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').returns(Promise.resolve({}));
 

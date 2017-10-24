@@ -33,13 +33,11 @@ describe('cloudwatchevent deployer', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
-
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "cloudwatchevent", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "cloudwatchevent", {}, accountConfig);
             });
     });
 
@@ -91,7 +89,7 @@ describe('cloudwatchevent deployer', function () {
     describe('produceEvents', function () {
         it('should add a target for the lambda service type', function () {
             let consumerServiceName = "ConsumerService";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.lambdaArn = "FakeLambdaArn";
 
@@ -116,7 +114,7 @@ describe('cloudwatchevent deployer', function () {
 
         it('should throw an error for an unsupported consumer service type', function () {
             let consumerServiceName = "ConsumerService";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
 
             serviceContext.params = {

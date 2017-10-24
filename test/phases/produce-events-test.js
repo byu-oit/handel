@@ -51,9 +51,9 @@ describe('produceEvents module', function () {
 
             //Create EnvironmentContext
             let appName = "test";
-            let deployVersion = "1";
             let environmentName = "dev";
-            let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+            let accountConfig = {};
+            let environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
 
             //Construct ServiceContext B (Consuming service)
             let serviceNameB = "B";
@@ -61,7 +61,7 @@ describe('produceEvents module', function () {
             let paramsB = {
                 other: "param"
             }
-            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+            let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             //Construct ServiceContext A (Producing service)
@@ -73,7 +73,7 @@ describe('produceEvents module', function () {
                     service_name: "B"
                 }]
             }
-            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+            let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             //Create deployContexts

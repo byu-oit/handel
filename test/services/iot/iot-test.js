@@ -30,14 +30,13 @@ describe('iot deployer', function () {
     let sandbox;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
     let serviceContext;
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "iot", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "iot", {}, accountConfig);
             });
     });
 
@@ -106,7 +105,7 @@ describe('iot deployer', function () {
 
 
         it('should create topic rules when lambda is the event consumer', function () {
-            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "lambda", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "lambda", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = "FakeArn";
 
@@ -127,7 +126,7 @@ describe('iot deployer', function () {
         });
 
         it('should return an error if any other consumer type is specified', function () {
-            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "unknowntype", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "FakeConsumer", "unknowntype", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
 
             return iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext)

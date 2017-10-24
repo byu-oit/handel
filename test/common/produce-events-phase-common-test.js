@@ -33,13 +33,12 @@ describe('produce events phase common module', function () {
     describe('getEventConsumerConfigParams', function () {
         let appName = "FakeApp";
         let envName = "FakeEnv";
-        let deployVersion = "1";
         let consumerServiceName = "ConsumerServiceName";
         let producerServiceName = "ProducerServiceName";
 
         it('should return the config for the consumer from the producer', function () {
             let eventInputVal = '{"notify": false}';
-            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
+            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", {
                 event_consumers: [{
                     service_name: consumerServiceName,
                     event_input: eventInputVal
@@ -52,7 +51,7 @@ describe('produce events phase common module', function () {
         });
 
         it('should return null when no config exists in the producer for the consumer', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", deployVersion, {
+            let producerServiceContext = new ServiceContext(appName, envName, producerServiceName, "cloudwatchevent", {
                 event_consumers: []
             });
 

@@ -17,7 +17,6 @@
 const expect = require('chai').expect;
 const cli = require('../../lib/cli');
 const sinon = require('sinon');
-const fs = require('fs');
 const util = require('../../lib/common/util');
 
 describe('cli module', function () {
@@ -75,8 +74,7 @@ describe('cli module', function () {
         let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         it('should fail if the -c param is not provided', function() {
             let argv = {
-                e: "dev,prod",
-                v: "1",
+                e: "dev,prod"
             }
             let errors = cli.validateDeployArgs(argv, handelFile);
             expect(errors.length).to.equal(1);
@@ -85,7 +83,6 @@ describe('cli module', function () {
 
         it('should fail if the -e parameter is not provided', function() {
             let argv = {
-                v: "1",
                 c: `${__dirname}/../test-account-config.yml`
             }
             let errors = cli.validateDeployArgs(argv, handelFile);
@@ -93,21 +90,10 @@ describe('cli module', function () {
             expect(errors[0]).to.contain(`'-e' parameter is required`);
         });
 
-        it('should fail if the -v param is not provided', function() {
-            let argv = {
-                e: "dev,prod",
-                c: `${__dirname}/../test-account-config.yml`
-            }
-            let errors = cli.validateDeployArgs(argv, handelFile);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'-v' parameter is required`);
-        });
-
         it('should suceed if all params are provided', function() {
             let argv = {
                 e: "dev,prod",
-                c: `${__dirname}/../test-account-config.yml`,
-                v: "1"
+                c: `${__dirname}/../test-account-config.yml`
             }
             let errors = cli.validateDeployArgs(argv, handelFile);
             expect(errors.length).to.equal(0);

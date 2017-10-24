@@ -32,7 +32,7 @@ describe('iot deployers common module', function () {
         sandbox.restore();
     });
 
-    let producerServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService-Name", "iot", "1", {});
+    let producerServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService-Name", "iot", {});
 
     describe('getTopicRuleNamePrefix', function () {
         it('should return the prefix for the topic rule name (minus the consumer service name)', function () {

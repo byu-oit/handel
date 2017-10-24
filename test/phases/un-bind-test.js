@@ -34,10 +34,10 @@ describe('unBind', function () {
 
     describe('unBindServicesInLevel', function () {
         //Construct EnvironmentContext
-        let appName = "FakeApp"
-        let deployVersion = "1";
+        let appName = "FakeApp";
         let environmentName = "dev";
-        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+        let accountConfig = {};
+        let environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
 
         //Construct ServiceContext B
         let serviceNameB = "B";
@@ -45,7 +45,7 @@ describe('unBind', function () {
         let paramsB = {
             other: "param"
         }
-        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+        let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
         environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
         //Construct ServiceContext A
@@ -55,7 +55,7 @@ describe('unBind', function () {
             some: "param",
             dependencies: [serviceNameB]
         }
-        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+        let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
         environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
         //Set deploy order 

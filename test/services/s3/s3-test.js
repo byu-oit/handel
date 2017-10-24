@@ -33,7 +33,7 @@ describe('s3 deployer', function () {
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
-                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", "1", {}, accountConfig);
+                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3", {}, accountConfig);
                 sandbox = sinon.sandbox.create();
             });
     });

@@ -83,7 +83,5 @@ In addition to environment variables injected by services your applications cons
      - This is the value of the *\<environment\>* field from your Handel file. It is the name of the environment the current service is a part of.
    * - HANDEL_SERVICE_NAME
      - This is the value of the *\<service_name>* field from your Handel file. It is the name of the currently deployed service.
-   * - HANDEL_SERVICE_VERSION
-     - This is the value of the version of the application being deployed. It is set to whatever the *-v* parameter was when Handel last deployed your application.
    * - HANDEL_PARAMETER_STORE_PREFIX
      - This is the :ref:`prefix <parameter-store-prefix>` used for secrets stored in Parameter Store.

@@ -41,7 +41,7 @@ describe('redis deployer', function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "redis", "1", {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "redis", {}, accountConfig);
             });
     });
 
@@ -197,7 +197,7 @@ describe('redis deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "redis", {}, {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return redis.unDeploy(serviceContext)

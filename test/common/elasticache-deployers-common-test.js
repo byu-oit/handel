@@ -32,7 +32,7 @@ describe('elasticache deployers common module', function () {
 
     describe('getClusterName', function () {
         it('should return the shortened cluster name from the ServiceContext', function () {
-            let serviceContext = new ServiceContext("MyFakeAppWithALongNameWithManyCharacters", "MyLongEnvName", "MyLongishServiceName", "redis", "1", {});
+            let serviceContext = new ServiceContext("MyFakeAppWithALongNameWithManyCharacters", "MyLongEnvName", "MyLongishServiceName", "redis", {});
             let clusterName = elasticacheDeployersCommon.getClusterName(serviceContext);
             expect(clusterName).to.equal("MyFakeApp-MyL-MyLong");
         });

@@ -88,13 +88,12 @@ describe('dynamodb deployer', function () {
     let envName = "FakeEnv";
     let serviceName = "FakeService";
     let serviceType = "dynamodb";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, {}, accountConfig);
             });
     });
 

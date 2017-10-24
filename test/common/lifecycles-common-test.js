@@ -38,7 +38,7 @@ describe('lifecycles common module', function () {
 
     describe('preDeployNotRequired', function() {
         it('should return an empty predeploy context', function() {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {});
             return lifecyclesCommon.preDeployNotRequired(serviceContext)
                 .then(preDeployContext => {
                     expect(preDeployContext).to.be.instanceof(PreDeployContext);
@@ -50,8 +50,8 @@ describe('lifecycles common module', function () {
         it('should return an empty bind context', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
-            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", "1", {});
-            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentService", "ecs", "1", {});
+            let ownServiceContext = new ServiceContext(appName, envName, "FakeService", "efs", {});
+            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentService", "ecs", {});
             
             return lifecyclesCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext, "FakeService")
                 .then(bindContext => {
@@ -62,7 +62,7 @@ describe('lifecycles common module', function () {
     
     describe('deployNotRequired', function() {
         it('should return an empty deploy context', function() {
-            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", "1", {});
+            let ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "efs", {});
 
             return lifecyclesCommon.deployNotRequired(ownServiceContext)
                 .then(deployContext => {

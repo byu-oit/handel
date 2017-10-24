@@ -47,7 +47,7 @@ describe('deploy lifecycle module', function () {
             let deployServicesInlevelStub = sandbox.stub(deployPhase, 'deployServicesInLevel').returns({});
             let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             let serviceDeployers = util.getServiceDeployers();
-            return deployLifecycle.deploy(`${__dirname}/../test-account-config.yml`, handelFile, ["dev", "prod"], "1", handelFileParser, serviceDeployers)
+            return deployLifecycle.deploy(`${__dirname}/../test-account-config.yml`, handelFile, ["dev", "prod"], handelFileParser, serviceDeployers)
                 .then(results => {
                     expect(checkServicesStub.calledTwice).to.be.true;
                     expect(preDeployServicesStub.calledTwice).to.be.true;

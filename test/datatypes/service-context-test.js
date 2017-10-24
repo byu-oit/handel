@@ -23,14 +23,12 @@ describe('ServiceContext', function () {
         let environmentName = "FakeEnv";
         let serviceName = "FakeService";
         let serviceType = "FakeType";
-        let deployVersion = 1;
         let params = {};
-        let serviceContext = new ServiceContext(appName, environmentName, serviceName, serviceType, deployVersion, params);
+        let serviceContext = new ServiceContext(appName, environmentName, serviceName, serviceType, params);
         expect(serviceContext.appName).to.equal(appName);
         expect(serviceContext.environmentName).to.equal(environmentName);
         expect(serviceContext.serviceName).to.equal(serviceName);
         expect(serviceContext.serviceType).to.equal(serviceType);
-        expect(serviceContext.deployVersion).to.equal(deployVersion);
         expect(serviceContext.params).to.deep.equal(params);
     });
 });

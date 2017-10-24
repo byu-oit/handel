@@ -39,7 +39,7 @@ describe('sns deployer', function () {
 
     describe('check', function () {
         it('should handle no subscriptions', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {}, {});
             let errors = sns.check(serviceContext);
             expect(errors).to.deep.equal([]);
         });
@@ -49,7 +49,7 @@ describe('sns deployer', function () {
                     protocol: 'http'
                 }]
             };
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", params, {});
             let errors = sns.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`requires an 'endpoint'`);
@@ -60,7 +60,7 @@ describe('sns deployer', function () {
                     endpoint: 'http://example.com/'
                 }]
             };
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", params, {});
             let errors = sns.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`requires a 'protocol'`);
@@ -72,7 +72,7 @@ describe('sns deployer', function () {
                     protocol: 'webhook'
                 }]
             };
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", params);
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", params, {});
             let errors = sns.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`Protocol must be one of`);
@@ -87,9 +87,9 @@ describe('sns deployer', function () {
         let topicName = "FakeTopic";
         let topicArn = "FakeArn";
 
-        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
+        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, {
             type: 'sns'
-        });
+        }, {});
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         it('should deploy the topic', function () {
@@ -128,12 +128,11 @@ describe('sns deployer', function () {
         it('should subscribe the service to the topic when a lambda is given', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", deployVersion, {});
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", {}, {});
             let ownDeployContext = new DeployContext(ownServiceContext);
             ownDeployContext.eventOutputs.topicArn = "FakeTopicArn";
 
-            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "lambda", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "lambda", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = "FakeLambdaArn";
 
@@ -149,12 +148,11 @@ describe('sns deployer', function () {
         it('should return an error for any other service type', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
-            let deployVersion = "1";
-            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", deployVersion, {});
+            let ownServiceContext = new ServiceContext(appName, envName, "consumerService", "sns", {}, {});
             let ownDeployContext = new DeployContext(ownServiceContext);
             ownDeployContext.eventOutputs.topicArn = "FakeTopicArn";
 
-            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
 
             let subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').returns(Promise.resolve({}));
@@ -173,7 +171,7 @@ describe('sns deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sns", {}, {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return sns.unDeploy(serviceContext)

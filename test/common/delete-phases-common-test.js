@@ -35,7 +35,7 @@ describe('Delete phases common module', function () {
         return config(`${__dirname}/../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", "1", {}, accountConfig);
+                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "dynamodb", {}, accountConfig);
             });
     });
 

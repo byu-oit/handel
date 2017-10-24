@@ -20,7 +20,7 @@ If you're using Handel in a personal AWS account, it's likely that you don't wan
 
 .. code-block:: none
 
-    handel deploy -c default-us-east-1 -e dev -v 1
+    handel deploy -c default-us-east-1 -e dev
 
 Notice that in the *-c* parameter, we are passing the string *default-us-east-1*, which tells Handel to use the default VPC in the us-east-1 region.
 

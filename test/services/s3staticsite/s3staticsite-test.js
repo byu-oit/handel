@@ -39,7 +39,7 @@ describe('s3staticsite deployer', function () {
         };
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
-                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", "1", serviceParams, accountConfig);
+                ownServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "s3staticsite", serviceParams, accountConfig);
                 sandbox = sinon.sandbox.create();
             });
     });

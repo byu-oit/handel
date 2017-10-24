@@ -29,13 +29,12 @@ describe('bind phases common module', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "mysql", {}, accountConfig);
             });
     });
 
@@ -50,7 +49,7 @@ describe('bind phases common module', function () {
                 GroupId: 'FakeId'
             });
 
-            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentOfService", "ecs", deployVersion, {});
+            let dependentOfServiceContext = new ServiceContext(appName, envName, "FakeDependentOfService", "ecs", {});
             let dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             dependentOfPreDeployContext.securityGroups.push({
                 GroupId: 'OtherId'

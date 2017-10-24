@@ -29,7 +29,6 @@ describe('apigateway swagger deploy type', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../../test-account-config.yml`)
@@ -38,7 +37,7 @@ describe('apigateway swagger deploy type', function () {
                 let params = {
                     swagger: `${__dirname}/test-swagger.json`
                 }
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, params, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", params, accountConfig);
             });
     });
 
@@ -54,12 +53,12 @@ describe('apigateway swagger deploy type', function () {
     });
 
     describe('deploy', function () {
-        function getDependencyDeployContexts(appName, envName, deployVersion) {
+        function getDependencyDeployContexts(appName, envName) {
             let dependenciesDeployContexts = [];
             let dependencyServiceName = "DependencyService";
             let dependencyServiceType = "dynamodb";
             let dependencyServiceParams = {}
-            let dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, deployVersion, dependencyServiceParams);
+            let dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, {});
             let dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependenciesDeployContexts.push(dependencyDeployContext);
             return dependenciesDeployContexts;
@@ -68,7 +67,7 @@ describe('apigateway swagger deploy type', function () {
         it('should deploy the service', function () {
             //Set up input parameters
             let ownPreDeployContext = new PreDeployContext(serviceContext);
-            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName, deployVersion);
+            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName);
 
             //Stub out dependent services
             let uploadDeployableArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').returns(Promise.resolve({

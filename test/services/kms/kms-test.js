@@ -31,13 +31,12 @@ describe('kms deployer', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "kms", {}, accountConfig);
             });
     });
 

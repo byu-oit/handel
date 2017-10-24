@@ -31,7 +31,7 @@ describe('alexaskillkit deployer', function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext("Fakepp", "FakeEnv", "FakeService", "alexaskillkit", "1", {}, accountConfig);
+                serviceContext = new ServiceContext("Fakepp", "FakeEnv", "FakeService", "alexaskillkit", {}, accountConfig);
             });
     });
 

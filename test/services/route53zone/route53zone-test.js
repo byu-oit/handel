@@ -29,7 +29,6 @@ const config = require('../../../lib/account-config/account-config');
 describe('route53zone deployer', function () {
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
     let sandbox;
     let serviceContext;
 
@@ -37,7 +36,7 @@ describe('route53zone deployer', function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "route53", {}, accountConfig);
             });
     });
 
