@@ -49,12 +49,12 @@ Parameters
      - No
      - db.t2.micro
      - The size of database instance to run. See `DB Instance Class <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html>`_ for information on choosing an instance type.
-   * - storage_gb:
+   * - storage_gb
      - number
      - No
      - 5
      - The number of Gigabytes (GB) of storage to allocate to your database.
-   * - postgres_version:
+   * - postgres_version
      - string
      - No
      - 9.6.2
