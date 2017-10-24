@@ -37,13 +37,12 @@ describe('lambda deployer', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", {}, accountConfig);
             });
     });
 
@@ -102,7 +101,7 @@ describe('lambda deployer', function () {
                 ]
             }
             let dependenciesServiceContexts = [];
-            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
+            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", {}, {}))
             let errors = lambda.check(serviceContext, dependenciesServiceContexts);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'vpc' parameter is required and must be true when declaring dependencies of type");
@@ -163,7 +162,7 @@ describe('lambda deployer', function () {
         function getDependenciesDeployContexts() {
             let dependenciesDeployContexts = [];
 
-            let otherServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", "1", {}, serviceContext.accountConfig);
+            let otherServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "dynamodb", {}, serviceContext.accountConfig);
             let deployContext = new DeployContext(otherServiceContext);
             deployContext.environmentVariables['INJECTED_VAR'] = 'injectedValue';
             deployContext.policies.push({});
@@ -215,7 +214,7 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the sns service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "sns", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
@@ -230,7 +229,7 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the cloudwatchevent service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "cloudwatchevent", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "cloudwatchevent", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.eventRuleArn = "FakeEventRuleArn";
@@ -245,7 +244,7 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the alexaskillkit service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "alexaskillkit", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "alexaskillkit", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));
 
@@ -257,7 +256,7 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the iot service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "iot", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "iot", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
@@ -272,7 +271,7 @@ describe('lambda deployer', function () {
         });
 
         it('should add permissions for the dynamodb service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "dynamodb", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "dynamodb", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = "FakePrincipal";
             producerDeployContext.eventOutputs.topicRuleArnPrefix = "FakeTopicRuleArnPrefix";
@@ -295,7 +294,7 @@ describe('lambda deployer', function () {
         });
 
         it('should return an error for any other service type', function () {
-            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "producerService", "efs", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
 
             let addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').returns(Promise.resolve({}));

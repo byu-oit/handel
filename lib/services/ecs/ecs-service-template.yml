@@ -202,11 +202,11 @@ Resources:
       Role: {{ecsServiceRoleArn}}
       {{/if}}
       TaskDefinition:
-        Ref: TaskDefinition
+        Ref: TaskDefinition{{deploymentSuffix}}
       PlacementStrategies:
         - Type: spread
           Field: instanceId
-  TaskDefinition:
+  TaskDefinition{{deploymentSuffix}}:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: {{clusterName}}

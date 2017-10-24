@@ -33,7 +33,7 @@ describe('RDS deployers common module', function () {
 
     describe('getDeployContext', function () {
         it('should return the RDS deploy context from the service context and deployed stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {});
             let dbAddress = "FakeAddress";
             let dbPort = 55555;
             let dbUsername = "FakeUsername";
@@ -72,7 +72,7 @@ describe('RDS deployers common module', function () {
         it('should store the database password to the parameter store', function() {
             let storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {});
             return rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakePassword', {})
                 .then(deployedStack => {
                     expect(deployedStack).to.deep.equal({});
@@ -85,7 +85,7 @@ describe('RDS deployers common module', function () {
         it('should delete the RDS parameters from the parameter store', function() {
             let deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').returns(Promise.resolve(true));
 
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {});
             return rdsDeployersCommon.deleteParametersFromParameterStore(serviceContext, {})
                 .then(unDeployContext => {
                     expect(unDeployContext).to.deep.equal({});

@@ -24,9 +24,9 @@ const expect = require('chai').expect;
 function getEnvironmentContextFromYamlFile(filePath) {
     let doc = yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
 
-    let environmentContext = new EnvironmentContext(doc.name, 1, "dev");
+    let environmentContext = new EnvironmentContext(doc.name, "dev", {});
     for(let serviceName in doc.environments.dev) {
-        let serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, doc.environments.dev[serviceName].type, 1, doc.environments.dev[serviceName])
+        let serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, doc.environments.dev[serviceName].type, doc.environments.dev[serviceName])
         environmentContext.serviceContexts[serviceName] = serviceContext;
     }
     return environmentContext;

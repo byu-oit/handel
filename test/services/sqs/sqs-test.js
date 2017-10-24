@@ -39,7 +39,7 @@ describe('sqs deployer', function () {
 
     describe('check', function () {
         it('shouldnt validate anything yet', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {}, {});
             let errors = sqs.check(serviceContext);
             expect(errors).to.deep.equal([]);
         });
@@ -57,7 +57,7 @@ describe('sqs deployer', function () {
         let deadLetterQueueArn = "FakeDeadLetterArn";
         let deadLetterQueueUrl = "FakeDeadLetterUrl";
 
-        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, "1", {
+        let ownServiceContext = new ServiceContext(appName, envName, serviceName, serviceType, {
             type: 'sqs',
             queue_type: 'fifo',
             content_based_deduplication: true,
@@ -74,7 +74,7 @@ describe('sqs deployer', function () {
               message_retention_period: 345601,
               visibility_timeout: 40
             }
-        });
+        }, {});
         let ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         it('should deploy the queue', function () {
@@ -136,13 +136,12 @@ describe('sqs deployer', function () {
         it('should throw an error because SQS cant consume event services', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
-            let deployVersion = "1";
-            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", deployVersion, {});
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", {}, {});
             let consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.queueUrl = "FakeQueueUrl";
             consumerDeployContext.eventOutputs.queueArn = "FakeQueueArn";
 
-            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "sns", deployVersion, {});
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "sns", {}, {});
             let producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
 
@@ -158,7 +157,7 @@ describe('sqs deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", {}, {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return sqs.unDeploy(serviceContext)

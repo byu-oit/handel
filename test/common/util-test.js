@@ -200,9 +200,8 @@ describe('util module', function () {
         let handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         let handelFileParser = util.getHandelFileParser(handelFile);
         let environmentName = "dev";
-        let deployVersion = "1";
 
-        let environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, deployVersion);
+        let environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, {});
         expect(environmentContext).to.be.instanceof(EnvironmentContext);
     });
 })

@@ -35,10 +35,10 @@ function getServiceDeployers() {
 
 function getEnvironmentContext() {
     //Construct EnvironmentContext
-    let appName = "FakeApp"
-    let deployVersion = "1";
+    let appName = "FakeApp";
     let environmentName = "dev";
-    let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+    let accountConfig = {};
+    let environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
 
     //Construct ServiceContext A
     let serviceNameA = "A";
@@ -46,7 +46,7 @@ function getEnvironmentContext() {
     let paramsA = {
         some: "param"
     }
-    let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, deployVersion, paramsA);
+    let serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
     environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
     //Construct ServiceContext B
@@ -55,7 +55,7 @@ function getEnvironmentContext() {
     let paramsB = {
         other: "param"
     }
-    let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, deployVersion, paramsB);
+    let serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
     environmentContext.serviceContexts[serviceNameB] = serviceContextB;
     return environmentContext;
 }

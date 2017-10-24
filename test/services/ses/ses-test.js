@@ -38,11 +38,10 @@ describe('ses deployer', function () {
         const env = `FakeEnv`;
         const service = `FakeService`;
         const serviceType = `ses`;
-        const version = `1`;
 
         it(`should require an address`, function () {
             const params = {};
-            const serviceContext = new ServiceContext(app, env, service, serviceType, version, params);
+            const serviceContext = new ServiceContext(app, env, service, serviceType, params, {});
             const errors = ses.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`valid email address`);
@@ -51,7 +50,7 @@ describe('ses deployer', function () {
             const params = {
                 address: `example.com`
             };
-            const serviceContext = new ServiceContext(app, env, service, serviceType, version, params);
+            const serviceContext = new ServiceContext(app, env, service, serviceType, params, {});
             const errors = ses.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`valid email address`);
@@ -60,7 +59,7 @@ describe('ses deployer', function () {
             const params = {
                 address: 'user@example.com'
             };
-            const serviceContext = new ServiceContext(app, env, service, serviceType, version, params);
+            const serviceContext = new ServiceContext(app, env, service, serviceType, params, {});
             const errors = ses.check(serviceContext);
             expect(errors).to.deep.equal([]);
         });
@@ -71,17 +70,16 @@ describe('ses deployer', function () {
         const env = `FakeEnv`;
         const service = `FakeService`;
         const serviceType = `ses`;
-        const version = `1`;
 
         const address = `user@example.com`;
         const account = 'fake account';
         const region = 'fake region';
         const identityArn = `arn:aws:ses:${region}:${account}:identity/${address}`
 
-        const ownServiceContext = new ServiceContext(app, env, service, serviceType, version, {
+        const ownServiceContext = new ServiceContext(app, env, service, serviceType, {
             type: `ses`,
             address
-        });
+        }, {});
         const ownPreDeployContext = new PreDeployContext(ownServiceContext);
 
         ownServiceContext.accountConfig = {account_id: account, region};

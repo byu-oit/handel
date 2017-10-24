@@ -29,13 +29,12 @@ describe('apigateway proxy deploy type', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "FakeType", {}, accountConfig);
             });
     });
 
@@ -95,7 +94,7 @@ describe('apigateway proxy deploy type', function () {
                 ]
             }
             let dependenciesServiceContexts = [];
-            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", "1"))
+            dependenciesServiceContexts.push(new ServiceContext("FakeApp", "FakeEnv", "FakeDependency", "mysql", {}, {}))
             let errors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, "API Gateway");
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain("'vpc' parameter is required and must be true when declaring dependencies of type");
@@ -113,12 +112,12 @@ describe('apigateway proxy deploy type', function () {
             }
         });
 
-        function getDependencyDeployContexts(appName, envName, deployVersion) {
+        function getDependencyDeployContexts(appName, envName) {
             let dependenciesDeployContexts = [];
             let dependencyServiceName = "DependencyService";
             let dependencyServiceType = "dynamodb";
             let dependencyServiceParams = {}
-            let dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, deployVersion, dependencyServiceParams);
+            let dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, {});
             let dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependenciesDeployContexts.push(dependencyDeployContext);
             return dependenciesDeployContexts;
@@ -127,7 +126,7 @@ describe('apigateway proxy deploy type', function () {
         it('should deploy the service', function () {
             //Set up input parameters
             let ownPreDeployContext = new PreDeployContext(serviceContext);
-            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName, deployVersion);
+            let dependenciesDeployContexts = getDependencyDeployContexts(appName, envName);
 
             //Stub out dependent services
             let bucketName = "FakeBucket";

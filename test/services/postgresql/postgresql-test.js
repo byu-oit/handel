@@ -42,7 +42,7 @@ describe('postgresql deployer', function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", "1", {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "postgresql", {}, accountConfig);
             });
     });
 
@@ -201,7 +201,7 @@ describe('postgresql deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "postgresql", {}, {});
             let unDeployContext = new UnDeployContext(serviceContext);
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(unDeployContext));
             let deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore').returns(Promise.resolve(unDeployContext));

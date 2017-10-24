@@ -213,7 +213,7 @@ describe('parser-v1', function () {
                     }
                 }
             };
-            let environmentContext = parserV1.createEnvironmentContext(handelFile, "dev", "1");
+            let environmentContext = parserV1.createEnvironmentContext(handelFile, "dev", {});
             expect(environmentContext.appName).to.equal('test');
             expect(environmentContext.environmentName).to.equal('dev');
             expect(environmentContext.serviceContexts['A'].serviceType).to.equal('dynamodb');

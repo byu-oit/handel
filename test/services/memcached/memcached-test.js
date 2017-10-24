@@ -35,14 +35,13 @@ describe('memcached deployer', function () {
     let sandbox;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
     let serviceContext;
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "memcached", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "memcached", {}, accountConfig);
             });
     });
 
@@ -181,7 +180,7 @@ describe('memcached deployer', function () {
 
     describe('unDeploy', function () {
         it('should undeploy the stack', function () {
-            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", "1", {});
+            let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "memcached", {}, {});
             let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             return memcached.unDeploy(serviceContext)

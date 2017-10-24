@@ -33,13 +33,12 @@ describe('Deploy phase common module', function () {
     let appName = "FakeApp";
     let envName = "FakeEnv";
     let serviceName = "FakeService";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, serviceName, "FakeType", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, serviceName, "FakeType", {}, accountConfig);
             });
     });
 
@@ -72,21 +71,20 @@ describe('Deploy phase common module', function () {
             expect(returnEnvVars['HANDEL_APP_NAME']).to.equal(appName);
             expect(returnEnvVars['HANDEL_ENVIRONMENT_NAME']).to.equal(envName);
             expect(returnEnvVars['HANDEL_SERVICE_NAME']).to.equal(serviceName);
-            expect(returnEnvVars['HANDEL_SERVICE_VERSION']).to.equal(deployVersion);
         });
     });
 
     describe('getEnvVarsFromDependencyDeployContexts', function () {
         it('should return an object with the env vars from all given DeployContexts', function () {
             let deployContexts = []
-            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", "1", {}, serviceContext.accountConfig);
+            let serviceContext1 = new ServiceContext("FakeApp", "FakeEnv", "FakeService1", "FakeType1", {}, serviceContext.accountConfig);
             let deployContext1 = new DeployContext(serviceContext1);
             let envVarName1 = "ENV_VAR_1";
             let envVarValue1 = "someValue1";
             deployContext1.environmentVariables[envVarName1] = envVarValue1;
             deployContexts.push(deployContext1);
 
-            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", "1", {}, serviceContext.accountConfig);
+            let serviceContext2 = new ServiceContext("FakeApp", "FakeEnv", "FakeService2", "FakeType2", {}, serviceContext.accountConfig);
             let deployContext2 = new DeployContext(serviceContext2);
             let envVarName2 = "ENV_VAR_2";
             let envVarValue2 = "someValue2";
@@ -146,7 +144,7 @@ describe('Deploy phase common module', function () {
             }];
 
             let dependenciesDeployContexts = [];
-            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", "1", {}, serviceContext.accountConfig);
+            let dependencyServiceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "sqs", {}, serviceContext.accountConfig);
             let dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.policies.push({
                 "Effect": "Allow",

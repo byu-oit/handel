@@ -20,12 +20,12 @@ const expect = require('chai').expect;
 describe('EnvironmentContext', function () {
     it('should be able to be constructed with required parameters', function () {
         let appName = "FakeApp";
-        let deployVersion = 1;
         let environmentName = "FakeEnvironment";
-        let environmentContext = new EnvironmentContext(appName, deployVersion, environmentName);
+        let accountConfig = {};
+        let environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
         expect(environmentContext.appName).to.equal(appName);
-        expect(environmentContext.deployVersion).to.equal(deployVersion);
         expect(environmentContext.environmentName).to.equal(environmentName);
+        expect(environmentContext.accountConfig).to.deep.equal(accountConfig);
         expect(environmentContext.serviceContexts).to.deep.equal({});
     });
 });

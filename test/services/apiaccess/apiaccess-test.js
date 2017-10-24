@@ -31,7 +31,7 @@ describe('apiaccess deployer', function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", "1", {}, accountConfig);
+                serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "apiaccess", {}, accountConfig);
             });
     });
 

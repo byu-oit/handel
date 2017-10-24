@@ -75,13 +75,12 @@ describe('ecs deployer', function () {
     let serviceContext;
     let appName = "FakeApp";
     let envName = "FakeEnv";
-    let deployVersion = "1";
 
     beforeEach(function () {
         return config(`${__dirname}/../../test-account-config.yml`)
             .then(accountConfig => {
                 sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "ecs", deployVersion, {}, accountConfig);
+                serviceContext = new ServiceContext(appName, envName, "FakeService", "ecs", {}, accountConfig);
             });
     });
 
@@ -240,12 +239,12 @@ describe('ecs deployer', function () {
             return ownPreDeployContext;
         }
 
-        function getDependenciesDeployContextsForDeploy(appName, envName, deployVersion) {
+        function getDependenciesDeployContextsForDeploy(appName, envName) {
             let dependenciesDeployContexts = [];
             let dependency1ServiceName = "Dependency1Service";
             let dependency1ServiceType = "dynamodb";
             let dependency1Params = {}
-            let dependency1DeployContext = new DeployContext(new ServiceContext(appName, envName, dependency1ServiceName, dependency1ServiceType, deployVersion, dependency1Params));
+            let dependency1DeployContext = new DeployContext(new ServiceContext(appName, envName, dependency1ServiceName, dependency1ServiceType, dependency1Params, {}));
             dependenciesDeployContexts.push(dependency1DeployContext);
             let envVarName = 'DYNAMODB_SOME_VAR';
             let envVarValue = 'SomeValue'
@@ -264,7 +263,7 @@ describe('ecs deployer', function () {
             let dependency2ServiceName = "Dependency2Service";
             let dependency2ServiceType = "efs";
             let dependency2Params = {}
-            let dependency2DeployContext = new DeployContext(new ServiceContext(appName, envName, dependency2ServiceName, dependency2ServiceType, deployVersion, dependency2Params));
+            let dependency2DeployContext = new DeployContext(new ServiceContext(appName, envName, dependency2ServiceName, dependency2ServiceType, dependency2Params, {}));
             dependenciesDeployContexts.push(dependency2DeployContext);
             let scriptContents = "SOME SCRIPT";
             dependency2DeployContext.scripts.push(scriptContents);
@@ -273,7 +272,7 @@ describe('ecs deployer', function () {
 
         it('should deploy the ECS service stack', function () {
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(serviceContext);
-            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
+            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName);
 
             //Stub out AWS calls
             let getLatestAmiByNameStub = sandbox.stub(ec2Calls, 'getLatestAmiByName').returns(Promise.resolve({
@@ -322,7 +321,7 @@ describe('ecs deployer', function () {
 
         it('should deploy a new ECS service stack', function () {
             let ownPreDeployContext = getOwnPreDeployContextForDeploy(serviceContext);
-            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName, deployVersion);
+            let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName);
 
             //Stub out AWS calls
             let getLatestAmiByNameStub = sandbox.stub(ec2Calls, 'getLatestAmiByName').returns(Promise.resolve({

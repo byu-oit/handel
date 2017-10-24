@@ -118,7 +118,7 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
 .. code-block:: bash
 
-    handel deploy -c default-us-east-1 -e dev -v 1
+    handel deploy -c default-us-east-1 -e dev
 
 .. NOTE::
 
@@ -126,7 +126,6 @@ Now that you've written your app, created your Handel file, and obtained your ac
 
     * The *-c* parameter specifies which :ref:`account-config-file` to use. Specifying *default-us-east-1* here tells Handel you don't have one and just want to use the default VPC AWS provides in the us-east-1 region.
     * The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
-    * The *-v* parameter is an arbitrary string specifying the current version being deployed.
 
 Once you've executed that command, Handel should start up and deploy your application. You can sign into the AWS Console and go to the "ElasticBeanstalk" service to see your deployed application.
 
