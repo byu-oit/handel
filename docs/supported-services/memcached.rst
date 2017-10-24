@@ -36,12 +36,12 @@ Parameters
      - This must always be *memcached* for this service type.
    * - instance_type
      - string 
-     - yes
+     - Yes
      - 
      - The size of each Memcached instance in your cluster. See `Choosing Your Node Size <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/CacheNodes.SelectSize.html>`_ for more details.
    * - memcached_version
      - string
-     - yes
+     - Yes
      -
      - The version of Memcached to run. See `Comparing Memcached Versions <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.MemcachedVersions.html>`_ for a list of available versions.
    * - description
@@ -51,12 +51,12 @@ Parameters
      - The parameter group description of your cluster.
    * - node_count:
      - number
-     - no
+     - No
      - 1
      - The number of memcached nodes you want in your cluster.
    * - cache_parameters:
      - Map<string,string>
-     - no
+     - No
      - 
      - Any cache parameters you wish for your Memcached cluster. See `Memcached Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Memcached.html>`_ for the list of parameters you can provide.
    * - tags

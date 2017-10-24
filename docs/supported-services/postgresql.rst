@@ -36,7 +36,7 @@ Parameters
      - This must always be *postgresql* for this service type.
    * - database_name
      - string
-     - yes
+     - Yes
      - 
      - The name of your database in your PostgreSQL instance.
    * - description
@@ -46,32 +46,32 @@ Parameters
      - The parameter group description.
    * - instance_type
      - string
-     - no
+     - No
      - db.t2.micro
      - The size of database instance to run. See `DB Instance Class <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html>`_ for information on choosing an instance type.
    * - storage_gb:
      - number
-     - no
+     - No
      - 5
      - The number of Gigabytes (GB) of storage to allocate to your database.
    * - postgres_version:
      - string
-     - no
+     - No
      - 9.6.2
      - The version of PostgreSQL you wish to run. See `PostgreSQL on Amazon RDS <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html>`_ for the list of supported versions.
    * - db_username
      - string
-     - no
+     - No
      - handel
      - The username for the user that will be created in your database. Your password will be automatically generated and securely stored in the EC2 Parameter Store for you to access.
    * - storage_type
      - string
-     - no 
+     - No
      - standard
      - The type of storage to use, whether magnetic or SSD. Allowed values: 'standard', 'gp2'.
    * - db_parameters
      - map<string, string>
-     - no
+     - No
      - 
      - A list of key/value PostgreSQL parameter group pairs to configure your database. You will need to look in the AWS Console to see the list of available parameters for PostgreSQL.
    * - tags
