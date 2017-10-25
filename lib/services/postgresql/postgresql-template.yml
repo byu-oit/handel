@@ -3,6 +3,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Handel-created PostgreSQL RDS instance
 
 Parameters:
+  DBUsername:
+    NoEcho: true
+    Description: The username of the database
+    Type: String
   DBPassword:
     NoEcho: true
     Description: The password of the database
@@ -22,7 +26,7 @@ Resources:
       DBSubnetGroupName: {{dbSubnetGroup}}
       Engine: postgres
       EngineVersion: {{postgresVersion}}
-      MasterUsername: {{dbUsername}}
+      MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       {{#if multiAZ}}
       MultiAZ: true
@@ -68,9 +72,6 @@ Outputs:
   DatabasePort:
     Description: The port of the RDS database
     Value: !GetAtt Instance.Endpoint.Address
-  DatabaseUsername:
-    Description: The username of the database
-    Value: {{dbUsername}}
   DatabaseName:
     Description: The name of the database
     Value: {{databaseName}}

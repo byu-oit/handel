@@ -27,6 +27,7 @@ const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
 const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
 const UnBindContext = require('../../../lib/datatypes/un-bind-context');
 const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const rdsDeployersCommon = require('../../../lib/common/rds-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
@@ -60,7 +61,7 @@ describe('mysql deployer', function () {
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
-        it('should require the mysql_version parameter', function() {
+        it('should require the mysql_version parameter', function () {
             serviceContext.params = {
                 database_name: 'mydb'
             }
@@ -114,10 +115,25 @@ describe('mysql deployer', function () {
         let envPrefix = 'FAKESERVICE';
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
-        let databaseUsername = "handel";
         let databaseName = "mydb";
         let ownPreDeployContext;
         let dependenciesDeployContexts;
+        let deployedStack = {
+            Outputs: [
+                {
+                    OutputKey: "DatabaseAddress",
+                    OutputValue: databaseAddress
+                },
+                {
+                    OutputKey: "DatabasePort",
+                    OutputValue: databasePort
+                },
+                {
+                    OutputKey: "DatabaseName",
+                    OutputValue: databaseName
+                }
+            ]
+        }
 
         beforeEach(function () {
             serviceContext.params = {
@@ -135,62 +151,23 @@ describe('mysql deployer', function () {
 
         it('should create the cluster if it doesnt exist', function () {
             let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
-            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "DatabaseAddress",
-                        OutputValue: databaseAddress
-                    },
-                    {
-                        OutputKey: "DatabasePort",
-                        OutputValue: databasePort
-                    },
-                    {
-                        OutputKey: "DatabaseUsername",
-                        OutputValue: databaseUsername
-                    },
-                    {
-                        OutputKey: "DatabaseName",
-                        OutputValue: databaseName
-                    }
-                ]
-            }));
-            let putParameterStub = sandbox.stub(ssmCalls, 'storeParameter').returns(Promise.resolve({}));
+            let createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve(deployedStack));
+            let addCredentialsStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore').returns(Promise.resolve(deployedStack));
 
             return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
                     expect(getStackStub.calledOnce).to.be.true;
                     expect(createStackStub.calledOnce).to.be.true;
-                    expect(putParameterStub.calledOnce).to.be.true;
+                    expect(addCredentialsStub.calledOnce).to.be.true;
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_USERNAME`]).to.equal(databaseUsername);
                     expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
                 });
         });
 
         it('should not update the database if it already exists', function () {
-            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({
-                Outputs: [
-                    {
-                        OutputKey: "DatabaseAddress",
-                        OutputValue: databaseAddress
-                    },
-                    {
-                        OutputKey: "DatabasePort",
-                        OutputValue: databasePort
-                    },
-                    {
-                        OutputKey: "DatabaseUsername",
-                        OutputValue: databaseUsername
-                    },
-                    {
-                        OutputKey: "DatabaseName",
-                        OutputValue: databaseName
-                    }
-                ]
-            }));
+            let getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(deployedStack));
             let updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
 
             return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
@@ -200,7 +177,6 @@ describe('mysql deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_USERNAME`]).to.equal(databaseUsername);
                     expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
                 });
         });

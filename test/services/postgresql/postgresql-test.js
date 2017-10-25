@@ -116,7 +116,6 @@ describe('postgresql deployer', function () {
         let dependenciesDeployContexts;
         let databaseAddress = "fakeaddress.amazonaws.com";
         let databasePort = 3306;
-        let databaseUsername = "handel";
         let databaseName = "mydb";
         let deployedStack = {
             Outputs: [
@@ -127,10 +126,6 @@ describe('postgresql deployer', function () {
                 {
                     OutputKey: "DatabasePort",
                     OutputValue: databasePort
-                },
-                {
-                    OutputKey: "DatabaseUsername",
-                    OutputValue: databaseUsername
                 },
                 {
                     OutputKey: "DatabaseName",
@@ -167,7 +162,6 @@ describe('postgresql deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_USERNAME`]).to.equal(databaseUsername);
                     expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
                 });
         });
@@ -183,7 +177,6 @@ describe('postgresql deployer', function () {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
                     expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_USERNAME`]).to.equal(databaseUsername);
                     expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
                 });
         });
