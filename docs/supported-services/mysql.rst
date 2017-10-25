@@ -34,6 +34,11 @@ Parameters
      - Yes
      - 
      - This must always be *mysql* for this service type.
+   * - mysql_version
+     - string
+     - Yes
+     - 
+     - The version of MySQL you wish to run. See `MySQL on Amazon RDS <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt>`_ for the list of supported versions.
    * - database_name
      - string
      - Yes
@@ -54,11 +59,6 @@ Parameters
      - No
      - 5
      - The number of Gigabytes (GB) of storage to allocate to your database.
-   * - mysql_version
-     - string
-     - No
-     - 5.6.27
-     - The version of MySQL you wish to run. See `MySQL on Amazon RDS <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html>`_ for the list of supported versions.
    * - db_username
      - string
      - No

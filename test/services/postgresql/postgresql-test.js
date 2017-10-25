@@ -52,14 +52,27 @@ describe('postgresql deployer', function () {
 
     describe('check', function () {
         it('should do require the database_name parameter', function () {
+            serviceContext.params = {
+                postgres_version: '8.6.2'
+            }
             let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
-        it('should work when all required parameters are provided properly', function () {
+        it('should require the postgres_version parameter', function () {
             serviceContext.params = {
                 database_name: 'mydb'
+            }
+            let errors = postgresql.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain(`'postgres_version' parameter is required`);
+        });
+
+        it('should work when all required parameters are provided properly', function () {
+            serviceContext.params = {
+                database_name: 'mydb',
+                postgres_version: '8.6.2'
             }
             let errors = postgresql.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -128,7 +141,8 @@ describe('postgresql deployer', function () {
 
         beforeEach(function () {
             serviceContext.params = {
-                database_name: 'mydb'
+                database_name: 'mydb',
+                postgres_version: '8.6.2'
             }
 
             ownPreDeployContext = new PreDeployContext(serviceContext);

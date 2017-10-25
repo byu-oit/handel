@@ -51,15 +51,28 @@ describe('mysql deployer', function () {
     });
 
     describe('check', function () {
-        it('should do require the database_name parameter', function () {
+        it('should require the database_name parameter', function () {
+            serviceContext.params = {
+                mysql_version: '5.6.27'
+            }
             let errors = mysql.check(serviceContext);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
-        it('should work when all required parameters are provided properly', function () {
+        it('should require the mysql_version parameter', function() {
             serviceContext.params = {
                 database_name: 'mydb'
+            }
+            let errors = mysql.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain(`'mysql_version' parameter is required`);
+        });
+
+        it('should work when all required parameters are provided properly', function () {
+            serviceContext.params = {
+                database_name: 'mydb',
+                mysql_version: '5.6.27'
             }
             let errors = mysql.check(serviceContext);
             expect(errors.length).to.equal(0);
@@ -108,7 +121,8 @@ describe('mysql deployer', function () {
 
         beforeEach(function () {
             serviceContext.params = {
-                database_name: 'mydb'
+                database_name: 'mydb',
+                mysql_version: '5.6.27'
             }
 
             ownPreDeployContext = new PreDeployContext(serviceContext);

@@ -35,6 +35,11 @@ Parameters
      - Yes
      - 
      - The size of each Redis instance in your cluster. See `Choosing Your Node Size <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/CacheNodes.SelectSize.html>`_ for more details.
+   * - redis_version
+     - string
+     - Yes
+     -
+     - The version of Redis to run. See `Comparing Redis Versions <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.RedisVersions.html>`_ for a list of available versions.
    * - description
      - string
      - No
@@ -45,11 +50,6 @@ Parameters
      - No
      - 
      - The weekly time range (in UTC) during which ElastiCache may peform maintenance on the node group. For example, you can specify Sun:05:00-Tue:09:00.
-   * - redis_version
-     - string
-     - Yes
-     -
-     - The version of Redis to run. See `Comparing Redis Versions <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.RedisVersions.html>`_ for a list of available versions.
    * - read_replicas
      - number
      - No

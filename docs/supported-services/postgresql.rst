@@ -39,6 +39,11 @@ Parameters
      - Yes
      - 
      - The name of your database in your PostgreSQL instance.
+   * - postgres_version
+     - string
+     - Yes
+     - 
+     - The version of PostgreSQL you wish to run. See `PostgreSQL on Amazon RDS <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts.General.DBVersions>`_ for the list of supported versions.
    * - description
      - string
      - No
@@ -54,11 +59,6 @@ Parameters
      - No
      - 5
      - The number of Gigabytes (GB) of storage to allocate to your database.
-   * - postgres_version
-     - string
-     - No
-     - 9.6.2
-     - The version of PostgreSQL you wish to run. See `PostgreSQL on Amazon RDS <http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html>`_ for the list of supported versions.
    * - db_username
      - string
      - No
