@@ -71,6 +71,7 @@ describe('Deploy phase common module', function () {
             expect(returnEnvVars['HANDEL_APP_NAME']).to.equal(appName);
             expect(returnEnvVars['HANDEL_ENVIRONMENT_NAME']).to.equal(envName);
             expect(returnEnvVars['HANDEL_SERVICE_NAME']).to.equal(serviceName);
+            expect(returnEnvVars['HANDEL_PARAMETER_STORE_PREFIX']).to.equal(`${appName}.${envName}`);
         });
     });
 
