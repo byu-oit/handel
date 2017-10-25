@@ -59,11 +59,6 @@ Parameters
      - No
      - 5
      - The number of Gigabytes (GB) of storage to allocate to your database.
-   * - db_username
-     - string
-     - No
-     - handel
-     - The username for the user that will be created in your database. Your password will be automatically generated and securely stored in the EC2 Parameter Store for you to access.
    * - storage_type
      - string
      - No
@@ -119,7 +114,6 @@ Example Handel File
           instance_type: db.t2.micro
           storage_gb: 5
           postgres_version: 9.6.2
-          db_username: mydb
           storage_type: standard
           db_parameters:
             authentication_timeout: 600
@@ -139,8 +133,6 @@ The PostgreSQL service outputs the following environment variables:
      - The DNS name of the PostgreSQL database address.
    * - <SERVICE_NAME>_PORT
      - The port on which the PostgreSQL instance is listening.
-   * - <SERVICE_NAME>_USERNAME
-     - The username you can use to access the database.
    * - <SERVICE_NAME>_DATABASE_NAME
      - The name of the database in your PostgreSQL instance.
 
@@ -153,10 +145,16 @@ In addition, the PostgreSQL service puts the following credentials into the EC2 
 
    * - Parameter Name 
      - Description
-   * - <parameter_prefix>.db_password
+   * - <parameter_prefix>.<service_name>.db_username
+     - The username for your database user.
+   * - <parameter_prefix>.<service_name>.db_password
      - The password for your database user.
 
-The <parameter_prefix> is a consistent prefix applied to all parameters injected by services in the EC2 Parameter Store. See :ref:`parameter-store-prefix` for information about the structure of this prefix.
+.. NOTE::
+
+  The <parameter_prefix> section of the parameter name is a consistent prefix applied to all parameters injected by services in the EC2 Parameter Store. See :ref:`parameter-store-prefix` for information about the structure of this prefix.
+
+  The <service_name> section of the parameter name should be replaced by the :ref:`service name <handel-file-explanation>` you gave your database in your Handel file.
 
 Events produced by this service
 -------------------------------

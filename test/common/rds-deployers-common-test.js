@@ -50,10 +50,6 @@ describe('RDS deployers common module', function () {
                         OutputValue: dbPort
                     },
                     {
-                        OutputKey: 'DatabaseUsername',
-                        OutputValue: dbUsername
-                    },
-                    {
                         OutputKey: 'DatabaseName',
                         OutputValue: dbName
                     }
@@ -63,7 +59,6 @@ describe('RDS deployers common module', function () {
             let deployContext = rdsDeployersCommon.getDeployContext(serviceContext, rdsCfStack);
             expect(deployContext.environmentVariables['FAKESERVICE_ADDRESS']).to.equal(dbAddress);
             expect(deployContext.environmentVariables['FAKESERVICE_PORT']).to.equal(dbPort);
-            expect(deployContext.environmentVariables['FAKESERVICE_USERNAME']).to.equal(dbUsername);
             expect(deployContext.environmentVariables['FAKESERVICE_DATABASE_NAME']).to.equal(dbName);
         });
     });
@@ -73,10 +68,10 @@ describe('RDS deployers common module', function () {
             let storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').returns(Promise.resolve(true));
 
             let serviceContext = new ServiceContext("FakeApp", "FakeEnv", "FakeService", "FakeType", {});
-            return rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakePassword', {})
+            return rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword', {})
                 .then(deployedStack => {
                     expect(deployedStack).to.deep.equal({});
-                    expect(storeParamStub.callCount).to.equal(1);
+                    expect(storeParamStub.callCount).to.equal(2);
                 });
         });
     });
