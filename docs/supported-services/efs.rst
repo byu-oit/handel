@@ -4,6 +4,13 @@ EFS (Elastic File System)
 =========================
 This page contains information about using the EFS (Elastic File System) service in Handel. This service provides an EFS mount for use by other compute services such as ElasticBeanstalk and ECS.
 
+Service Limitations
+-------------------
+No Update Support
+~~~~~~~~~~~~~~~~~
+This service intentionally does not support updates. Once a file system is created, updates to it (like changing the performance mode) will cause a new file system to be created and the old one deleted. 
+In an effort to avoid unwanted data loss, we don’t update this service automatically.
+
 Parameters
 ----------
 .. list-table::

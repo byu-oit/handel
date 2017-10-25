@@ -6,10 +6,10 @@ This page contains information about using DynamoDB service supported in Handel.
 
 Service Limitations
 -------------------
-The following features are currently not supported:
-
-* Local secondary indexes
-* Global secondary indexes
+No Update Support
+~~~~~~~~~~~~~~~~~
+This service intentionally does not support updates. Once a table is created, certain updates to the table will cause a new one to be created and the old one deleted. 
+In an effort to avoid unwanted data loss, we don’t update this service automatically.
 
 Parameters
 ----------
