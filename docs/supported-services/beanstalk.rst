@@ -155,7 +155,7 @@ The Routing element is defined by the following schema:
     
     routing:
       type: <http|https>
-      https_certificate # Required if you select https as the routing type
+      https_certificate: <string> # Required if you select https as the routing type
       dns_names:
        - <string> # Optional
 
