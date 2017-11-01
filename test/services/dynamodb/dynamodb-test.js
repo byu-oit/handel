@@ -14,21 +14,21 @@
  * limitations under the License.
  *
  */
-const dynamodb = require('../../../lib/services/dynamodb');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
-const handlebarsUtils = require('../../../lib/common/handlebars-utils');
-const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
+const dynamodb = require('../../../dist/services/dynamodb');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const handlebarsUtils = require('../../../dist/common/handlebars-utils');
+const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
 const clone = require('clone');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 const VALID_DYNAMODB_CONFIG = {
     partition_key: {

@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-const iot = require('../../../lib/services/iot');
-const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const iot = require('../../../dist/services/iot');
+const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('iot deployer', function () {
     let sandbox;

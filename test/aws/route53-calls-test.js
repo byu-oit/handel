@@ -16,7 +16,7 @@
  */
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
-const route53Calls = require('../../lib/aws/route53-calls');
+const route53Calls = require('../../dist/aws/route53-calls');
 const sinon = require('sinon');
 
 describe('route53Calls', function () {

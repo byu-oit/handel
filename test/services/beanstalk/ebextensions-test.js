@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
+const ebextensions = require('../../../dist/services/beanstalk/ebextensions');
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;

@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-const cloudWatchEvent = require('../../../lib/services/cloudwatchevent');
-const cloudWatchEventsCalls = require('../../../lib/aws/cloudwatch-events-calls');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const cloudWatchEvent = require('../../../dist/services/cloudwatchevent');
+const cloudWatchEventsCalls = require('../../../dist/aws/cloudwatch-events-calls');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('cloudwatchevent deployer', function () {
     let sandbox;

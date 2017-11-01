@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const ebextensions = require('../../../lib/services/beanstalk/ebextensions');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const util = require('../../../lib/common/util');
+const deployableArtifact = require('../../../dist/services/beanstalk/deployable-artifact');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const ebextensions = require('../../../dist/services/beanstalk/ebextensions');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const util = require('../../../dist/common/util');
 const fs = require('fs');
 const path = require('path');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('deployable artifact module', function () {
     let sandbox;

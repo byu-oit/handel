@@ -15,11 +15,11 @@
  *
  */
 const expect = require('chai').expect;
-const config = require('../../lib/account-config/account-config');
-const defaultAccountConfig = require('../../lib/account-config/default-account-config');
+const config = require('../../dist/account-config/account-config');
+const defaultAccountConfig = require('../../dist/account-config/default-account-config');
 const fs = require('fs');
 const path = require('path');
-const util = require('../../lib/common/util');
+const util = require('../../dist/common/util');
 const sinon = require('sinon');
 
 describe('account config module', function () {

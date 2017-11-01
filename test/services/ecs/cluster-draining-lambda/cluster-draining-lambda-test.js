@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const clusterDrainingLambda = require('../../../../lib/services/ecs/cluster-draining-lambda');
+const clusterDrainingLambda = require('../../../../dist/services/ecs/cluster-draining-lambda');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');

@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../lib/datatypes/service-context');
-const iotDeployersCommon = require('../../lib/common/iot-deployers-common');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const iotDeployersCommon = require('../../dist/common/iot-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../lib/account-config/account-config');
+const config = require('../../dist/account-config/account-config');
 
 describe('iot deployers common module', function () {
     let sandbox;

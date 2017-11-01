@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-const deleteLifecycle = require('../../lib/lifecycles/delete');
-const iamCalls = require('../../lib/aws/iam-calls');
-const unDeployPhase = require('../../lib/phases/un-deploy');
-const unPreDeployPhase = require('../../lib/phases/un-pre-deploy');
-const unBindPhase = require('../../lib/phases/un-bind');
-const UnPreDeployContext = require('../../lib/datatypes/un-pre-deploy-context');
-const util = require('../../lib/common/util');
+const deleteLifecycle = require('../../dist/lifecycles/delete');
+const iamCalls = require('../../dist/aws/iam-calls');
+const unDeployPhase = require('../../dist/phases/un-deploy');
+const unPreDeployPhase = require('../../dist/phases/un-pre-deploy');
+const unBindPhase = require('../../dist/phases/un-bind');
+const UnPreDeployContext = require('../../dist/datatypes/un-pre-deploy-context');
+const util = require('../../dist/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const handelFileParser = require('../../lib/handelfile/parser-v1');
+const handelFileParser = require('../../dist/handelfile/parser-v1');
 
 describe('delete lifecycle module', function () {
     let sandbox;

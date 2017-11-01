@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const parserV1 = require('../../lib/handelfile/parser-v1');
+const parserV1 = require('../../dist/handelfile/parser-v1');
 const expect = require('chai').expect;
 
 describe('parser-v1', function () {

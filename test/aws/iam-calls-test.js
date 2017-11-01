@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-const iamCalls = require('../../lib/aws/iam-calls');
+const iamCalls = require('../../dist/aws/iam-calls');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 
-const config = require('../../lib/account-config/account-config');
+const config = require('../../dist/account-config/account-config');
 
 describe('iam calls', function () {
     let sandbox;

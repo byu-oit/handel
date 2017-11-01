@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-const checkPhase = require('../../lib/phases/check');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
+const checkPhase = require('../../dist/phases/check');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
 const expect = require('chai').expect;
 
 function getServiceDeployers() {

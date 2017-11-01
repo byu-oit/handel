@@ -14,24 +14,24 @@
  * limitations under the License.
  *
  */
-const ecs = require('../../../lib/services/ecs');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const cloudformationCalls = require('../../../lib/aws/cloudformation-calls');
-const ec2Calls = require('../../../lib/aws/ec2-calls');
-const ecsCalls = require('../../../lib/aws/ecs-calls');
-const autoScalingCalls = require('../../../lib/aws/auto-scaling-calls');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const route53calls = require('../../../lib/aws/route53-calls');
+const ecs = require('../../../dist/services/ecs');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
+const ec2Calls = require('../../../dist/aws/ec2-calls');
+const ecsCalls = require('../../../dist/aws/ecs-calls');
+const autoScalingCalls = require('../../../dist/aws/auto-scaling-calls');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const route53calls = require('../../../dist/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 const VALID_ECS_CONFIG = {
     cluster: {

@@ -15,8 +15,8 @@
  *
  */
 const expect = require('chai').expect;
-const ServiceContext = require('../../lib/datatypes/service-context');
-const UnBindContext = require('../../lib/datatypes/un-bind-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const UnBindContext = require('../../dist/datatypes/un-bind-context');
 
 describe('UnBindContext', function () {
     it('should be able to be constructed from a ServiceContext', function () {

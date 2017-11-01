@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-const ses = require('../../../lib/services/ses');
-const sesCalls = require('../../../lib/aws/ses-calls');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
+const ses = require('../../../dist/services/ses');
+const sesCalls = require('../../../dist/aws/ses-calls');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const s3Lifecycle = require('../../../lib/services/s3/lifecycles');
+const s3Lifecycle = require('../../../dist/services/s3/lifecycles');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

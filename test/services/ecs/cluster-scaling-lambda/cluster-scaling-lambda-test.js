@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const clusterScalingLambda = require('../../../../lib/services/ecs/cluster-scaling-lambda');
+const clusterScalingLambda = require('../../../../dist/services/ecs/cluster-scaling-lambda');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');

@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-const deployOrderCalc = require('../../lib/deploy/deploy-order-calc');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
+const deployOrderCalc = require('../../dist/deploy/deploy-order-calc');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const expect = require('chai').expect;

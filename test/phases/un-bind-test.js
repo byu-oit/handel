@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-const unBindPhase = require('../../lib/phases/un-bind');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
-const UnBindContext = require('../../lib/datatypes/un-bind-context');
+const unBindPhase = require('../../dist/phases/un-bind');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const UnBindContext = require('../../dist/datatypes/un-bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

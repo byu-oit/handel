@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../lib/datatypes/service-context');
-const produceEventsPhaseCommon = require('../../lib/common/produce-events-phase-common');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const produceEventsPhaseCommon = require('../../dist/common/produce-events-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

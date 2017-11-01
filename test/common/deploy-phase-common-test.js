@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../lib/datatypes/service-context');
-const DeployContext = require('../../lib/datatypes/deploy-context');
-const deployPhaseCommon = require('../../lib/common/deploy-phase-common');
-const iamCalls = require('../../lib/aws/iam-calls');
-const s3Calls = require('../../lib/aws/s3-calls');
-const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
-const util = require('../../lib/common/util');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const DeployContext = require('../../dist/datatypes/deploy-context');
+const deployPhaseCommon = require('../../dist/common/deploy-phase-common');
+const iamCalls = require('../../dist/aws/iam-calls');
+const s3Calls = require('../../dist/aws/s3-calls');
+const cloudformationCalls = require('../../dist/aws/cloudformation-calls');
+const util = require('../../dist/common/util');
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../lib/account-config/account-config');
+const config = require('../../dist/account-config/account-config');
 
 describe('Deploy phase common module', function () {
     let sandbox;

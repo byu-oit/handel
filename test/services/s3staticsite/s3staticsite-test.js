@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-const s3StaticSite = require('../../../lib/services/s3staticsite');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const s3Calls = require('../../../lib/aws/s3-calls');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const route53calls = require('../../../lib/aws/route53-calls');
-const handlebarsUtils = require('../../../lib/common/handlebars-utils');
+const s3StaticSite = require('../../../dist/services/s3staticsite');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const s3Calls = require('../../../dist/aws/s3-calls');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const route53calls = require('../../../dist/aws/route53-calls');
+const handlebarsUtils = require('../../../dist/common/handlebars-utils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('s3staticsite deployer', function () {
     let sandbox;

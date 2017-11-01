@@ -15,10 +15,10 @@
  *
  */
 const expect = require('chai').expect;
-const defaultAccountConfig = require('../../lib/account-config/default-account-config');
-const ec2Calls = require('../../lib/aws/ec2-calls');
-const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
-const stsCalls = require('../../lib/aws/sts-calls');
+const defaultAccountConfig = require('../../dist/account-config/default-account-config');
+const ec2Calls = require('../../dist/aws/ec2-calls');
+const cloudformationCalls = require('../../dist/aws/cloudformation-calls');
+const stsCalls = require('../../dist/aws/sts-calls');
 const sinon = require('sinon');
 
 describe('default account config module', function () {

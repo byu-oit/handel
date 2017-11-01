@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-const kms = require('../../../lib/services/kms');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const kms = require('../../../dist/services/kms');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('kms deployer', function () {
     let sandbox;

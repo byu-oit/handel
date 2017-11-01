@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-const checkLifecycle = require('../../lib/lifecycles/check');
-const checkPhase = require('../../lib/phases/check');
-const util = require('../../lib/common/util');
+const checkLifecycle = require('../../dist/lifecycles/check');
+const checkPhase = require('../../dist/phases/check');
+const util = require('../../dist/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const handelFileParser = require('../../lib/handelfile/parser-v1');
+const handelFileParser = require('../../dist/handelfile/parser-v1');
 
 describe('check lifecycle module', function () {
     let sandbox;

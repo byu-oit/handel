@@ -15,8 +15,8 @@
  *
  */
 const expect = require('chai').expect;
-const ServiceContext = require('../../lib/datatypes/service-context');
-const UnDeployContext = require('../../lib/datatypes/un-deploy-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const UnDeployContext = require('../../dist/datatypes/un-deploy-context');
 
 describe('UnDeployContext', function () {
     it('should be able to be constructed from a ServiceContext', function () {

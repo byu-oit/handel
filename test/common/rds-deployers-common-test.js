@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-const rdsDeployersCommon = require('../../lib/common/rds-deployers-common');
-const ssmCalls = require('../../lib/aws/ssm-calls');
-const ServiceContext = require('../../lib/datatypes/service-context');
+const rdsDeployersCommon = require('../../dist/common/rds-deployers-common');
+const ssmCalls = require('../../dist/aws/ssm-calls');
+const ServiceContext = require('../../dist/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

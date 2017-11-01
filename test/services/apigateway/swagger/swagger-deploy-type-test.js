@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-const swaggerDeployType = require('../../../../lib/services/apigateway/swagger/swagger-deploy-type');
-const ServiceContext = require('../../../../lib/datatypes/service-context');
-const DeployContext = require('../../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../../lib/datatypes/pre-deploy-context');
+const swaggerDeployType = require('../../../../dist/services/apigateway/swagger/swagger-deploy-type');
+const ServiceContext = require('../../../../dist/datatypes/service-context');
+const DeployContext = require('../../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../../dist/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deployPhaseCommon = require('../../../../lib/common/deploy-phase-common');
+const deployPhaseCommon = require('../../../../dist/common/deploy-phase-common');
 
-const config = require('../../../../lib/account-config/account-config');
+const config = require('../../../../dist/account-config/account-config');
 
 describe('apigateway swagger deploy type', function () {
     let sandbox;

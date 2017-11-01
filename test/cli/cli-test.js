@@ -15,9 +15,9 @@
  *
  */
 const expect = require('chai').expect;
-const cli = require('../../lib/cli');
+const cli = require('../../dist/cli');
 const sinon = require('sinon');
-const util = require('../../lib/common/util');
+const util = require('../../dist/common/util');
 
 describe('cli module', function () {
     let sandbox;

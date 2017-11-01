@@ -16,7 +16,7 @@
  */
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
-const cloudWatchEventsCalls = require('../../lib/aws/cloudwatch-events-calls');
+const cloudWatchEventsCalls = require('../../dist/aws/cloudwatch-events-calls');
 const sinon = require('sinon');
 
 describe('cloudWatchEventsCalls', function () {

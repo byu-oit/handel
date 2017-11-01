@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-const deployLifecycle = require('../../lib/lifecycles/deploy');
-const bindPhase = require('../../lib/phases/bind');
-const deployPhase = require('../../lib/phases/deploy');
-const preDeployPhase = require('../../lib/phases/pre-deploy');
-const checkPhase = require('../../lib/phases/check');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const util = require('../../lib/common/util');
+const deployLifecycle = require('../../dist/lifecycles/deploy');
+const bindPhase = require('../../dist/phases/bind');
+const deployPhase = require('../../dist/phases/deploy');
+const preDeployPhase = require('../../dist/phases/pre-deploy');
+const checkPhase = require('../../dist/phases/check');
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
+const util = require('../../dist/common/util');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const handelFileParser = require('../../lib/handelfile/parser-v1');
+const handelFileParser = require('../../dist/handelfile/parser-v1');
 
 describe('deploy lifecycle module', function () {
     let sandbox;

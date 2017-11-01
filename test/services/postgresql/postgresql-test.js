@@ -14,23 +14,23 @@
  * limitations under the License.
  *
  */
-const postgresql = require('../../../lib/services/postgresql');
-const cloudFormationCalls = require('../../../lib/aws/cloudformation-calls');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const rdsDeployersCommon = require('../../../lib/common/rds-deployers-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const postgresql = require('../../../dist/services/postgresql');
+const cloudFormationCalls = require('../../../dist/aws/cloudformation-calls');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const BindContext = require('../../../dist/datatypes/bind-context');
+const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
+const bindPhaseCommon = require('../../../dist/common/bind-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const rdsDeployersCommon = require('../../../dist/common/rds-deployers-common');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../dist/datatypes/un-bind-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('postgresql deployer', function () {
     let sandbox;

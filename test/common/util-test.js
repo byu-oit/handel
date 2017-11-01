@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-const util = require('../../lib/common/util');
+const util = require('../../dist/common/util');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const expect = require('chai').use(sinonChai).expect;
 const fs = require('fs');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
 
 describe('util module', function () {
     let sandbox;

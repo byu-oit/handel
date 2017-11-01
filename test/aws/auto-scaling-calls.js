@@ -16,7 +16,7 @@
  */
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
-const autoScalingCalls = require('../../lib/aws/auto-scaling-calls');
+const autoScalingCalls = require('../../dist/aws/auto-scaling-calls');
 const sinon = require('sinon');
 
 describe('autoScalingCalls', function () {
