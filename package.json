@@ -5,7 +5,7 @@
   "main": "lib/handel.js",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
-    "build": "tsc",
+    "build": "gulp build",
     "test": "gulp test",
     "test-debug": "./node_modules/mocha/bin/mocha --debug-brk 'test/**/*.js'",
     "test-coverage": "./node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec 'test/**/*-test.js'"
