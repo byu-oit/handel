@@ -4,6 +4,7 @@
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "lib/handel.js",
   "scripts": {
+    "lint": "tslint -p tsconfig.json -t stylish",
     "build": "tsc",
     "test": "gulp test",
     "test-debug": "./node_modules/mocha/bin/mocha --debug-brk 'test/**/*.js'",
@@ -49,6 +50,7 @@
     "run-sequence": "^2.2.0",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.13.0",
+    "tslint": "^5.8.0",
     "typescript": "^2.5.3"
   }
 }
