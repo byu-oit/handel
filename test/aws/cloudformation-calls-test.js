@@ -16,7 +16,7 @@
  */
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
-const cloudformationCalls = require('../../lib/aws/cloudformation-calls');
+const cloudformationCalls = require('../../dist/aws/cloudformation-calls');
 const sinon = require('sinon');
 
 describe('cloudformationCalls', function () {

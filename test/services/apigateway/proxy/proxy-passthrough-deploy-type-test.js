@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-const proxyPassthroughDeployType = require('../../../../lib/services/apigateway/proxy/proxy-passthrough-deploy-type');
-const ServiceContext = require('../../../../lib/datatypes/service-context');
-const DeployContext = require('../../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../../lib/datatypes/pre-deploy-context');
+const proxyPassthroughDeployType = require('../../../../dist/services/apigateway/proxy/proxy-passthrough-deploy-type');
+const ServiceContext = require('../../../../dist/datatypes/service-context');
+const DeployContext = require('../../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../../dist/datatypes/pre-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deployPhaseCommon = require('../../../../lib/common/deploy-phase-common');
+const deployPhaseCommon = require('../../../../dist/common/deploy-phase-common');
 
-const config = require('../../../../lib/account-config/account-config');
+const config = require('../../../../dist/account-config/account-config');
 
 describe('apigateway proxy deploy type', function () {
     let sandbox;

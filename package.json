@@ -4,7 +4,9 @@
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "lib/handel.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha 'test/**/*.js'",
+    "lint": "tslint -p tsconfig.json -t stylish",
+    "build": "gulp build",
+    "test": "gulp test",
     "test-debug": "./node_modules/mocha/bin/mocha --debug-brk 'test/**/*.js'",
     "test-coverage": "./node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec 'test/**/*-test.js'"
   },
@@ -32,13 +34,23 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.80",
+    "@types/node": "^8.0.47",
+    "@types/winston": "^2.3.7",
     "aws-sdk-mock": "^1.6.1",
     "chai": "^3.5.0",
     "clone": "^2.1.1",
     "eslint": "^3.15.0",
     "eslint-plugin-mocha": "^4.8.0",
+    "gulp": "^3.9.1",
+    "gulp-spawn-mocha": "^4.0.1",
+    "gulp-typescript": "^3.2.3",
+    "merge-stream": "^1.0.1",
     "mocha": "^3.5.3",
+    "run-sequence": "^2.2.0",
     "sinon": "^1.17.7",
-    "sinon-chai": "^2.13.0"
+    "sinon-chai": "^2.13.0",
+    "tslint": "^5.8.0",
+    "typescript": "^2.5.3"
   }
 }

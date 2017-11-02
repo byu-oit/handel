@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-const elasticacheDeployersCommon = require('../../lib/common/elasticache-deployers-common');
-const ServiceContext = require('../../lib/datatypes/service-context');
+const elasticacheDeployersCommon = require('../../dist/common/elasticache-deployers-common');
+const ServiceContext = require('../../dist/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

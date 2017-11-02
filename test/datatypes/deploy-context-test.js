@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const DeployContext = require('../../lib/datatypes/deploy-context');
+const DeployContext = require('../../dist/datatypes/deploy-context');
 const expect = require('chai').expect;
 
 describe("DeployContext", function () {

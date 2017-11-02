@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
 const expect = require('chai').expect;
 
 describe('PreDeployContext', function () {

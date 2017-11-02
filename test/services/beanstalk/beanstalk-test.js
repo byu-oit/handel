@@ -14,21 +14,21 @@
  * limitations under the License.
  *
  */
-const beanstalk = require('../../../lib/services/beanstalk');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const deployableArtifact = require('../../../lib/services/beanstalk/deployable-artifact');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const route53 = require('../../../lib/aws/route53-calls');
+const beanstalk = require('../../../dist/services/beanstalk');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const deployableArtifact = require('../../../dist/services/beanstalk/deployable-artifact');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const route53 = require('../../../dist/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('beanstalk deployer', function () {
     let sandbox;

@@ -14,22 +14,22 @@
  * limitations under the License.
  *
  */
-const redis = require('../../../lib/services/redis');
-const ServiceContext = require('../../../lib/datatypes/service-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../../lib/datatypes/bind-context');
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
-const bindPhaseCommon = require('../../../lib/common/bind-phase-common');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../lib/datatypes/un-bind-context');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
+const redis = require('../../../dist/services/redis');
+const ServiceContext = require('../../../dist/datatypes/service-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const BindContext = require('../../../dist/datatypes/bind-context');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
+const bindPhaseCommon = require('../../../dist/common/bind-phase-common');
+const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
+const UnBindContext = require('../../../dist/datatypes/un-bind-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('redis deployer', function () {
     let sandbox;

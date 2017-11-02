@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-const preDeployPhase = require('../../lib/phases/pre-deploy');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
+const preDeployPhase = require('../../dist/phases/pre-deploy');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
 const expect = require('chai').expect;
 
 describe('preDeploy', function () {

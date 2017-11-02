@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-const s3DeployersCommon = require('../../lib/common/s3-deployers-common');
-const ServiceContext = require('../../lib/datatypes/service-context');
-const deployPhaseCommon = require('../../lib/common/deploy-phase-common');
+const s3DeployersCommon = require('../../dist/common/s3-deployers-common');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const deployPhaseCommon = require('../../dist/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../lib/account-config/account-config');
+const config = require('../../dist/account-config/account-config');
 
 describe('S3 deployers common module', function () {
     let sandbox;

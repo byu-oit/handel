@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-const alexaSkillKit = require('../../../lib/services/alexaskillkit');
-const ProduceEventsContext = require('../../../lib/datatypes/produce-events-context');
-const DeployContext = require('../../../lib/datatypes/deploy-context');
-const ServiceContext = require('../../../lib/datatypes/service-context');
+const alexaSkillKit = require('../../../dist/services/alexaskillkit');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const DeployContext = require('../../../dist/datatypes/deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('alexaskillkit deployer', function () {
     let sandbox;

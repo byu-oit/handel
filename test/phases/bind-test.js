@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-const bindPhase = require('../../lib/phases/bind');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../lib/datatypes/bind-context');
+const bindPhase = require('../../dist/phases/bind');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
+const BindContext = require('../../dist/datatypes/bind-context');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

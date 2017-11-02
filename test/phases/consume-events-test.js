@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-const ConsumeEventsContext = require('../../lib/datatypes/consume-events-context');
-const DeployContext = require('../../lib/datatypes/deploy-context');
-const ServiceContext = require('../../lib/datatypes/service-context');
-const EnvironmentContext = require('../../lib/datatypes/environment-context');
-const consumeEvents = require('../../lib/phases/consume-events');
+const ConsumeEventsContext = require('../../dist/datatypes/consume-events-context');
+const DeployContext = require('../../dist/datatypes/deploy-context');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const consumeEvents = require('../../dist/phases/consume-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

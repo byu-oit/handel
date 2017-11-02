@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-const common = require('../../../lib/services/apigateway/common');
-const ServiceContext = require('../../../lib/datatypes/service-context');
+const common = require('../../../dist/services/apigateway/common');
+const ServiceContext = require('../../../dist/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deployPhaseCommon = require('../../../lib/common/deploy-phase-common');
+const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('apigateway common module', function () {
     let sandbox;

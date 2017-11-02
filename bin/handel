@@ -3,7 +3,7 @@
 const minimist = require('minimist');
 const fs = require('fs');
 const yaml = require('js-yaml');
-const cli = require('../lib/cli');
+const cli = require('../dist/cli');
 
 function printAndExit(msg) {
     console.log(msg)

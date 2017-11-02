@@ -16,7 +16,7 @@
  */
 const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
-const s3Calls = require('../../lib/aws/s3-calls');
+const s3Calls = require('../../dist/aws/s3-calls');
 const sinon = require('sinon');
 const childProcess = require('child_process');
 

@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-const apigateway = require('../../../lib/services/apigateway');
-const ServiceContext = require('../../../lib/datatypes/service-context');
+const apigateway = require('../../../dist/services/apigateway');
+const ServiceContext = require('../../../dist/datatypes/service-context');
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const deletePhasesCommon = require('../../../lib/common/delete-phases-common');
-const UnDeployContext = require('../../../lib/datatypes/un-deploy-context');
-const proxyPassthroughDeployType = require('../../../lib/services/apigateway/proxy/proxy-passthrough-deploy-type');
-const swaggerDeployType = require('../../../lib/services/apigateway/swagger/swagger-deploy-type');
-const PreDeployContext = require('../../../lib/datatypes/pre-deploy-context');
-const UnPreDeployContext = require('../../../lib/datatypes/un-pre-deploy-context');
-const preDeployPhaseCommon = require('../../../lib/common/pre-deploy-phase-common');
-const lifecyclesCommon = require('../../../lib/common/lifecycles-common');
+const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const proxyPassthroughDeployType = require('../../../dist/services/apigateway/proxy/proxy-passthrough-deploy-type');
+const swaggerDeployType = require('../../../dist/services/apigateway/swagger/swagger-deploy-type');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
+const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
+const lifecyclesCommon = require('../../../dist/common/lifecycles-common');
 
-const config = require('../../../lib/account-config/account-config');
+const config = require('../../../dist/account-config/account-config');
 
 describe('apigateway deployer', function () {
     let sandbox;

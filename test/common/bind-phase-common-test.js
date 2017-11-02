@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../lib/datatypes/service-context');
-const PreDeployContext = require('../../lib/datatypes/pre-deploy-context');
-const BindContext = require('../../lib/datatypes/bind-context');
-const bindPhaseCommon = require('../../lib/common/bind-phase-common');
-const ec2Calls = require('../../lib/aws/ec2-calls');
+const ServiceContext = require('../../dist/datatypes/service-context');
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
+const BindContext = require('../../dist/datatypes/bind-context');
+const bindPhaseCommon = require('../../dist/common/bind-phase-common');
+const ec2Calls = require('../../dist/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../lib/account-config/account-config');
+const config = require('../../dist/account-config/account-config');
 
 describe('bind phases common module', function () {
     let sandbox;

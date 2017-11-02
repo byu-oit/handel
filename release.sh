@@ -8,6 +8,8 @@ set -eux
 # NPM and push the release to GitHub
 #####################################################################
 
+npm run build
+
 # Create version commit and tag
 npm version $1
 
