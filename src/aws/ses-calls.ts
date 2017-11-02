@@ -21,10 +21,10 @@ export async function verifyEmailAddress(address: string) {
     const ses = new SES({ apiVersion: '2010-12-01' });
     winston.verbose(`Verifying ${address} if needed`);
 
-    let response = await ses.getIdentityVerificationAttributes({ Identities: [address] }).promise();
-    const address_verified: boolean = address in response.VerificationAttributes
-        && response.VerificationAttributes[address].VerificationStatus != 'Failed';
-    if (!address_verified) {
+    const response = await ses.getIdentityVerificationAttributes({ Identities: [address] }).promise();
+    const addressVerified: boolean = address in response.VerificationAttributes
+        && response.VerificationAttributes[address].VerificationStatus !== 'Failed';
+    if (!addressVerified) {
         winston.verbose(`Requested verification for ${address}`);
         return ses.verifyEmailAddress({ EmailAddress: address }).promise();
     }
