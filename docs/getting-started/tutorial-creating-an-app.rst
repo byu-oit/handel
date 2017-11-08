@@ -114,6 +114,8 @@ Deploy using Handel
 
     See `Configuring the AWS CLI <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_ for help on doing this once you've installed the AWS CLI.
 
+    If you work for an organization that uses federated logins through something like ADFS, then you'll have a different process for logging in on the command-line. In this case, ask your organization how they login to AWS on the command-line. 
+
 Now that you've written your app, created your Handel file, and obtained your account config file, you can run Handel to deploy:
 
 .. code-block:: bash
