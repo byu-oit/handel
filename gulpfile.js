@@ -23,9 +23,3 @@ gulp.task('compile', () => {
     )
     .pipe(gulp.dest('dist'));  
 });
-
-gulp.task('test', ['build'], () => {
-    return gulp.src('test/**/*.js', {read: false}).pipe(mocha({
-        reporter: 'spec'
-    }));
-})
