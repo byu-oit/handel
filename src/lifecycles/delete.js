@@ -20,7 +20,7 @@ const deployOrderCalc = require('../deploy/deploy-order-calc');
 const unDeployPhase = require('../phases/un-deploy');
 const unPreDeployPhase = require('../phases/un-pre-deploy');
 const unBindPhase = require('../phases/un-bind');
-const EnvironmentDeleteResult = require('../datatypes/environment-delete-result');
+const EnvironmentDeleteResult = require('../datatypes/environment-delete-result').EnvironmentDeleteResult;
 
 function unDeployAndUnBindServices(serviceDeployers, environmentContext, deployOrder) {
     let deleteProcess = Promise.resolve();

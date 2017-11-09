@@ -15,9 +15,9 @@
  *
  */
 const alexaSkillKit = require('../../../dist/services/alexaskillkit');
-const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const ServiceContext = require('../../../dist/datatypes/service-context');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context').ProduceEventsContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

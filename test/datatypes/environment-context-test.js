@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
 const expect = require('chai').expect;
 
 describe('EnvironmentContext', function () {

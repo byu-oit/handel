@@ -14,13 +14,16 @@
  * limitations under the License.
  *
  */
-class UnBindContext {
-    constructor(serviceContext) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
+export class EnvironmentDeployResult {
+    public status: string;
+    public message: string;
+    public error: Error;
+
+    constructor(status: string,
+                message: string,
+                error: Error) {
+        this.status = status;
+        this.message = message;
+        this.error = error;
     }
 }
-
-module.exports = exports = UnBindContext;

@@ -19,7 +19,7 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const expect = require('chai').use(sinonChai).expect;
 const fs = require('fs');
-const EnvironmentContext = require('../../dist/datatypes/environment-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
 
 describe('util module', function () {
     let sandbox;

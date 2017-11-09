@@ -15,12 +15,12 @@
  *
  */
 const s3 = require('../../../dist/services/s3');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

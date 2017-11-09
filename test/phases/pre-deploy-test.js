@@ -15,9 +15,9 @@
  *
  */
 const preDeployPhase = require('../../dist/phases/pre-deploy');
-const EnvironmentContext = require('../../dist/datatypes/environment-context');
-const ServiceContext = require('../../dist/datatypes/service-context');
-const PreDeployContext = require('../../dist/datatypes/pre-deploy-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const PreDeployContext = require('../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const expect = require('chai').expect;
 
 describe('preDeploy', function () {

@@ -15,13 +15,13 @@
  *
  */
 const s3StaticSite = require('../../../dist/services/s3staticsite');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
 const s3Calls = require('../../../dist/aws/s3-calls');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
 const route53calls = require('../../../dist/aws/route53-calls');
 const handlebarsUtils = require('../../../dist/common/handlebars-utils');
 const sinon = require('sinon');

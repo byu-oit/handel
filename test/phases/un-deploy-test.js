@@ -15,9 +15,9 @@
  *
  */
 const unDeployPhase = require('../../dist/phases/un-deploy');
-const EnvironmentContext = require('../../dist/datatypes/environment-context');
-const ServiceContext = require('../../dist/datatypes/service-context');
-const UnDeployContext = require('../../dist/datatypes/un-deploy-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const UnDeployContext = require('../../dist/datatypes/un-deploy-context').UnDeployContext;
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

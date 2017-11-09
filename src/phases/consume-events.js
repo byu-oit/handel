@@ -16,7 +16,7 @@
  */
 const winston = require('winston');
 const _ = require('lodash');
-const ConsumeEventsContext = require('../datatypes/consume-events-context');
+const ConsumeEventsContext = require('../datatypes/consume-events-context').ConsumeEventsContext;
 const util = require('../common/util');
 const Promise = require('bluebird');
 

@@ -15,8 +15,8 @@
  *
  */
 const expect = require('chai').expect;
-const ServiceContext = require('../../dist/datatypes/service-context');
-const BindContext = require('../../dist/datatypes/bind-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const BindContext = require('../../dist/datatypes/bind-context').BindContext;
 
 describe('BindContet', function () {
     it('should be able to be constructed from a ServiceContext', function () {

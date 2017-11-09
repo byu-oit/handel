@@ -17,12 +17,12 @@
 const cloudWatchEvent = require('../../../dist/services/cloudwatchevent');
 const cloudWatchEventsCalls = require('../../../dist/aws/cloudwatch-events-calls');
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
-const ServiceContext = require('../../../dist/datatypes/service-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context').ProduceEventsContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

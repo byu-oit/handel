@@ -14,12 +14,18 @@
  * limitations under the License.
  *
  */
-class ProduceEventsContext {
-    constructor(producingServiceContext, consumingServiceContext) {
-        this.producingServiceContext = producingServiceContext;
-        this.consumingServiceContext = consumingServiceContext;
-        //Does anything else go here?
+import { ServiceContext } from './service-context';
+
+export class UnBindContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: string;
+
+    constructor(serviceContext: ServiceContext) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
     }
 }
-
-module.exports = exports = ProduceEventsContext;

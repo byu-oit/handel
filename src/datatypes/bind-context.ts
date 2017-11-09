@@ -14,12 +14,16 @@
  * limitations under the License.
  *
  */
-class EnvironmentDeployResult {
-    constructor(status, message, error) {
-        this.status = status;
-        this.message = message;
-        this.error = error;
+import { ServiceContext } from './service-context';
+
+export class BindContext {
+    public dependencyServiceContext: ServiceContext;
+    public dependentOfServiceContext: ServiceContext;
+
+    constructor(dependencyServiceContext: ServiceContext,
+                dependentOfServiceContext: ServiceContext) {
+        this.dependencyServiceContext = dependencyServiceContext;
+        this.dependentOfServiceContext = dependentOfServiceContext;
+        // Should anything else go here?
     }
 }
-
-module.exports = exports = EnvironmentDeployResult;

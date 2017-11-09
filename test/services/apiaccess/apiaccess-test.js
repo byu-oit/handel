@@ -15,9 +15,9 @@
  *
  */
 const apiaccess = require('../../../dist/services/apiaccess');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

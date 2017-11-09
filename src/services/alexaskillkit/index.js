@@ -15,8 +15,8 @@
  *
  */
 const winston = require('winston');
-const DeployContext = require('../../datatypes/deploy-context');
-const ProduceEventsContext = require('../../datatypes/produce-events-context');
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
 
 const SERVICE_NAME = "Alexa Skill Kit";
 

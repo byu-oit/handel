@@ -16,9 +16,9 @@
  */
 const winston = require('winston');
 const handlebarsUtils = require('../../common/handlebars-utils');
-const DeployContext = require('../../datatypes/deploy-context');
-const UnDeployContext = require('../../datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../datatypes/produce-events-context');
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const UnDeployContext = require('../../datatypes/un-deploy-context').UnDeployContext;
+const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const produceEventsPhaseCommon = require('../../common/produce-events-phase-common');
 const iotDeployersCommon = require('../../common/iot-deployers-common');

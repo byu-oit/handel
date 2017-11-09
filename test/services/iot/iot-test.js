@@ -16,10 +16,10 @@
  */
 const iot = require('../../../dist/services/iot');
 const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context').ProduceEventsContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;

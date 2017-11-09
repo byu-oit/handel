@@ -14,12 +14,20 @@
  * limitations under the License.
  *
  */
-class EnvironmentDeleteResult {
-    constructor(status, message, error) {
-        this.status = status;
-        this.message = message;
-        this.error = error;
+import { AccountConfig } from './account-config';
+
+export class EnvironmentContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceContexts: any;
+    public accountConfig: AccountConfig;
+
+    constructor(appName: string,
+                environmentName: string,
+                accountConfig: AccountConfig) {
+        this.appName = appName;
+        this.environmentName = environmentName;
+        this.serviceContexts = {};
+        this.accountConfig = accountConfig;
     }
 }
-
-module.exports = exports = EnvironmentDeleteResult;

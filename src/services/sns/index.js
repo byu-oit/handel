@@ -16,8 +16,8 @@
  */
 const winston = require('winston');
 const handlebarsUtils = require('../../common/handlebars-utils');
-const ProduceEventsContext = require('../../datatypes/produce-events-context');
-const DeployContext = require('../../datatypes/deploy-context');
+const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
 const snsCalls = require('../../aws/sns-calls');
 const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');

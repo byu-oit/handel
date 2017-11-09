@@ -15,7 +15,7 @@
  *
  */
 const elasticacheDeployersCommon = require('../../dist/common/elasticache-deployers-common');
-const ServiceContext = require('../../dist/datatypes/service-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

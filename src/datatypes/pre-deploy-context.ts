@@ -14,12 +14,20 @@
  * limitations under the License.
  *
  */
-class ConsumeEventsContext {
-    constructor(consumingServiceContext, producingServiceContext) {
-        this.consumingServiceContext = consumingServiceContext;
-        this.producingServiceContext = producingServiceContext;
-        //Does anything else go here?
+import { ServiceContext } from './service-context';
+
+export class PreDeployContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: string;
+    public securityGroups: any[];
+
+    constructor(serviceContext: ServiceContext) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+        this.securityGroups = []; // Empty until service deployer fills it
     }
 }
-
-module.exports = exports = ConsumeEventsContext;

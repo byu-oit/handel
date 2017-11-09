@@ -15,9 +15,9 @@
  *
  */
 const winston = require('winston');
-const DeployContext = require('../../datatypes/deploy-context');
-const UnDeployContext = require('../../datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../datatypes/produce-events-context');
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const UnDeployContext = require('../../datatypes/un-deploy-context').UnDeployContext;
+const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
 const cloudWatchEventsCalls = require('../../aws/cloudwatch-events-calls');
 const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
