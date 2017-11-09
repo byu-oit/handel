@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../dist/datatypes/service-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
 const iotDeployersCommon = require('../../dist/common/iot-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;

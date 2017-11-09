@@ -14,13 +14,15 @@
  * limitations under the License.
  *
  */
-class EnvironmentContext {
-    constructor(appName, environmentName, accountConfig) {
-        this.appName = appName;
-        this.environmentName = environmentName;
-        this.serviceContexts = {};
-        this.accountConfig = accountConfig;
-    }
+export interface AccountConfig {
+    account_id: number;
+    region: string;
+    vpc: string;
+    public_subnets: string[];
+    private_subnets: string[];
+    data_subnets: string[];
+    ssh_bastion_sg: string;
+    elasticache_subnet_group: string;
+    rds_subnet_group: string;
+    redshift_subnet_group: string;
 }
-
-module.exports = exports = EnvironmentContext;

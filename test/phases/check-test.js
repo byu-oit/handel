@@ -15,8 +15,8 @@
  *
  */
 const checkPhase = require('../../dist/phases/check');
-const EnvironmentContext = require('../../dist/datatypes/environment-context');
-const ServiceContext = require('../../dist/datatypes/service-context');
+const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
 const expect = require('chai').expect;
 
 function getServiceDeployers() {

@@ -14,13 +14,16 @@
  * limitations under the License.
  *
  */
-class UnDeployContext {
-    constructor(serviceContext) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
+import { ServiceContext } from './service-context';
+
+export class ConsumeEventsContext {
+    public consumingServiceContext: ServiceContext;
+    public producingServiceContext: ServiceContext;
+
+    constructor(consumingServiceContext: ServiceContext,
+                producingServiceContext: ServiceContext) {
+        this.consumingServiceContext = consumingServiceContext;
+        this.producingServiceContext = producingServiceContext;
+        // TODO - Does anything else go here?
     }
 }
-
-module.exports = exports = UnDeployContext;

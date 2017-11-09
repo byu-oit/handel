@@ -15,7 +15,7 @@
  *
  */
 const winston = require('winston');
-const DeployContext = require('../../datatypes/deploy-context');
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
 const fs = require('fs');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const util = require('../../common/util');

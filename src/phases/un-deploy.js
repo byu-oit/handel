@@ -15,7 +15,7 @@
  *
  */
 const winston = require('winston');
-const UnDeployContext = require('../datatypes/un-deploy-context.js');
+const UnDeployContext = require('../datatypes/un-deploy-context.js').UnDeployContext;
 const lifecyclesCommon = require('../common/lifecycles-common');
 
 exports.unDeployServicesInLevel = function (serviceDeployers, environmentContext, deployOrder, level) {

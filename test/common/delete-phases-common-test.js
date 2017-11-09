@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../dist/datatypes/service-context');
-const UnDeployContext = require('../../dist/datatypes/un-deploy-context');
-const UnBindContext = require('../../dist/datatypes/un-bind-context');
-const UnPreDeployContext = require('../../dist/datatypes/un-pre-deploy-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const UnDeployContext = require('../../dist/datatypes/un-deploy-context').UnDeployContext;
+const UnBindContext = require('../../dist/datatypes/un-bind-context').UnBindContext;
+const UnPreDeployContext = require('../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
 const deletePhasesCommon = require('../../dist/common/delete-phases-common');
 const cloudformationCalls = require('../../dist/aws/cloudformation-calls');
 const ec2Calls = require('../../dist/aws/ec2-calls');

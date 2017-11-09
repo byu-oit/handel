@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-class ServiceContext {
-    constructor(appName, envName, serviceName,
-                serviceType, params, accountConfig) {
-            this.appName = appName;
-            this.environmentName = envName;
-            this.serviceName = serviceName;
-            this.serviceType = serviceType;
-            this.params = params;
-            this.accountConfig = accountConfig;
+export class EnvironmentDeleteResult {
+    public status: string;
+    public message: string;
+    public error: Error;
+
+    constructor(status: string,
+                message: string,
+                error: Error) {
+        this.status = status;
+        this.message = message;
+        this.error = error;
     }
 }
-
-module.exports = exports = ServiceContext;

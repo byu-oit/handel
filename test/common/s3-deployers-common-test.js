@@ -15,7 +15,7 @@
  *
  */
 const s3DeployersCommon = require('../../dist/common/s3-deployers-common');
-const ServiceContext = require('../../dist/datatypes/service-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
 const deployPhaseCommon = require('../../dist/common/deploy-phase-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;

@@ -71,7 +71,7 @@ Outputs:
     Value: !GetAtt Instance.Endpoint.Address
   DatabasePort:
     Description: The port of the RDS database
-    Value: !GetAtt Instance.Endpoint.Address
+    Value: !GetAtt Instance.Endpoint.Port
   DatabaseName:
     Description: The name of the database
     Value: {{databaseName}}

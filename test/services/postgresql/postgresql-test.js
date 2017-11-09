@@ -16,17 +16,17 @@
  */
 const postgresql = require('../../../dist/services/postgresql');
 const cloudFormationCalls = require('../../../dist/aws/cloudformation-calls');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
-const BindContext = require('../../../dist/datatypes/bind-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
+const BindContext = require('../../../dist/datatypes/bind-context').BindContext;
 const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
 const bindPhaseCommon = require('../../../dist/common/bind-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
 const rdsDeployersCommon = require('../../../dist/common/rds-deployers-common');
-const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context');
-const UnBindContext = require('../../../dist/datatypes/un-bind-context');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
+const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
+const UnBindContext = require('../../../dist/datatypes/un-bind-context').UnBindContext;
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

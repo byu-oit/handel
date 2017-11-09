@@ -15,8 +15,8 @@
  *
  */
 const expect = require('chai').expect;
-const ServiceContext = require('../../dist/datatypes/service-context');
-const ConsumeEventsContext = require('../../dist/datatypes/consume-events-context');
+const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const ConsumeEventsContext = require('../../dist/datatypes/consume-events-context').ConsumeEventsContext;
 
 describe('ConsumeEventsContext', function () {
     it('should be able to be constructed from a ServiceContext', function () {

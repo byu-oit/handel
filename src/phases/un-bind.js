@@ -15,7 +15,7 @@
  *
  */
 const winston = require('winston');
-const UnBindContext = require('../datatypes/un-bind-context');
+const UnBindContext = require('../datatypes/un-bind-context').UnBindContext;
 const lifecyclesCommon = require('../common/lifecycles-common');
 
 exports.unBindServicesInLevel = function (serviceDeployers, environmentContext, deployOrder, level) {

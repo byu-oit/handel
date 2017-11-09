@@ -15,13 +15,13 @@
  *
  */
 const dynamodb = require('../../../dist/services/dynamodb');
-const ServiceContext = require('../../../dist/datatypes/service-context');
-const DeployContext = require('../../../dist/datatypes/deploy-context');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context');
+const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context');
-const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context');
+const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context').ProduceEventsContext;
 const handlebarsUtils = require('../../../dist/common/handlebars-utils');
 const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
 const clone = require('clone');

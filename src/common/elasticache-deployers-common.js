@@ -1,5 +1,3 @@
-const uuid = require('uuid');
-
 /**
  * Given the stack name, returns the name of the Elasticache cluster
  * 

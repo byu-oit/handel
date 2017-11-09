@@ -14,12 +14,16 @@
  * limitations under the License.
  *
  */
-class BindContext {
-    constructor(dependencyServiceContext, dependentOfServiceContext) {
-        this.dependencyServiceContext = dependencyServiceContext;
-        this.dependentOfServiceContext = dependentOfServiceContext;
-        //Should anything else go here?
+import { ServiceContext } from './service-context';
+
+export class ProduceEventsContext {
+    public producingServiceContext: ServiceContext;
+    public consumingServiceContext: ServiceContext;
+
+    constructor(producingServiceContext: ServiceContext,
+                consumingServiceContext: ServiceContext) {
+        this.producingServiceContext = producingServiceContext;
+        this.consumingServiceContext = consumingServiceContext;
+        // Does anything else go here?
     }
 }
-
-module.exports = exports = BindContext;

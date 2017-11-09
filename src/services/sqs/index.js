@@ -16,8 +16,8 @@
  */
 const winston = require('winston');
 const handlebarsUtils = require('../../common/handlebars-utils');
-const DeployContext = require('../../datatypes/deploy-context');
-const ConsumeEventsContext = require('../../datatypes/consume-events-context');
+const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const ConsumeEventsContext = require('../../datatypes/consume-events-context').ConsumeEventsContext;
 const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const deletePhasesCommon = require('../../common/delete-phases-common');
