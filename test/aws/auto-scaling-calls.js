@@ -54,6 +54,8 @@ describe('autoScalingCalls', function () {
 
     it('should return an array of results on success', function () {
       AWS.mock('AutoScaling', 'describeAutoScalingInstances', Promise.resolve({AutoScalingInstances:[]}));
+      AWS.mock('AutoScaling', 'describeLaunchConfigurations', Promise.resolve({LaunchConfigurations: []}));
+      
       return autoScalingCalls.describeLaunchConfigurationsByInstanceIds([])
       .then(result=>{expect(result.LaunchConfigurations).to.be.an('array');});
     });

@@ -6,9 +6,7 @@
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
     "build": "gulp build",
-    "test": "gulp test",
-    "test-debug": "./node_modules/mocha/bin/mocha --debug-brk 'test/**/*.js'",
-    "test-coverage": "./node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -- -u exports -R spec 'test/**/*-test.js'"
+    "test": "./node_modules/mocha/bin/mocha -r ts-node/register 'test/**/*.ts' && gulp build && ./node_modules/mocha/bin/mocha 'test/**/*.js'"
   },
   "bin": {
     "handel": "./bin/handel"
@@ -35,8 +33,11 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.0.4",
     "@types/lodash": "^4.14.80",
+    "@types/mocha": "^2.2.44",
     "@types/node": "^8.0.47",
+    "@types/sinon": "^2.3.7",
     "@types/winston": "^2.3.7",
     "aws-sdk-mock": "^1.6.1",
     "chai": "^3.5.0",
@@ -52,6 +53,7 @@
     "sinon": "^1.17.7",
     "sinon-chai": "^2.13.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.5.3"
+    "typescript": "^2.5.3",
+    "ts-node": "^3.3.0"
   }
 }

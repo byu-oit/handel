@@ -16,17 +16,18 @@
  */
 import * as SES from 'aws-sdk/clients/ses';
 import * as winston from 'winston';
+import * as awsWrapper from './aws-wrapper';
 
 export async function verifyEmailAddress(address: string) {
     const ses = new SES({ apiVersion: '2010-12-01' });
     winston.verbose(`Verifying ${address} if needed`);
 
-    const response = await ses.getIdentityVerificationAttributes({ Identities: [address] }).promise();
+    const response = await awsWrapper.ses.getIdentityVerificationAttributes({ Identities: [address] });
     const addressVerified: boolean = address in response.VerificationAttributes
         && response.VerificationAttributes[address].VerificationStatus !== 'Failed';
     if (!addressVerified) {
         winston.verbose(`Requested verification for ${address}`);
-        return ses.verifyEmailAddress({ EmailAddress: address }).promise();
+        return awsWrapper.ses.verifyEmailAddress({ EmailAddress: address });
     }
     winston.verbose(`${address} is already verified`);
 }
