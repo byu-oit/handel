@@ -114,7 +114,7 @@ export function preDeploy(serviceContext: ServiceContext): Promise<PreDeployCont
 export function bind(ownServiceContext: ServiceContext,
                      ownPreDeployContext: PreDeployContext,
                      dependentOfServiceContext: ServiceContext,
-                     dependentOfPreDeployContext: PreDeployContext) {
+                     dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
     return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext,
         ownPreDeployContext,
         dependentOfServiceContext,
