@@ -152,6 +152,7 @@ export async function deploy(ownServiceContext: ServiceContext,
                                                                  dbUsername,
                                                                  dbPassword,
                                                                  deployedStack);
+        winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
         return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
     }
     else {
