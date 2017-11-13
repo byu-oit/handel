@@ -38,107 +38,32 @@ Resources:
                   - "dynamodb:UpdateTable"
                 Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/{{tableName}}"
 
-  {{#if read.scaled}}
-  TableReadCapacityScalableTarget:
+  {{#each targets}}
+  {{logicalIdPrefix}}CapacityScalableTarget:
     Type: "AWS::ApplicationAutoScaling::ScalableTarget"
     Properties:
-      MaxCapacity: {{read.max}}
-      MinCapacity: {{read.min}}
-      ResourceId: "table/{{tableName}}"
+      MaxCapacity: {{max}}
+      MinCapacity: {{min}}
+      ResourceId: "{{resourceId}}"
       RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ScalableDimension: dynamodb:{{dimension}}
       ServiceNamespace: dynamodb
 
-  TableReadScalingPolicy:
+  {{logicalIdPrefix}}ScalingPolicy:
     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    {{#if dependsOn}}
+    DependsOn:
+      - {{dependsOn}}ScalingPolicy
+    {{/if}}
     Properties:
-      PolicyName: ReadAutoScalingPolicy
+      PolicyName: {{logicalIdPrefix}}AutoScalingPolicy
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref TableReadCapacityScalableTarget
+      ScalingTargetId: !Ref {{logicalIdPrefix}}CapacityScalableTarget
       TargetTrackingScalingPolicyConfiguration:
-        TargetValue: {{read.target}}
+        TargetValue: {{target}}
         ScaleInCooldown: 60
         ScaleOutCooldown: 60
         PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization
+          PredefinedMetricType: {{metric}}
 
-  {{/if}}
-
-  {{#if write.scaled}}
-  TableWriteCapacityScalableTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties:
-      MaxCapacity: {{write.max}}
-      MinCapacity: {{write.min}}
-      ResourceId: "table/{{tableName}}"
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:WriteCapacityUnits
-      ServiceNamespace: dynamodb
-
-  TableWriteScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties:
-      PolicyName: WriteAutoScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref TableWriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: {{write.target}}
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  {{/if}}
-
-  {{#each globalIndexes}}
-  {{#if read.scaled}}
-  Index{{logicalId indexName}}ReadCapacityScalableTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties:
-      MaxCapacity: {{read.max}}
-      MinCapacity: {{read.min}}
-      ResourceId: "table/{{../tableName}}/index/{{indexName}}"
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:index:ReadCapacityUnits
-      ServiceNamespace: dynamodb
-
-  Index{{logicalId indexName}}ReadScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties:
-      PolicyName: ReadAutoScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref Index{{logicalId indexName}}ReadCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: {{read.target}}
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization
-
-  {{/if}}
-  {{#if write.scaled}}
-  Index{{logicalId indexName}}WriteCapacityScalableTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties:
-      MaxCapacity: {{write.max}}
-      MinCapacity: {{write.min}}
-      ResourceId: "table/{{../tableName}}/index/{{indexName}}"
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:index:WriteCapacityUnits
-      ServiceNamespace: dynamodb
-
-  Index{{logicalId indexName}}WriteScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties:
-      PolicyName: WriteAutoScalingPolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref Index{{logicalId indexName}}WriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: {{write.target}}
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  {{/if}}
   {{/each}}

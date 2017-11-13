@@ -294,6 +294,9 @@ describe('dynamodb deployer', function () {
             let deployStackStub;
             let ownPreDeployContext;
             let dependenciesDeployContexts;
+
+            let fullTableName = 'FakeApp-FakeEnv-FakeService-dynamodb';
+
             beforeEach(function () {
                 templateSpy = sandbox.spy(handlebarsUtils, 'compileTemplate');
 
@@ -337,20 +340,32 @@ describe('dynamodb deployer', function () {
                         expect(tableParams).to.have.property('tableReadCapacityUnits', '1');
                         expect(tableParams).to.have.property('tableWriteCapacityUnits', '2');
 
-                        expect(autoscaleParams).to.have.property('read')
-                            .which.includes({
-                                max: '10',
-                                min: '1',
-                                target: '70',
-                                scaled: true
-                            });
-                        expect(autoscaleParams).to.have.property('write')
-                            .which.includes({
-                                max: '5',
-                                min: '2',
-                                target: '99',
-                                scaled: true
-                            });
+                        expect(autoscaleParams).to.have.property('targets')
+                            .with.lengthOf(2);
+
+                        let targets = autoscaleParams.targets;
+
+                        expect(targets[0], 'table read target').to.include({
+                            logicalIdPrefix: 'TableRead',
+                            min: '1',
+                            max: '10',
+                            target: '70',
+                            dimension: 'table:ReadCapacityUnits',
+                            metric: 'DynamoDBReadCapacityUtilization',
+                            resourceId: 'table/' + fullTableName,
+                            dependsOn: null
+                        });
+
+                        expect(targets[1], 'table write target').to.include({
+                            logicalIdPrefix: 'TableWrite',
+                            min: '2',
+                            max: '5',
+                            target: '99',
+                            dimension: 'table:WriteCapacityUnits',
+                            metric: 'DynamoDBWriteCapacityUtilization',
+                            resourceId: 'table/' + fullTableName,
+                            dependsOn: 'TableRead'
+                        });
                     });
             });
 
@@ -374,20 +389,32 @@ describe('dynamodb deployer', function () {
                         expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', '2');
                         expect(tableParams).to.have.property('tableWriteCapacityUnits', '2');
 
-                        expect(autoscaleParams).to.have.property('read')
-                            .which.includes({
-                                max: '10',
-                                min: '1',
-                                target: '70',
-                                scaled: true
-                            });
-                        expect(autoscaleParams).to.have.property('write')
-                            .which.includes({
-                                max: '5',
-                                min: '2',
-                                target: '99',
-                                scaled: true
-                            });
+                        expect(autoscaleParams).to.have.property('targets')
+                            .with.lengthOf(4);
+
+                        let targets = autoscaleParams.targets;
+
+                        expect(targets[2], 'index read target').to.deep.include({
+                            logicalIdPrefix: 'IndexMyglobalRead',
+                            min: '1',
+                            max: '10',
+                            target: '70',
+                            dimension: 'index:ReadCapacityUnits',
+                            metric: 'DynamoDBReadCapacityUtilization',
+                            resourceId: 'table/' + fullTableName + '/index/myglobal',
+                            dependsOn: 'TableWrite'
+                        });
+
+                        expect(targets[3], 'index write target').to.deep.include({
+                            logicalIdPrefix: 'IndexMyglobalWrite',
+                            min: '2',
+                            max: '5',
+                            target: '99',
+                            dimension: 'index:WriteCapacityUnits',
+                            metric: 'DynamoDBWriteCapacityUtilization',
+                            resourceId: 'table/' + fullTableName + '/index/myglobal',
+                            dependsOn: 'IndexMyglobalRead'
+                        });
                     });
             });
 
@@ -414,22 +441,31 @@ describe('dynamodb deployer', function () {
                         expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', '2');
                         expect(tableParams).to.have.property('tableWriteCapacityUnits', '3');
 
-                        expect(autoscaleParams).to.have.property('globalIndexes').which.has.lengthOf(1);
+                        expect(autoscaleParams).to.have.property('targets').which.has.lengthOf(2);
 
-                        expect(autoscaleParams.globalIndexes[0]).to.have.property('read')
-                            .which.includes({
-                                max: '10',
-                                min: '1',
-                                target: '70',
-                                scaled: true
-                            });
-                        expect(autoscaleParams.globalIndexes[0]).to.have.property('write')
-                            .which.includes({
-                                max: '5',
-                                min: '2',
-                                target: '99',
-                                scaled: true
-                            });
+                        let targets = autoscaleParams.targets;
+
+                        expect(targets[0], 'index read target').to.deep.include({
+                            logicalIdPrefix: 'IndexMyglobalRead',
+                            min: '1',
+                            max: '10',
+                            target: '70',
+                            dimension: 'index:ReadCapacityUnits',
+                            metric: 'DynamoDBReadCapacityUtilization',
+                            resourceId: 'table/' + fullTableName + '/index/myglobal',
+                            dependsOn: null
+                        });
+
+                        expect(targets[1], 'index write target').to.deep.include({
+                            logicalIdPrefix: 'IndexMyglobalWrite',
+                            min: '2',
+                            max: '5',
+                            target: '99',
+                            dimension: 'index:WriteCapacityUnits',
+                            metric: 'DynamoDBWriteCapacityUtilization',
+                            resourceId: 'table/' + fullTableName + '/index/myglobal',
+                            dependsOn: 'IndexMyglobalRead'
+                        });
                     });
             });
 

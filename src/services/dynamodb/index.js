@@ -21,11 +21,38 @@ const deletePhasesCommon = require('../../common/delete-phases-common');
 const handlebarsUtils = require('../../common/handlebars-utils');
 const DeployContext = require('../../datatypes/deploy-context').DeployContext;
 const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+const normalizeLogicalId = require('../../common/util').normalizeLogicalId;
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE = {
     String: "S",
     Number: "N"
-}
+};
+
+const SCALING_TYPES = {
+    READ: 'READ',
+    WRITE: 'WRITE'
+};
+
+const SCALING_LOGICAL_ID_SUFFIXES = {
+    READ: 'Read',
+    WRITE: 'Write'
+};
+
+const SCALING_TARGET_TYPES = {
+    TABLE: 'table',
+    INDEX: 'index'
+};
+
+const SCALING_DIMENSION_UNITS = {
+    READ: 'ReadCapacityUnits',
+    WRITE: 'WriteCapacityUnits'
+};
+
+const SCALING_METRIC_TYPES = {
+    READ: 'DynamoDBReadCapacityUtilization',
+    WRITE: 'DynamoDBWriteCapacityUtilization'
+};
+
 const SERVICE_NAME = "DynamoDB";
 
 const DEFAULT_CAPACITY_UNITS = '1';
@@ -72,7 +99,7 @@ function getLambdaConsumers(serviceContext) {
             serviceName: consumer.service_name,
             batchSize: consumer.batch_size
         })
-    })
+    });
     return lambdaConsumers;
 }
 
@@ -106,7 +133,7 @@ function tableOrIndexesHaveAutoscaling(ownServiceContext) {
         }
     }
 
-    if(params.global_indexes) {
+    if (params.global_indexes) {
         for (let idx of params.global_indexes) {
             if (provisionedThroughputHasAutoscaling(idx.provisioned_throughput)) {
                 return true;
@@ -176,30 +203,6 @@ function getDefinedAttributes(ownServiceContext) {
     return definedAttributes;
 }
 
-function getReadCapacityUnits(config) {
-    if (config.provisioned_throughput && config.provisioned_throughput.read_capacity_units) {
-        let parsed = parseThroughputCapacity(config.provisioned_throughput.read_capacity_units);
-        if (parsed.scaled) {
-            return parsed.min;
-        } else {
-            return parsed.fixed;
-        }
-    }
-    return DEFAULT_CAPACITY_UNITS;
-}
-
-function getWriteCapacityUnits(config) {
-    if (config.provisioned_throughput && config.provisioned_throughput.write_capacity_units) {
-        let parsed = parseThroughputCapacity(config.provisioned_throughput.write_capacity_units);
-        if (parsed.scaled) {
-            return parsed.min;
-        } else {
-            return parsed.fixed;
-        }
-    }
-    return DEFAULT_CAPACITY_UNITS;
-}
-
 function getGlobalIndexConfig(ownServiceContext, tableThroughputConfig) {
     let serviceParams = ownServiceContext.params;
 
@@ -210,8 +213,8 @@ function getGlobalIndexConfig(ownServiceContext, tableThroughputConfig) {
 
         let handlebarsGlobalIndex = {
             indexName: globalIndexConfig.name,
-            indexReadCapacityUnits: throughput.read.fixed,
-            indexWriteCapacityUnits: throughput.write.fixed,
+            indexReadCapacityUnits: throughput.read.initial,
+            indexWriteCapacityUnits: throughput.write.initial,
             indexPartitionKeyName: globalIndexConfig.partition_key.name,
             indexProjectionAttributes: globalIndexConfig.attributes_to_copy
         };
@@ -220,28 +223,6 @@ function getGlobalIndexConfig(ownServiceContext, tableThroughputConfig) {
         if (globalIndexConfig.sort_key) {
             handlebarsGlobalIndex.indexSortKeyName = globalIndexConfig.sort_key.name
         }
-
-        handlebarsGlobalIndexes.push(handlebarsGlobalIndex);
-    }
-
-    return handlebarsGlobalIndexes;
-}
-
-function getGlobalIndexAutoscalingConfig(ownServiceContext, tableThroughput) {
-    let serviceParams = ownServiceContext.params;
-
-    let handlebarsGlobalIndexes = [];
-
-    for (let globalIndexConfig of serviceParams.global_indexes) {
-        let throughput = globalIndexConfig.provisioned_throughput || {};
-
-        let throughputConfig = getThroughputConfig(throughput, tableThroughput);
-
-        let handlebarsGlobalIndex = {
-            indexName: globalIndexConfig.name,
-        };
-
-        Object.assign(handlebarsGlobalIndex, throughputConfig);
 
         handlebarsGlobalIndexes.push(handlebarsGlobalIndex);
     }
@@ -277,8 +258,8 @@ function getCompiledDynamoTemplate(stackName, ownServiceContext) {
         tableName: stackName,
         attributeDefinitions: getDefinedAttributes(ownServiceContext),
         tablePartitionKeyName: serviceParams.partition_key.name,
-        tableReadCapacityUnits: throughputConfig.read.fixed,
-        tableWriteCapacityUnits: throughputConfig.write.fixed,
+        tableReadCapacityUnits: throughputConfig.read.initial,
+        tableWriteCapacityUnits: throughputConfig.write.initial,
         tags: deployPhaseCommon.getTags(ownServiceContext)
     };
 
@@ -302,21 +283,86 @@ function getCompiledDynamoTemplate(stackName, ownServiceContext) {
 function getCompiledAutoscalingTemplate(mainStackName, ownServiceContext) {
     let serviceParams = ownServiceContext.params;
 
-    let throughput = serviceParams.provisioned_throughput;
+    let tableName = mainStackName;
 
     let handlebarsParams = {
-        tableName: mainStackName,
+        tableName,
+        targets: getScalingTargets(serviceParams, tableName)
     };
 
-    let throughputConfig = getThroughputConfig(throughput, null);
+    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
+}
 
-    Object.assign(handlebarsParams, throughputConfig);
+function getScalingTargets(serviceParams, tableName) {
+    let configs = [];
+
+    let tableThroughput = getThroughputConfig(serviceParams.provisioned_throughput, null);
+
+    configs.push(...extractScalingTargets(tableThroughput, SCALING_TARGET_TYPES.TABLE, 'Table', 'table/' + tableName));
 
     if (serviceParams.global_indexes) {
-        handlebarsParams.globalIndexes = getGlobalIndexAutoscalingConfig(ownServiceContext, throughputConfig);
+        let indexConfigs = serviceParams.global_indexes
+            .map(config => {
+                let throughput = getThroughputConfig(config.provisioned_throughput, tableThroughput);
+                let idxName = config.name;
+                return extractScalingTargets(
+                    throughput,
+                    SCALING_TARGET_TYPES.INDEX,
+                    'Index' + normalizeLogicalId(idxName),
+                    'table/' + tableName + '/index/' + idxName
+                );
+            }).reduce((acc, cur) => {
+                return acc.concat(cur);
+            }, []);
+        configs.push(...indexConfigs);
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
+    configs.forEach((each, idx, array) => {
+        if (idx === 0) {
+            return;
+        }
+        let prev = array[idx - 1];
+        each.dependsOn = prev.logicalIdPrefix;
+    });
+
+    return configs;
+}
+
+
+function extractScalingTargets(throughputConfig, targetType, logicalIdPrefix, resourceId) {
+    let configs = [];
+    if (throughputConfig.read.scaled) {
+        configs.push(getScalingConfig(throughputConfig.read, SCALING_TYPES.READ, logicalIdPrefix, targetType, resourceId));
+    }
+    if (throughputConfig.write.scaled) {
+        configs.push(getScalingConfig(throughputConfig.write, SCALING_TYPES.WRITE, logicalIdPrefix, targetType, resourceId));
+    }
+    return configs;
+}
+
+function getScalingConfig(config, scalingType, logicalIdPrefix, targetType, resourceId) {
+    return new AutoscalingDefinition(
+        logicalIdPrefix + SCALING_LOGICAL_ID_SUFFIXES[scalingType],
+        config.min,
+        config.max,
+        config.target,
+        targetType + ':' + SCALING_DIMENSION_UNITS[scalingType],
+        SCALING_METRIC_TYPES[scalingType],
+        resourceId
+    );
+}
+
+class AutoscalingDefinition {
+    constructor(logicalIdPrefix, min, max, target, dimension, metric, resourceId) {
+        this.logicalIdPrefix = logicalIdPrefix;
+        this.min = min;
+        this.max = max;
+        this.target = target;
+        this.dimension = dimension;
+        this.metric = metric;
+        this.resourceId = resourceId;
+        this.dependsOn = null;
+    }
 }
 
 function getThroughputConfig(throughputConfig, defaultConfig) {
@@ -348,7 +394,7 @@ function assembleThroughputConfig(capacity, targetUtilization, defaultConfig) {
     } else {
         Object.assign(
             result,
-            {fixed: DEFAULT_CAPACITY_UNITS, target: DEFAULT_AUTOSCALING_TARGET_UTILIZATION, scaled: false},
+            {initial: DEFAULT_CAPACITY_UNITS, target: DEFAULT_AUTOSCALING_TARGET_UTILIZATION, scaled: false},
             defaultConfig
         );
     }
@@ -358,17 +404,17 @@ function assembleThroughputConfig(capacity, targetUtilization, defaultConfig) {
 
 function parseThroughputCapacity(capacity) {
     if (!capacity) {
-        return {fixed: DEFAULT_CAPACITY_UNITS, scaled: false};
+        return {initial: DEFAULT_CAPACITY_UNITS, scaled: false};
     }
     let result = valid_throughput_pattern.exec(capacity);
     if (!result) {
-        return {fixed: capacity, scaled: false};
+        return {initial: capacity, scaled: false};
     }
     let [, min, max] = result;
     if (!max) {
-        return {fixed: capacity, scaled: false};
+        return {initial: capacity, scaled: false};
     }
-    return {fixed: min, min, max, scaled: true};
+    return {initial: min, min, max, scaled: true};
 }
 
 const valid_throughput_pattern = /^(\d+)(?:-(\d+))?$/;
