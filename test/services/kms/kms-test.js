@@ -159,6 +159,37 @@ describe('kms deployer', function () {
                 });
         });
 
+
+        it('should set auto_rotate to true if not specified', function () {
+            let alias = `alias/${appName}/${envName}/FakeService`;
+            let aliasArn = 'arn:aws:kms:us-west-2:000000000:' + alias;
+            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'KeyId',
+                    OutputValue: keyId
+                }, {
+                    OutputKey: 'KeyArn',
+                    OutputValue: keyArn
+                }, {
+                    OutputKey: 'AliasName',
+                    OutputValue: alias
+                }, {
+                    OutputKey: 'AliasArn',
+                    OutputValue: aliasArn
+                }]
+            }));
+
+            let preDeployContext = new PreDeployContext(serviceContext);
+
+            return kms.deploy(serviceContext, preDeployContext, [])
+                .then(deployContext => {
+                    expect(deployStackStub.callCount).to.equal(1);
+
+                    expect(deployStackStub.firstCall.args[1]).to.contain('EnableKeyRotation: true');
+                });
+        });
+
+
     });
 
     describe('unDeploy', function () {

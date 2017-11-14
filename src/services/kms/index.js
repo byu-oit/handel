@@ -62,8 +62,10 @@ function getDeployContext(serviceContext, cfStack) {
 function getCompiledTemplate(ownServiceContext) {
     let serviceParams = ownServiceContext.params;
 
+    let autoRotate = serviceParams.hasOwnProperty('auto_rotate') ? !!serviceParams.auto_rotate : true;
+
     let handlebarsParams = {
-        autoRotate: !!serviceParams.auto_rotate,
+        autoRotate: autoRotate,
         alias: serviceParams.alias || getDefaultAlias(ownServiceContext)
     };
 
