@@ -23,6 +23,7 @@ software:
       - Shell
       - CircleCI.com
       - NodeJS
+      - TypeScript
     stages:
       production:
         urls:
