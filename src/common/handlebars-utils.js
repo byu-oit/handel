@@ -26,7 +26,7 @@ handlebars.registerHelper('logicalId', util.normalizeLogicalId);
  * 
  * @param {String} filename - The full path of the template file on disk to read 
  * @param {Object} variables - A Javascript object containing the variables to be used by Handlebars for the template
- * @returns {String} - The finished template with variables replaced
+ * @returns {Promise<String>} - The finished template with variables replaced
  */
 exports.compileTemplate = function (filename, variables) {
     //TODO - This doesn't handle errors yet

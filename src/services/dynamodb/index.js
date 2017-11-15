@@ -21,15 +21,14 @@ const deletePhasesCommon = require('../../common/delete-phases-common');
 const handlebarsUtils = require('../../common/handlebars-utils');
 const DeployContext = require('../../datatypes/deploy-context').DeployContext;
 const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+const autoscaling = require('./autoscaling');
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE = {
     String: "S",
     Number: "N"
-}
-const SERVICE_NAME = "DynamoDB";
+};
 
-const DEFAULT_CAPACITY_UNITS = '1';
-const DEFAULT_AUTOSCALING_TARGET_UTILIZATION = '70';
+const SERVICE_NAME = "DynamoDB";
 
 function getTablePolicyForDependentServices(tableName, accountConfig) {
     let tableArn = buildTableARN(tableName, accountConfig);
@@ -72,7 +71,7 @@ function getLambdaConsumers(serviceContext) {
             serviceName: consumer.service_name,
             batchSize: consumer.batch_size
         })
-    })
+    });
     return lambdaConsumers;
 }
 
@@ -96,35 +95,6 @@ function getDeployContext(serviceContext, cfStack) {
     }));
 
     return deployContext;
-}
-
-function tableOrIndexesHaveAutoscaling(ownServiceContext) {
-    let params = ownServiceContext.params;
-    if (params.provisioned_throughput) {
-        if (provisionedThroughputHasAutoscaling(params.provisioned_throughput)) {
-            return true;
-        }
-    }
-
-    if(params.global_indexes) {
-        for (let idx of params.global_indexes) {
-            if (provisionedThroughputHasAutoscaling(idx.provisioned_throughput)) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-function provisionedThroughputHasAutoscaling(provisionedThroughput) {
-    if (!provisionedThroughput) {
-        return false;
-    }
-    let read = parseThroughputCapacity(provisionedThroughput.read_capacity_units);
-    let write = parseThroughputCapacity(provisionedThroughput.write_capacity_units);
-
-    return read.scaled || write.scaled;
 }
 
 function addDefinedAttribute(definedAttrs, attrName, attrType) {
@@ -176,42 +146,18 @@ function getDefinedAttributes(ownServiceContext) {
     return definedAttributes;
 }
 
-function getReadCapacityUnits(config) {
-    if (config.provisioned_throughput && config.provisioned_throughput.read_capacity_units) {
-        let parsed = parseThroughputCapacity(config.provisioned_throughput.read_capacity_units);
-        if (parsed.scaled) {
-            return parsed.min;
-        } else {
-            return parsed.fixed;
-        }
-    }
-    return DEFAULT_CAPACITY_UNITS;
-}
-
-function getWriteCapacityUnits(config) {
-    if (config.provisioned_throughput && config.provisioned_throughput.write_capacity_units) {
-        let parsed = parseThroughputCapacity(config.provisioned_throughput.write_capacity_units);
-        if (parsed.scaled) {
-            return parsed.min;
-        } else {
-            return parsed.fixed;
-        }
-    }
-    return DEFAULT_CAPACITY_UNITS;
-}
-
 function getGlobalIndexConfig(ownServiceContext, tableThroughputConfig) {
     let serviceParams = ownServiceContext.params;
 
     let handlebarsGlobalIndexes = [];
 
     for (let globalIndexConfig of serviceParams.global_indexes) {
-        let throughput = getThroughputConfig(globalIndexConfig.provisioned_throughput, tableThroughputConfig);
+        let throughput = autoscaling.getThroughputConfig(globalIndexConfig.provisioned_throughput, tableThroughputConfig);
 
         let handlebarsGlobalIndex = {
             indexName: globalIndexConfig.name,
-            indexReadCapacityUnits: throughput.read.fixed,
-            indexWriteCapacityUnits: throughput.write.fixed,
+            indexReadCapacityUnits: throughput.read.initial,
+            indexWriteCapacityUnits: throughput.write.initial,
             indexPartitionKeyName: globalIndexConfig.partition_key.name,
             indexProjectionAttributes: globalIndexConfig.attributes_to_copy
         };
@@ -220,28 +166,6 @@ function getGlobalIndexConfig(ownServiceContext, tableThroughputConfig) {
         if (globalIndexConfig.sort_key) {
             handlebarsGlobalIndex.indexSortKeyName = globalIndexConfig.sort_key.name
         }
-
-        handlebarsGlobalIndexes.push(handlebarsGlobalIndex);
-    }
-
-    return handlebarsGlobalIndexes;
-}
-
-function getGlobalIndexAutoscalingConfig(ownServiceContext, tableThroughput) {
-    let serviceParams = ownServiceContext.params;
-
-    let handlebarsGlobalIndexes = [];
-
-    for (let globalIndexConfig of serviceParams.global_indexes) {
-        let throughput = globalIndexConfig.provisioned_throughput || {};
-
-        let throughputConfig = getThroughputConfig(throughput, tableThroughput);
-
-        let handlebarsGlobalIndex = {
-            indexName: globalIndexConfig.name,
-        };
-
-        Object.assign(handlebarsGlobalIndex, throughputConfig);
 
         handlebarsGlobalIndexes.push(handlebarsGlobalIndex);
     }
@@ -271,14 +195,14 @@ function getLocalIndexConfig(ownServiceContext) {
 function getCompiledDynamoTemplate(stackName, ownServiceContext) {
     let serviceParams = ownServiceContext.params;
 
-    let throughputConfig = getThroughputConfig(serviceParams.provisioned_throughput, null);
+    let throughputConfig = autoscaling.getThroughputConfig(serviceParams.provisioned_throughput, null);
 
     let handlebarsParams = {
         tableName: stackName,
         attributeDefinitions: getDefinedAttributes(ownServiceContext),
         tablePartitionKeyName: serviceParams.partition_key.name,
-        tableReadCapacityUnits: throughputConfig.read.fixed,
-        tableWriteCapacityUnits: throughputConfig.write.fixed,
+        tableReadCapacityUnits: throughputConfig.read.initial,
+        tableWriteCapacityUnits: throughputConfig.write.initial,
         tags: deployPhaseCommon.getTags(ownServiceContext)
     };
 
@@ -297,125 +221,6 @@ function getCompiledDynamoTemplate(stackName, ownServiceContext) {
         handlebarsParams.streamViewType = serviceParams.stream_view_type;
     }
     return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
-}
-
-function getCompiledAutoscalingTemplate(mainStackName, ownServiceContext) {
-    let serviceParams = ownServiceContext.params;
-
-    let throughput = serviceParams.provisioned_throughput;
-
-    let handlebarsParams = {
-        tableName: mainStackName,
-    };
-
-    let throughputConfig = getThroughputConfig(throughput, null);
-
-    Object.assign(handlebarsParams, throughputConfig);
-
-    if (serviceParams.global_indexes) {
-        handlebarsParams.globalIndexes = getGlobalIndexAutoscalingConfig(ownServiceContext, throughputConfig);
-    }
-
-    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
-}
-
-function getThroughputConfig(throughputConfig, defaultConfig) {
-    let throughput = throughputConfig || {};
-    let defaults = defaultConfig || {};
-    let defaultRead = defaults.read || {};
-    let defaultWrite = defaults.write || {};
-
-    let read = assembleThroughputConfig(
-        throughput.read_capacity_units,
-        throughput.read_target_utilization,
-        defaultRead
-    );
-
-    let write = assembleThroughputConfig(
-        throughput.write_capacity_units,
-        throughput.write_target_utilization,
-        defaultWrite
-    );
-
-    return {read, write};
-}
-
-function assembleThroughputConfig(capacity, targetUtilization, defaultConfig) {
-    let result = {};
-    if (capacity) {
-        Object.assign(result, parseThroughputCapacity(capacity));
-        result.target = String(targetUtilization || defaultConfig.throughput || DEFAULT_AUTOSCALING_TARGET_UTILIZATION);
-    } else {
-        Object.assign(
-            result,
-            {fixed: DEFAULT_CAPACITY_UNITS, target: DEFAULT_AUTOSCALING_TARGET_UTILIZATION, scaled: false},
-            defaultConfig
-        );
-    }
-    return result;
-}
-
-
-function parseThroughputCapacity(capacity) {
-    if (!capacity) {
-        return {fixed: DEFAULT_CAPACITY_UNITS, scaled: false};
-    }
-    let result = valid_throughput_pattern.exec(capacity);
-    if (!result) {
-        return {fixed: capacity, scaled: false};
-    }
-    let [, min, max] = result;
-    if (!max) {
-        return {fixed: capacity, scaled: false};
-    }
-    return {fixed: min, min, max, scaled: true};
-}
-
-const valid_throughput_pattern = /^(\d+)(?:-(\d+))?$/;
-
-function checkProvisionedThroughput(throughput, errorPrefix) {
-    if (!throughput) {
-        return [];
-    }
-
-    let errors = [];
-
-    let read = throughput.read_capacity_units;
-    let write = throughput.write_capacity_units;
-    let readTarget = throughput.read_target_utilization;
-    let writeTarget = throughput.write_target_utilization;
-
-    if (read && !valid_throughput_pattern.test(read)) {
-        errors.push("'read_capacity_units' must be either a number or a numeric range (ex: 1-100)")
-    }
-    if (write && !valid_throughput_pattern.test(write)) {
-        errors.push("'write_capacity_units' must be either a number or a numeric range (ex: 1-100)")
-    }
-    if (readTarget && !isValidTargetUtilization(readTarget)) {
-        errors.push("'read_target_utilization' must be a number between 0 and 100");
-    }
-    if (writeTarget && !isValidTargetUtilization(writeTarget)) {
-        errors.push("'write_target_utilization' must be a number between 0 and 100");
-    }
-
-    return errors.map(it => errorPrefix + it);
-}
-
-function isValidTargetUtilization(number) {
-    return number > 0 && number <= 100
-}
-
-function getAutoscalingStackName(ownServiceContext) {
-    return deployPhaseCommon.getResourceName(ownServiceContext) + '-autoscaling';
-}
-
-function undeployAutoscaling(ownServiceContext) {
-    let stackName = getAutoscalingStackName(ownServiceContext);
-    return cloudFormationCalls.getStack(stackName).then(result => {
-        if (result) {
-            return cloudFormationCalls.deleteStack(stackName);
-        }
-    });
 }
 
 
@@ -442,7 +247,7 @@ exports.check = function (serviceContext, dependenciesServiceContexts) {
     }
 
     //Check throughput
-    errors.push(...checkProvisionedThroughput(params.provisioned_throughput, `${SERVICE_NAME} - `));
+    errors.push(...autoscaling.checkProvisionedThroughput(params.provisioned_throughput, `${SERVICE_NAME} - `));
 
     //Check global indexes
     if (params.global_indexes) {
@@ -462,7 +267,7 @@ exports.check = function (serviceContext, dependenciesServiceContexts) {
                     errors.push(`${SERVICE_NAME} - The 'type' field in the 'partition_key' section is required in the 'global_indexes' section`);
                 }
             }
-            errors.push(...checkProvisionedThroughput(globalIndexConfig.provisioned_throughput, `${SERVICE_NAME} - global_indexes - `))
+            errors.push(...autoscaling.checkProvisionedThroughput(globalIndexConfig.provisioned_throughput, `${SERVICE_NAME} - global_indexes - `))
         }
     }
 
@@ -501,13 +306,8 @@ exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesD
             return deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, stackTags);
         })
         .then(deployedStack => {
-            if (!tableOrIndexesHaveAutoscaling(ownServiceContext)) {
-                return deployedStack;
-            }
-            return getCompiledAutoscalingTemplate(stackName, ownServiceContext)
-                .then(compiledTemplate => {
-                    return deployPhaseCommon.deployCloudFormationStack(getAutoscalingStackName(ownServiceContext), compiledTemplate, [], true, SERVICE_NAME, stackTags);
-                }).then(() => deployedStack);
+            return autoscaling.deployAutoscaling(stackName, ownServiceContext, SERVICE_NAME, stackTags)
+                .then(() => deployedStack);
         })
         .then(deployedStack => {
             winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
@@ -520,7 +320,7 @@ exports.produceEvents = function (ownServiceContext, ownDeployContext, consumerS
 }
 
 exports.unDeploy = function (ownServiceContext) {
-    return undeployAutoscaling(ownServiceContext)
+    return autoscaling.undeployAutoscaling(ownServiceContext)
         .then(() => {
             return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
         });

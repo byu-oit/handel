@@ -16,20 +16,21 @@
  */
 
 import { AccountConfig } from './account-config';
+import ServiceConfig from './service-config';
 
-export class ServiceContext {
+export class ServiceContext<Config extends ServiceConfig = any> {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
     public serviceType: string;
-    public params: any;
+    public params: Config;
     public accountConfig: AccountConfig;
 
     constructor(appName: string,
                 environmentName: string,
                 serviceName: string,
                 serviceType: string,
-                params: any,
+                params: Config | any,
                 accountConfig: AccountConfig) {
             this.appName = appName;
             this.environmentName = environmentName;
