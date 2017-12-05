@@ -1,6 +1,6 @@
 {
   "name": "handel",
-  "version": "0.20.9",
+  "version": "0.20.10",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "lib/handel.js",
   "scripts": {
