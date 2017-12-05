@@ -65,6 +65,11 @@ Resources:
       StreamSpecification:
         StreamViewType: {{streamViewType}}
       {{/if}}
+      {{#if ttlAttribute}}
+      TimeToLiveSpecification:
+        AttributeName: "{{ttlAttribute}}"
+        Enabled: true
+      {{/if}}
       {{#if tags}}
       Tags:
       {{#each tags}}

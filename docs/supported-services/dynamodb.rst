@@ -42,6 +42,11 @@ Parameters
      - No
      - 5 for read and write
      - The ProvisionedThroughput element details how much provisioned IOPS you want on your table for reads and writes.
+   * - ttl_attribute
+     - string
+     - No
+     - None
+     - Configures the attribute to use for `DynamoDB TTL and auto-expiration <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html>`_.
    * - local_indexes
      - :ref:`dynamodb-local-indexes`
      - No
