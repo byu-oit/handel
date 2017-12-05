@@ -51,11 +51,6 @@ describe('Deploy phase common module', function () {
             let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, { FOO: 'bar' });
             expect(vars).to.have.property('FAKESERVICE_FOO', 'bar');
         });
-
-        it('should return environment variables with the legacy format', function () {
-            let vars = deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, { FOO: 'bar' });
-            expect(vars).to.have.property('FAKETYPE_FAKEAPP_FAKEENV_FAKESERVICE_FOO', 'bar');
-        });
     });
 
     describe('getSsmParamName', function () {

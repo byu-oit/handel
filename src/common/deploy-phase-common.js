@@ -36,16 +36,10 @@ exports.getInjectedEnvVarName = function (serviceContext, suffix) {
 
 exports.getInjectedEnvVarsFor = function(serviceContext, outputs) {
     return Object.keys(outputs).reduce((obj, name) => {
-        let value = outputs[name];
-        obj[exports.getInjectedEnvVarName(serviceContext, name)] = value;
-        obj[legacyEnvVarName(serviceContext, name)] = value;
+        obj[exports.getInjectedEnvVarName(serviceContext, name)] = outputs[name];
         return obj;
     }, {});
 };
-
-function legacyEnvVarName(serviceContext, name) {
-    return `${serviceContext.serviceType}_${serviceContext.appName}_${serviceContext.environmentName}_${serviceContext.serviceName}_${name}`.toUpperCase().replace(/-/g, "_");
-}
 
 function injectedSsmParamPrefix(serviceContext) {
     return `${serviceContext.appName}.${serviceContext.environmentName}.${serviceContext.serviceName}`;
