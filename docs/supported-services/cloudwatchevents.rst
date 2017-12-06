@@ -19,7 +19,7 @@ Parameters
      - string
      - Yes
      - 
-     - This must always be *cloudwatchevents* for this service type.
+     - This must always be *cloudwatchevent* for this service type.
    * - description
      - string
      - No
@@ -84,7 +84,6 @@ This Handel file shows a CloudWatch Events service being configured, producing t
           runtime: nodejs6.10
         schedule:
           type: cloudwatchevent
-          schedule: rate(1 minute)
           event_pattern:
             source: 
             - aws.ec2
