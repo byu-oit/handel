@@ -7,49 +7,29 @@ to AWS. You specify a declarative file in your application called *handel.yml*,
 and Handel will deploy your application to AWS for you.
 
 Handel runs on top of CloudFormation. It automatically creates CloudFormation
-templates from your Handel file, and deploys your applications in a secure fashion. 
-It takes care of as many of the painful little details of your deployment as 
-it can, so that you can focus on just configuring the details you actually care about.
+templates from your Handel file, and deploys your applications in a secure fashion,
+providing a vastly easier experience than using vanilla CloudFormation.
 
 Why does Handel exist?
 ----------------------
 Handel runs on top of CloudFormation, so why not use CloudFormation directly?
 
-CloudFormation is a great tool to provision and deploy applications in the AWS cloud, 
-but it can be difficult and time-consuming to become proficient at using it. One
-of the biggest difficulties in using CloudFormation is that you must become proficient
-in wiring services together with IAM roles and EC2 security groups. This makes for
-a steep learning curve when you want to deploy an application in AWS.
+The main answer is that using CloudFormation comes with a very steep learning curve.
+The main difficulty comes not in learning the configuration language itself, but much
+more in the interactions required between resources with IAM roles and EC2 security
+groups.
 
-Handel takes some of this responsibility for you in order to ease the
-work you have to do for your deployments. It takes over the process of
-creating the multiple resources in CloudFormation, and securely wiring
-these resources together.
+By running on top of CloudFormation, Handel provides the following benefits:
 
-In short, you get to retain the benefits of CloudFormation with less work!
+- Automatic security wiring, freeing you from having to worry about EC2 security groups and IAM roles.
+- Much simpler interface to configuring an application. A 400-line CloudFormation template can be configured in more like 30-40 lines. See :ref:`handel-vs-cloudformation` for an example of this.
 
-What benefits does Handel provide over vanilla CloudFormation
--------------------------------------------------------------
-.. IMPORTANT::
-
-    *Handel is not a rewrite of CloudFormation.* Instead, Handel is an 
-    abstraction on top of CloudFormation. It uses CloudFormation under the 
-    hood to deploy your applications.
-
-Handel provides the following benefits over using CloudFormation directly:
-
--  A much simpler interface to deploying an application. A 400-line
-   CloudFormation template can be configured in more like 20-30 lines in
-   a Handel file. See :ref:`handel-vs-cloudformation` for an example of
-   this.
--  Services are securely wired together for you with EC2 security
-   groups.
--  Services are securely wired together with IAM roles.
+By using Handel, you get to retain the benefits of CloudFormation with less work!
 
 What AWS services are supported?
 --------------------------------
 See the :ref:`supported-services` section for information on which 
-services you can use with Handel.
+AWS services you can currently use with Handel.
 
 How can I deploy an application with Handel?
 --------------------------------------------

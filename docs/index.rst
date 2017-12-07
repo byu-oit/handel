@@ -29,7 +29,7 @@ Here's an example Handel file defining a Beanstalk application to be deployed wi
           type: sqs
 
 From this Handel file, Handel creates the appropriate CloudFormation templates for you,
-including taking care of all the tricky security bits wiring services together.
+including taking care of all the tricky security bits to make the services be able to talk to each other.
 
 .. toctree::
    :maxdepth: 1
