@@ -1,8 +1,11 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Handel-created Fargate Service
+Description: Handel-created Fargate App
 
 Resources:
+  #
+  # Configure IAM resources for Fargate resources
+  #
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -37,7 +40,7 @@ Resources:
           - '{{{this}}}'
           {{/each}}
         {{/each}}
-  EcsIamRole:
+  EcsIamRole: # TODO is this needed for fargate?
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -51,31 +54,30 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
-  EcsInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: "/"
-      Roles:
-      - Ref: EcsIamRole
 
   #
   # Configure ECS Cluster
   #
+  {{#if clusterName}}
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: {{clusterName}}
+  {{/if}}
 
   #
   # Configure ECS Service that runs on the cluster
   #
   EcsService:
     Type: AWS::ECS::Service
+    LaunchType: FARGATE
     DependsOn:
     {{#if oneOrMoreTasksHasRouting}}
     - AlbListener
     {{/if}}
+    {{#if clusterName}} # TODO can we do if clusterName != 'default'?
     - EcsCluster
+    {{/if}}
     Properties:
       Cluster:
         Ref: EcsCluster
@@ -103,9 +105,11 @@ Resources:
   TaskDefinition{{deploymentSuffix}}:
     Type: AWS::ECS::TaskDefinition
     Properties:
+      Cpu: {{cpuUnits}} #TODO should we and if so how do we limit the values to just the valid ones?
+      Memory: {{maxMb}} #TODO should we and if so how do we limit the values to just the valid ones?
       Family: {{clusterName}}
       TaskRoleArn: !GetAtt TaskRole.Arn
-      NetworkMode: bridge
+      NetworkMode: awsvpc
       {{#if volumes}}
       Volumes:
       {{#each volumes}}
@@ -114,12 +118,14 @@ Resources:
           SourcePath: {{sourcePath}}
       {{/each}}
       {{/if}}
+      RequiresCompatibilities:
+      - FARGATE
       ContainerDefinitions:
       {{#each containerConfigs}}
       - Name: {{name}}
         Image: {{imageName}}
-        Memory: {{maxMb}}
-        Cpu: {{cpuUnits}}
+        Memory: {{maxMb}} #TODO what should this value be given Memory in TaskDefinition is required?
+        Cpu: {{cpuUnits}} #TODO what should this value be given Cpu in TaskDefinition is required?
         Essential: true
         Privileged: false
         DisableNetworking: false
@@ -132,7 +138,7 @@ Resources:
         {{#if portMappings}}
         PortMappings:
         {{#each portMappings}}
-        - ContainerPort: {{this}}
+        - ContainerPort: {{this}} #TODO do we need to set HostPort here to 0 for ALB dynamic port configuration?
           Protocol: tcp
         {{/each}}
         {{/if}}
@@ -162,9 +168,9 @@ Resources:
   ContainerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: ecs/{{logGroupName}}
+      LogGroupName: fargate/{{logGroupName}}
       {{#if logRetentionInDays}}
-      RetentionInDays: {{logRetentionInDays}}
+      RetentionInDays: {{logRetentionInDays}} # possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
       {{/if}}
   {{/if}}
 
@@ -175,7 +181,7 @@ Resources:
   ServiceAutoScalingRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: {{clusterName}}-service-autoscaling
+      RoleName: {{clusterName}}-service-autoscaling # TODO what's a better name?
       Path: /services/
       AssumeRolePolicyDocument:
         Statement:
@@ -188,7 +194,7 @@ Resources:
   ServiceAutoScalingPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: {{clusterName}}-service-autoscaling
+      PolicyName: {{clusterName}}-service-autoscaling # TODO better name?
       Roles:
       - !Ref ServiceAutoScalingRole
       PolicyDocument:
@@ -262,7 +268,7 @@ Resources:
       Statistic: {{metricAggregationType}}
       Threshold: {{threshold}}
   {{/each}}
-  {{/if}}
+  {{/if}
 
   #
   # Configure Load Balancer if requested
