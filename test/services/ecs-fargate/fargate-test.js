@@ -16,11 +16,7 @@
  */
 const ecsFargate = require('../../../dist/services/ecs-fargate');
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
-const cloudformationCalls = require('../../../dist/aws/cloudformation-calls');
-const ec2Calls = require('../../../dist/aws/ec2-calls');
-const iamCalls = require('../../../dist/aws/iam-calls');
 const ecsCalls = require('../../../dist/aws/ecs-calls');
-const autoScalingCalls = require('../../../dist/aws/auto-scaling-calls');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
 const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
 const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
@@ -272,7 +268,7 @@ describe('fargate deployer', function () {
             let dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName);
 
             //Stub out AWS calls
-            let createServiceLinkedRoleStub = sandbox.stub(iamCalls, 'createServiceLinkedRoleIfNotExists').returns(Promise.resolve({}));
+            let createDefaultClusterStub = sandbox.stub(ecsCalls, 'createDefaultClusterIfNotExists').returns(Promise.resolve({}));
             let getHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').returns(Promise.resolve([{
                 Id: '1',
                 Name: 'myapp.byu.edu.'
@@ -287,7 +283,8 @@ describe('fargate deployer', function () {
                 .then(deployContext => {
                     expect(deployContext).to.be.instanceof(DeployContext);
                     expect(deployStackStub.callCount).to.equal(1);
-                    expect(createServiceLinkedRoleStub.callCount).to.equal(1);
+                    expect(createDefaultClusterStub.callCount).to.equal(1);
+                    expect(getHostedZonesStub.callCount).to.equal(1);
 
                     //DNS name setup
                     expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');

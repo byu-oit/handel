@@ -26,7 +26,7 @@ const routingSection = require('../../common/ecs-routing');
 const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const deletePhasesCommon = require('../../common/delete-phases-common');
-const iamCalls = require('../../aws/iam-calls');
+const ecsCalls = require('../../aws/ecs-calls');
 const route53 = require('../../aws/route53-calls');
 
 const SERVICE_NAME = "ECS Fargate";
@@ -114,7 +114,10 @@ exports.deploy = function(ownServiceContext, ownPreDeployContext, dependenciesDe
     let stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${SERVICE_NAME} - Deploying ECS Fargate Service '${stackName}'`);
 
-    return getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+    return ecsCalls.createDefaultClusterIfNotExists()
+        .then(() => {
+            return getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts)
+        })
         .then(compiledFargateTemplate => {
             let stackTags = deployPhaseCommon.getTags(ownServiceContext);
             return deployPhaseCommon.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, stackTags);
