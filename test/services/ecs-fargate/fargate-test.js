@@ -81,124 +81,110 @@ describe('fargate deployer', function () {
         sandbox.restore();
     });
 
-    // describe('check', function () {
-    //     let configToCheck;
+    describe('check', function () {
+        let configToCheck;
 
-    //     beforeEach(function () {
-    //         configToCheck = JSON.parse(JSON.stringify(VALID_ECS_CONFIG))
-    //         serviceContext.params = configToCheck;
-    //     });
+        beforeEach(function () {
+            configToCheck = JSON.parse(JSON.stringify(VALID_FARGATE_CONFIG))
+            serviceContext.params = configToCheck;
+        });
 
-    //     it('should require the auto_scaling section', function () {
-    //         delete configToCheck.auto_scaling;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'auto_scaling' section is required`);
-    //     });
+        it('should require the auto_scaling section', function () {
+            delete configToCheck.auto_scaling;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'auto_scaling' section is required`);
+        });
 
-    //     it('should require the min_tasks value in the auto_scaling section', function () {
-    //         delete configToCheck.auto_scaling.min_tasks;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'min_tasks' parameter is required`);
-    //     });
+        it('should require the min_tasks value in the auto_scaling section', function () {
+            delete configToCheck.auto_scaling.min_tasks;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'min_tasks' parameter is required`);
+        });
 
-    //     it('should require the max_tasks value in the auto_scaling section', function () {
-    //         delete configToCheck.auto_scaling.max_tasks;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'max_tasks' parameter is required`);
-    //     });
+        it('should require the max_tasks value in the auto_scaling section', function () {
+            delete configToCheck.auto_scaling.max_tasks;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'max_tasks' parameter is required`);
+        });
 
-    //     it('should require the type parameter when load_balancer section is present', function () {
-    //         delete configToCheck.load_balancer.type;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'type' parameter is required`);
-    //     });
+        it('should require the type parameter when load_balancer section is present', function () {
+            delete configToCheck.load_balancer.type;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'type' parameter is required`);
+        });
 
-    //     it('should require the https_certificate parameter when load_balancers type is https', function () {
-    //         delete configToCheck.load_balancer.https_certificate;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'https_certificate' parameter is required`);
-    //     });
+        it('should require the https_certificate parameter when load_balancers type is https', function () {
+            delete configToCheck.load_balancer.https_certificate;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'https_certificate' parameter is required`);
+        });
 
-    //     it('should validate dns hostnames', function () {
-    //         configToCheck.load_balancer.dns_names = ['invalid hostname'];
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'dns_names' values must be valid hostnames`);
-    //     });
+        it('should validate dns hostnames', function () {
+            configToCheck.load_balancer.dns_names = ['invalid hostname'];
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'dns_names' values must be valid hostnames`);
+        });
 
-    //     it('should require the container section be present', function () {
-    //         delete configToCheck.containers;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`You must specify at least one container`);
-    //     });
+        it('should require the container section be present', function () {
+            delete configToCheck.containers;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`You must specify at least one container`);
+        });
 
-    //     it('should require the name parameter in the container section', function () {
-    //         delete configToCheck.containers[0].name;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'name' parameter is required`);
-    //     });
+        it('should require the name parameter in the container section', function () {
+            delete configToCheck.containers[0].name;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'name' parameter is required`);
+        });
 
-    //     it('should not allow more than one container to have routing specified', function () {
-    //         configToCheck.containers.push({
-    //             name: 'othercontainer',
-    //             port_mappings: [5000],
-    //             routing: {
-    //                 base_path: '/myotherpath'
-    //             }
-    //         })
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container`);
-    //     });
+        it('should not allow more than one container to have routing specified', function () {
+            configToCheck.containers.push({
+                name: 'othercontainer',
+                port_mappings: [5000],
+                routing: {
+                    base_path: '/myotherpath'
+                }
+            })
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container`);
+        });
 
-    //     it('should require the port_mappings parameter when routing is specified', function () {
-    //         delete configToCheck.containers[0].port_mappings;
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(1);
-    //         expect(errors[0]).to.include(`'port_mappings' parameter is required`);
-    //     });
+        it('should require the port_mappings parameter when routing is specified', function () {
+            delete configToCheck.containers[0].port_mappings;
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`'port_mappings' parameter is required`);
+        });
 
-    //     it("should return no errors on a successful configuration", function () {
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors.length).to.equal(0);
-    //     });
+        it("should return no errors on a successful configuration", function () {
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors.length).to.equal(0);
+        });
 
-    //     describe("'logging' validation", function () {
-    //         it("should allow 'enabled'", function () {
-    //             serviceContext.params.logging = 'enabled';
-    //             let errors = ecs.check(serviceContext);
-    //             expect(errors).to.be.empty;
-    //         });
+        it("should require that 'log_retention_in_days' be a number", function () {
+            serviceContext.params.log_retention_in_days = 'a number';
 
-    //         it("should allow 'disabled'", function () {
-    //             serviceContext.params.logging = 'disabled';
-    //             let errors = ecs.check(serviceContext);
-    //             expect(errors).to.be.empty;
-    //         });
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors).to.have.lengthOf(1);
+            expect(errors[0]).to.contain("'log_retention_in_days' parameter must be a number")
+        });
+        
+        it("should return no errors when 'log_retention_in_days' is a number", function () {
+            serviceContext.params.log_retention_in_days = 30;
 
-    //         it("should reject anything else", function () {
-    //             serviceContext.params.logging = 'something else';
-    //             let errors = ecs.check(serviceContext);
-    //             expect(errors).to.have.lengthOf(1);
-    //             expect(errors[0]).to.contain("'logging' parameter must be either 'enabled' or 'disabled'")
-    //         });
-    //     });
-
-    //     it("should require that 'log_retention_in_days' be a number", function () {
-    //         serviceContext.params.log_retention_in_days = 'a number';
-
-    //         let errors = ecs.check(serviceContext);
-    //         expect(errors).to.have.lengthOf(1);
-    //         expect(errors[0]).to.contain("'log_retention_in_days' parameter must be a number")
-    //     });
-    // });
+            let errors = ecsFargate.check(serviceContext);
+            expect(errors).to.have.lengthOf(0);
+        });
+    });
 
     describe('preDeploy', function () {
         it('should create a security group and add ingress to self and SSH bastion', function () {

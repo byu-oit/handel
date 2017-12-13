@@ -98,6 +98,12 @@ function getCompiledEcsFargateTemplate(serviceName, ownServiceContext, ownPreDep
 exports.check = function(serviceContext, dependenciesServiceContexts) {
     // TODO check that all values are valid, like Cpu and Memory, logRetentionInDays possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
     let errors = [];
+    let params = serviceContext.params
+    let retention = params.log_retention_in_days;
+
+    if (retention && typeof retention !== 'number') {
+        errors.push(`${SERVICE_NAME} - The 'log_retention_in_days' parameter must be a number`);
+    }
     
     serviceAutoScalingSection.checkAutoScalingSection(serviceContext, SERVICE_NAME, errors);
     routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);

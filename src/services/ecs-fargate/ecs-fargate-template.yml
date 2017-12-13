@@ -157,6 +157,8 @@ Resources:
       LogGroupName: fargate/{{logGroupName}}
       {{#if logRetentionInDays}}
       RetentionInDays: {{logRetentionInDays}}
+      {{else}}
+      RetentionInDays: 30
       {{/if}}
 
   #
