@@ -1,6 +1,6 @@
-const deployPhaseCommon = require('../../common/deploy-phase-common');
-const routingSection = require('./routing');
-const volumesSection = require('./volumes');
+const deployPhaseCommon = require('./deploy-phase-common');
+const routingSection = require('./ecs-routing');
+const volumesSection = require('./ecs-volumes');
 const _ = require('lodash');
 
 function serviceDefinitionHasContainer(serviceParams, containerName) {

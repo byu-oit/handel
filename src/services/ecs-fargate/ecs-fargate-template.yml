@@ -1,0 +1,409 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created ECS-backed Fargate App
+
+Resources:
+  #
+  # Configure IAM resources for Fargate resources
+  #
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{serviceName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "ecs-tasks.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  TaskRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{serviceName}}
+      Roles:
+      - !Ref TaskRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ecs-tasks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  #
+  # Configure ECS Service that runs on the cluster
+  #
+  EcsService:
+    Type: AWS::ECS::Service
+    {{#if oneOrMoreTasksHasRouting}}
+    DependsOn:
+    - AlbListener
+    {{/if}}
+    Properties:
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
+      DesiredCount: {{autoScaling.minTasks}}
+      {{#if oneOrMoreTasksHasRouting}}
+      LoadBalancers:
+      {{#each containerConfigs}}
+      {{#if routingInfo}}
+      - ContainerName: {{name}}
+        ContainerPort: {{routingInfo.containerPort}}
+        TargetGroupArn:
+          Ref: AlbTargetGroup{{name}}
+      {{/if}}
+      {{/each}}
+      {{/if}}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: 
+          - {{ecsSecurityGroupId}}
+          Subnets:
+          {{#each privateSubnetIds}}
+          - {{this}}
+          {{/each}}
+      TaskDefinition:
+        Ref: TaskDefinition{{deploymentSuffix}}
+  TaskDefinition{{deploymentSuffix}}:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: {{cpuUnits}}
+      Memory: {{maxMb}}
+      Family: {{serviceName}}
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      NetworkMode: awsvpc
+      {{#if volumes}}
+      Volumes:
+      {{#each volumes}}
+      - Name: {{name}}
+        Host:
+          SourcePath: {{sourcePath}}
+      {{/each}}
+      {{/if}}
+      RequiresCompatibilities:
+      - FARGATE
+      ContainerDefinitions:
+      {{#each containerConfigs}}
+      - Name: {{name}}
+        Image: {{imageName}}
+        Essential: true
+        Privileged: false
+        DisableNetworking: false
+        {{#if links}}
+        Links:
+        {{#each links}}
+        - {{this}}
+        {{/each}}
+        {{/if}}
+        {{#if portMappings}}
+        PortMappings:
+        {{#each portMappings}}
+        - ContainerPort: {{this}}
+          Protocol: tcp
+        {{/each}}
+        {{/if}}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: !Ref ContainerLogGroup
+            awslogs-region: !Ref "AWS::Region"
+            awslogs-stream-prefix: {{name}}
+        Environment:
+        {{#each environmentVariables}}
+        - Name: {{@key}}
+          Value: {{this}}
+        {{/each}}
+        {{#if mountPoints}}
+        MountPoints:
+        {{#each mountPoints}}
+        - SourceVolume: {{sourceVolume}}
+          ContainerPath: {{containerPath}}
+        {{/each}}
+        {{/if}}
+      {{/each}}
+
+  ContainerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: fargate/{{logGroupName}}
+      {{#if logRetentionInDays}}
+      RetentionInDays: {{logRetentionInDays}}
+      {{else}}
+      RetentionInDays: 30
+      {{/if}}
+
+  #
+  # Configure Service Auto Scaling
+  #
+  {{#if autoScaling.scalingEnabled}}
+  ServiceAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{serviceName}}-service-autoscaling
+      Path: /services/
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - application-autoscaling.amazonaws.com
+          Action:
+          - 'sts:AssumeRole'
+  ServiceAutoScalingPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{serviceName}}-service-autoscaling
+      Roles:
+      - !Ref ServiceAutoScalingRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+          - 'application-autoscaling:*'
+          - 'cloudwatch:DescribeAlarms'
+          - 'cloudwatch:PutMetricAlarm'
+          - 'ecs:DescribeServices'
+          - 'ecs:UpdateService'
+          Resource:
+          - '*'
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: {{autoScaling.maxTasks}}
+      MinCapacity: {{autoScaling.minTasks}}
+      ResourceId: !Join ["", [ "service/{{serviceName}}/", !GetAtt EcsService.Name]]
+      RoleARN: !GetAtt ServiceAutoScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+  {{#each autoScaling.scalingPolicies}}
+  ServiceScalingPolicy{{@index}}:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: {{../serviceName}}-{{@index}}
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: {{adjustmentType}}
+        Cooldown: {{cooldown}}
+        MetricAggregationType: {{metricAggregationType}}
+        StepAdjustments:
+        - ScalingAdjustment: {{adjustmentValue}}
+          {{#if scaleUp}}
+          MetricIntervalLowerBound: 0
+          {{/if}}
+          {{#if scaleDown}}
+          MetricIntervalUpperBound: 0
+          {{/if}}
+  ServiceScalingAlarm{{@index}}:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+      - !Ref ServiceScalingPolicy{{@index}}
+      AlarmDescription: Handel-created alarm for ECS service '{{../serviceName}}'' application auto-scaling
+      ComparisonOperator: {{comparisonOperator}}
+      Dimensions:
+      {{#if dimensions}}
+      {{#each dimensions}}
+      - Name: {{name}}
+        Value: {{value}}
+      {{/each}}
+      {{else}}
+      - Name: ClusterName
+        Value: default
+      - Name: ServiceName
+        Value: !GetAtt EcsService.Name
+      {{/if}}
+      EvaluationPeriods: {{evaluationPeriods}}
+      {{#if scaleDown}}
+      InsufficientDataActions:
+      - !Ref ServiceScalingPolicy{{@index}}
+      {{/if}}
+      MetricName: {{metricName}}
+      Namespace: {{namespace}}
+      Period: {{period}}
+      Statistic: {{metricAggregationType}}
+      Threshold: {{threshold}}
+  {{/each}}
+  {{/if}}
+
+  #
+  # Configure Load Balancer if requested
+  #
+  {{#if oneOrMoreTasksHasRouting}}
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AlbSecurityGroup
+    Properties:
+      Name: {{loadBalancer.albName}}
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: 60
+      Subnets:
+      {{#each publicSubnetIds}}
+      - {{this}}
+      {{/each}}
+      SecurityGroups:
+      - Ref: AlbSecurityGroup
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{loadBalancer.albName}}
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: {{vpcId}}
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        {{#if loadBalancer.httpsCertificate}}
+        FromPort: '443'
+        ToPort: '443'
+        {{else}}
+        FromPort: '80'
+        ToPort: '80'
+        {{/if}}
+        CidrIp: 0.0.0.0/0
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{loadBalancer.albName}}-alb
+  EcsIngressFromAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AlbSecurityGroup
+    Properties:
+      GroupId: {{ecsSecurityGroupId}}
+      IpProtocol: tcp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId:
+        Ref: AlbSecurityGroup
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+    {{#each containerConfigs}}
+    {{#if routingInfo}}
+    - AlbTargetGroup{{name}}
+    {{/if}}
+    {{/each}}
+    - Alb
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup{{loadBalancer.defaultRouteContainer.name}}
+      LoadBalancerArn:
+        Ref: Alb
+      {{#if loadBalancer.httpsCertificate}}
+      Port: '443'
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: {{loadBalancer.httpsCertificate}}
+      {{else}}
+      Port: '80'
+      Protocol: HTTP
+      {{/if}}
+  {{#each containerConfigs}}
+  {{#if routingInfo}}
+  AlbListenerRule{{name}}:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn:
+    - AlbListener
+    - AlbTargetGroup{{name}}
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup{{name}}
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - "{{routingInfo.basePath}}"
+      ListenerArn:
+        Ref: AlbListener
+      Priority: {{routingInfo.albPriority}}
+  AlbTargetGroup{{name}}:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: {{routingInfo.healthCheckPath}}
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: {{routingInfo.targetGroupName}}
+      Port: 80
+      Protocol: HTTP
+      Tags:
+      {{#if ../tags}}
+      {{#each ../tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routingInfo.targetGroupName}}
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+      VpcId: {{../vpcId}}
+  {{/if}}
+  {{/each}}
+  {{#each loadBalancer.dnsNames}}
+  DnsName{{@index}}:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      Comment: Handel-created DNS Records for {{name}}
+      HostedZoneId: {{zoneId}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+  {{/each}}
+  {{/if}}

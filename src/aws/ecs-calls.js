@@ -20,7 +20,6 @@ const winston = require('winston');
 exports.listInstances = function (cluster) {
     let ECS = new AWS.ECS({ apiVersion: '2014-11-13' });
 
-
     const filter = function (dat) {
         let rc = {
             arn: dat.containerInstanceArn,
@@ -79,3 +78,36 @@ exports.listInstances = function (cluster) {
     return listWk({ name: cluster, ec2: [] });
 };
 
+exports.getCluster = function (clusterName) {
+    let ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+
+    const params = {
+        clusters: [ clusterName ]
+    };
+    return ecs.describeClusters(params).promise()
+        .then(describeResponse => {
+            if(describeResponse.clusters.length === 0) {
+                return null;
+            }
+            else {
+                return describeResponse.clusters[0];
+            }
+        });
+}
+
+exports.createDefaultClusterIfNotExists = function () {
+    let ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+    
+    return exports.getCluster("default")
+        .then(cluster => {
+            if(!cluster) {
+                return ecs.createCluster({}).promise()
+                    .then(createResponse => {
+                        return createResponse.cluster;
+                    });
+            }
+            else {
+                return cluster;
+            }
+        });
+}

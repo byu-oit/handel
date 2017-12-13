@@ -68,6 +68,7 @@ including taking care of all the tricky security bits to make the services be ab
    supported-services/cloudwatchevents
    supported-services/dynamodb
    supported-services/ecs
+   supported-services/ecs-fargate
    supported-services/efs
    supported-services/iot
    supported-services/kms
