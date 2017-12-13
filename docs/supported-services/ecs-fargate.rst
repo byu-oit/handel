@@ -1,14 +1,18 @@
-.. _ecs_fargate:
+.. _ecs-fargate:
 
 ECS Fargate
-===============================
+===========
 This page contains information about the ECS Fargate service supported in Handel. This Handel service provisions your application code as an ECS Fargate Service, with included supporting infrastructure such as load balancers and service auto-scaling groups.
+
+.. WARNING::
+
+    Support for ECS Fargate is currently in beta. Most things should work properly, but you may encounter bugs. If you do, please submit a `GitHub Issue <https://github.com/byu-oit/handel/issues>`_
 
 Service Limitations
 -------------------
 No EFS Support
-~~~~~~~~~~~~~~~~~~~~~~~
-Right now there is no EFS volume support in this service.
+~~~~~~~~~~~~~~
+Right now you can't consume EFS services as dependencies in this service.
 
 Unsupported ECS task features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,37 +48,32 @@ Parameters
      - 256
      - The max CPU units to use for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpuhttps://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu>`_
    * - containers
-     - :ref:`ecs-containers`
+     - :ref:`ecs-fargate-containers`
      - Yes
      - 
      - This section allows you to configure one or more containers that will make up your service.
    * - auto_scaling
-     - :ref:`ecs-autoscaling`
+     - :ref:`ecs-fargate-autoscaling`
      - Yes
      - 
      - This section contains information about scaling your tasks up and down.
    * - load_balancer
-     - :ref:`ecs-loadbalancer`
+     - :ref:`ecs-fargate-loadbalancer`
      - No
      - 
      - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
-   * - logging
-     - string
-     - No
-     - "enabled"
-     - Turns CloudWatch logging on or off. Must be either "enabled" or "disabled". See :ref:`ecs-logging` for more.
    * - log_retention_in_days
      - number
      - No
      - 0
      - Configures the log retention duration for CloudWatch logs. If set to `0`, logs are kept indefinitely.
    * - tags
-     - :ref:`ecs-tags`
+     - :ref:`ecs-fargate-tags`
      - No
      - 
      - This section allows you to specify any tags you wish to apply to your ECS service.
 
-.. _ecs-containers:
+.. _ecs-fargate-containers:
 
 Containers
 ~~~~~~~~~~
@@ -128,7 +127,7 @@ For example, if you don't specify an *image_name* in the below :ref:`ecs-example
     my-ecs-app-webapp-myothercontainer:dev
 
 
-.. _ecs-autoscaling:
+.. _ecs-fargate-autoscaling:
 
 AutoScaling
 ~~~~~~~~~~~
@@ -160,13 +159,13 @@ The `auto_scaling` section is defined by the following schema:
 
   Auto-scaling in AWS is based off the CloudWatch service. Configuring auto-scaling can be a bit daunting at first if you haven't used CloudWatch metrics or alarms. 
   
-  See the below :ref:`ecs-example-handel-files` section for some examples of configuring auto-scaling.
+  See the below :ref:`fargate-example-handel-files` section for some examples of configuring auto-scaling.
 
 .. NOTE::
 
   If you don't wish to configure auto scaling for your containers, just set `min_tasks` = `max_tasks` and don't configure any *scaling_policies*.
 
-.. _ecs-loadbalancer:
+.. _ecs-fargate-loadbalancer:
 
 LoadBalancer
 ~~~~~~~~~~~~
@@ -183,7 +182,7 @@ The `load_balancer` section is defined by the following schema:
 
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 
-.. _ecs-tags:
+.. _ecs-fargate-tags:
 
 Tags
 ~~~~
@@ -198,7 +197,7 @@ The `tags` section is defined by the following schema:
 
     Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
-.. _ecs-logging:
+.. _ecs-fargate-logging:
 
 Logging
 ~~~~~~~
@@ -206,24 +205,24 @@ If logging is enabled, a CloudWatch log group will be created, with a name like 
 Each container in the container configuration will have a log prefix matching its name. The retention time for the log
 group is set with `log_retention_in_days`, and defaults to keeping the logs indefinitely.
 
-.. _ecs-example-handel-files:
+.. _fargate-example-handel-files:
 
 Example Handel Files
 --------------------
-Simplest Possible ECS Service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Simplest Possible Fargate Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This Handel file shows an ECS service with only the required parameters:
 
 .. code-block:: yaml
 
     version: 1
 
-    name: my-ecs-app
+    name: my-fargate-app
 
     environments:
       dev:
         webapp:
-          type: ecs
+          type: ecs-fargate
           auto_scaling:
             min_tasks: 1
             max_tasks: 1
@@ -232,18 +231,18 @@ This Handel file shows an ECS service with only the required parameters:
 
 Web Service
 ~~~~~~~~~~~
-This Handel file shows an ECS service configured with HTTP routing to it via a load balancer:
+This Handel file shows a Fargate service configured with HTTP routing to it via a load balancer:
 
 .. code-block:: yaml
 
     version: 1
 
-    name: my-ecs-app
+    name: my-fargate-app
 
     environments:
       dev:
         webapp:
-          type: ecs
+          type: ecs-fargate
           auto_scaling:
             min_tasks: 1
             max_tasks: 1
@@ -259,20 +258,18 @@ This Handel file shows an ECS service configured with HTTP routing to it via a l
 
 Multiple Containers
 ~~~~~~~~~~~~~~~~~~~
-This Handel file shows an ECS service with two containers being configured:
+This Handel file shows a Fargate service with two containers being configured:
 
 .. code-block:: yaml
 
     version: 1
 
-    name: my-ecs-app
+    name: my-fargate-app
 
     environments:
       dev:
         webapp:
-          type: ecs
-          cluster:
-            key_name: mykey
+          type: ecs-fargate
           auto_scaling:
             min_tasks: 1
             max_tasks: 1
@@ -285,30 +282,27 @@ This Handel file shows an ECS service with two containers being configured:
           - name: mywebapp
             port_mappings:
             - 5000
-            max_mb: 256
-            cpu_units: 200
             environment_variables:
               MY_VAR: myvalue
             routing:
               base_path: /mypath
               health_check_path: /
           - name: myothercontainer
-            max_mb: 256
 
 Auto-Scaling On Service CPU Utilization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This Handel file shows an ECS service auto-scaling on its own CPU Utilization metric. Note that in the *alarm* section you can leave off things like *namespace* and *dimensions* and it will default to your ECS service for those values:
+This Handel file shows a Fargate service auto-scaling on its own CPU Utilization metric. Note that in the *alarm* section you can leave off things like *namespace* and *dimensions* and it will default to your Fargate service for those values:
 
 .. code-block:: yaml
 
     version: 1
 
-    name: my-ecs-app
+    name: my-fargate-app
 
     environments:
       dev:
         webapp:
-          type: ecs
+          type: ecs-fargate
           auto_scaling:
             min_tasks: 1
             max_tasks: 11
@@ -330,7 +324,7 @@ This Handel file shows an ECS service auto-scaling on its own CPU Utilization me
           load_balancer:
             type: http
           containers:
-          - name: ecstest
+          - name: fargatetest
             port_mappings:
             - 5000
             routing:
@@ -344,12 +338,12 @@ This Handel file shows an ECS service scaling off the size of a queue it consume
 
     version: 1
 
-    name: my-ecs-app
+    name: my-fargate-app
 
     environments:
       dev:
         webapp:
-          type: ecs
+          type: ecs-fargate
           auto_scaling:
             min_tasks: 1
             max_tasks: 11
@@ -360,7 +354,7 @@ This Handel file shows an ECS service scaling off the size of a queue it consume
               alarm:
                 namespace: AWS/SQS
                 dimensions:
-                  QueueName: my-ecs-app-dev-queue-sqs
+                  QueueName: my-fargate-app-dev-queue-sqs
                 metric_name: ApproximateNumberOfMessagesVisible
                 comparison_operator: GreaterThanThreshold
                 threshold: 2000
@@ -370,14 +364,14 @@ This Handel file shows an ECS service scaling off the size of a queue it consume
               alarm:
                 namespace: AWS/SQS
                 dimensions:
-                  QueueName: my-ecs-app-dev-queue-sqs
+                  QueueName: my-fargate-app-dev-queue-sqs
                 metric_name: ApproximateNumberOfMessagesVisible
                 comparison_operator: LessThanThreshold
                 threshold: 100
           load_balancer:
             type: http
           containers:
-          - name: ecstest
+          - name: fargatetest
             port_mappings:
             - 5000
             routing:
@@ -390,12 +384,12 @@ This Handel file shows an ECS service scaling off the size of a queue it consume
         
 Depending on this service
 -------------------------
-The ECS service cannot be referenced as a dependency for another Handel service
+The ECS Fargate service cannot be referenced as a dependency for another Handel service
 
 Events produced by this service
 -------------------------------
-The ECS service does not produce events for other Handel services to consume.
+The ECS Fargate service does not produce events for other Handel services to consume.
 
 Events consumed by this service
 -------------------------------
-The ECS service does not consume events from other Handel services.
+The ECS Fargate service does not consume events from other Handel services.
