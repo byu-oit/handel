@@ -1,4 +1,4 @@
-const deployPhaseCommon = require('../../common/deploy-phase-common');
+const deployPhaseCommon = require('./deploy-phase-common');
 
 function getDependenciesDeployContextMountPoints(dependenciesDeployContexts) {
     let mountPoints = [];

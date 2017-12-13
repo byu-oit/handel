@@ -33,7 +33,7 @@ describe('iam calls', function () {
         sandbox.restore();
         AWS.restore('IAM');
     });
-
+    
     describe('createRole', function () {
         it('should create the role', function () {
             let roleName = "FakeRole"

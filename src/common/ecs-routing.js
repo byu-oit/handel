@@ -1,4 +1,4 @@
-const route53 = require('../../aws/route53-calls');
+const route53 = require('../aws/route53-calls');
 
 function getDefaultRouteContainer(containerConfigs) {
     for(let containerConfig of containerConfigs) {
@@ -76,7 +76,7 @@ exports.getLoadBalancerConfig = function (serviceParams, containerConfigs, clust
     }
 
     //Configure the shortened ALB name (it has a limit of 32 chars)
-    loadBalancerConfig.albName = clusterName.substring(0,32);
+    loadBalancerConfig.albName = clusterName.substring(0,32).replace(/-$/, '');
 
     return loadBalancerConfig;
 }

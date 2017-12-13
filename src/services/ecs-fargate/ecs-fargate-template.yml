@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Handel-created Fargate App
+Description: Handel-created ECS-backed Fargate App
 
 Resources:
   #
@@ -9,7 +9,7 @@ Resources:
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: {{stackName}}
+      RoleName: {{serviceName}}
       Path: "/services/"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -23,7 +23,7 @@ Resources:
   TaskRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: {{stackName}}
+      PolicyName: {{serviceName}}
       Roles:
       - !Ref TaskRole
       PolicyDocument:
@@ -40,7 +40,7 @@ Resources:
           - '{{{this}}}'
           {{/each}}
         {{/each}}
-  EcsIamRole: # TODO is this needed for fargate?
+  TaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -49,40 +49,25 @@ Resources:
         - Effect: Allow
           Principal:
             Service:
-            - ec2.amazonaws.com
+            - ecs-tasks.amazonaws.com
           Action:
           - sts:AssumeRole
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
-
-  #
-  # Configure ECS Cluster
-  #
-  {{#if clusterName}}
-  EcsCluster:
-    Type: AWS::ECS::Cluster
-    Properties:
-      ClusterName: {{clusterName}}
-  {{/if}}
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
   #
   # Configure ECS Service that runs on the cluster
   #
   EcsService:
     Type: AWS::ECS::Service
-    LaunchType: FARGATE
-    DependsOn:
     {{#if oneOrMoreTasksHasRouting}}
+    DependsOn:
     - AlbListener
     {{/if}}
-    {{#if clusterName}} # TODO can we do if clusterName != 'default'?
-    - EcsCluster
-    {{/if}}
     Properties:
-      Cluster:
-        Ref: EcsCluster
+      LaunchType: FARGATE
       DeploymentConfiguration:
-        MaximumPercent: 200  #TODO - Does this need to be dynamically configured, or is just a blanket 200 ok?
+        MaximumPercent: 200
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
       DesiredCount: {{autoScaling.minTasks}}
       {{#if oneOrMoreTasksHasRouting}}
@@ -95,20 +80,26 @@ Resources:
           Ref: AlbTargetGroup{{name}}
       {{/if}}
       {{/each}}
-      Role: {{ecsServiceRoleArn}}
       {{/if}}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups: 
+          - {{ecsSecurityGroupId}}
+          Subnets:
+          {{#each privateSubnetIds}}
+          - {{this}}
+          {{/each}}
       TaskDefinition:
         Ref: TaskDefinition{{deploymentSuffix}}
-      PlacementStrategies:
-        - Type: spread
-          Field: instanceId
   TaskDefinition{{deploymentSuffix}}:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Cpu: {{cpuUnits}} #TODO should we and if so how do we limit the values to just the valid ones?
-      Memory: {{maxMb}} #TODO should we and if so how do we limit the values to just the valid ones?
-      Family: {{clusterName}}
+      Cpu: {{cpuUnits}}
+      Memory: {{maxMb}}
+      Family: {{serviceName}}
       TaskRoleArn: !GetAtt TaskRole.Arn
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
       NetworkMode: awsvpc
       {{#if volumes}}
       Volumes:
@@ -124,8 +115,6 @@ Resources:
       {{#each containerConfigs}}
       - Name: {{name}}
         Image: {{imageName}}
-        Memory: {{maxMb}} #TODO what should this value be given Memory in TaskDefinition is required?
-        Cpu: {{cpuUnits}} #TODO what should this value be given Cpu in TaskDefinition is required?
         Essential: true
         Privileged: false
         DisableNetworking: false
@@ -138,18 +127,16 @@ Resources:
         {{#if portMappings}}
         PortMappings:
         {{#each portMappings}}
-        - ContainerPort: {{this}} #TODO do we need to set HostPort here to 0 for ALB dynamic port configuration?
+        - ContainerPort: {{this}}
           Protocol: tcp
         {{/each}}
         {{/if}}
-        {{#if ../logging}}
         LogConfiguration:
           LogDriver: awslogs
           Options:
             awslogs-group: !Ref ContainerLogGroup
             awslogs-region: !Ref "AWS::Region"
             awslogs-stream-prefix: {{name}}
-        {{/if}}
         Environment:
         {{#each environmentVariables}}
         - Name: {{@key}}
@@ -164,15 +151,13 @@ Resources:
         {{/if}}
       {{/each}}
 
-  {{#if logging}}
   ContainerLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: fargate/{{logGroupName}}
       {{#if logRetentionInDays}}
-      RetentionInDays: {{logRetentionInDays}} # possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
+      RetentionInDays: {{logRetentionInDays}}
       {{/if}}
-  {{/if}}
 
   #
   # Configure Service Auto Scaling
@@ -181,7 +166,7 @@ Resources:
   ServiceAutoScalingRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: {{clusterName}}-service-autoscaling # TODO what's a better name?
+      RoleName: {{serviceName}}-service-autoscaling
       Path: /services/
       AssumeRolePolicyDocument:
         Statement:
@@ -194,7 +179,7 @@ Resources:
   ServiceAutoScalingPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: {{clusterName}}-service-autoscaling # TODO better name?
+      PolicyName: {{serviceName}}-service-autoscaling
       Roles:
       - !Ref ServiceAutoScalingRole
       PolicyDocument:
@@ -214,7 +199,7 @@ Resources:
     Properties:
       MaxCapacity: {{autoScaling.maxTasks}}
       MinCapacity: {{autoScaling.minTasks}}
-      ResourceId: !Join ["", [ "service/{{clusterName}}/", !GetAtt EcsService.Name]]
+      ResourceId: !Join ["", [ "service/{{serviceName}}/", !GetAtt EcsService.Name]]
       RoleARN: !GetAtt ServiceAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -222,7 +207,7 @@ Resources:
   ServiceScalingPolicy{{@index}}:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: {{../clusterName}}-{{@index}}
+      PolicyName: {{../serviceName}}-{{@index}}
       PolicyType: StepScaling
       ScalingTargetId: !Ref ScalableTarget
       StepScalingPolicyConfiguration:
@@ -243,7 +228,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
       - !Ref ServiceScalingPolicy{{@index}}
-      AlarmDescription: Handel-created alarm for ECS cluster '{{../clusterName}}'' application auto-scaling
+      AlarmDescription: Handel-created alarm for ECS service '{{../serviceName}}'' application auto-scaling
       ComparisonOperator: {{comparisonOperator}}
       Dimensions:
       {{#if dimensions}}
@@ -253,7 +238,7 @@ Resources:
       {{/each}}
       {{else}}
       - Name: ClusterName
-        Value: {{../clusterName}}
+        Value: default
       - Name: ServiceName
         Value: !GetAtt EcsService.Name
       {{/if}}
@@ -268,7 +253,7 @@ Resources:
       Statistic: {{metricAggregationType}}
       Threshold: {{threshold}}
   {{/each}}
-  {{/if}
+  {{/if}}
 
   #
   # Configure Load Balancer if requested
@@ -396,6 +381,7 @@ Resources:
       {{/if}}
       - Key: Name
         Value: {{routingInfo.targetGroupName}}
+      TargetType: ip
       UnhealthyThresholdCount: 2
       VpcId: {{../vpcId}}
   {{/if}}
@@ -419,8 +405,3 @@ Resources:
             HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
   {{/each}}
   {{/if}}
-Outputs:
-  EcsClusterId:
-    Description: The EcsClusterId
-    Value:
-      Ref: EcsCluster

@@ -1,0 +1,20 @@
+version: 1
+
+name: ecs-fargate-test
+
+environments:
+  dev:
+    webapp:
+      type: ecs-fargate
+      auto_scaling:
+        min_tasks: 1
+        max_tasks: 1
+      containers:
+      - name: mycontainer
+        image_name: nginx:latest
+        port_mappings:
+        - 80
+        routing:
+          base_path: /
+      load_balancer:
+        type: http
