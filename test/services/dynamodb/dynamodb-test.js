@@ -28,7 +28,7 @@ const clone = require('clone');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 const VALID_DYNAMODB_CONFIG = {
     partition_key: {

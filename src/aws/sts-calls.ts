@@ -14,20 +14,19 @@
  * limitations under the License.
  *
  */
-const AWS = require('aws-sdk');
+import awsWrapper from './aws-wrapper';
 
-exports.getAccountId = function () {
-    const sts = new AWS.STS({apiVersion: '2011-06-15'});
-    return sts.getCallerIdentity({}).promise()
-        .then(getResponse => {
-            return getResponse.Account;
-        })
-        .catch(err => {
-            if(err.code === 'CredentialsError') {
-                return null;
-            }
-            else {
-                throw err;
-            }
-        });
+export async function getAccountId(): Promise<string|null> {
+    try {
+        const getResponse = await awsWrapper.sts.getCallerIdentity({});
+        return getResponse.Account!;
+    }
+    catch (err) {
+        if (err.code === 'CredentialsError') {
+            return null;
+        }
+        else {
+            throw err;
+        }
+    }
 }

@@ -21,7 +21,7 @@ const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').P
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('apiaccess deployer', function () {
     let sandbox;

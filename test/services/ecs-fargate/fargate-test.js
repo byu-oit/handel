@@ -28,7 +28,7 @@ const route53calls = require('../../../dist/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 const VALID_FARGATE_CONFIG = {
     max_mb: 256,
