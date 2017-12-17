@@ -24,7 +24,7 @@ const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnD
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('kms deployer', function () {
     let sandbox;

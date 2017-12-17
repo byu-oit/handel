@@ -22,7 +22,7 @@ const ec2Calls = require('../../dist/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../dist/account-config/account-config');
+const config = require('../../dist/account-config/account-config').default;
 
 describe('PreDeploy Phase Common module', function () {
     let sandbox;

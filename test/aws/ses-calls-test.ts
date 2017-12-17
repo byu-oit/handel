@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as awsWrapper from '../../src/aws/aws-wrapper';
+import awsWrapper from '../../src/aws/aws-wrapper';
 import * as sesCalls from '../../src/aws/ses-calls';
 
 describe('sesCalls', () => {

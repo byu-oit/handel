@@ -17,7 +17,7 @@
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import {normalizeLogicalId} from '../../common/util';
+import { normalizeLogicalId } from '../../common/util';
 import Tags from '../../datatypes/tags';
 import * as types from './config-types';
 
@@ -53,9 +53,9 @@ const DEFAULT_AUTOSCALING_TARGET_UTILIZATION = 70;
 const VALID_THROUGHPUT_PATTERN = /^(\d+)(?:-(\d+))?$/;
 
 export function deployAutoscaling(mainStackName: string,
-                                  ownServiceContext: types.DynamoDBContext,
-                                  serviceName: string,
-                                  stackTags: Tags): Promise<any> {
+    ownServiceContext: types.DynamoDBContext,
+    serviceName: string,
+    stackTags: Tags): Promise<any> {
     if (!tableOrIndexesHaveAutoscaling(ownServiceContext)) {
         return Promise.resolve();
     }
@@ -68,13 +68,12 @@ export function deployAutoscaling(mainStackName: string,
         });
 }
 
-export function undeployAutoscaling(ownServiceContext: types.DynamoDBContext) {
+export async function undeployAutoscaling(ownServiceContext: types.DynamoDBContext) {
     const stackName = getAutoscalingStackName(ownServiceContext);
-    return cloudFormationCalls.getStack(stackName).then(result => {
-        if (result) {
-            return cloudFormationCalls.deleteStack(stackName);
-        }
-    });
+    const stack = await cloudFormationCalls.getStack(stackName);
+    if (stack) {
+        return cloudFormationCalls.deleteStack(stackName);
+    }
 }
 
 export function checkProvisionedThroughput(throughput: types.ProvisionedThroughput | undefined, errorPrefix: string) {
@@ -106,7 +105,7 @@ export function checkProvisionedThroughput(throughput: types.ProvisionedThroughp
 }
 
 export function getThroughputConfig(throughputConfig: types.ProvisionedThroughput | undefined,
-                                    defaultConfig: ThroughputConfig | null): ThroughputConfig {
+    defaultConfig: ThroughputConfig | null): ThroughputConfig {
     const throughput = throughputConfig || {};
     const defaults = defaultConfig || {} as ThroughputConfig;
     const defaultRead = defaults.read || {};
@@ -124,7 +123,7 @@ export function getThroughputConfig(throughputConfig: types.ProvisionedThroughpu
         defaultWrite
     );
 
-    return {read, write};
+    return { read, write };
 }
 
 function isValidTargetUtilization(target: number): boolean {
@@ -203,8 +202,8 @@ interface ThroughputConfig {
 }
 
 function assembleThroughputConfig(capacity: string | number | undefined,
-                                  targetUtilization: number | undefined,
-                                  defaultConfig: ThroughputCapacity): ThroughputCapacity {
+    targetUtilization: number | undefined,
+    defaultConfig: ThroughputCapacity): ThroughputCapacity {
     const result = {} as ThroughputCapacity;
     if (capacity) {
         Object.assign(result, parseThroughputCapacity(capacity));
@@ -212,7 +211,7 @@ function assembleThroughputConfig(capacity: string | number | undefined,
     } else {
         Object.assign(
             result,
-            {initial: DEFAULT_CAPACITY_UNITS, target: DEFAULT_AUTOSCALING_TARGET_UTILIZATION, scaled: false},
+            { initial: DEFAULT_CAPACITY_UNITS, target: DEFAULT_AUTOSCALING_TARGET_UTILIZATION, scaled: false },
             defaultConfig
         );
     }
@@ -245,9 +244,9 @@ function parseThroughputCapacity(capacity: string | number | undefined): Through
 }
 
 function extractScalingTargets(throughputConfig: ThroughputConfig,
-                               targetType: ScalingTargetTypes,
-                               logicalIdPrefix: string,
-                               resourceId: string) {
+    targetType: ScalingTargetTypes,
+    logicalIdPrefix: string,
+    resourceId: string) {
     const configs = [];
     if (throughputConfig.read.scaled) {
         configs.push(
@@ -263,10 +262,10 @@ function extractScalingTargets(throughputConfig: ThroughputConfig,
 }
 
 function getScalingConfig(config: ThroughputCapacity,
-                          scalingType: ScalingTypes,
-                          logicalIdPrefix: string,
-                          targetType: ScalingTargetTypes,
-                          resourceId: string) {
+    scalingType: ScalingTypes,
+    logicalIdPrefix: string,
+    targetType: ScalingTargetTypes,
+    resourceId: string) {
     return new AutoscalingDefinition(
         logicalIdPrefix + LogicalIdSuffixes[scalingType],
         config.min,
@@ -287,9 +286,9 @@ class ThroughputCapacity {
     public readonly max: number;
 
     constructor(readonly scaled: boolean,
-                initial: number | string = DEFAULT_CAPACITY_UNITS,
-                min: number | string = DEFAULT_CAPACITY_UNITS,
-                max: number | string = DEFAULT_CAPACITY_UNITS) {
+        initial: number | string = DEFAULT_CAPACITY_UNITS,
+        min: number | string = DEFAULT_CAPACITY_UNITS,
+        max: number | string = DEFAULT_CAPACITY_UNITS) {
         this.initial = Number(initial);
         this.min = Number(min);
         this.max = Number(max);
@@ -304,12 +303,12 @@ class AutoscalingDefinition {
     public readonly target: number;
 
     constructor(readonly logicalIdPrefix: string,
-                min: number | string,
-                max: number | string,
-                target: number | string,
-                readonly dimension: string,
-                readonly metric: string,
-                readonly resourceId: string) {
+        min: number | string,
+        max: number | string,
+        target: number | string,
+        readonly dimension: string,
+        readonly metric: string,
+        readonly resourceId: string) {
         this.min = Number(min);
         this.max = Number(max);
         this.target = Number(target);

@@ -19,7 +19,7 @@ const iotDeployersCommon = require('../../dist/common/iot-deployers-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../dist/account-config/account-config');
+const config = require('../../dist/account-config/account-config').default;
 
 describe('iot deployers common module', function () {
     let sandbox;

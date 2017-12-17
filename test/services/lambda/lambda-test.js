@@ -30,7 +30,7 @@ const lifecyclesCommon = require('../../../dist/common/lifecycles-common');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('lambda deployer', function () {
     let sandbox;

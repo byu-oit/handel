@@ -14,36 +14,38 @@
  * limitations under the License.
  *
  */
-const fs = require('fs');
-const util = require('../common/util');
-const winston = require('winston');
-const path = require('path');
-const yaml = require('js-yaml');
-const defaultAccountConfig = require('./default-account-config');
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import * as path from 'path';
+import * as winston from 'winston';
+import * as util from '../common/util';
+import { AccountConfig } from '../datatypes/account-config';
+import * as defaultAccountConfig from './default-account-config';
 
-function throwValidateError(field) {
+function throwValidateError(field: string) {
     throw new Error(`'${field}' field missing in the account config file`);
 }
 
-function validateAccountConfig(configToValidate) {
-    let requiredFields = [
+// TODO - We should turn this into a json schema validation
+function validateAccountConfig(configToValidate: any) {
+    const requiredFields = [
         'account_id',
         'region',
         'vpc',
         'public_subnets',
         'private_subnets',
         'data_subnets'
-    ]
+    ];
 
-    for (let requiredField of requiredFields) {
+    for (const requiredField of requiredFields) {
         if (!configToValidate[requiredField]) {
-            throwValidateError(requiredField)
+            throwValidateError(requiredField);
         }
     }
 }
 
-function getAbsoluteConfigFilePath(filePath) {
-    var absolutePath;
+function getAbsoluteConfigFilePath(filePath: string): string {
+    let absolutePath: string = '';
     if (fs.existsSync(filePath)) {
         absolutePath = path.resolve(filePath);
     }
@@ -57,21 +59,22 @@ function getAbsoluteConfigFilePath(filePath) {
 /**
  * Given an account config file path or base64 encoded string, loads the account config
  */
-module.exports = function (accountConfigParam) {
+export default function(accountConfigParam: any): Promise<AccountConfig> {
     return new Promise((resolve, reject) => {
         try {
             let accountConfig;
             if (accountConfigParam.startsWith('default')) {
                 return defaultAccountConfig.getDefaultAccountConfig(accountConfigParam)
-                    .then(accountConfig => {
-                        return resolve(accountConfig);
+                    .then(retAccountConfig => {
+                        return resolve(retAccountConfig);
                     })
                     .catch(err => {
                         return reject(err);
-                    })
+                    });
             }
             else if (fs.existsSync(accountConfigParam)) {
-                let absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
+                console.log("Hello!");
+                const absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
                 accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
                 validateAccountConfig(accountConfig);
                 return resolve(accountConfig);

@@ -28,7 +28,7 @@ const route53 = require('../../../dist/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('beanstalk deployer', function () {
     let sandbox;

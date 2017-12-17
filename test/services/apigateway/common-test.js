@@ -20,7 +20,7 @@ const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('apigateway common module', function () {
     let sandbox;
