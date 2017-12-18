@@ -19,6 +19,7 @@ const snsCalls = require('../../../dist/aws/sns-calls');
 const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
 const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
 const ProduceEventsContext = require('../../../dist/datatypes/produce-events-context').ProduceEventsContext;
+const ConsumeEventsContext = require('../../../dist/datatypes/consume-events-context').ConsumeEventsContext;
 const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
@@ -166,6 +167,49 @@ describe('sns deployer', function () {
                     expect(err.message).to.contain('Unsupported event consumer type given');
                     expect(subscribeToTopicStub.notCalled).to.be.true;
                 })
+        });
+    });
+
+    describe('consumeEvents', function () {
+        it('should consume cloud watch event service', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sns", {}, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "cloudwatchevent", {}, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.eventRuleArn = "FakeRuleArn";
+
+            let addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').returns(Promise.resolve({}));
+
+            return sns.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(addSnsPermissionStub.calledOnce).to.be.true;
+                    expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
+                });
+        });
+
+        it('should throw an error because SNS cant consume other services', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sns", {}, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.topicArn = "FakeTopicArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "otherService", {}, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.otherArn = "FakeArn";
+
+
+            return sns.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceOf(Error);
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("SNS - Unsupported event producer type given")
+                });
         });
     });
 

@@ -114,6 +114,12 @@ exports.produceEvents = function (ownServiceContext, ownDeployContext, consumerS
             if (!eventConsumerConfig) { throw new Error(`No event_consumer config found in producer service for '${consumerServiceContext.serviceName}'`); }
             input = eventConsumerConfig.event_input;
         }
+        else if (consumerServiceType === 'sns') {
+            targetArn = consumerDeployContext.eventOutputs.topicArn;
+            let eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName);
+            if (!eventConsumerConfig) { throw new Error(`No event_consumer config found in producer service for '${consumerServiceContext.serviceName}'`); }
+            input = eventConsumerConfig.event_input;
+        }
         else {
             return reject(new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`));
         }
@@ -151,7 +157,8 @@ exports.unDeploy = function (ownServiceContext) {
 }
 
 exports.producedEventsSupportedServices = [
-    'lambda'
+    'lambda',
+    'sns'
 ];
 
 exports.producedDeployOutputTypes = [];

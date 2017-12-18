@@ -112,6 +112,31 @@ describe('cloudwatchevent deployer', function () {
                 });
         });
 
+        it('should add a target for the sns service type', function () {
+            let consumerServiceName = "ConsumerService";
+            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "sns", {}, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.topicARN = "FakeTopicArn";
+
+            serviceContext.params = {
+                event_consumers: [
+                    {
+                        service_name: consumerServiceName,
+                        input: '{"notify": false}'
+                    }
+                ]
+            }
+            let producerDeployContext = new DeployContext(serviceContext);
+
+            let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
+
+            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
+                .then(produceEventsContext => {
+                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+                    expect(addTargetStub.calledOnce).to.be.truel
+                });
+        });
+
         it('should throw an error for an unsupported consumer service type', function () {
             let consumerServiceName = "ConsumerService";
             let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", {}, {});
