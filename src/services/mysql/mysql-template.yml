@@ -26,7 +26,7 @@ Resources:
       DBSubnetGroupName: {{dbSubnetGroup}}
       Engine: mysql
       EngineVersion: {{mysqlVersion}}
-      MasterUsername: !Ref DBPassword
+      MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       {{#if multiAZ}}
       MultiAZ: true
