@@ -16,7 +16,7 @@
  */
 import * as SES from 'aws-sdk/clients/ses';
 import * as winston from 'winston';
-import * as awsWrapper from './aws-wrapper';
+import awsWrapper from './aws-wrapper';
 
 export async function verifyEmailAddress(address: string) {
     const ses = new SES({ apiVersion: '2010-12-01' });

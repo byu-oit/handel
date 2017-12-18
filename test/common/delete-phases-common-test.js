@@ -25,7 +25,7 @@ const s3Calls = require('../../dist/aws/s3-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../dist/account-config/account-config');
+const config = require('../../dist/account-config/account-config').default;
 
 describe('Delete phases common module', function () {
     let sandbox;

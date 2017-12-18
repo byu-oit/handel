@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
-import * as config from '../../../src/account-config/account-config';
+import config from '../../../src/account-config/account-config';
 import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
 import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';

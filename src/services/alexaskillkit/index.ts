@@ -14,17 +14,18 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const DeployContext = require('../../datatypes/deploy-context').DeployContext;
-const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+import * as winston from 'winston';
+import { DeployContext } from '../../datatypes/deploy-context';
+import { PreDeployContext } from '../../datatypes/pre-deploy-context';
+import { ProduceEventsContext } from '../../datatypes/produce-events-context';
+import ServiceConfig from '../../datatypes/service-config';
+import { ServiceContext } from '../../datatypes/service-context';
 
-const SERVICE_NAME = "Alexa Skill Kit";
+const SERVICE_NAME = 'Alexa Skill Kit';
 
-function getDeployContext(ownServiceContext) {
-    let deployContext = new DeployContext(ownServiceContext);
-
-    deployContext.eventOutputs.principal = "alexa-appkit.amazon.com";
-
+function getDeployContext(ownServiceContext: ServiceContext<ServiceConfig>): DeployContext {
+    const deployContext = new DeployContext(ownServiceContext);
+    deployContext.eventOutputs.principal = 'alexa-appkit.amazon.com';
     return deployContext;
 }
 
@@ -34,24 +35,24 @@ function getDeployContext(ownServiceContext) {
  *   for contract method documentation
  */
 
-exports.check = function (serviceContext, dependenciesServiceContexts) {
+export function check(serviceContext: ServiceContext, dependenciesServiceContexts: ServiceContext[]): string[] {
     return [];
 }
 
-exports.deploy = function (ownServiceContext, ownPreDeployContext) {
+export function deploy(ownServiceContext: ServiceContext, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
     winston.debug(`${SERVICE_NAME} - Deploy not currently required for the Alexa Skill Kit service`);
     return Promise.resolve(getDeployContext(ownServiceContext));
 }
 
-exports.produceEvents = function (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) {
+export function produceEvents(ownServiceContext: ServiceContext, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - No events to produce from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
     return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
 }
 
-exports.producedEventsSupportedServices = [
+export const producedEventsSupportedServices = [
     'lambda'
 ];
 
-exports.producedDeployOutputTypes = [];
+export const producedDeployOutputTypes = [];
 
-exports.consumedDeployOutputTypes = [];
+export const consumedDeployOutputTypes = [];

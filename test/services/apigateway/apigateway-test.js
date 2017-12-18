@@ -27,7 +27,7 @@ const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-contex
 const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
 const lifecyclesCommon = require('../../../dist/common/lifecycles-common');
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('apigateway deployer', function () {
     let sandbox;

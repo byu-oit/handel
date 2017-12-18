@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
 
-const config = require('../../dist/account-config/account-config');
+const config = require('../../dist/account-config/account-config').default;
 
 describe('iam calls', function () {
     let sandbox;

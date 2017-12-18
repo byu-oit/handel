@@ -24,7 +24,7 @@ const path = require('path');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('deployable artifact module', function () {
     let sandbox;

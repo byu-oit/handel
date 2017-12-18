@@ -27,7 +27,7 @@ const handlebarsUtils = require('../../../dist/common/handlebars-utils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 
-const config = require('../../../dist/account-config/account-config');
+const config = require('../../../dist/account-config/account-config').default;
 
 describe('s3staticsite deployer', function () {
     let sandbox;
