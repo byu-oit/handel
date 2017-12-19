@@ -257,7 +257,7 @@ export function copyDirectory(sourceDir: string, targetDir: string) {
 export function deleteFolderRecursive(dirPath: string) {
     if (fs.existsSync(dirPath)) {
         fs.readdirSync(dirPath).forEach((file, index) => {
-            const curPath = path + '/' + file;
+            const curPath = dirPath + '/' + file;
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
             } else { // delete file
