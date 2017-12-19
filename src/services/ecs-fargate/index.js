@@ -113,7 +113,7 @@ exports.check = function(serviceContext, dependenciesServiceContexts) {
 }
 
 exports.preDeploy = function (serviceContext) {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
 exports.deploy = function(ownServiceContext, ownPreDeployContext, dependenciesDeployContexts) {
