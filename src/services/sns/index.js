@@ -17,6 +17,7 @@
 const winston = require('winston');
 const handlebarsUtils = require('../../common/handlebars-utils');
 const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+const ConsumeEventsContext = require('../../datatypes/consume-events-context').ConsumeEventsContext;
 const DeployContext = require('../../datatypes/deploy-context').DeployContext;
 const snsCalls = require('../../aws/sns-calls');
 const cloudFormationCalls = require('../../aws/cloudformation-calls');
@@ -76,6 +77,16 @@ function getDeployContext(serviceContext, cfStack) {
     return deployContext;
 }
 
+function getPolicyStatementForCloudWatchEventConsumption(topicArn) {
+    return {
+        Effect: "Allow",
+        Principal: {
+            Service: "events.amazonaws.com"
+        },
+        Action: "sns:Publish",
+        Resource: topicArn,
+    }
+}
 
 /**
  * Service Deployer Contract Methods
@@ -142,6 +153,31 @@ exports.produceEvents = function (ownServiceContext, ownDeployContext, consumerS
     });
 }
 
+exports.consumeEvents = function (ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
+    return new Promise((resolve, reject) => {
+        winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
+        let topicArn = ownDeployContext.eventOutputs.topicArn;
+        let producerServiceType = producerServiceContext.serviceType;
+        let producerArn;
+        let policyStatement;
+        if (producerServiceType === 'cloudwatchevent') {
+            producerArn = producerDeployContext.eventOutputs.eventRuleArn;
+            policyStatement = getPolicyStatementForCloudWatchEventConsumption(topicArn);
+        }
+        else {
+            return reject(new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`));
+        }
+
+        //Add SNS permission
+        return snsCalls.addSnsPermissionIfNotExists(topicArn, producerArn, policyStatement)
+            .then(permissionStatement => {
+                winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
+                return resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
+            });
+    });
+}
+
+
 exports.unDeploy = function (ownServiceContext) {
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
@@ -156,4 +192,6 @@ exports.producedDeployOutputTypes = [
     'policies'
 ];
 
-exports.consumedDeployOutputTypes = [];
+exports.consumedDeployOutputTypes = [
+    'cloudwatchevent'
+];

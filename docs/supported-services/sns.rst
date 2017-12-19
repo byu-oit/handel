@@ -86,4 +86,6 @@ The SNS service currently produces events for the following services types:
 
 Events consumed by this service
 -------------------------------
-The SNS service does not currently consume events from other Handel services.
+The SNS service currently consumes events for the following service types:
+
+* CloudWatch Events

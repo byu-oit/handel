@@ -133,7 +133,7 @@ describe('sqs deployer', function () {
     });
 
     describe('consumeEvents', function () {
-        it('should throw an error because SQS cant consume event services', function () {
+        it('should consume from SNS event services', function () {
             let appName = "FakeApp";
             let envName = "FakeEnv";
             let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", {}, {});
@@ -151,6 +151,28 @@ describe('sqs deployer', function () {
                 .then(consumeEventsContext => {
                     expect(addSqsPermissionStub.calledOnce).to.be.true;
                     expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
+                });
+        });
+
+        it('should throw an error because SQS cant consume other services', function () {
+            let appName = "FakeApp";
+            let envName = "FakeEnv";
+            let consumerServiceContext = new ServiceContext(appName, envName, "ConsumerService", "sqs", {}, {});
+            let consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.queueUrl = "FakeQueueUrl";
+            consumerDeployContext.eventOutputs.queueArn = "FakeQueueArn";
+
+            let producerServiceContext = new ServiceContext(appName, envName, "ProducerService", "otherService", {}, {});
+            let producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.otherArn = "FakeArn";
+
+
+            return sqs.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext)
+                .then(consumeEventsContext => {
+                    expect(consumeEventsContext).to.be.instanceOf(Error);
+                })
+                .catch(err => {
+                    expect(err.message).to.contain("SQS - Unsupported event producer type given")
                 });
         });
     });
