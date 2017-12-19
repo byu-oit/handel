@@ -63,7 +63,7 @@ exports.getLoadBalancerConfig = function (serviceParams, containerConfigs, clust
             loadBalancerConfig.type = loadBalancer.type;
         }
         if (loadBalancer.https_certificate) {
-            loadBalancerConfig.httpsCertificate = `arn:aws:acm:us-west-2:${accountConfig.account_id}:certificate/${loadBalancer.https_certificate}`;
+            loadBalancerConfig.httpsCertificate = `arn:aws:acm:${accountConfig.region}:${accountConfig.account_id}:certificate/${loadBalancer.https_certificate}`;
         }
         if (loadBalancer.dns_names) {
             loadBalancerConfig.dnsNames = loadBalancer.dns_names.map(name => {
