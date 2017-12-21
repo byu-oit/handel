@@ -162,6 +162,38 @@ const awsWrapper = {
             const sts = new AWS.STS({apiVersion: '2011-06-15'});
             return sts.getCallerIdentity(params).promise();
         }
+    },
+    autoScaling: {
+        terminateInstanceInAutoScalingGroup: (params: any) => {
+            const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
+            return autoScaling.terminateInstanceInAutoScalingGroup(params).promise();
+        },
+        describeAutoScalingInstances: (params: any) => {
+            const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
+            return autoScaling.describeAutoScalingInstances(params).promise();
+        },
+        describeLaunchConfigurations: (params: any) => {
+            const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
+            return autoScaling.describeLaunchConfigurations(params).promise();
+        }
+    },
+    ecs: {
+        describeClusters: (params: AWS.ECS.DescribeClustersRequest) => {
+            const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+            return ecs.describeClusters(params).promise();
+        },
+        createCluster: (params: AWS.ECS.CreateClusterRequest) => {
+            const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+            return ecs.createCluster(params).promise();
+        },
+        listContainerInstances: (params: AWS.ECS.ListContainerInstancesRequest) => {
+            const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+            return ecs.listContainerInstances(params).promise();
+        },
+        describeContainerInstances: (params: AWS.ECS.DescribeContainerInstancesRequest) => {
+            const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
+            return ecs.describeContainerInstances(params).promise();
+        }
     }
 };
 

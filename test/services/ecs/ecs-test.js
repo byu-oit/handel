@@ -291,7 +291,7 @@ describe('ecs deployer', function () {
             let createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').returns(Promise.resolve({}));
             let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({}));
 
-            let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve({ec2:[]}));
+            let listECSinstancesStub = sandbox.stub(ecsCalls,'listInstances').returns(Promise.resolve([]));
             let describeASGlaunchStub = sandbox.stub(autoScalingCalls,'describeLaunchConfigurationsByInstanceIds').returns(Promise.resolve({LaunchConfigurations:[]}));
 
             //Run the test

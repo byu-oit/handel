@@ -5,14 +5,14 @@ const winston = require('winston');
 exports.getInstancesToCycle = function(ownServiceContext, defaultInstanceType) {
     let lstASGec2 = null;
     return ecsCalls.listInstances(`${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`)
-        .then(dat => {
-            if (!dat) { return lstASGec2 }
+        .then(instances => {
+            if (!instances) { return lstASGec2 }
 
-            let lstOrig = dat;
+            let lstOrig = instances;
 
             // get current autoscaling config and compare instance type and key name against the handel file
             let lst = [];
-            for (let ec2 of dat.ec2) { lst.push(ec2.id) }
+            for (let ec2 of instances) { lst.push(ec2.id) }
             return autoScalingCalls.describeLaunchConfigurationsByInstanceIds(lst)
                 .then(dat => {
                     if (!dat) { return null; }
