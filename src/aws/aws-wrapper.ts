@@ -72,6 +72,22 @@ const awsWrapper = {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
             return iam.createPolicy(params).promise();
         },
+        createPolicyVersion: (params: AWS.IAM.CreatePolicyVersionRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.createPolicyVersion(params).promise();
+        },
+        listPolicyVersions: (params: AWS.IAM.ListPolicyVersionsRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.listPolicyVersions(params).promise();
+        },
+        deletePolicyVersion: (params: AWS.IAM.DeletePolicyVersionRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.deletePolicyVersion(params).promise();
+        },
+        listAttachedRolePolicies: (params: AWS.IAM.ListAttachedRolePoliciesRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.listAttachedRolePolicies(params).promise();
+        },
         listRoles: (params: AWS.IAM.ListRolesRequest): Promise<AWS.IAM.ListRolesResponse> => {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
             return iam.listRoles(params).promise();
@@ -193,6 +209,24 @@ const awsWrapper = {
         describeContainerInstances: (params: AWS.ECS.DescribeContainerInstancesRequest) => {
             const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
             return ecs.describeContainerInstances(params).promise();
+        }
+    },
+    cloudWatchEvents: {
+        putTargets: (params: AWS.CloudWatchEvents.PutTargetsRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.putTargets(params).promise();
+        },
+        listTargetsByRule: (params: AWS.CloudWatchEvents.ListTargetsByRuleRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.listTargetsByRule(params).promise();
+        },
+        listRules: (params: any) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.listRules(params).promise();
+        },
+        removeTargets: (params: AWS.CloudWatchEvents.RemoveTargetsRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.removeTargets(params).promise();
         }
     }
 };
