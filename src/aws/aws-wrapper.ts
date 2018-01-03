@@ -228,6 +228,26 @@ const awsWrapper = {
             const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
             return cloudWatchEvents.removeTargets(params).promise();
         }
+    },
+    lambda: {
+        addPermission: (params: AWS.Lambda.AddPermissionRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.addPermission(params).promise();
+        },
+        getPolicy: (params: AWS.Lambda.GetPolicyRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.getPolicy(params).promise();
+        },
+        createEventSourceMapping: (params: AWS.Lambda.CreateEventSourceMappingRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.createEventSourceMapping(params).promise();
+        }
+    },
+    route53: {
+        listHostedZones: (params: AWS.Route53.ListHostedZonesRequest) => {
+            const route53 = new AWS.Route53({apiVersion: '2013-04-01'});
+            return route53.listHostedZones(params).promise();
+        }
     }
 };
 
