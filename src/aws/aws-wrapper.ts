@@ -248,6 +248,30 @@ const awsWrapper = {
             const route53 = new AWS.Route53({apiVersion: '2013-04-01'});
             return route53.listHostedZones(params).promise();
         }
+    },
+    sqs: {
+        getQueueAttributes: (params: AWS.SQS.GetQueueAttributesRequest) => {
+            const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+            return sqs.getQueueAttributes(params).promise();
+        },
+        setQueueAttributes: (params: AWS.SQS.SetQueueAttributesRequest) => {
+            const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+            return sqs.setQueueAttributes(params).promise();
+        }
+    },
+    sns: {
+        getTopicAttributes: (params: AWS.SNS.GetTopicAttributesInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.getTopicAttributes(params).promise();
+        },
+        setTopicAttributes: (params: AWS.SNS.SetTopicAttributesInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.setTopicAttributes(params).promise();
+        },
+        subscribe: (params: AWS.SNS.SubscribeInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.subscribe(params).promise();
+        }
     }
 };
 
