@@ -16,7 +16,7 @@
  */
 const _ = require('lodash');
 const winston = require('winston');
-const DeployContext = require('../datatypes/deploy-context').DeployContext;
+const DeployContext = require('../datatypes').DeployContext;
 const lifecyclesCommon = require('../common/lifecycles-common');
 
 function getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceDeployers) {

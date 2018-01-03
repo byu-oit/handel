@@ -15,7 +15,7 @@
  *
  */
 import * as winston from 'winston';
-import { AccountConfig } from '../datatypes/account-config';
+import { AccountConfig } from '../datatypes';
 import awsWrapper from './aws-wrapper';
 
 /**

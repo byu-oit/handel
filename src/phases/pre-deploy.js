@@ -16,7 +16,7 @@
  */
 const winston = require('winston');
 const _ = require('lodash');
-const PreDeployContext = require('../datatypes/pre-deploy-context').PreDeployContext;
+const PreDeployContext = require('../datatypes').PreDeployContext;
 const lifecyclesCommon = require('../common/lifecycles-common');
 
 exports.preDeployServices = function (serviceDeployers, environmentContext) {

@@ -15,15 +15,15 @@
  *
  */
 const apigateway = require('../../../dist/services/apigateway');
-const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const ServiceContext = require('../../../dist/datatypes').ServiceContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const UnDeployContext = require('../../../dist/datatypes').UnDeployContext;
 const proxyPassthroughDeployType = require('../../../dist/services/apigateway/proxy/proxy-passthrough-deploy-type');
 const swaggerDeployType = require('../../../dist/services/apigateway/swagger/swagger-deploy-type');
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
-const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
+const PreDeployContext = require('../../../dist/datatypes').PreDeployContext;
+const UnPreDeployContext = require('../../../dist/datatypes').UnPreDeployContext;
 const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
 const lifecyclesCommon = require('../../../dist/common/lifecycles-common');
 

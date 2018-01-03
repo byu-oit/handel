@@ -15,7 +15,7 @@
  *
  */
 const winston = require('winston');
-const BindContext = require('../datatypes/bind-context').BindContext;
+const BindContext = require('../datatypes').BindContext;
 const deployPhaseCommon = require('./deploy-phase-common');
 const ec2Calls = require('../aws/ec2-calls');
 

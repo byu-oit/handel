@@ -16,7 +16,7 @@
  */
 const winston = require('winston');
 const ec2Calls = require('../../aws/ec2-calls');
-const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const DeployContext = require('../../datatypes').DeployContext;
 const cluster = require('./cluster');
 const clusterAutoScalingSection = require('./cluster-auto-scaling');
 const serviceAutoScalingSection = require('../../common/ecs-service-auto-scaling');

@@ -18,11 +18,9 @@ import * as uuid from 'uuid';
 import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as deployPhaseCommon from '../common/deploy-phase-common';
-import { DeployContext } from '../datatypes/deploy-context';
-import { ServiceContext } from '../datatypes/service-context';
-import { UnDeployContext } from '../datatypes/un-deploy-context';
+import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../datatypes';
 
-export function getDeployContext(serviceContext: ServiceContext,
+export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
                                  rdsCfStack: any) { // TODO - Better type later
     const deployContext = new DeployContext(serviceContext);
 
@@ -43,7 +41,7 @@ export function getDeployContext(serviceContext: ServiceContext,
 }
 
 // TODO - Once all logic using this is ported to TS, remove the "deployedStack" param
-export async function addDbCredentialToParameterStore(ownServiceContext: ServiceContext,
+export async function addDbCredentialToParameterStore(ownServiceContext: ServiceContext<ServiceConfig>,
                                                       dbUsername: string,
                                                       dbPassword: string,
                                                       deployedStack: any) { // TODO - Better param later
@@ -57,7 +55,7 @@ export async function addDbCredentialToParameterStore(ownServiceContext: Service
     return deployedStack;
 }
 
-export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext,
+export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext<ServiceConfig>,
                                                          unDeployContext: UnDeployContext) {
     const paramsToDelete = [
         deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_username'),

@@ -15,7 +15,7 @@
  *
  */
 const common = require('../../../dist/services/apigateway/common');
-const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
+const ServiceContext = require('../../../dist/datatypes').ServiceContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');

@@ -15,10 +15,10 @@
  *
  */
 const deployPhase = require('../../dist/phases/deploy');
-const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const PreDeployContext = require('../../dist/datatypes/pre-deploy-context').PreDeployContext;
-const DeployContext = require('../../dist/datatypes/deploy-context').DeployContext;
+const EnvironmentContext = require('../../dist/datatypes').EnvironmentContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const PreDeployContext = require('../../dist/datatypes').PreDeployContext;
+const DeployContext = require('../../dist/datatypes').DeployContext;
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

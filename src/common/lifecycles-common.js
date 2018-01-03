@@ -15,12 +15,12 @@
  *
  */
 const winston = require('winston');
-const PreDeployContext = require('../datatypes/pre-deploy-context').PreDeployContext;
-const BindContext = require('../datatypes/bind-context').BindContext;
-const DeployContext = require('../datatypes/deploy-context').DeployContext;
-const UnPreDeployContext = require('../datatypes/un-pre-deploy-context').UnPreDeployContext;
-const UnDeployContext = require('../datatypes/un-deploy-context').UnDeployContext;
-const UnBindContext = require('../datatypes/un-bind-context').UnBindContext;
+const PreDeployContext = require('../datatypes').PreDeployContext;
+const BindContext = require('../datatypes').BindContext;
+const DeployContext = require('../datatypes').DeployContext;
+const UnPreDeployContext = require('../datatypes').UnPreDeployContext;
+const UnDeployContext = require('../datatypes').UnDeployContext;
+const UnBindContext = require('../datatypes').UnBindContext;
 
 exports.preDeployNotRequired = function (serviceContext) {
     winston.debug(`${serviceContext.serviceType} - PreDeploy is not required for this service, skipping it`);

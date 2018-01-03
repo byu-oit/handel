@@ -16,7 +16,7 @@
  */
 const rdsDeployersCommon = require('../../dist/common/rds-deployers-common');
 const ssmCalls = require('../../dist/aws/ssm-calls');
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

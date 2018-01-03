@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const DeployContext = require('../../dist/datatypes/deploy-context').DeployContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const DeployContext = require('../../dist/datatypes').DeployContext;
 const deployPhaseCommon = require('../../dist/common/deploy-phase-common');
 const iamCalls = require('../../dist/aws/iam-calls');
 const s3Calls = require('../../dist/aws/s3-calls');

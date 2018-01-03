@@ -23,21 +23,16 @@ import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
-import { AccountConfig } from '../../../src/datatypes/account-config';
-import { BindContext } from '../../../src/datatypes/bind-context';
-import { DeployContext } from '../../../src/datatypes/deploy-context';
-import { PreDeployContext } from '../../../src/datatypes/pre-deploy-context';
-import { ServiceContext } from '../../../src/datatypes/service-context';
-import { UnBindContext } from '../../../src/datatypes/un-bind-context';
-import { UnDeployContext } from '../../../src/datatypes/un-deploy-context';
-import { UnPreDeployContext } from '../../../src/datatypes/un-pre-deploy-context';
+import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as mysql from '../../../src/services/mysql';
+import { MySQLConfig } from '../../../src/services/mysql';
 
 describe('mysql deployer', () => {
     let sandbox: sinon.SinonSandbox;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
-    let serviceContext: ServiceContext;
+    let serviceContext: ServiceContext<MySQLConfig>;
+    let serviceParams: MySQLConfig;
     let accountConfig: AccountConfig;
 
     beforeEach(() => {
@@ -45,7 +40,12 @@ describe('mysql deployer', () => {
             .then(retAccountConfig => {
                 sandbox = sinon.sandbox.create();
                 accountConfig = retAccountConfig;
-                serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', {}, retAccountConfig);
+                serviceParams = {
+                    type: 'mysql',
+                    mysql_version: '5.6.27',
+                    database_name: 'mydb'
+                };
+                serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, retAccountConfig);
             });
     });
 
@@ -55,28 +55,20 @@ describe('mysql deployer', () => {
 
     describe('check', () => {
         it('should require the database_name parameter', () => {
-            serviceContext.params = {
-                mysql_version: '5.6.27'
-            };
+            delete serviceContext.params.database_name;
             const errors = mysql.check(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should require the mysql_version parameter', () => {
-            serviceContext.params = {
-                database_name: 'mydb'
-            };
+            delete serviceContext.params.mysql_version;
             const errors = mysql.check(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'mysql_version' parameter is required`);
         });
 
         it('should work when all required parameters are provided properly', () => {
-            serviceContext.params = {
-                database_name: 'mydb',
-                mysql_version: '5.6.27'
-            };
             const errors = mysql.check(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
@@ -105,10 +97,10 @@ describe('mysql deployer', () => {
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', () => {
             const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                                                                'postgresql', {}, accountConfig);
+                                                                'postgresql', serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService',
-            'postgresql', {}, accountConfig);
+            'beanstalk', {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .returns(Promise.resolve(new BindContext(dependencyServiceContext, dependentOfServiceContext)));
@@ -147,11 +139,6 @@ describe('mysql deployer', () => {
         };
 
         beforeEach(() => {
-            serviceContext.params = {
-                database_name: 'mydb',
-                mysql_version: '5.6.27'
-            };
-
             ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'

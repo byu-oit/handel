@@ -16,14 +16,12 @@
  */
 const winston = require('winston');
 const handlebarsUtils = require('../../common/handlebars-utils');
-const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
-const DeployContext = require('../../datatypes/deploy-context').DeployContext;
+const DeployContext = require('../../datatypes').DeployContext;
 const serviceAutoScalingSection = require('../../common/ecs-service-auto-scaling');
 const containersSection = require('../../common/ecs-containers');
 const preDeployPhaseCommon = require('../../common/pre-deploy-phase-common');
 const volumesSection = require('../../common/ecs-volumes');
 const routingSection = require('../../common/ecs-routing');
-const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const deletePhasesCommon = require('../../common/delete-phases-common');
 const ecsCalls = require('../../aws/ecs-calls');

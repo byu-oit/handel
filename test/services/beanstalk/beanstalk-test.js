@@ -15,15 +15,15 @@
  *
  */
 const beanstalk = require('../../../dist/services/beanstalk');
-const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
-const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
+const ServiceContext = require('../../../dist/datatypes').ServiceContext;
+const DeployContext = require('../../../dist/datatypes').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const preDeployPhaseCommon = require('../../../dist/common/pre-deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
 const deployableArtifact = require('../../../dist/services/beanstalk/deployable-artifact');
-const UnPreDeployContext = require('../../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const UnPreDeployContext = require('../../../dist/datatypes').UnPreDeployContext;
+const UnDeployContext = require('../../../dist/datatypes').UnDeployContext;
 const route53 = require('../../../dist/aws/route53-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;

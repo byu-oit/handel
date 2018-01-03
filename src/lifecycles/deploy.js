@@ -16,7 +16,7 @@
  */
 const winston = require('winston');
 const util = require('../common/util');
-const EnvironmentDeployResult = require('../datatypes/environment-deploy-result').EnvironmentDeployResult;
+const EnvironmentDeployResult = require('../datatypes').EnvironmentDeployResult;
 const checkPhase = require('../phases/check');
 const bindPhase = require('../phases/bind');
 const deployPhase = require('../phases/deploy');

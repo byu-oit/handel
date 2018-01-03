@@ -64,6 +64,11 @@ Parameters
      - No
      - standard
      - The type of storage to use, whether magnetic or SSD. Allowed values: 'standard', 'gp2'.
+   * - multi_az
+     - boolean
+     - No
+     - false
+     - Whether or not the deployed database should be Multi-AZ. Note: Using Multi-AZ increases the cost of your database.
    * - db_parameters
      - map<string, string>
      - No
