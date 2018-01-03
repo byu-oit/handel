@@ -18,9 +18,9 @@ const ec2Calls = require('../aws/ec2-calls');
 const cloudformationCalls = require('../aws/cloudformation-calls');
 const s3Calls = require('../aws/s3-calls');
 const winston = require('winston');
-const UnDeployContext = require('../datatypes/un-deploy-context').UnDeployContext;
-const UnPreDeployContext = require('../datatypes/un-pre-deploy-context').UnPreDeployContext;
-const UnBindContext = require('../datatypes/un-bind-context').UnBindContext;
+const UnDeployContext = require('../datatypes').UnDeployContext;
+const UnPreDeployContext = require('../datatypes').UnPreDeployContext;
+const UnBindContext = require('../datatypes').UnBindContext;
 const deployPhaseCommon = require('./deploy-phase-common');
 
 function unBindAllOnSg(stackName, accountConfig) {

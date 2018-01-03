@@ -17,7 +17,7 @@
 const handlebarsUtils = require('./handlebars-utils');
 const cloudformationCalls = require('../aws/cloudformation-calls');
 const deployPhaseCommon = require('./deploy-phase-common');
-const PreDeployContext = require('../datatypes/pre-deploy-context').PreDeployContext;
+const PreDeployContext = require('../datatypes').PreDeployContext;
 const ec2Calls = require('../aws/ec2-calls');
 const winston = require('winston');
 

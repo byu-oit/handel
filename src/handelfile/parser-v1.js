@@ -15,8 +15,8 @@
  *
  */
 const _ = require('lodash');
-const ServiceContext = require('../datatypes/service-context').ServiceContext;
-const EnvironmentContext = require('../datatypes/environment-context').EnvironmentContext;
+const ServiceContext = require('../datatypes').ServiceContext;
+const EnvironmentContext = require('../datatypes').EnvironmentContext;
 const util = require('../common/util');
 const Ajv = require('ajv');
 

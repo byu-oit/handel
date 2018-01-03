@@ -19,8 +19,8 @@ const cloudFormationCalls = require('../../aws/cloudformation-calls');
 const deployPhaseCommon = require('../../common/deploy-phase-common');
 const deletePhasesCommon = require('../../common/delete-phases-common');
 const handlebarsUtils = require('../../common/handlebars-utils');
-const DeployContext = require('../../datatypes/deploy-context').DeployContext;
-const ProduceEventsContext = require('../../datatypes/produce-events-context').ProduceEventsContext;
+const DeployContext = require('../../datatypes').DeployContext;
+const ProduceEventsContext = require('../../datatypes').ProduceEventsContext;
 const autoscaling = require('./autoscaling');
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE = {

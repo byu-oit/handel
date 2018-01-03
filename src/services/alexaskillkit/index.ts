@@ -15,11 +15,7 @@
  *
  */
 import * as winston from 'winston';
-import { DeployContext } from '../../datatypes/deploy-context';
-import { PreDeployContext } from '../../datatypes/pre-deploy-context';
-import { ProduceEventsContext } from '../../datatypes/produce-events-context';
-import ServiceConfig from '../../datatypes/service-config';
-import { ServiceContext } from '../../datatypes/service-context';
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext } from '../../datatypes';
 
 const SERVICE_NAME = 'Alexa Skill Kit';
 
@@ -35,16 +31,16 @@ function getDeployContext(ownServiceContext: ServiceContext<ServiceConfig>): Dep
  *   for contract method documentation
  */
 
-export function check(serviceContext: ServiceContext, dependenciesServiceContexts: ServiceContext[]): string[] {
+export function check(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     return [];
 }
 
-export function deploy(ownServiceContext: ServiceContext, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
+export function deploy(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
     winston.debug(`${SERVICE_NAME} - Deploy not currently required for the Alexa Skill Kit service`);
     return Promise.resolve(getDeployContext(ownServiceContext));
 }
 
-export function produceEvents(ownServiceContext: ServiceContext, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext, consumerDeployContext: DeployContext) {
+export function produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - No events to produce from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
     return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
 }

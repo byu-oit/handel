@@ -16,9 +16,9 @@
  */
 const ses = require('../../../dist/services/ses');
 const sesCalls = require('../../../dist/aws/ses-calls');
-const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
-const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
+const ServiceContext = require('../../../dist/datatypes').ServiceContext;
+const DeployContext = require('../../../dist/datatypes').DeployContext;
+const PreDeployContext = require('../../../dist/datatypes').PreDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

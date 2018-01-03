@@ -23,21 +23,16 @@ import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
-import { AccountConfig } from '../../../src/datatypes/account-config';
-import { BindContext } from '../../../src/datatypes/bind-context';
-import { DeployContext } from '../../../src/datatypes/deploy-context';
-import { PreDeployContext } from '../../../src/datatypes/pre-deploy-context';
-import { ServiceContext } from '../../../src/datatypes/service-context';
-import { UnBindContext } from '../../../src/datatypes/un-bind-context';
-import { UnDeployContext } from '../../../src/datatypes/un-deploy-context';
-import { UnPreDeployContext } from '../../../src/datatypes/un-pre-deploy-context';
+import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as postgresql from '../../../src/services/postgresql';
+import { PostgreSQLConfig } from '../../../src/services/postgresql';
 
 describe('postgresql deployer', () => {
     let sandbox: sinon.SinonSandbox;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
-    let serviceContext: ServiceContext;
+    let serviceContext: ServiceContext<PostgreSQLConfig>;
+    let serviceParams: PostgreSQLConfig;
     let accountConfig: AccountConfig;
 
     beforeEach(() => {
@@ -45,9 +40,14 @@ describe('postgresql deployer', () => {
             .then(retAccountConfig => {
                 accountConfig = retAccountConfig;
                 sandbox = sinon.sandbox.create();
+                serviceParams = {
+                    type: 'postgresql',
+                    database_name: 'mydb',
+                    postgres_version: '8.6.2'
+                };
                 serviceContext = new ServiceContext(appName, envName,
                                                     'FakeService', 'postgresql',
-                                                    {}, retAccountConfig);
+                                                    serviceParams, retAccountConfig);
             });
     });
 
@@ -57,28 +57,20 @@ describe('postgresql deployer', () => {
 
     describe('check', () => {
         it('should do require the database_name parameter', () => {
-            serviceContext.params = {
-                postgres_version: '8.6.2'
-            };
+            delete serviceContext.params.database_name;
             const errors = postgresql.check(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should require the postgres_version parameter', () => {
-            serviceContext.params = {
-                database_name: 'mydb'
-            };
+            delete serviceContext.params.postgres_version;
             const errors = postgresql.check(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'postgres_version' parameter is required`);
         });
 
         it('should work when all required parameters are provided properly', () => {
-            serviceContext.params = {
-                database_name: 'mydb',
-                postgres_version: '8.6.2'
-            };
             const errors = postgresql.check(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
@@ -105,10 +97,10 @@ describe('postgresql deployer', () => {
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
             const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                                                         'postgresql', {}, accountConfig);
+                                                         'postgresql', serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeOtherService',
-                                                                 'beanstalk', {}, accountConfig);
+                                                                 'beanstalk', { type: 'beanstalk' }, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .returns(Promise.resolve(new BindContext(dependencyServiceContext, dependentOfServiceContext)));
@@ -145,11 +137,6 @@ describe('postgresql deployer', () => {
         };
 
         beforeEach(() => {
-            serviceContext.params = {
-                database_name: 'mydb',
-                postgres_version: '8.6.2'
-            };
-
             ownPreDeployContext = new PreDeployContext(serviceContext);
             ownPreDeployContext.securityGroups.push({
                 GroupId: 'FakeId'

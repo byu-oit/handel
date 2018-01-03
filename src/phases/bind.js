@@ -16,7 +16,7 @@
  */
 const winston = require('winston');
 const util = require('../common/util');
-const BindContext = require('../datatypes/bind-context').BindContext;
+const BindContext = require('../datatypes').BindContext;
 const lifecyclesCommon = require('../common/lifecycles-common');
 
 function getDependentServicesForCurrentBindService(environmentContext, toBindServiceName) {

@@ -16,8 +16,8 @@
  */
 const preDeployPhaseCommon = require('../../dist/common/pre-deploy-phase-common');
 const cloudformationCalls = require('../../dist/aws/cloudformation-calls');
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const PreDeployContext = require('../../dist/datatypes/pre-deploy-context').PreDeployContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const PreDeployContext = require('../../dist/datatypes').PreDeployContext;
 const ec2Calls = require('../../dist/aws/ec2-calls');
 const sinon = require('sinon');
 const expect = require('chai').expect;

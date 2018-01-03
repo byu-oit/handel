@@ -15,9 +15,9 @@
  *
  */
 const unBindPhase = require('../../dist/phases/un-bind');
-const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const UnBindContext = require('../../dist/datatypes/un-bind-context').UnBindContext;
+const EnvironmentContext = require('../../dist/datatypes').EnvironmentContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const UnBindContext = require('../../dist/datatypes').UnBindContext;
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

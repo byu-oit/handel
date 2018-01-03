@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const PreDeployContext = require('../../dist/datatypes/pre-deploy-context').PreDeployContext;
-const BindContext = require('../../dist/datatypes/bind-context').BindContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const PreDeployContext = require('../../dist/datatypes').PreDeployContext;
+const BindContext = require('../../dist/datatypes').BindContext;
 const bindPhaseCommon = require('../../dist/common/bind-phase-common');
 const ec2Calls = require('../../dist/aws/ec2-calls');
 const sinon = require('sinon');

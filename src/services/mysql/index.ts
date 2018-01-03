@@ -22,13 +22,27 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { BindContext } from '../../datatypes/bind-context';
-import { DeployContext } from '../../datatypes/deploy-context';
-import { PreDeployContext } from '../../datatypes/pre-deploy-context';
-import { ServiceContext } from '../../datatypes/service-context';
-import { UnBindContext } from '../../datatypes/un-bind-context';
-import { UnDeployContext } from '../../datatypes/un-deploy-context';
-import { UnPreDeployContext } from '../../datatypes/un-pre-deploy-context';
+import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+
+export interface MySQLConfig extends ServiceConfig {
+    mysql_version: string;
+    database_name: string;
+    description?: string;
+    instance_type?: string;
+    storage_gb?: number;
+    storage_type?: MySQLStorageType;
+    db_parameters?: MySQLDbParameters;
+    multi_az?: boolean;
+    tags?: Tags;
+}
+
+enum MySQLStorageType {
+    standard, gp2
+}
+
+interface MySQLDbParameters {
+    [key: string]: string;
+}
 
 const SERVICE_NAME = 'MySQL';
 const MYSQL_PORT = 3306;
@@ -47,7 +61,7 @@ function getParameterGroupFamily(mysqlVersion: string) {
 }
 
 function getCompiledMysqlTemplate(stackName: string,
-                                  ownServiceContext: ServiceContext,
+                                  ownServiceContext: ServiceContext<MySQLConfig>,
                                   ownPreDeployContext: PreDeployContext) {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
@@ -88,8 +102,8 @@ function getCompiledMysqlTemplate(stackName: string,
  *   for contract method documentation
  */
 
-export function check(serviceContext: ServiceContext,
-                      dependenciesServiceContext: ServiceContext[]): string[] {
+export function check(serviceContext: ServiceContext<MySQLConfig>,
+                      dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors = [];
     const serviceParams = serviceContext.params;
 
@@ -103,13 +117,13 @@ export function check(serviceContext: ServiceContext,
     return errors;
 }
 
-export function preDeploy(serviceContext: ServiceContext): Promise<PreDeployContext> {
+export function preDeploy(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
     return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
 }
 
-export function bind(ownServiceContext: ServiceContext,
+export function bind(ownServiceContext: ServiceContext<MySQLConfig>,
                      ownPreDeployContext: PreDeployContext,
-                     dependentOfServiceContext: ServiceContext,
+                     dependentOfServiceContext: ServiceContext<ServiceConfig>,
                      dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
     return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext,
                                                             ownPreDeployContext,
@@ -120,7 +134,7 @@ export function bind(ownServiceContext: ServiceContext,
                                                             SERVICE_NAME);
 }
 
-export async function deploy(ownServiceContext: ServiceContext,
+export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
                              ownPreDeployContext: PreDeployContext,
                              dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
@@ -155,15 +169,15 @@ export async function deploy(ownServiceContext: ServiceContext,
     }
 }
 
-export function unPreDeploy(ownServiceContext: ServiceContext): Promise<UnPreDeployContext> {
+export function unPreDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnPreDeployContext> {
     return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export function unBind(ownServiceContext: ServiceContext): Promise<UnBindContext> {
+export function unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
     return deletePhasesCommon.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
-export async function unDeploy(ownServiceContext: ServiceContext): Promise<UnDeployContext> {
+export async function unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {
     const unDeployContext = await deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
     return rdsDeployersCommon.deleteParametersFromParameterStore(ownServiceContext, unDeployContext);
 }

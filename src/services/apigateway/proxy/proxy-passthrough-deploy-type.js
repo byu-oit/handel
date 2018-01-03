@@ -19,7 +19,7 @@ const deployPhaseCommon = require('../../../common/deploy-phase-common');
 const util = require('../../../common/util');
 const uuid = require('uuid');
 const winston = require('winston');
-const DeployContext = require('../../../datatypes/deploy-context').DeployContext;
+const DeployContext = require('../../../datatypes').DeployContext;
 const apigatewayCommon = require('../common');
 
 function uploadDeployableArtifactToS3 (serviceContext, serviceName) {

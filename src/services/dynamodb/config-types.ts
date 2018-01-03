@@ -14,9 +14,7 @@
  * limitations under the License.
  *
  */
-import ServiceConfig from '../../datatypes/service-config';
-import {ServiceContext} from '../../datatypes/service-context';
-import Tags from '../../datatypes/tags';
+import { ServiceConfig, ServiceContext, Tags } from '../../datatypes';
 
 export type DynamoDBContext = ServiceContext<DynamoDBConfig>;
 

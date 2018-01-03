@@ -19,7 +19,7 @@ import * as yaml from 'js-yaml';
 import * as path from 'path';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { AccountConfig } from '../datatypes/account-config';
+import { AccountConfig } from '../datatypes';
 import * as defaultAccountConfig from './default-account-config';
 
 function throwValidateError(field: string) {

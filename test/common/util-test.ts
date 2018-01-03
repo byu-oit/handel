@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
-import { EnvironmentContext } from '../../src/datatypes/environment-context';
+import { EnvironmentContext } from '../../src/datatypes';
 
 describe('util module', () => {
     let sandbox: sinon.SinonSandbox;

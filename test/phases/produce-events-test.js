@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-const ProduceEventsContext = require('../../dist/datatypes/produce-events-context').ProduceEventsContext;
-const DeployContext = require('../../dist/datatypes/deploy-context').DeployContext;
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const EnvironmentContext = require('../../dist/datatypes/environment-context').EnvironmentContext;
+const ProduceEventsContext = require('../../dist/datatypes').ProduceEventsContext;
+const DeployContext = require('../../dist/datatypes').DeployContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const EnvironmentContext = require('../../dist/datatypes').EnvironmentContext;
 const produceEvents = require('../../dist/phases/produce-events');
 const expect = require('chai').expect;
 const sinon = require('sinon');

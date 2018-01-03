@@ -16,13 +16,13 @@
  */
 const sqs = require('../../../dist/services/sqs');
 const sqsCalls = require('../../../dist/aws/sqs-calls');
-const ServiceContext = require('../../../dist/datatypes/service-context').ServiceContext;
-const DeployContext = require('../../../dist/datatypes/deploy-context').DeployContext;
-const ConsumeEventsContext = require('../../../dist/datatypes/consume-events-context').ConsumeEventsContext;
-const PreDeployContext = require('../../../dist/datatypes/pre-deploy-context').PreDeployContext;
+const ServiceContext = require('../../../dist/datatypes').ServiceContext;
+const DeployContext = require('../../../dist/datatypes').DeployContext;
+const ConsumeEventsContext = require('../../../dist/datatypes').ConsumeEventsContext;
+const PreDeployContext = require('../../../dist/datatypes').PreDeployContext;
 const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
 const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const UnDeployContext = require('../../../dist/datatypes/un-deploy-context').UnDeployContext;
+const UnDeployContext = require('../../../dist/datatypes').UnDeployContext;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 

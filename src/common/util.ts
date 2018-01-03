@@ -22,8 +22,7 @@ import { ncp } from 'ncp';
 import pascalCase = require('pascal-case');
 import * as path from 'path';
 import * as winston from 'winston';
-import { AccountConfig } from '../datatypes/account-config';
-import { HandelFile, ServiceDeployers } from '../datatypes/index';
+import { AccountConfig, HandelFile, ServiceDeployers } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {

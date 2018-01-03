@@ -16,13 +16,13 @@
  */
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const ServiceContext = require('../../dist/datatypes/service-context').ServiceContext;
-const PreDeployContext = require('../../dist/datatypes/pre-deploy-context').PreDeployContext;
-const BindContext = require('../../dist/datatypes/bind-context').BindContext;
-const DeployContext = require('../../dist/datatypes/deploy-context').DeployContext;
-const UnDeployContext = require('../../dist/datatypes/un-deploy-context').UnDeployContext;
-const UnPreDeployContext = require('../../dist/datatypes/un-pre-deploy-context').UnPreDeployContext;
-const UnBindContext = require('../../dist/datatypes/un-bind-context').UnBindContext;
+const ServiceContext = require('../../dist/datatypes').ServiceContext;
+const PreDeployContext = require('../../dist/datatypes').PreDeployContext;
+const BindContext = require('../../dist/datatypes').BindContext;
+const DeployContext = require('../../dist/datatypes').DeployContext;
+const UnDeployContext = require('../../dist/datatypes').UnDeployContext;
+const UnPreDeployContext = require('../../dist/datatypes').UnPreDeployContext;
+const UnBindContext = require('../../dist/datatypes').UnBindContext;
 const lifecyclesCommon = require('../../dist/common/lifecycles-common');
 
 describe('lifecycles common module', function () {

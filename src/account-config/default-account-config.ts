@@ -20,7 +20,7 @@ import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as stsCalls from '../aws/sts-calls';
 import * as handlebarsUtils from '../common/handlebars-utils';
-import { AccountConfig } from '../datatypes/account-config';
+import { AccountConfig } from '../datatypes';
 
 function getSubnetGroupName(vpcId: string): string {
     return `handel-subnet-groups-${vpcId}`;
