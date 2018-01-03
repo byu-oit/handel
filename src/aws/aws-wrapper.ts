@@ -72,6 +72,22 @@ const awsWrapper = {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
             return iam.createPolicy(params).promise();
         },
+        createPolicyVersion: (params: AWS.IAM.CreatePolicyVersionRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.createPolicyVersion(params).promise();
+        },
+        listPolicyVersions: (params: AWS.IAM.ListPolicyVersionsRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.listPolicyVersions(params).promise();
+        },
+        deletePolicyVersion: (params: AWS.IAM.DeletePolicyVersionRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.deletePolicyVersion(params).promise();
+        },
+        listAttachedRolePolicies: (params: AWS.IAM.ListAttachedRolePoliciesRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.listAttachedRolePolicies(params).promise();
+        },
         listRoles: (params: AWS.IAM.ListRolesRequest): Promise<AWS.IAM.ListRolesResponse> => {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
             return iam.listRoles(params).promise();
@@ -193,6 +209,68 @@ const awsWrapper = {
         describeContainerInstances: (params: AWS.ECS.DescribeContainerInstancesRequest) => {
             const ecs = new AWS.ECS({ apiVersion: '2014-11-13' });
             return ecs.describeContainerInstances(params).promise();
+        }
+    },
+    cloudWatchEvents: {
+        putTargets: (params: AWS.CloudWatchEvents.PutTargetsRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.putTargets(params).promise();
+        },
+        listTargetsByRule: (params: AWS.CloudWatchEvents.ListTargetsByRuleRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.listTargetsByRule(params).promise();
+        },
+        listRules: (params: any) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.listRules(params).promise();
+        },
+        removeTargets: (params: AWS.CloudWatchEvents.RemoveTargetsRequest) => {
+            const cloudWatchEvents = new AWS.CloudWatchEvents({ apiVersion: '2015-10-07' });
+            return cloudWatchEvents.removeTargets(params).promise();
+        }
+    },
+    lambda: {
+        addPermission: (params: AWS.Lambda.AddPermissionRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.addPermission(params).promise();
+        },
+        getPolicy: (params: AWS.Lambda.GetPolicyRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.getPolicy(params).promise();
+        },
+        createEventSourceMapping: (params: AWS.Lambda.CreateEventSourceMappingRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.createEventSourceMapping(params).promise();
+        }
+    },
+    route53: {
+        listHostedZones: (params: AWS.Route53.ListHostedZonesRequest) => {
+            const route53 = new AWS.Route53({apiVersion: '2013-04-01'});
+            return route53.listHostedZones(params).promise();
+        }
+    },
+    sqs: {
+        getQueueAttributes: (params: AWS.SQS.GetQueueAttributesRequest) => {
+            const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+            return sqs.getQueueAttributes(params).promise();
+        },
+        setQueueAttributes: (params: AWS.SQS.SetQueueAttributesRequest) => {
+            const sqs = new AWS.SQS({ apiVersion: '2012-11-05' });
+            return sqs.setQueueAttributes(params).promise();
+        }
+    },
+    sns: {
+        getTopicAttributes: (params: AWS.SNS.GetTopicAttributesInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.getTopicAttributes(params).promise();
+        },
+        setTopicAttributes: (params: AWS.SNS.SetTopicAttributesInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.setTopicAttributes(params).promise();
+        },
+        subscribe: (params: AWS.SNS.SubscribeInput) => {
+            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            return sns.subscribe(params).promise();
         }
     }
 };
