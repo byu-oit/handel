@@ -129,7 +129,7 @@ function getDefinedAttributes(ownServiceContext) {
     //Add attributes from global indexes
     if (serviceParams.global_indexes) {
         for (let globalIndexConfig of serviceParams.global_indexes) {
-            addDefinedAttribute(definedAttributes, globalIndexConfig.partition_key.name, KEY_TYPE_TO_ATTRIBUTE_TYPE[serviceParams.partition_key.type]);
+            addDefinedAttribute(definedAttributes, globalIndexConfig.partition_key.name, KEY_TYPE_TO_ATTRIBUTE_TYPE[globalIndexConfig.partition_key.type]);
             if (globalIndexConfig.sort_key) {
                 addDefinedAttribute(definedAttributes, globalIndexConfig.sort_key.name, KEY_TYPE_TO_ATTRIBUTE_TYPE[globalIndexConfig.sort_key.type]);
             }
