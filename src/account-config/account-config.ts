@@ -73,7 +73,6 @@ export default function(accountConfigParam: any): Promise<AccountConfig> {
                     });
             }
             else if (fs.existsSync(accountConfigParam)) {
-                console.log("Hello!");
                 const absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
                 accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
                 validateAccountConfig(accountConfig);

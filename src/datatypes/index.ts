@@ -61,6 +61,7 @@ export interface ServiceConfig {
     type: string;
     tags?: Tags;
     event_consumers?: ServiceEventConsumer[];
+    dependencies?: string[];
 }
 
 export interface ServiceEventConsumer {
@@ -202,14 +203,10 @@ export class UnPreDeployContext {
 /***********************************
  * Types for the Service Deployer contract
  ***********************************/
-export enum DeployOutputType {
-    environmentVariables, scripts, policies, credentials, securityGroups
-}
-
 export interface ServiceDeployer {
     producedEventsSupportedServices: string[];
-    producedDeployOutputTypes: DeployOutputType[];
-    consumedDeployOutputTypes: DeployOutputType[];
+    producedDeployOutputTypes: string[];
+    consumedDeployOutputTypes: string[];
     check?(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[];
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
     bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext>;
