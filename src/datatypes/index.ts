@@ -59,6 +59,12 @@ export class ServiceContext<Config extends ServiceConfig> {
 
 export interface ServiceConfig {
     type: string;
+    tags?: Tags;
+    event_consumers?: ServiceEventConsumer[];
+}
+
+export interface ServiceEventConsumer {
+    service_name: string;
 }
 
 export class BindContext {
@@ -287,5 +293,9 @@ export class EnvironmentDeployResult {
  * Other Types
  ***********************************/
 export interface Tags {
+    [key: string]: string;
+}
+
+export interface EnvironmentVariables {
     [key: string]: string;
 }

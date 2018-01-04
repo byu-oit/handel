@@ -14,30 +14,31 @@
  * limitations under the License.
  *
  */
+import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
 
-exports.getTopicRuleNamePrefix = function (producerServiceContext) {
-    return `${producerServiceContext.appName}_${producerServiceContext.environmentName}_${producerServiceContext.serviceName}`.replace(/-/g, "_");
+export function getTopicRuleNamePrefix(producerServiceContext: ServiceContext<ServiceConfig>) {
+    return `${producerServiceContext.appName}_${producerServiceContext.environmentName}_${producerServiceContext.serviceName}`.replace(/-/g, '_');
 }
 
 /**
  * Given the service context of an IOT service that will be producing events via a topic rule,
  * and the configuration for an event_consumer that the service will be producing to, this function
  * returns the generated name of the topic rule.
- * 
+ *
  * NOTE: This doesn't use the usual deployPhaseCommon.getResourceName because the IOT service requires
  * underscores rather than dashes, so we convert all dashes to underscores here.
  */
-exports.getTopicRuleName = function (producerServiceContext, eventConsumerConfig) {
-    let ruleNamePrefix = exports.getTopicRuleNamePrefix(producerServiceContext);
-    return `${ruleNamePrefix}_${eventConsumerConfig.service_name}`.replace(/-/g, "_");
+export function getTopicRuleName(producerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: any) { // TODO - Need to get this lined up better
+    const ruleNamePrefix = exports.getTopicRuleNamePrefix(producerServiceContext);
+    return `${ruleNamePrefix}_${eventConsumerConfig.service_name}`.replace(/-/g, '_');
 }
 
-exports.getTopicRuleArnPrefix = function (topicRuleNamePrefix, accountConfig) {
-    let topicPrefixSub = topicRuleNamePrefix.replace(/-/g, "_");
+export function getTopicRuleArnPrefix(topicRuleNamePrefix: string, accountConfig: AccountConfig) {
+    const topicPrefixSub = topicRuleNamePrefix.replace(/-/g, '_');
     return `arn:aws:iot:${accountConfig.region}:${accountConfig.account_id}:rule/${topicPrefixSub}`;
 }
 
-exports.getTopicRuleArn = function (topicRuleArnPrefix, consumerServiceName) {
-    let consumerServiceNameSub = consumerServiceName.replace(/-/g, "_")
+export function getTopicRuleArn(topicRuleArnPrefix: string, consumerServiceName: string) {
+    const consumerServiceNameSub = consumerServiceName.replace(/-/g, '_');
     return `${topicRuleArnPrefix}_${consumerServiceNameSub}`;
 }

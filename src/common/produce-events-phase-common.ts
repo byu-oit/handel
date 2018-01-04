@@ -14,10 +14,14 @@
  * limitations under the License.
  *
  */
-exports.getEventConsumerConfig = function(serviceContext, eventConsumerServiceName) {
-    for(let eventConsumer of serviceContext.params.event_consumers) {
-        if(eventConsumer.service_name === eventConsumerServiceName) {
-            return eventConsumer;
+import { ServiceConfig, ServiceContext, ServiceEventConsumer } from '../datatypes';
+
+export function getEventConsumerConfig(serviceContext: ServiceContext<ServiceConfig>, eventConsumerServiceName: string): ServiceEventConsumer | null {
+    if (serviceContext.params.event_consumers) {
+        for (const eventConsumer of serviceContext.params.event_consumers) {
+            if (eventConsumer.service_name === eventConsumerServiceName) {
+                return eventConsumer;
+            }
         }
     }
     return null;
