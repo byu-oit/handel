@@ -14,14 +14,17 @@
  * limitations under the License.
  *
  */
-const deletePhasesCommon = require('../../common/delete-phases-common');
-const proxyPassthroughDeployType = require('./proxy/proxy-passthrough-deploy-type');
-const swaggerDeployType = require('./swagger/swagger-deploy-type');
-const deployPhaseCommon = require('../../common/deploy-phase-common');
-const lifecyclesCommon = require('../../common/lifecycles-common');
-const preDeployPhaseCommon = require('../../common/pre-deploy-phase-common');
-const SERVICE_NAME = "API Gateway";
-const winston = require('winston');
+import * as winston from 'winston';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as lifecyclesCommon from '../../common/lifecycles-common';
+import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes/index';
+import { APIGatewayConfig } from './config-types';
+import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
+import * as swaggerDeployType from './swagger/swagger-deploy-type';
+
+const SERVICE_NAME = 'API Gateway';
 
 /**
  * Service Deployer Contract Methods
@@ -29,8 +32,8 @@ const winston = require('winston');
  *   for contract method documentation
  */
 
-exports.check = function (serviceContext, dependenciesServiceContexts) {
-    let params = serviceContext.params;
+export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    const params = serviceContext.params;
 
     if(params.proxy) {
         return proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
@@ -45,16 +48,16 @@ exports.check = function (serviceContext, dependenciesServiceContexts) {
     }
 }
 
-exports.preDeploy = function (serviceContext) {
+export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
     if(serviceContext.params.vpc) {
         return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
-        return lifecyclesCommon.preDeployNotRequired(serviceContext, SERVICE_NAME);
+        return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
 }
 
-exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesDeployContexts) {
-    let stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
     if(ownServiceContext.params.swagger) {
         return swaggerDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
@@ -64,23 +67,23 @@ exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesD
     }
 }
 
-exports.unPreDeploy = function (ownServiceContext) {
+export function unPreDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnPreDeployContext> {
     if(ownServiceContext.params.vpc) {
-        return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME)
+        return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
-        return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext, SERVICE_NAME);
+        return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
 }
 
-exports.unDeploy = function (ownServiceContext) {
+export function unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnDeployContext> {
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-exports.producedEventsSupportedServices = [];
+export const producedEventsSupportedServices = [];
 
-exports.producedDeployOutputTypes = [];
+export const producedDeployOutputTypes = [];
 
-exports.consumedDeployOutputTypes = [
+export const consumedDeployOutputTypes = [
     'environmentVariables',
     'policies',
     'securityGroups'

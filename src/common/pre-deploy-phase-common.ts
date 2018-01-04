@@ -21,7 +21,7 @@ import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext } from '
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as handlebarsUtils from './handlebars-utils';
 
-async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number, accountConfig: AccountConfig) {
+async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number | null, accountConfig: AccountConfig) {
     const sgName = `${stackName}-sg`;
     const handlebarsParams: any = {
         groupName: sgName,
@@ -45,11 +45,11 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
     return ec2Calls.getSecurityGroupById(groupId!, accountConfig.vpc);
 }
 
-export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number, serviceName: string) {
+export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
     const sgName = deployPhaseCommon.getResourceName(serviceContext);
     winston.info(`${serviceName} - Creating security group '${sgName}'`);
 
-    const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig)
+    const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig);
     winston.info(`${serviceName} - Finished creating security group '${sgName}'`);
     const preDeployContext = new PreDeployContext(serviceContext);
     preDeployContext.securityGroups.push(securityGroup!);

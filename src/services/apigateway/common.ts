@@ -14,46 +14,46 @@
  * limitations under the License.
  *
  */
-const cloudformationCalls = require('../../aws/cloudformation-calls');
-const deployPhaseCommon = require('../../common/deploy-phase-common');
-const util = require('../../common/util');
-const _ = require('lodash');
+import * as _ from 'lodash';
+import * as cloudformationCalls from '../../aws/cloudformation-calls';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as util from '../../common/util';
+import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceContext } from '../../datatypes/index';
+import { APIGatewayConfig } from './config-types';
 
-
-exports.getEnvVarsForService = function(ownEnvironmentVariables, ownServiceContext, dependenciesDeployContexts) {
+export function getEnvVarsForService(ownEnvironmentVariables: EnvironmentVariables | undefined, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[]) {
     let returnEnvVars = {};
 
     if(ownEnvironmentVariables) {
         returnEnvVars = _.assign(returnEnvVars, ownEnvironmentVariables);
     }
 
-    let dependenciesEnvVars = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
+    const dependenciesEnvVars = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
     returnEnvVars = _.assign(returnEnvVars, dependenciesEnvVars);
-    let handelInjectedEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(ownServiceContext);
+    const handelInjectedEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(ownServiceContext);
     returnEnvVars = _.assign(returnEnvVars, handelInjectedEnvVars);
 
     return returnEnvVars;
 }
 
-exports.getSecurityGroups = function (ownPreDeployContext) {
-    let securityGroups = [];
+export function getSecurityGroups(ownPreDeployContext: PreDeployContext): string[] {
+    const securityGroups: string[] = [];
     if (ownPreDeployContext.securityGroups) {
         ownPreDeployContext.securityGroups.forEach((secGroup) => {
-            securityGroups.push(secGroup.GroupId)
-        })
+            securityGroups.push(secGroup.GroupId!);
+        });
     }
     return securityGroups;
 }
 
-exports.getRestApiUrl = function (cfStack, serviceContext) {
-    let restApiId = cloudformationCalls.getOutput("RestApiId", cfStack);
-    let restApiDomain = `${restApiId}.execute-api.${serviceContext.accountConfig.region}.amazonaws.com`;
-    let stageName = serviceContext.environmentName; //Env name is the stage name
-    let restApiUrl = `https://${restApiDomain}/${stageName}/`;
-    return restApiUrl;
+export function getRestApiUrl(cfStack: AWS.CloudFormation.Stack, serviceContext: ServiceContext<APIGatewayConfig>) {
+    const restApiId = cloudformationCalls.getOutput('RestApiId', cfStack);
+    const restApiDomain = `${restApiId}.execute-api.${serviceContext.accountConfig.region}.amazonaws.com`;
+    const stageName = serviceContext.environmentName; // Env name is the stage name
+    return `https://${restApiDomain}/${stageName}/`;
 }
 
-exports.getPolicyStatementsForLambdaRole = function (serviceContext, dependenciesDeployContexts) {
+export function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[]) {
     let ownPolicyStatements;
     if (serviceContext.params.vpc) {
         ownPolicyStatements = JSON.parse(util.readFileSync(`${__dirname}/lambda-role-statements-vpc.json`));
