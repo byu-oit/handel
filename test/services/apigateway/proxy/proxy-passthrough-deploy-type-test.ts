@@ -55,7 +55,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
         });
 
-        it('should require the \'runtime\' param', () => {
+        it('should require the \'runtime\' param', function() {
             this.timeout(10000);
             delete serviceContext.params.proxy!.runtime;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -63,7 +63,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'runtime\' parameter is required');
         });
 
-        it('should require the \'handler\' param', () => {
+        it('should require the \'handler\' param', function() {
             this.timeout(10000);
             delete serviceContext.params.proxy!.handler;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -71,7 +71,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'handler\' parameter is required');
         });
 
-        it('should fail if vpc is false and a dependency producing security groups is declared', () => {
+        it('should fail if vpc is false and a dependency producing security groups is declared', function() {
             this.timeout(10000);
             serviceContext.params = {
                 type: 'apigateway',
