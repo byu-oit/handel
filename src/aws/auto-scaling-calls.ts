@@ -30,19 +30,19 @@ function delay(millis: number) {
 
 export async function cycleInstances(instancesToCycle: any): Promise<AWS.AutoScaling.ActivityType[] | null> {
     const recycleWk = async (result: AWS.AutoScaling.ActivityType[], instancesToCycle: any): Promise<AWS.AutoScaling.ActivityType[] | null> => {
-        if (instancesToCycle.ec2.length < 1) { return result; }
-        const obj = instancesToCycle.ec2.shift();
+        if (instancesToCycle.length < 1) { return result; }
+        const obj = instancesToCycle.shift();
 
         winston.debug(`recycle:\n${JSON.stringify(obj, null, 2)}`);
 
         try {
             const terminateInstanceParams = {
-                InstanceId: obj.id,
+                InstanceId: obj.ec2InstanceId,
                 ShouldDecrementDesiredCapacity: false
             };
             const activityType = await awsWrapper.autoScaling.terminateInstanceInAutoScalingGroup(terminateInstanceParams);
             result.push(activityType);
-            if (instancesToCycle.ec2.length > 0) {
+            if (instancesToCycle.length > 0) {
                 await delay(60000);
                 return recycleWk(result, instancesToCycle);
             }
