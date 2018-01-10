@@ -23,6 +23,10 @@ function statementIsSame(functionName: string, principal: string, sourceArn: str
         return false;
     }
 
+    if (principal === 'alexa-appkit.amazon.com') {
+        return true;
+    }
+
     if (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn) {
         return false;
     }
