@@ -34,11 +34,9 @@ describe('autoScalingCalls', () => {
     it('should return null on error', async () => {
       const terminateInstanceStub = sandbox.stub(awsWrapper.autoScaling, 'terminateInstanceInAutoScalingGroup').rejects(new Error('someMessage'));
 
-      const result = await autoScalingCalls.cycleInstances({
-        ec2: [
-          { id: 'i-instanceId' }
-        ]
-      });
+      const result = await autoScalingCalls.cycleInstances([
+        { id: 'i-instanceId' }
+      ]);
 
       expect(terminateInstanceStub.callCount).to.equal(1);
       expect(result).to.equal(null);
@@ -47,11 +45,9 @@ describe('autoScalingCalls', () => {
     it('should return an array of results on success', async () => {
       const terminateInstanceStub = sandbox.stub(awsWrapper.autoScaling, 'terminateInstanceInAutoScalingGroup').resolves({ message: 'some result' });
 
-      const result = await autoScalingCalls.cycleInstances({
-        ec2: [
-          { id: 'i-instanceId' }
-        ]
-      });
+      const result = await autoScalingCalls.cycleInstances([
+        { id: 'i-instanceId' }
+      ]);
 
       expect(terminateInstanceStub.callCount).to.equal(1);
       expect(result).to.be.an('array');
@@ -68,15 +64,15 @@ describe('autoScalingCalls', () => {
       expect(result).to.equal(null);
     });
 
-  it('should return an array of results on success', async () => {
-    const describeInstancesStub = sandbox.stub(awsWrapper.autoScaling, 'describeAutoScalingInstances').resolves({ AutoScalingInstances: [] });
-    const describeLaunchConfigsStub = sandbox.stub(awsWrapper.autoScaling, 'describeLaunchConfigurations').resolves({ LaunchConfigurations: [] });
+    it('should return an array of results on success', async () => {
+      const describeInstancesStub = sandbox.stub(awsWrapper.autoScaling, 'describeAutoScalingInstances').resolves({ AutoScalingInstances: [] });
+      const describeLaunchConfigsStub = sandbox.stub(awsWrapper.autoScaling, 'describeLaunchConfigurations').resolves({ LaunchConfigurations: [] });
 
-    const result = await autoScalingCalls.describeLaunchConfigurationsByInstanceIds([]);
+      const result = await autoScalingCalls.describeLaunchConfigurationsByInstanceIds([]);
 
-    expect(describeInstancesStub.callCount).to.equal(1);
-    expect(describeLaunchConfigsStub.callCount).to.equal(0);
-    expect(result!.LaunchConfigurations).to.be.an('array');
+      expect(describeInstancesStub.callCount).to.equal(1);
+      expect(describeLaunchConfigsStub.callCount).to.equal(0);
+      expect(result!.LaunchConfigurations).to.be.an('array');
+    });
   });
-});
 });
