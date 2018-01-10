@@ -27,6 +27,11 @@ Parameters
      - Yes
      - 
      - This must always be *iot* for this service type.
+   * - description
+     - string
+     - No
+     - AWS IoT rule created by Handel
+     - The description you would like to be applied to the IoT rule.
 
 Example Handel File
 -------------------

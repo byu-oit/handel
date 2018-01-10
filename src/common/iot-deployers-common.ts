@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceEventConsumer } from '../datatypes';
 
 export function getTopicRuleNamePrefix(producerServiceContext: ServiceContext<ServiceConfig>) {
     return `${producerServiceContext.appName}_${producerServiceContext.environmentName}_${producerServiceContext.serviceName}`.replace(/-/g, '_');
@@ -28,7 +28,7 @@ export function getTopicRuleNamePrefix(producerServiceContext: ServiceContext<Se
  * NOTE: This doesn't use the usual deployPhaseCommon.getResourceName because the IOT service requires
  * underscores rather than dashes, so we convert all dashes to underscores here.
  */
-export function getTopicRuleName(producerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: any) { // TODO - Need to get this lined up better
+export function getTopicRuleName(producerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: ServiceEventConsumer) { // TODO - Need to get this lined up better
     const ruleNamePrefix = exports.getTopicRuleNamePrefix(producerServiceContext);
     return `${ruleNamePrefix}_${eventConsumerConfig.service_name}`.replace(/-/g, '_');
 }

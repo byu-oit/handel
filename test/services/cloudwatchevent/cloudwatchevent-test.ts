@@ -14,169 +14,166 @@
  * limitations under the License.
  *
  */
-const cloudWatchEvent = require('../../../dist/services/cloudwatchevent');
-const cloudWatchEventsCalls = require('../../../dist/aws/cloudwatch-events-calls');
-const deployPhaseCommon = require('../../../dist/common/deploy-phase-common');
-const ServiceContext = require('../../../dist/datatypes').ServiceContext;
-const deletePhasesCommon = require('../../../dist/common/delete-phases-common');
-const ProduceEventsContext = require('../../../dist/datatypes').ProduceEventsContext;
-const DeployContext = require('../../../dist/datatypes').DeployContext;
-const UnDeployContext = require('../../../dist/datatypes').UnDeployContext;
-const PreDeployContext = require('../../../dist/datatypes').PreDeployContext;
-const sinon = require('sinon');
-const expect = require('chai').expect;
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import config from '../../../src/account-config/account-config';
+import * as cloudWatchEventsCalls from '../../../src/aws/cloudwatch-events-calls';
+import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
+import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
+import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
+import { CloudWatchEventsConfig } from '../../../src/services/cloudwatchevent';
 
-const config = require('../../../dist/account-config/account-config').default;
-
-describe('cloudwatchevent deployer', function () {
-    let sandbox;
-    let serviceContext;
-    let appName = "FakeApp";
-    let envName = "FakeEnv";
-    beforeEach(function () {
-        return config(`${__dirname}/../../test-account-config.yml`)
-            .then(accountConfig => {
-                sandbox = sinon.sandbox.create();
-                serviceContext = new ServiceContext(appName, envName, "FakeService", "cloudwatchevent", {}, accountConfig);
-            });
+describe('cloudwatchevent deployer', () => {
+    let sandbox: sinon.SinonSandbox;
+    let serviceContext: ServiceContext<CloudWatchEventsConfig>;
+    let serviceParams: CloudWatchEventsConfig;
+    let accountConfig: AccountConfig;
+    const appName = 'FakeApp';
+    const envName = 'FakeEnv';
+    beforeEach(async () => {
+        accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
+        sandbox = sinon.sandbox.create();
+        serviceParams = {
+            type: 'cloudwatchevents'
+        };
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'cloudwatchevent', serviceParams, accountConfig);
     });
 
-    afterEach(function () {
+    afterEach(() => {
         sandbox.restore();
     });
 
-    describe('check', function () {
-        it('should require the schedule or event_pattern parameter to be present', function () {
-            let errors = cloudWatchEvent.check(serviceContext);
+    describe('check', () => {
+        it('should require the schedule or event_pattern parameter to be present', () => {
+            const errors = cloudWatchEvent.check(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("You must specify at least one of the 'schedule' or 'event_pattern' parameters");
+            expect(errors[0]).to.contain('You must specify at least one of the \'schedule\' or \'event_pattern\' parameters');
         });
 
-        it('should work when there are no configuration errors', function () {
+        it('should work when there are no configuration errors', () => {
             serviceContext.params = {
+                type: 'cloudwatchevents',
                 schedule: 'rate(1 minute)'
-            }
-            let errors = cloudWatchEvent.check(serviceContext);
+            };
+            const errors = cloudWatchEvent.check(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
 
-    describe('deploy', function () {
-        it('should deploy the event rule', function () {
+    describe('deploy', () => {
+        it('should deploy the event rule', async () => {
             serviceContext.params = {
+                type: 'cloudwatchevents',
                 schedule: 'rate(1 minute)'
-            }
-            let preDeployContext = new PreDeployContext(serviceContext);
-            let eventRuleArn = "FakeEventRuleArn";
+            };
+            const preDeployContext = new PreDeployContext(serviceContext);
+            const eventRuleArn = 'FakeEventRuleArn';
 
-            let deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn
                 }]
             }));
 
-            return cloudWatchEvent.deploy(serviceContext, preDeployContext, [])
-                .then(deployContext => {
-                    expect(deployStackStub.calledOnce).to.be.true;
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.eventOutputs.principal).to.equal("events.amazonaws.com");
-                    expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
-                });
+            const deployContext = await cloudWatchEvent.deploy(serviceContext, preDeployContext, []);
+            expect(deployStackStub.callCount).to.equal(1);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.eventOutputs.principal).to.equal('events.amazonaws.com');
+            expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
         });
     });
 
-    describe('produceEvents', function () {
-        it('should add a target for the lambda service type', function () {
-            let consumerServiceName = "ConsumerService";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "lambda", {}, {});
-            let consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.lambdaArn = "FakeLambdaArn";
+    describe('produceEvents', () => {
+        it('should add a target for the lambda service type', async () => {
+            const consumerServiceName = 'ConsumerService';
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'lambda', {type: 'lambda'}, accountConfig);
+            const consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.lambdaArn = 'FakeLambdaArn';
 
             serviceContext.params = {
+                type: 'cloudwatchevents',
                 event_consumers: [
                     {
                         service_name: consumerServiceName,
-                        input: '{"notify": false}'
+                        event_input: '{"notify": false}'
                     }
                 ]
-            }
-            let producerDeployContext = new DeployContext(serviceContext);
+            };
+            const producerDeployContext = new DeployContext(serviceContext);
 
-            let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
+            const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
-                .then(produceEventsContext => {
-                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
-                    expect(addTargetStub.calledOnce).to.be.truel
-                });
+            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+            expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+            expect(addTargetStub.callCount).to.equal(1);
         });
 
-        it('should add a target for the sns service type', function () {
-            let consumerServiceName = "ConsumerService";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "sns", {}, {});
-            let consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.topicARN = "FakeTopicArn";
+        it('should add a target for the sns service type', async () => {
+            const consumerServiceName = 'ConsumerService';
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'sns', {type: 'sns'}, accountConfig);
+            const consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs.topicARN = 'FakeTopicArn';
 
             serviceContext.params = {
+                type: 'cloudwatchevents',
                 event_consumers: [
                     {
                         service_name: consumerServiceName,
-                        input: '{"notify": false}'
+                        event_input: '{"notify": false}'
                     }
                 ]
-            }
-            let producerDeployContext = new DeployContext(serviceContext);
+            };
+            const producerDeployContext = new DeployContext(serviceContext);
 
-            let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
+            const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
-                .then(produceEventsContext => {
-                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
-                    expect(addTargetStub.calledOnce).to.be.truel
-                });
+            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+            expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+            expect(addTargetStub.callCount).to.equal(1);
         });
 
-        it('should throw an error for an unsupported consumer service type', function () {
-            let consumerServiceName = "ConsumerService";
-            let consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, "dynamodb", {}, {});
-            let consumerDeployContext = new DeployContext(consumerServiceContext);
+        it('should throw an error for an unsupported consumer service type', async () => {
+            const consumerServiceName = 'ConsumerService';
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'dynamodb', {type: 'dynamodb'}, accountConfig);
+            const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             serviceContext.params = {
+                type: 'cloudwatchevents',
                 event_consumers: [
                     {
-                        service_name: consumerServiceName
+                        service_name: consumerServiceName,
+                        event_input: '{"notify": false}'
                     }
                 ]
+            };
+            const producerDeployContext = new DeployContext(serviceContext);
+
+            const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
+
+            try {
+                const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+                expect(true).to.equal(false); // Should not get here
             }
-            let producerDeployContext = new DeployContext(serviceContext);
-
-            let addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve("FakeTargetId"));
-
-            return cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext)
-                .then(produceEventsContext => {
-                    expect(true).to.be.false; //Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain("Unsupported event consumer type");
-                    expect(addTargetStub.notCalled).to.be.true;
-                });
+            catch (err) {
+                expect(err.message).to.contain('Unsupported event consumer type');
+                expect(addTargetStub.callCount).to.equal(0);
+            }
         });
     });
 
-    describe('unDeploy', function () {
-        it('should remove all targets and delete the stack', function () {
-            let getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
-            let removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
-            let unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(true));
+    describe('unDeploy', () => {
+        it('should remove all targets and delete the stack', async () => {
+            const getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
+            const removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
+            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(true));
 
-            return cloudWatchEvent.unDeploy(serviceContext)
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(getRuleStub.calledOnce).to.be.true;
-                    expect(removeTargetsStub.calledOnce).to.be.true;
-                    expect(unDeployStackStub.calledOnce).to.be.true;
-                });
+            const unDeployContext = await cloudWatchEvent.unDeploy(serviceContext);
+            expect(unDeployContext).to.be.instanceof(UnDeployContext);
+            expect(getRuleStub.callCount).to.equal(1);
+            expect(removeTargetsStub.callCount).to.equal(1);
+            expect(unDeployStackStub.callCount).to.equal(1);
         });
     });
 });

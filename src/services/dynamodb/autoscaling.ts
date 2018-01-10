@@ -196,7 +196,7 @@ function getScalingTargets(serviceParams: types.DynamoDBConfig, tableName: strin
     return configs;
 }
 
-interface ThroughputConfig {
+export interface ThroughputConfig {
     read: ThroughputCapacity;
     write: ThroughputCapacity;
 }

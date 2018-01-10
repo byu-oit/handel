@@ -14,21 +14,26 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceContext, Tags } from '../../datatypes';
+import { ServiceConfig, ServiceContext, ServiceEventConsumer, Tags } from '../../datatypes';
 
 export type DynamoDBContext = ServiceContext<DynamoDBConfig>;
+
+export interface DynamoDBServiceEventConsumer extends ServiceEventConsumer {
+    batch_size: number;
+}
 
 export interface DynamoDBConfig extends ServiceConfig {
     partition_key: KeyDefinition;
     sort_key?: KeyDefinition;
     provisioned_throughput?: ProvisionedThroughput;
     stream_view_type?: StreamViewType;
-    local_index_config?: LocalIndexConfig[];
+    local_indexes?: LocalIndexConfig[];
     global_indexes?: GlobalIndexConfig[];
     tags?: Tags;
+    event_consumers: DynamoDBServiceEventConsumer[];
 }
 
-export declare enum StreamViewType {
+export enum StreamViewType {
     KEYS_ONLY = 'KEYS_ONLY',
     NEW_IMAGE = 'NEW_IMAGE',
     OLD_IMAGE = 'OLD_IMAGE',
@@ -61,6 +66,7 @@ export interface KeyDefinition {
     type: KeyDataType;
 }
 
-export declare enum KeyDataType {
-    String = 'String', Number = 'Number'
+export enum KeyDataType {
+    String = 'String',
+    Number = 'Number'
 }

@@ -27,10 +27,11 @@ import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, S
 const SERVICE_NAME = 'CloudWatch Events';
 
 export interface CloudWatchEventsConfig extends ServiceConfig {
-    description: string;
-    schedule: string;
-    event_pattern: any;
-    state: AWS.CloudWatchEvents.RuleState;
+    description?: string;
+    schedule?: string;
+    event_pattern?: any;
+    state?: AWS.CloudWatchEvents.RuleState;
+    event_consumers?: CloudWatchEventsServiceEventConsumer[];
 }
 
 export interface CloudWatchEventsServiceEventConsumer extends ServiceEventConsumer {
