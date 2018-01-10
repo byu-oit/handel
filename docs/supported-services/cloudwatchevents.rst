@@ -35,6 +35,11 @@ Parameters
      - No
      - 
      - The list of event patterns on which to fire the event. In this field you just specify an `Event Pattern <http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html>`_ in YAML syntax.
+   * - state
+     - string
+     - No
+     - enabled
+     - What state the rule should be in. Allowed values: 'enabled', 'disabled'
 
 Example Handel Files
 --------------------
