@@ -1,4 +1,4 @@
-$schemaver: '2.0'
+$schemaver: 2.1
 repo_url: https://github.com/byu-oit/handel
 software:
   - name: handel
@@ -50,7 +50,4 @@ software:
             virtual_server:
             rack_server:
             blade_server:
-    tags:
-      data-sensitivity: confidential
-      app: handel
-      team: gro:AD-Global Education Initiative
+    data_sensitivity: confidential
