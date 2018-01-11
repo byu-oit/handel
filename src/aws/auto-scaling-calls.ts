@@ -28,10 +28,10 @@ function delay(millis: number) {
     });
 }
 
-export async function cycleInstances(instancesToCycle: any): Promise<AWS.AutoScaling.ActivityType[] | null> {
-    const recycleWk = async (result: AWS.AutoScaling.ActivityType[], instancesToCycle: any): Promise<AWS.AutoScaling.ActivityType[] | null> => {
+export async function cycleInstances(instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> {
+    const recycleWk = async (result: AWS.AutoScaling.ActivityType[], instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> => {
         if (instancesToCycle.length < 1) { return result; }
-        const obj = instancesToCycle.shift();
+        const obj = instancesToCycle.shift()!;
 
         winston.debug(`recycle:\n${JSON.stringify(obj, null, 2)}`);
 
