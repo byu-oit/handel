@@ -35,7 +35,7 @@ describe('autoScalingCalls', () => {
       const terminateInstanceStub = sandbox.stub(awsWrapper.autoScaling, 'terminateInstanceInAutoScalingGroup').rejects(new Error('someMessage'));
 
       const result = await autoScalingCalls.cycleInstances([
-        { id: 'i-instanceId' }
+        { ec2InstanceId: 'i-instanceId' }
       ]);
 
       expect(terminateInstanceStub.callCount).to.equal(1);
@@ -46,7 +46,7 @@ describe('autoScalingCalls', () => {
       const terminateInstanceStub = sandbox.stub(awsWrapper.autoScaling, 'terminateInstanceInAutoScalingGroup').resolves({ message: 'some result' });
 
       const result = await autoScalingCalls.cycleInstances([
-        { id: 'i-instanceId' }
+        { ec2InstanceId: 'i-instanceId' }
       ]);
 
       expect(terminateInstanceStub.callCount).to.equal(1);

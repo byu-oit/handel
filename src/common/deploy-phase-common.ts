@@ -27,7 +27,7 @@ import { AccountConfig, DeployContext, EnvironmentVariables, ServiceConfig, Serv
  * Given a ServiceContext and suffix, return the env var name used for environment variables naming
  * All dashes are substituted for underscores.
  */
-export function getInjectedEnvVarName(serviceContext: ServiceContext<ServiceConfig>, suffix: string): string {
+export function getInjectedEnvVarName(serviceContext: ServiceContext<ServiceConfig> | DeployContext, suffix: string): string {
     return `${serviceContext.serviceName}_${suffix}`.toUpperCase().replace(/-/g, '_');
 }
 
