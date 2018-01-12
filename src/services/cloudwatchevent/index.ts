@@ -23,20 +23,9 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../datatypes';
+import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from './config-types';
 
 const SERVICE_NAME = 'CloudWatch Events';
-
-export interface CloudWatchEventsConfig extends ServiceConfig {
-    description?: string;
-    schedule?: string;
-    event_pattern?: any;
-    state?: AWS.CloudWatchEvents.RuleState;
-    event_consumers?: CloudWatchEventsServiceEventConsumer[];
-}
-
-export interface CloudWatchEventsServiceEventConsumer extends ServiceEventConsumer {
-    event_input: string;
-}
 
 function getDeployContext(serviceContext: ServiceContext<CloudWatchEventsConfig>, deployedStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);

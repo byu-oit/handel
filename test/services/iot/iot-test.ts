@@ -21,7 +21,7 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as iot from '../../../src/services/iot';
-import { IotServiceConfig } from '../../../src/services/iot';
+import { IotServiceConfig } from '../../../src/services/iot/config-types';
 
 describe('iot deployer', () => {
     let sandbox: sinon.SinonSandbox;
