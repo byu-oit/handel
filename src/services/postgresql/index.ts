@@ -22,27 +22,8 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext, Tags } from '../../datatypes';
-
-export interface PostgreSQLConfig extends ServiceConfig {
-    postgres_version: string;
-    database_name: string;
-    description?: string;
-    instance_type?: string;
-    storage_gb?: number;
-    storage_type?: PostgreSQLStorageType;
-    db_parameters?: PostgreSQLDbParameters;
-    multi_az?: boolean;
-    tags?: Tags;
-}
-
-enum PostgreSQLStorageType {
-    standard, gp2
-}
-
-interface PostgreSQLDbParameters {
-    [key: string]: string;
-}
+import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
 
 const SERVICE_NAME = 'PostgreSQL';
 const POSTGRES_PORT = 5432;
@@ -63,16 +44,15 @@ function getParameterGroupFamily(postgresVersion: string) {
     }
 }
 
-// TODO - Better return type once compileTemplate is moved to TS
-function getCompiledPostgresTemplate(stackName: string,
+async function getCompiledPostgresTemplate(stackName: string,
                                      ownServiceContext: ServiceContext<PostgreSQLConfig>,
-                                     ownPreDeployContext: PreDeployContext): any {
+                                     ownPreDeployContext: PreDeployContext): Promise<string> {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
     const postgresVersion = serviceParams.postgres_version;
 
-    const handlebarsParams: any = {
+    const handlebarsParams: HandlebarsPostgreSQLTemplate = {
         description: serviceParams.description || 'Parameter group for ' + stackName,
         storageGB: serviceParams.storage_gb || 5,
         instanceType: serviceParams.instance_type || 'db.t2.micro',
@@ -81,8 +61,8 @@ function getCompiledPostgresTemplate(stackName: string,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         postgresVersion,
         dbPort: POSTGRES_PORT,
-        storageType: serviceParams.storage_type || 'standard',
-        dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId,
+        storageType: serviceParams.storage_type || PostgreSQLStorageType.STANDARD,
+        dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(postgresVersion),
         tags: deployPhaseCommon.getTags(ownServiceContext)
     };

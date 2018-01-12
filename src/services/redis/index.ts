@@ -14,26 +14,27 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const DeployContext = require('../../datatypes').DeployContext;
-const cloudFormationCalls = require('../../aws/cloudformation-calls');
-const deployPhaseCommon = require('../../common/deploy-phase-common');
-const preDeployPhaseCommon = require('../../common/pre-deploy-phase-common');
-const bindPhaseCommon = require('../../common/bind-phase-common');
-const deletePhasesCommon = require('../../common/delete-phases-common');
-const handlebarsUtils = require('../../common/handlebars-utils');
-const elasticacheDeployersCommon = require('../../common/elasticache-deployers-common');
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as bindPhaseCommon from '../../common/bind-phase-common';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import { HandlebarsRedisTemplate, RedisServiceConfig } from './config-types';
 
-const SERVICE_NAME = "Redis";
+const SERVICE_NAME = 'Redis';
 const REDIS_PORT = 6379;
-const REDIS_SG_PROTOCOL = "tcp";
+const REDIS_SG_PROTOCOL = 'tcp';
 
-function getDeployContext(serviceContext, cfStack) {
-    let deployContext = new DeployContext(serviceContext);
+function getDeployContext(serviceContext: ServiceContext<RedisServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
+    const deployContext = new DeployContext(serviceContext);
 
     // Set port and address environment variables
-    let port = cloudFormationCalls.getOutput('CachePort', cfStack);
-    let address = cloudFormationCalls.getOutput('CacheAddress', cfStack);
+    const port = cloudFormationCalls.getOutput('CachePort', cfStack);
+    const address = cloudFormationCalls.getOutput('CacheAddress', cfStack);
 
     deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
         PORT: port,
@@ -42,7 +43,7 @@ function getDeployContext(serviceContext, cfStack) {
     return deployContext;
 }
 
-function getCacheParameterGroupFamily(redisVersion) {
+function getCacheParameterGroupFamily(redisVersion: string): string {
     if (redisVersion.startsWith('2.6')) {
         return 'redis2.6';
     }
@@ -54,7 +55,7 @@ function getCacheParameterGroupFamily(redisVersion) {
     }
 }
 
-function getDefaultCacheParameterGroup(redisVersion, numShards) {
+function getDefaultCacheParameterGroup(redisVersion: string): string {
     if (redisVersion.startsWith('2.6')) {
         return 'default.redis2.6';
     }
@@ -69,17 +70,17 @@ function getDefaultCacheParameterGroup(redisVersion, numShards) {
     }
 }
 
-function getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployContext) {
-    let serviceParams = ownServiceContext.params;
-    let accountConfig = ownServiceContext.accountConfig;
+function getCompiledRedisTemplate(stackName: string, ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext): Promise<string> {
+    const serviceParams = ownServiceContext.params;
+    const accountConfig = ownServiceContext.accountConfig;
 
-    let clusterName = elasticacheDeployersCommon.getClusterName(ownServiceContext);
-    let description = serviceParams.description || 'Parameter group for '+clusterName;
-    let redisVersion = serviceParams.redis_version;
+    const clusterName = elasticacheDeployersCommon.getClusterName(ownServiceContext);
+    const description = serviceParams.description || `Parameter group for ${clusterName}`;
+    const redisVersion = serviceParams.redis_version;
     // let shards = serviceParams.shards || 1;
-    let readReplicas = serviceParams.read_replicas || 0;
+    const readReplicas = serviceParams.read_replicas || 0;
 
-    let handlebarsParams = {
+    const handlebarsParams: HandlebarsRedisTemplate = {
         description: description,
         instanceType: serviceParams.instance_type,
         cacheSubnetGroup: accountConfig.elasticache_subnet_group,
@@ -87,14 +88,14 @@ function getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployCont
         stackName,
         clusterName,
         maintenanceWindow: serviceParams.maintenance_window,
-        redisSecurityGroupId: ownPreDeployContext['securityGroups'][0].GroupId,
+        redisSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         snapshotWindow: serviceParams.snapshot_window,
         // shards,
         numNodes: readReplicas + 1,
         tags: deployPhaseCommon.getTags(ownServiceContext)
-    }
+    };
 
-    //Either create custom parameter group if params are specified, or just use default
+    // Either create custom parameter group if params are specified, or just use default
     if (serviceParams.cache_parameters) {
         handlebarsParams.cacheParameters = serviceParams.cache_parameters;
         handlebarsParams.cacheParameterGroupFamily = getCacheParameterGroupFamily(redisVersion);
@@ -104,10 +105,10 @@ function getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployCont
     }
 
     // if(shards === 1) { //Cluster mode disabled
-    if (readReplicas === 0) { //No replication group
+    if (readReplicas === 0) { // No replication group
         return handlebarsUtils.compileTemplate(`${__dirname}/redis-single-no-repl-template.yml`, handlebarsParams);
     }
-    else { //Replication group
+    else { // Replication group
         return handlebarsUtils.compileTemplate(`${__dirname}/redis-single-repl-template.yml`, handlebarsParams);
     }
     // }
@@ -116,16 +117,15 @@ function getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployCont
     // }
 }
 
-
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
  *   for contract method documentation
  */
 
-exports.check = function (serviceContext, dependenciesServiceContexts) {
-    let errors = [];
-    let serviceParams = serviceContext.params;
+export function check(serviceContext: ServiceContext<RedisServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    const errors = [];
+    const serviceParams = serviceContext.params;
 
     if (!serviceParams.instance_type) {
         errors.push(`${SERVICE_NAME} - The 'instance_type' parameter is required`);
@@ -138,7 +138,7 @@ exports.check = function (serviceContext, dependenciesServiceContexts) {
         if (serviceParams.read_replicas < 0 || serviceParams.read_replicas > 5) {
             errors.push(`${SERVICE_NAME} - The 'read_replicas' parameter may only have a value of 0-5`);
         }
-        if (serviceParams.read_replicas > 0 && (serviceParams.instance_type.includes('t2') || serviceParams.instance_type.includes("t1"))) {
+        if (serviceParams.read_replicas > 0 && (serviceParams.instance_type.includes('t2') || serviceParams.instance_type.includes('t1'))) {
             errors.push(`${SERVICE_NAME} - You may not use the 't1' and 't2' instance types when using any read replicas`);
         }
     }
@@ -154,46 +154,43 @@ exports.check = function (serviceContext, dependenciesServiceContexts) {
     return errors;
 }
 
-exports.preDeploy = function (serviceContext) {
+export async function preDeploy(serviceContext: ServiceContext<RedisServiceConfig>): Promise<PreDeployContext> {
     return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
-exports.bind = function (ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) {
+export async function bind(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
     return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT, SERVICE_NAME);
 }
 
-exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesDeployContexts) {
-    let stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+export async function deploy(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${SERVICE_NAME} - Deploying cluster '${stackName}'`);
 
-    return getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployContext)
-        .then(compiledTemplate => {
-            let stackTags = deployPhaseCommon.getTags(ownServiceContext);
-            return deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
-        })
-        .then(deployedStack => {
-            winston.info(`${SERVICE_NAME} - Finished deploying cluster '${stackName}'`);
-            return getDeployContext(ownServiceContext, deployedStack)
-        });
+    const compiledTemplate = await getCompiledRedisTemplate(stackName, ownServiceContext, ownPreDeployContext);
+    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
+    winston.info(`${SERVICE_NAME} - Finished deploying cluster '${stackName}'`);
+    return getDeployContext(ownServiceContext, deployedStack);
+
 }
 
-exports.unPreDeploy = function (ownServiceContext) {
+export async function unPreDeploy(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnPreDeployContext> {
     return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-exports.unBind = function (ownServiceContext) {
+export async function unBind(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnBindContext> {
     return deletePhasesCommon.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
-exports.unDeploy = function (ownServiceContext) {
+export async function unDeploy(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnDeployContext> {
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-exports.producedEventsSupportedServices = [];
+export const producedEventsSupportedServices = [];
 
-exports.producedDeployOutputTypes = [
+export const producedDeployOutputTypes = [
     'environmentVariables',
     'securityGroups'
 ];
 
-exports.consumedDeployOutputTypes = [];
+export const consumedDeployOutputTypes = [];
