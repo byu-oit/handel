@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import config from '../../../dist/account-config/account-config';
+import config from '../../../src/account-config/account-config';
 import { AccountConfig, ServiceContext } from '../../../src/datatypes/index';
 import { S3ServiceConfig } from '../../../src/services/s3/config-types';
 import * as s3Lifecycle from '../../../src/services/s3/lifecycles';
