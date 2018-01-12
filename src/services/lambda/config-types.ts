@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, ServiceConfig } from '../../datatypes/index';
+import { EnvironmentVariables, ServiceConfig, Tags } from '../../datatypes/index';
 
 export interface LambdaServiceConfig extends ServiceConfig {
     path_to_code: string;
@@ -24,5 +24,27 @@ export interface LambdaServiceConfig extends ServiceConfig {
     memory?: number;
     timeout?: number;
     vpc?: boolean;
-    environment_variables: EnvironmentVariables;
+    environment_variables?: EnvironmentVariables;
+}
+
+export interface HandlebarsLambdaTemplate {
+    description: string;
+    functionName: string;
+    s3ArtifactBucket: string;
+    s3ArtifactKey: string;
+    handler: string;
+    runtime: string;
+    memorySize: number;
+    timeout: number;
+    policyStatements: any[];
+    tags: Tags;
+    environmentVariables?: EnvironmentVariables;
+    vpc?: boolean;
+    vpcSecurityGroupIds?: string[];
+    vpcSubnetIds?: string[];
+}
+
+export interface DynamoDBLambdaConsumer {
+    serviceName: string;
+    batchSize: number;
 }
