@@ -35,6 +35,7 @@
     "@types/archiver": "^2.0.1",
     "@types/chai": "^4.0.4",
     "@types/clone": "^0.1.30",
+    "@types/fs-extra": "^5.0.0",
     "@types/handlebars": "^4.0.36",
     "@types/js-yaml": "^3.10.1",
     "@types/lodash": "^4.14.80",

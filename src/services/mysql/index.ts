@@ -22,27 +22,8 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-
-export interface MySQLConfig extends ServiceConfig {
-    mysql_version: string;
-    database_name: string;
-    description?: string;
-    instance_type?: string;
-    storage_gb?: number;
-    storage_type?: MySQLStorageType;
-    db_parameters?: MySQLDbParameters;
-    multi_az?: boolean;
-    tags?: Tags;
-}
-
-enum MySQLStorageType {
-    standard, gp2
-}
-
-interface MySQLDbParameters {
-    [key: string]: string;
-}
+import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import { HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType } from './config-types';
 
 const SERVICE_NAME = 'MySQL';
 const MYSQL_PORT = 3306;
@@ -68,7 +49,7 @@ function getCompiledMysqlTemplate(stackName: string,
 
     const mysqlVersion = serviceParams.mysql_version;
 
-    const handlebarsParams: any = {
+    const handlebarsParams: HandlebarsMySqlTemplate = {
         description: serviceParams.description || 'Parameter group for ' + stackName,
         storageGB: serviceParams.storage_gb || 5,
         instanceType: serviceParams.instance_type || 'db.t2.micro',
@@ -77,8 +58,8 @@ function getCompiledMysqlTemplate(stackName: string,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         mysqlVersion,
         dbPort: MYSQL_PORT,
-        storageType: serviceParams.storage_type || 'standard',
-        dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId,
+        storageType: serviceParams.storage_type || MySQLStorageType.STANDARD,
+        dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(mysqlVersion),
         tags: deployPhaseCommon.getTags(ownServiceContext)
     };

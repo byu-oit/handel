@@ -25,7 +25,7 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as postgresql from '../../../src/services/postgresql';
-import { PostgreSQLConfig } from '../../../src/services/postgresql';
+import { PostgreSQLConfig } from '../../../src/services/postgresql/config-types';
 
 describe('postgresql deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -35,20 +35,17 @@ describe('postgresql deployer', () => {
     let serviceParams: PostgreSQLConfig;
     let accountConfig: AccountConfig;
 
-    beforeEach(() => {
-        return config(`${__dirname}/../../test-account-config.yml`)
-            .then(retAccountConfig => {
-                accountConfig = retAccountConfig;
-                sandbox = sinon.sandbox.create();
-                serviceParams = {
-                    type: 'postgresql',
-                    database_name: 'mydb',
-                    postgres_version: '8.6.2'
-                };
-                serviceContext = new ServiceContext(appName, envName,
-                                                    'FakeService', 'postgresql',
-                                                    serviceParams, retAccountConfig);
-            });
+    beforeEach(async () => {
+        accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
+        sandbox = sinon.sandbox.create();
+        serviceParams = {
+            type: 'postgresql',
+            database_name: 'mydb',
+            postgres_version: '8.6.2'
+        };
+        serviceContext = new ServiceContext(appName, envName,
+                                            'FakeService', 'postgresql',
+                                            serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -84,7 +81,7 @@ describe('postgresql deployer', () => {
                 GroupId: groupId
             });
             const createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
-                .returns(Promise.resolve(preDeployContext));
+                .resolves(preDeployContext);
 
             const retPreDeployContext = await postgresql.preDeploy(serviceContext);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
@@ -103,7 +100,7 @@ describe('postgresql deployer', () => {
                                                                  'beanstalk', { type: 'beanstalk' }, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
-                .returns(Promise.resolve(new BindContext(dependencyServiceContext, dependentOfServiceContext)));
+                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
             const bindContext = await postgresql.bind(dependencyServiceContext, dependencyPreDeployContext,
                                    dependentOfServiceContext, dependentOfPreDeployContext);
@@ -145,81 +142,71 @@ describe('postgresql deployer', () => {
             dependenciesDeployContexts = [];
         });
 
-        it('should create the cluster if it doesnt exist', () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+        it('should create the cluster if it doesnt exist', async () => {
+            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(cloudFormationCalls, 'createStack')
-                .returns(Promise.resolve(deployedStack));
+                .resolves(deployedStack);
             const addDbCredentialStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore')
-                .returns(Promise.resolve(deployedStack));
+                .resolves(deployedStack);
 
-            return postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.callCount).to.equal(1);
-                    expect(createStackStub.callCount).to.equal(1);
-                    expect(addDbCredentialStub.callCount).to.equal(1);
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
-                });
+            const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(createStackStub.callCount).to.equal(1);
+            expect(addDbCredentialStub.callCount).to.equal(1);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
+            expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
 
-        it('should not update the database if it already exists', () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(deployedStack));
-            const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
+        it('should not update the database if it already exists', async () => {
+            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(deployedStack);
+            const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').resolves(null);
 
-            return postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.callCount).to.equal(1);
-                    expect(updateStackStub.callCount).to.equal(0);
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
-                });
+            const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(updateStackStub.callCount).to.equal(0);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
+            expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
     });
 
     describe('unPreDeploy', () => {
-        it('should delete the security group', () => {
+        it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup')
-                .returns(Promise.resolve(new UnPreDeployContext(serviceContext)));
+                .resolves(new UnPreDeployContext(serviceContext));
 
-            return postgresql.unPreDeploy(serviceContext)
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployStub.callCount).to.equal(1);
-                });
+            const unPreDeployContext = await postgresql.unPreDeploy(serviceContext);
+            expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+            expect(unPreDeployStub.callCount).to.equal(1);
         });
     });
 
     describe('unBind', () => {
-        it('should unbind the security group', () => {
+        it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhasesCommon, 'unBindSecurityGroups')
-                .returns(Promise.resolve(new UnBindContext(serviceContext)));
+                .resolves(new UnBindContext(serviceContext));
 
-            return postgresql.unBind(serviceContext)
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindStub.callCount).to.equal(1);
-                });
+            const unBindContext = await postgresql.unBind(serviceContext);
+            expect(unBindContext).to.be.instanceof(UnBindContext);
+            expect(unBindStub.callCount).to.equal(1);
         });
     });
 
     describe('unDeploy', () => {
-        it('should undeploy the stack', () => {
+        it('should undeploy the stack', async () => {
             const unDeployContext = new UnDeployContext(serviceContext);
             const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService')
-                .returns(Promise.resolve(unDeployContext));
+                .resolves(unDeployContext);
             const deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore')
-                .returns(Promise.resolve(unDeployContext));
+                .resolves(unDeployContext);
 
-            return postgresql.unDeploy(serviceContext)
-                .then(retUnDeployContext => {
-                    expect(retUnDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(unDeployStackStub.callCount).to.equal(1);
-                    expect(deleteParametersStub.callCount).to.equal(1);
-                });
+            const retUnDeployContext = await postgresql.unDeploy(serviceContext);
+            expect(retUnDeployContext).to.be.instanceof(UnDeployContext);
+            expect(unDeployStackStub.callCount).to.equal(1);
+            expect(deleteParametersStub.callCount).to.equal(1);
         });
     });
 });
