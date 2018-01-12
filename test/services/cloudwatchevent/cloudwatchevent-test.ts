@@ -22,7 +22,7 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
-import { CloudWatchEventsConfig } from '../../../src/services/cloudwatchevent';
+import { CloudWatchEventsConfig } from '../../../src/services/cloudwatchevent/config-types';
 
 describe('cloudwatchevent deployer', () => {
     let sandbox: sinon.SinonSandbox;

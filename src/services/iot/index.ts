@@ -21,19 +21,9 @@ import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../datatypes';
+import { IotServiceConfig, IotServiceEventConsumer } from './config-types';
 
 const SERVICE_NAME = 'IOT';
-
-export interface IotServiceConfig extends ServiceConfig {
-    description?: string;
-    event_consumers: IotServiceEventConsumer[];
-}
-
-export interface IotServiceEventConsumer extends ServiceEventConsumer {
-    sql: string;
-    description?: string;
-    rule_disabled?: boolean;
-}
 
 function getDeployContext(stackName: string, ownServiceContext: ServiceContext<IotServiceConfig>) {
     const deployContext = new DeployContext(ownServiceContext);

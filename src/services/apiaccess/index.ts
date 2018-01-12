@@ -19,12 +19,9 @@ import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import { APIAccessConfig } from './config-types';
 
 const SERVICE_NAME = 'API Access';
-
-export interface APIAccessConfig extends ServiceConfig {
-    aws_services: string[];
-}
 
 function getDeployContext(serviceContext: ServiceContext<APIAccessConfig>): DeployContext {
     const serviceParams = serviceContext.params;

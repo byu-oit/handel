@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
-import * as ebextensions from '../../../dist/services/beanstalk/ebextensions';
+import * as ebextensions from '../../../src/services/beanstalk/ebextensions';
 
 describe('ebextensions module', () => {
     let sandbox: sinon.SinonSandbox;
