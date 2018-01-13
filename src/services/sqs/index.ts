@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const handlebarsUtils = require('../../common/handlebars-utils');
-const DeployContext = require('../../datatypes').DeployContext;
-const ConsumeEventsContext = require('../../datatypes').ConsumeEventsContext;
-const cloudFormationCalls = require('../../aws/cloudformation-calls');
-const deployPhaseCommon = require('../../common/deploy-phase-common');
-const deletePhasesCommon = require('../../common/delete-phases-common');
-const sqsCalls = require('../../aws/sqs-calls');
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as sqsCalls from '../../aws/sqs-calls';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import { ConsumeEventsContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
+import { HandlebarsSqsTemplate, SqsServiceConfig } from './config-types';
 
-const SERVICE_NAME = "SQS";
+const SERVICE_NAME = 'SQS';
 
-function getCompiledSqsTemplate(stackName, serviceContext) {
-    let serviceParams = serviceContext.params;
-    let handlebarsParams = {
+function getCompiledSqsTemplate(stackName: string, serviceContext: ServiceContext<SqsServiceConfig>): Promise<string> {
+    const serviceParams = serviceContext.params;
+    const handlebarsParams: HandlebarsSqsTemplate = {
         queueName: stackName,
         delaySeconds: 0,
         receiveMessageWaitTimeSeconds: 0,
@@ -37,11 +37,11 @@ function getCompiledSqsTemplate(stackName, serviceContext) {
         deadLetterPolicy: false
     };
     if (serviceParams.queue_type && serviceParams.queue_type === 'fifo') {
-        handlebarsParams.queueName = `${stackName}.fifo`; //FIFO queues require special suffix in name
+        handlebarsParams.queueName = `${stackName}.fifo`; // FIFO queues require special suffix in name
         handlebarsParams.fifoQueue = true;
-        handlebarsParams.contentBasedDeduplication = false; //Default to false
+        handlebarsParams.contentBasedDeduplication = false; // Default to false
         if (serviceParams.content_based_deduplication) {
-            handlebarsParams.contentBasedDeduplication = serviceParams.content_based_deduplication
+            handlebarsParams.contentBasedDeduplication = serviceParams.content_based_deduplication;
         }
     }
     if (serviceParams.delay_seconds) {
@@ -61,7 +61,7 @@ function getCompiledSqsTemplate(stackName, serviceContext) {
     }
     if (serviceParams.dead_letter_queue) {
         handlebarsParams.redrivePolicy = true;
-        let baseQueueName = handlebarsParams.queueName.replace('.fifo', '');
+        const baseQueueName = handlebarsParams.queueName.replace('.fifo', '');
         handlebarsParams.deadLetterQueueName = baseQueueName + '-dead-letter';
         handlebarsParams.deadLetterMaxReceiveCount = 3;
         handlebarsParams.deadLetterDelaySeconds = 0;
@@ -100,55 +100,55 @@ function getCompiledSqsTemplate(stackName, serviceContext) {
         }
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams)
+    return handlebarsUtils.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams);
 }
 
-function getDeployContext(serviceContext, cfStack) {
-    let queueName = cloudFormationCalls.getOutput('QueueName', cfStack);
-    let queueArn = cloudFormationCalls.getOutput('QueueArn', cfStack);
-    let queueUrl = cloudFormationCalls.getOutput('QueueUrl', cfStack);
-    let deadLetterQueueName = cloudFormationCalls.getOutput('DeadLetterQueueName', cfStack);
-    let deadLetterQueueArn = cloudFormationCalls.getOutput('DeadLetterQueueArn', cfStack);
-    let deadLetterQueueUrl = cloudFormationCalls.getOutput('DeadLetterQueueUrl', cfStack);
-    let deployContext = new DeployContext(serviceContext);
+function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
+    const queueName = cloudFormationCalls.getOutput('QueueName', cfStack);
+    const queueArn = cloudFormationCalls.getOutput('QueueArn', cfStack);
+    const queueUrl = cloudFormationCalls.getOutput('QueueUrl', cfStack);
+    const deadLetterQueueName = cloudFormationCalls.getOutput('DeadLetterQueueName', cfStack);
+    const deadLetterQueueArn = cloudFormationCalls.getOutput('DeadLetterQueueArn', cfStack);
+    const deadLetterQueueUrl = cloudFormationCalls.getOutput('DeadLetterQueueUrl', cfStack);
+    const deployContext = new DeployContext(serviceContext);
 
-    //Env variables to inject into consuming services
+    // Env variables to inject into consuming services
     deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
         QUEUE_NAME: queueName,
         QUEUE_ARN: queueArn,
         QUEUE_URL: queueUrl
     }));
 
-    //Add event outputs for event consumption
+    // Add event outputs for event consumption
     deployContext.eventOutputs.queueUrl = queueUrl;
     deployContext.eventOutputs.queueArn = queueArn;
 
-    //Policy to talk to this queue
+    // Policy to talk to this queue
     deployContext.policies.push({
-        "Effect": "Allow",
-        "Action": [
-            "sqs:ChangeMessageVisibility",
-            "sqs:ChangeMessageVisibilityBatch",
-            "sqs:DeleteMessage",
-            "sqs:DeleteMessageBatch",
-            "sqs:GetQueueAttributes",
-            "sqs:GetQueueUrl",
-            "sqs:ListDeadLetterSourceQueues",
-            "sqs:ListQueues",
-            "sqs:PurgeQueue",
-            "sqs:ReceiveMessage",
-            "sqs:SendMessage",
-            "sqs:SendMessageBatch"
+        'Effect': 'Allow',
+        'Action': [
+            'sqs:ChangeMessageVisibility',
+            'sqs:ChangeMessageVisibilityBatch',
+            'sqs:DeleteMessage',
+            'sqs:DeleteMessageBatch',
+            'sqs:GetQueueAttributes',
+            'sqs:GetQueueUrl',
+            'sqs:ListDeadLetterSourceQueues',
+            'sqs:ListQueues',
+            'sqs:PurgeQueue',
+            'sqs:ReceiveMessage',
+            'sqs:SendMessage',
+            'sqs:SendMessageBatch'
         ],
-        "Resource": [
+        'Resource': [
             queueArn
         ]
-    })
+    });
 
-    //Add exports if a dead letter queue was specified
+    // Add exports if a dead letter queue was specified
     if (deadLetterQueueName) {
         deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
-            DEAD_LETTER_QUEUE_NAME:deadLetterQueueName,
+            DEAD_LETTER_QUEUE_NAME: deadLetterQueueName,
             DEAD_LETTER_QUEUE_ARN: deadLetterQueueArn,
             DEAD_LETTER_QUEUE_URL: deadLetterQueueUrl
         }));
@@ -162,18 +162,18 @@ function getDeployContext(serviceContext, cfStack) {
     return deployContext;
 }
 
-function getPolicyStatementForSqsEventConsumption(queueArn, producerArn) {
+function getPolicyStatementForSqsEventConsumption(queueArn: string, producerArn: string): any {
     return {
-        Effect: "Allow",
-        Principal: "*",
-        Action: "sqs:SendMessage",
+        Effect: 'Allow',
+        Principal: '*',
+        Action: 'sqs:SendMessage',
         Resource: queueArn,
         Condition: {
             ArnEquals: {
-                "aws:SourceArn": producerArn
+                'aws:SourceArn': producerArn
             }
         }
-    }
+    };
 }
 
 /**
@@ -182,60 +182,51 @@ function getPolicyStatementForSqsEventConsumption(queueArn, producerArn) {
  *   for contract method documentation
  */
 
-exports.check = function (serviceContext, dependenciesServiceContexts) {
-    let errors = [];
-    return errors;
+export function check(serviceContext: ServiceContext<SqsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    return [];
 }
 
-exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesDeployContexts) {
-    let stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
-    return getCompiledSqsTemplate(stackName, ownServiceContext)
-        .then(sqsTemplate => {
-            let stackTags = deployPhaseCommon.getTags(ownServiceContext);
-            return deployPhaseCommon.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, stackTags);
-        })
-        .then(deployedStack => {
-            winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
-            return getDeployContext(ownServiceContext, deployedStack);
-        });
+    const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
+    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, stackTags);
+    winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
+    return getDeployContext(ownServiceContext, deployedStack);
 }
 
-exports.consumeEvents = function (ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext) {
-    return new Promise((resolve, reject) => {
-        winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-        let queueUrl = ownDeployContext.eventOutputs.queueUrl;
-        let queueArn = ownDeployContext.eventOutputs.queueArn;
-        let producerServiceType = producerServiceContext.serviceType;
-        let producerArn;
-        if (producerServiceType === 'sns') {
-            producerArn = producerDeployContext.eventOutputs.topicArn;
-        }
-        else {
-            return reject(new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`));
-        }
+export async function consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
+    winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
+    const queueUrl = ownDeployContext.eventOutputs.queueUrl;
+    const queueArn = ownDeployContext.eventOutputs.queueArn;
+    const producerServiceType = producerServiceContext.serviceType;
+    let producerArn;
+    if (producerServiceType === 'sns') {
+        producerArn = producerDeployContext.eventOutputs.topicArn;
+    }
+    else {
+        throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
+    }
 
-        let policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
+    const policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
 
-        //Add SQS permission
-        return sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement)
-            .then(permissionStatement => {
-                winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
-                return resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
-            });
-    });
+    // Add SQS permission
+    const permissionStatement = await sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement);
+    winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
+    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
 }
 
-exports.unDeploy = function (ownServiceContext) {
+export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-exports.producedEventsSupportedServices = [];
+export const producedEventsSupportedServices = [];
 
-exports.producedDeployOutputTypes = [
+export const producedDeployOutputTypes = [
     'environmentVariables',
     'policies'
 ];
 
-exports.consumedDeployOutputTypes = [];
+export const consumedDeployOutputTypes = [];

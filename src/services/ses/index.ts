@@ -14,21 +14,22 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const DeployContext = require('../../datatypes').DeployContext;
-const sesCalls = require('../../aws/ses-calls');
-const deployPhaseCommon = require('../../common/deploy-phase-common');
+import * as winston from 'winston';
+import * as sesCalls from '../../aws/ses-calls';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import { SesServiceConfig } from './config-types';
 
 const EMAIL_ADDRESS = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-const SERVICE_NAME = "SES";
+const SERVICE_NAME = 'SES';
 
-function getDeployContext(serviceContext) {
+function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): DeployContext {
     const deployContext = new DeployContext(serviceContext);
 
     const account = serviceContext.accountConfig.account_id;
     const address = serviceContext.params.address;
     const region = serviceContext.accountConfig.region;
-    const identityArn = `arn:aws:ses:${region}:${account}:identity/${address}`
+    const identityArn = `arn:aws:ses:${region}:${account}:identity/${address}`;
 
     // Env variables to inject into consuming services
     deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
@@ -36,13 +37,13 @@ function getDeployContext(serviceContext) {
         IDENTITY_ARN: identityArn
     }));
 
-    //Policy to talk to this queue
+    // Policy to talk to this queue
     deployContext.policies.push({
-        "Effect": "Allow",
-        "Action": [
-            "ses:SendEmail"
+        'Effect': 'Allow',
+        'Action': [
+            'ses:SendEmail'
         ],
-        "Resource": [
+        'Resource': [
             identityArn
         ]
     });
@@ -50,38 +51,36 @@ function getDeployContext(serviceContext) {
     return deployContext;
 }
 
-
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
  *   for contract method documentation
  */
 
-exports.check = function (serviceContext, dependenciesServiceContexts) {
-    let errors = [];
+export function check(serviceContext: ServiceContext<SesServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    const errors = [];
 
-    if (!EMAIL_ADDRESS.test(serviceContext.params.address))
+    if (!EMAIL_ADDRESS.test(serviceContext.params.address)) {
         errors.push(`${SERVICE_NAME} - An address must be a valid email address`);
+    }
 
     return errors;
 }
 
-exports.deploy = function (ownServiceContext, ownPreDeployContext, dependenciesDeployContexts) {
+export async function deploy(ownServiceContext: ServiceContext<SesServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const address = ownServiceContext.params.address;
     winston.info(`${SERVICE_NAME} - Deploying email address ${address}`);
 
-    return sesCalls.verifyEmailAddress(address)
-        .then(() => {
-            winston.info(`${SERVICE_NAME} - Finished deploying email address ${address}`);
-            return getDeployContext(ownServiceContext);
-        });
+    await sesCalls.verifyEmailAddress(address);
+    winston.info(`${SERVICE_NAME} - Finished deploying email address ${address}`);
+    return getDeployContext(ownServiceContext);
 }
 
-exports.producedEventsSupportedServices = [];
+export const producedEventsSupportedServices = [];
 
-exports.producedDeployOutputTypes = [
+export const producedDeployOutputTypes = [
     'environmentVariables',
     'policies'
 ];
 
-exports.consumedDeployOutputTypes = [];
+export const consumedDeployOutputTypes = [];
