@@ -14,35 +14,34 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const UnDeployContext = require('../datatypes').UnDeployContext;
-const lifecyclesCommon = require('../common/lifecycles-common');
+import * as winston from 'winston';
+import * as lifecyclesCommon from '../common/lifecycles-common';
+import { DeployOrder, EnvironmentContext, ServiceDeployers, UnDeployContext, UnDeployContexts} from '../datatypes';
 
-exports.unDeployServicesInLevel = function (serviceDeployers, environmentContext, deployOrder, level) {
-    let serviceUnDeployPromises = [];
-    let levelUnDeployContexts = {};
+export async function unDeployServicesInLevel(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnDeployContexts> {
+    const serviceUnDeployPromises: Array<Promise<void>> = [];
+    const levelUnDeployContexts: UnDeployContexts = {};
 
-    let currentLevelElements = deployOrder[level];
+    const currentLevelElements = deployOrder[level];
     winston.info(`UnDeploying level ${level} of services: ${currentLevelElements.join(', ')}`);
-    for (let i = 0; i < currentLevelElements.length; i++) {
-        let toUnDeployServiceName = currentLevelElements[i];
-        let toUnDeployServiceContext = environmentContext.serviceContexts[toUnDeployServiceName];
+    for(const toUnDeployServiceName of currentLevelElements) {
+        const toUnDeployServiceContext = environmentContext.serviceContexts[toUnDeployServiceName];
 
-        let serviceDeployer = serviceDeployers[toUnDeployServiceContext.serviceType];
+        const serviceDeployer = serviceDeployers[toUnDeployServiceContext.serviceType];
 
         winston.debug(`UnDeploying service ${toUnDeployServiceName}`);
         if (serviceDeployer.unDeploy) {
-            let serviceUndeployPromise = serviceDeployer.unDeploy(toUnDeployServiceContext)
+            const serviceUndeployPromise = serviceDeployer.unDeploy(toUnDeployServiceContext)
                 .then(unDeployContext => {
                     if (!(unDeployContext instanceof UnDeployContext)) {
-                        throw new Error("Expected UnDeployContext as result from 'unDeploy' phase");
+                        throw new Error(`Expected UnDeployContext as result from 'unDeploy' phase`);
                     }
                     levelUnDeployContexts[toUnDeployServiceName] = unDeployContext;
                 });
             serviceUnDeployPromises.push(serviceUndeployPromise);
         }
         else {
-            let serviceUndeployPromise = lifecyclesCommon.unDeployNotRequired(toUnDeployServiceContext)
+            const serviceUndeployPromise = lifecyclesCommon.unDeployNotRequired(toUnDeployServiceContext)
                 .then(unDeployContext => {
                     levelUnDeployContexts[toUnDeployServiceName] = unDeployContext;
                 });
@@ -50,8 +49,6 @@ exports.unDeployServicesInLevel = function (serviceDeployers, environmentContext
         }
     }
 
-    return Promise.all(serviceUnDeployPromises)
-        .then(() => {
-            return levelUnDeployContexts; //This was build up dynamically above
-        });
+    await Promise.all(serviceUnDeployPromises);
+    return levelUnDeployContexts; // This was build up dynamically above
 }
