@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 
 /***********************************
  * Types for the Account Config File
@@ -245,7 +246,7 @@ export interface HandelFileEnvironment {
 export class EnvironmentContext {
     public appName: string;
     public environmentName: string;
-    public serviceContexts: any;
+    public serviceContexts: ServiceContexts;
     public accountConfig: AccountConfig;
 
     constructor(appName: string,
@@ -285,6 +286,44 @@ export class EnvironmentDeployResult {
         this.error = error;
     }
 }
+
+export interface ServiceContexts {
+    [serviceName: string]: ServiceContext<ServiceConfig>;
+}
+
+export interface PreDeployContexts {
+    [serviceName: string]: PreDeployContext;
+}
+
+export interface BindContexts {
+    [bindContextName: string]: BindContext;
+}
+
+export interface DeployContexts {
+    [serviceName: string]: DeployContext;
+}
+
+export interface ConsumeEventsContexts {
+    [serviceName: string]: ConsumeEventsContext;
+}
+
+export interface ProduceEventsContexts {
+    [serviceName: string]: ProduceEventsContext;
+}
+
+export interface UnBindContexts {
+    [serviceName: string]: UnBindContext;
+}
+
+export interface UnDeployContexts {
+    [serviceName: string]: UnDeployContext;
+}
+
+export interface UnPreDeployContexts {
+    [serviceName: string]: UnPreDeployContext;
+}
+
+export type DeployOrder = string[][];
 
 /***********************************
  * Other Types

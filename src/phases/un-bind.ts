@@ -14,34 +14,33 @@
  * limitations under the License.
  *
  */
-const winston = require('winston');
-const UnBindContext = require('../datatypes').UnBindContext;
-const lifecyclesCommon = require('../common/lifecycles-common');
+import * as winston from 'winston';
+import * as lifecyclesCommon from '../common/lifecycles-common';
+import { DeployOrder, EnvironmentContext, ServiceDeployers, UnBindContext, UnBindContexts } from '../datatypes';
 
-exports.unBindServicesInLevel = function (serviceDeployers, environmentContext, deployOrder, level) {
-    let unBindPromises = [];
-    let unBindContexts = {};
+export async function unBindServicesInLevel(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnBindContexts> {
+    const unBindPromises: Array<Promise<void>> = [];
+    const unBindContexts: UnBindContexts = {};
 
-    let currentLevelServicesToUnBind = deployOrder[level];
+    const currentLevelServicesToUnBind = deployOrder[level];
     winston.info(`Running UnBind on service dependencies (if any) in level ${level} for services ${currentLevelServicesToUnBind.join(', ')}`);
-    for (let i = 0; i < currentLevelServicesToUnBind.length; i++) {
-        let toUnBindServiceName = currentLevelServicesToUnBind[i];
-        let toUnBindServiceContext = environmentContext.serviceContexts[toUnBindServiceName];
-        let serviceDeployer = serviceDeployers[toUnBindServiceContext.serviceType];
+    for(const toUnBindServiceName of currentLevelServicesToUnBind) {
+        const toUnBindServiceContext = environmentContext.serviceContexts[toUnBindServiceName];
+        const serviceDeployer = serviceDeployers[toUnBindServiceContext.serviceType];
 
         winston.debug(`UnBinding service ${toUnBindServiceName}`);
         if (serviceDeployer.unBind) {
-            let unBindPromise = serviceDeployer.unBind(toUnBindServiceContext)
+            const unBindPromise = serviceDeployer.unBind(toUnBindServiceContext)
                 .then(unBindContext => {
                     if (!(unBindContext instanceof UnBindContext)) {
-                        throw new Error("Expected UnBindContext back from 'unBind' phase of service deployer");
+                        throw new Error(`Expected UnBindContext back from 'unBind' phase of service deployer`);
                     }
                     unBindContexts[toUnBindServiceName] = unBindContext;
                 });
             unBindPromises.push(unBindPromise);
         }
-        else { //If unbind not implemented by deployer, return an empty unbind context
-            let unBindPromise = lifecyclesCommon.unBindNotRequired(toUnBindServiceContext)
+        else { // If unbind not implemented by deployer, return an empty unbind context
+            const unBindPromise = lifecyclesCommon.unBindNotRequired(toUnBindServiceContext)
                 .then(unBindContext => {
                     unBindContexts[toUnBindServiceName] = unBindContext;
                 });
@@ -49,8 +48,6 @@ exports.unBindServicesInLevel = function (serviceDeployers, environmentContext, 
         }
     }
 
-    return Promise.all(unBindPromises)
-        .then(() => {
-            return unBindContexts; //This was built up dynamically above
-        });
+    await Promise.all(unBindPromises);
+    return unBindContexts; // This was built up dynamically above
 }
