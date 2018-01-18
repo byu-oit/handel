@@ -312,7 +312,7 @@ exports.deleteAction = function (handelFile, argv) {
                         let handelFileParser = util.getHandelFileParser(handelFile);
                         validateHandelFile(handelFileParser, handelFile, serviceDeployers);
 
-                        return deleteLifecycle.delete(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceDeployers)
+                        return deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceDeployers)
                             .then(envDeleteResult => {
                                 logFinalResult('delete', [envDeleteResult]);
                             });

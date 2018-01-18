@@ -284,11 +284,11 @@ export class EnvironmentDeleteResult {
 export class EnvironmentDeployResult {
     public status: string;
     public message: string;
-    public error: Error;
+    public error: Error | undefined;
 
     constructor(status: string,
                 message: string,
-                error: Error) {
+                error?: Error) {
         this.status = status;
         this.message = message;
         this.error = error;
