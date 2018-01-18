@@ -26,7 +26,7 @@ export interface AccountConfig {
     public_subnets: string[];
     private_subnets: string[];
     data_subnets: string[];
-    ssh_bastion_sg: string;
+    ssh_bastion_sg?: string;
     elasticache_subnet_group: string;
     rds_subnet_group: string;
     redshift_subnet_group: string;
@@ -223,6 +223,14 @@ export interface ServiceDeployers {
     [key: string]: ServiceDeployer;
 }
 
+/************************************
+ * Types for the HandelFileParser contract
+ ************************************/
+export interface HandelFileParser {
+    validateHandelFile(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[];
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig): EnvironmentContext;
+}
+
 /***********************************
  * Types for the Handel File
  ***********************************/
@@ -262,11 +270,11 @@ export class EnvironmentContext {
 export class EnvironmentDeleteResult {
     public status: string;
     public message: string;
-    public error: Error;
+    public error: Error | undefined;
 
     constructor(status: string,
                 message: string,
-                error: Error) {
+                error?: Error) {
         this.status = status;
         this.message = message;
         this.error = error;
@@ -276,15 +284,19 @@ export class EnvironmentDeleteResult {
 export class EnvironmentDeployResult {
     public status: string;
     public message: string;
-    public error: Error;
+    public error: Error | undefined;
 
     constructor(status: string,
                 message: string,
-                error: Error) {
+                error?: Error) {
         this.status = status;
         this.message = message;
         this.error = error;
     }
+}
+
+export interface EnvironmentsCheckResults {
+    [environmentName: string]: string[];
 }
 
 export interface ServiceContexts {
