@@ -14,13 +14,14 @@
  * limitations under the License.
  *
  */
-const _ = require('lodash');
-const winston = require('winston');
-const topologicalSort = require('./topological-sort');
+import * as _ from 'lodash';
+import * as winston from 'winston';
+import { DeployOrder, EnvironmentContext, ServiceContext, ServiceConfig } from '../datatypes/index';
+import topologicalSort, { SortNodes } from './topological-sort';
 
-function elementInLevels(element, levels) {
+function elementInLevels(element: string, levels: DeployOrder): boolean {
     let elementInLevel = false;
-    _.forEach(levels, function (level) {
+    _.forEach(levels, (level: string[]) => {
         if (_.includes(level, element)) {
             elementInLevel = true;
         }
@@ -28,9 +29,9 @@ function elementInLevels(element, levels) {
     return elementInLevel;
 }
 
-function stillHasElementsToAddToLevels(environmentContext, levels) {
+function stillHasElementsToAddToLevels(environmentContext: EnvironmentContext, levels: DeployOrder) {
     let elementsToAdd = false;
-    _.forEach(environmentContext.serviceContexts, function (serviceContext, serviceName) {
+    _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>, serviceName: string) => {
         if (!elementInLevels(serviceName, levels)) {
             elementsToAdd = true;
         }
@@ -38,17 +39,20 @@ function stillHasElementsToAddToLevels(environmentContext, levels) {
     return elementsToAdd;
 }
 
-function getLevel(environmentContext, currentLevel, previousLevels) {
-    let returnLevel = [];
-    _.forEach(environmentContext.serviceContexts, function (serviceContext, serviceName) {
-        let dependencies = serviceContext.params.dependencies;
-        if (dependencies && dependencies.length > 0) {
-            let addToThisLevel = true;
-            if (elementInLevels(serviceName, previousLevels)) {
+function getLevel(environmentContext: EnvironmentContext, currentLevel: number, previousLevels: DeployOrder) {
+    const returnLevel: string[] = [];
+    _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>, serviceName: string) => {
+        const dependencies = serviceContext.params.dependencies;
+        if (dependencies && dependencies.length > 0) { // If the element has dependencies, check whether it can be added to this level
+            let addToThisLevel = true; // We'll add it to this level unless we find reason to do otherwise
+
+            if (elementInLevels(serviceName, previousLevels)) { // Don't add it to this level if it's already been added in a previous level
                 addToThisLevel = false;
             }
             else {
-                _.forEach(dependencies, function (dependency) {
+                // Look through each of its dependencies and if any of them are not in a previous level, then don't add this.
+                // ALL dependencies of a service must be satisifed in a previous level before the service is deployed.
+                _.forEach(dependencies, (dependency: string) => {
                     if (!elementInLevels(dependency, previousLevels)) {
                         addToThisLevel = false;
                     }
@@ -59,11 +63,10 @@ function getLevel(environmentContext, currentLevel, previousLevels) {
                 returnLevel.push(serviceName);
             }
         }
-        else {
+        else { // If the element has no dependencies, and hasn't already been added, add it in this level
             if (!elementInLevels(serviceName, previousLevels)) {
                 returnLevel.push(serviceName);
             }
-
         }
     });
 
@@ -77,19 +80,19 @@ function getLevel(environmentContext, currentLevel, previousLevels) {
  * deployed in each level. We could use the results, but it would result in a less effecient
  * strategy for deploying services in parallel.
  */
-function hasCircularDependencies(environmentContext) {
-    let nodes = {}
-    _.forEach(environmentContext.serviceContexts, function (serviceContext, serviceName) {
-        let internalDependencies = [];
+function hasCircularDependencies(environmentContext: EnvironmentContext): boolean {
+    const nodes: SortNodes = {};
+    _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>, serviceName: string) => {
+        const internalDependencies: string[] = [];
         if (serviceContext.params.dependencies) {
-            for (let dependency of serviceContext.params.dependencies) {
+            for (const dependency of serviceContext.params.dependencies) {
                 internalDependencies.push(dependency);
             }
         }
 
         nodes[serviceName] = {
             name: serviceName,
-            edges: internalDependencies,
+            edges: internalDependencies
         };
     });
 
@@ -97,7 +100,7 @@ function hasCircularDependencies(environmentContext) {
         topologicalSort(nodes);
         return false;
     }
-    catch (e) { //Circular dependency error
+    catch (e) { // Circular dependency error
         return true;
     }
 }
@@ -106,18 +109,18 @@ function hasCircularDependencies(environmentContext) {
  * The way in which we calculate the deploy order is terribly inneficient, but
  * that doesn't matter because deploy specs have a small number of defined services
  */
-exports.getDeployOrder = function (environmentContext) {
-    let levels = []
+export function getDeployOrder(environmentContext: EnvironmentContext): DeployOrder {
+    const levels: DeployOrder = [];
     let currentLevel = 0;
 
     if (hasCircularDependencies(environmentContext)) {
-        let errorMsg = "Your application has circular dependencies in your environment definition!"
+        const errorMsg = `Your application has circular dependencies in your environment definition!`;
         winston.error(errorMsg);
         throw new Error(errorMsg);
     }
 
     while (stillHasElementsToAddToLevels(environmentContext, levels)) {
-        let returnedLevel = getLevel(environmentContext, currentLevel, levels);
+        const returnedLevel = getLevel(environmentContext, currentLevel, levels);
         levels.push(returnedLevel);
         currentLevel += 1;
     }

@@ -16,7 +16,7 @@
  */
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { EnvironmentDeployResult, ServiceDeployers, EnvironmentContext, DeployContexts, PreDeployContexts, DeployOrder, BindContexts, AccountConfig, HandelFile, HandelFileParser } from '../datatypes';
+import { AccountConfig, BindContexts, DeployContexts, DeployOrder, EnvironmentContext, EnvironmentDeployResult, HandelFile, HandelFileParser, PreDeployContexts, ServiceDeployers } from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
 import * as bindPhase from '../phases/bind';
 import * as checkPhase from '../phases/check';
@@ -38,13 +38,13 @@ async function bindAndDeployServices(serviceDeployers: ServiceDeployers, environ
     const bindContexts: BindContexts = {};
     const deployContexts: DeployContexts = {};
     for (let currentLevel = 0; deployOrder[currentLevel]; currentLevel++) {
-        const levelBindResults = await bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, currentLevel)
+        const levelBindResults = await bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, currentLevel);
         for (const serviceName in levelBindResults) {
             if (levelBindResults.hasOwnProperty(serviceName)) {
                 bindContexts[serviceName] = levelBindResults[serviceName];
             }
         }
-        const levelDeployResults = await deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, currentLevel)
+        const levelDeployResults = await deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, currentLevel);
         for (const serviceName in levelDeployResults) {
             if (levelDeployResults.hasOwnProperty(serviceName)) {
                 deployContexts[serviceName] = levelDeployResults[serviceName];

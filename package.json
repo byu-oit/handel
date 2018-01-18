@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
     "build": "gulp build",
-    "test": "./node_modules/mocha/bin/mocha -r ts-node/register 'test/**/*.ts' && gulp build && ./node_modules/mocha/bin/mocha 'test/**/*.js'"
+    "test": "./node_modules/mocha/bin/mocha -r ts-node/register 'test/**/*.ts'"
   },
   "bin": {
     "handel": "./bin/handel"
@@ -36,6 +36,7 @@
     "@types/clone": "^0.1.30",
     "@types/fs-extra": "^5.0.0",
     "@types/handlebars": "^4.0.36",
+    "@types/inquirer": "0.0.36",
     "@types/js-yaml": "^3.10.1",
     "@types/lodash": "^4.14.80",
     "@types/mocha": "^2.2.44",

@@ -14,19 +14,30 @@
  * limitations under the License.
  *
  */
-const _ = require('lodash');
+import * as _ from 'lodash';
+
+export interface SortNode {
+    name: string;
+    edges: string[];
+    temporaryMarked?: boolean;
+    permanentMarked?: boolean;
+}
+
+export interface SortNodes {
+    [name: string]: SortNode;
+}
 
 /**
- * Recursive function to depth-first visit nodes, throwing an error if 
+ * Recursive function to depth-first visit nodes, throwing an error if
  * a circular dependency is found
  */
-function visit(sorted, nodes, nodeToVisit) {
+function visit(sorted: string[], nodes: SortNodes, nodeToVisit: SortNode): void {
     if (nodeToVisit.temporaryMarked) {
-        throw new Error("Circular dependency!");
+        throw new Error(`Circular dependency!`);
     }
     if (!nodeToVisit.permanentMarked) {
         nodeToVisit.temporaryMarked = true;
-        _.each(nodeToVisit.edges, function (edge) {
+        _.each(nodeToVisit.edges, (edge: string) => {
             visit(sorted, nodes, nodes[edge]);
         });
         nodeToVisit.permanentMarked = true;
@@ -35,11 +46,10 @@ function visit(sorted, nodes, nodeToVisit) {
     }
 }
 
-
 /**
  * Implements a depth-first topological sort in Javascript. See https://en.wikipedia.org/wiki/Topological_sorting
  *  for details on this algorithm.
- * 
+ *
  * Takes a list of node objects as parameters of the following structure:
  *    {
  *      name: <node_name>, //Name of this node
@@ -47,16 +57,16 @@ function visit(sorted, nodes, nodeToVisit) {
  *      temporaryMarked: <boolean>, //Initialize to false, used internally
  *      permanentMarked: <boolean> //Initialize to false, used internally
  *    }
- * 
+ *
  * Returns a list of node names in topological sorted order, such as the following example:
  *   [ 'F', 'G', 'C', 'H', 'D', 'A', 'E', 'B' ]
- * 
+ *
  * Throws an error if there were circular dependencies
  */
-module.exports = exports = function (nodes) {
-    //Add internal fields to mark temporarily and permanently without altering original objects
-    let internalNodes = {};
-    _.forEach(nodes, function (node, nodeName) {
+export default function(nodes: SortNodes): string[] {
+    // Add internal fields to mark temporarily and permanently without altering original objects
+    const internalNodes: SortNodes = {};
+    _.forEach(nodes, (node: SortNode, nodeName: string) => {
         internalNodes[nodeName] = {
             name: nodeName,
             edges: node.edges,
@@ -65,9 +75,9 @@ module.exports = exports = function (nodes) {
         };
     });
 
-    //Perform topological sort
-    let sorted = [];
-    _.forEach(internalNodes, function (node, nodeName) {
+    // Perform topological sort
+    const sorted: string[] = [];
+    _.forEach(internalNodes, (node: SortNode, nodeName: string) => {
         if (!node.permanentMarked) {
             visit(sorted, internalNodes, node);
         }

@@ -267,7 +267,13 @@ export class EnvironmentContext {
     }
 }
 
-export class EnvironmentDeleteResult {
+export interface EnvironmentResult {
+    status: string;
+    message: string;
+    error?: Error;
+}
+
+export class EnvironmentDeleteResult implements EnvironmentResult {
     public status: string;
     public message: string;
     public error: Error | undefined;
@@ -281,7 +287,7 @@ export class EnvironmentDeleteResult {
     }
 }
 
-export class EnvironmentDeployResult {
+export class EnvironmentDeployResult implements EnvironmentResult {
     public status: string;
     public message: string;
     public error: Error | undefined;
