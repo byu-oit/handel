@@ -30,7 +30,7 @@ export interface DynamoDBConfig extends ServiceConfig {
     local_indexes?: LocalIndexConfig[];
     global_indexes?: GlobalIndexConfig[];
     tags?: Tags;
-    event_consumers: DynamoDBServiceEventConsumer[];
+    event_consumers?: DynamoDBServiceEventConsumer[];
 }
 
 export enum StreamViewType {
