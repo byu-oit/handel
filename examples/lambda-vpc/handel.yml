@@ -1,0 +1,12 @@
+version: 1
+
+name: my-vpc-lambda
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+      vpc: true
