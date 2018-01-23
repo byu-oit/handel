@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 
 /***********************************
  * Types for the Account Config File
@@ -25,7 +26,7 @@ export interface AccountConfig {
     public_subnets: string[];
     private_subnets: string[];
     data_subnets: string[];
-    ssh_bastion_sg: string;
+    ssh_bastion_sg?: string;
     elasticache_subnet_group: string;
     rds_subnet_group: string;
     redshift_subnet_group: string;
@@ -222,6 +223,14 @@ export interface ServiceDeployers {
     [key: string]: ServiceDeployer;
 }
 
+/************************************
+ * Types for the HandelFileParser contract
+ ************************************/
+export interface HandelFileParser {
+    validateHandelFile(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[];
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig): EnvironmentContext;
+}
+
 /***********************************
  * Types for the Handel File
  ***********************************/
@@ -245,7 +254,7 @@ export interface HandelFileEnvironment {
 export class EnvironmentContext {
     public appName: string;
     public environmentName: string;
-    public serviceContexts: any;
+    public serviceContexts: ServiceContexts;
     public accountConfig: AccountConfig;
 
     constructor(appName: string,
@@ -258,33 +267,81 @@ export class EnvironmentContext {
     }
 }
 
-export class EnvironmentDeleteResult {
+export interface EnvironmentResult {
+    status: string;
+    message: string;
+    error?: Error;
+}
+
+export class EnvironmentDeleteResult implements EnvironmentResult {
     public status: string;
     public message: string;
-    public error: Error;
+    public error: Error | undefined;
 
     constructor(status: string,
                 message: string,
-                error: Error) {
+                error?: Error) {
         this.status = status;
         this.message = message;
         this.error = error;
     }
 }
 
-export class EnvironmentDeployResult {
+export class EnvironmentDeployResult implements EnvironmentResult {
     public status: string;
     public message: string;
-    public error: Error;
+    public error: Error | undefined;
 
     constructor(status: string,
                 message: string,
-                error: Error) {
+                error?: Error) {
         this.status = status;
         this.message = message;
         this.error = error;
     }
 }
+
+export interface EnvironmentsCheckResults {
+    [environmentName: string]: string[];
+}
+
+export interface ServiceContexts {
+    [serviceName: string]: ServiceContext<ServiceConfig>;
+}
+
+export interface PreDeployContexts {
+    [serviceName: string]: PreDeployContext;
+}
+
+export interface BindContexts {
+    [bindContextName: string]: BindContext;
+}
+
+export interface DeployContexts {
+    [serviceName: string]: DeployContext;
+}
+
+export interface ConsumeEventsContexts {
+    [serviceName: string]: ConsumeEventsContext;
+}
+
+export interface ProduceEventsContexts {
+    [serviceName: string]: ProduceEventsContext;
+}
+
+export interface UnBindContexts {
+    [serviceName: string]: UnBindContext;
+}
+
+export interface UnDeployContexts {
+    [serviceName: string]: UnDeployContext;
+}
+
+export interface UnPreDeployContexts {
+    [serviceName: string]: UnPreDeployContext;
+}
+
+export type DeployOrder = string[][];
 
 /***********************************
  * Other Types

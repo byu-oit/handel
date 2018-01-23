@@ -122,6 +122,7 @@ The `auto_scaling` section is defined by the following schema:
             <string>: <string>
           metric_name: <string> # Required
           statistic: <string> # Optional. Default: 'Average'
+          comparison_operator: <string> # Required
           threshold: <number> # Required
           period: <number> # Optional. Default: 300
           evaluation_periods: <number> # Optional. Default: 5

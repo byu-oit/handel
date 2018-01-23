@@ -186,7 +186,7 @@ export function getProduceEventsContextName(producerServiceName: string, consume
  */
 export function getHandelFileParser(handelFile: HandelFile) {
     const handelFileVersion = handelFile.version;
-    const handelFileParserFilename = `../handelfile/parser-v${handelFileVersion}.js`;
+    const handelFileParserFilename = `../handelfile/parser-v${handelFileVersion}`;
     let handelFileParser;
     try {
         handelFileParser = require(handelFileParserFilename);

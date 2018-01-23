@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../src/datatypes';
 import * as apiaccess from '../../../src/services/apiaccess';
-import { APIAccessConfig } from '../../../src/services/apiaccess';
+import { APIAccessConfig } from '../../../src/services/apiaccess/config-types';
 
 describe('apiaccess deployer', () => {
     let sandbox: sinon.SinonSandbox;

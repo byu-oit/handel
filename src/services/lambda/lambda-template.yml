@@ -38,6 +38,8 @@ Resources:
           {{/each}}
         {{/each}}
   Function:
+    DependsOn:
+    - Policy # Explicitly required for VPC lambdas, otherwise policy isn't ready and attached before Lambda creation
     Type: AWS::Lambda::Function
     Properties: 
       Code:

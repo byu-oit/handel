@@ -25,7 +25,7 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as mysql from '../../../src/services/mysql';
-import { MySQLConfig } from '../../../src/services/mysql';
+import { MySQLConfig } from '../../../src/services/mysql/config-types';
 
 describe('mysql deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -35,18 +35,15 @@ describe('mysql deployer', () => {
     let serviceParams: MySQLConfig;
     let accountConfig: AccountConfig;
 
-    beforeEach(() => {
-        return config(`${__dirname}/../../test-account-config.yml`)
-            .then(retAccountConfig => {
-                sandbox = sinon.sandbox.create();
-                accountConfig = retAccountConfig;
-                serviceParams = {
-                    type: 'mysql',
-                    mysql_version: '5.6.27',
-                    database_name: 'mydb'
-                };
-                serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, retAccountConfig);
-            });
+    beforeEach(async () => {
+        accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
+        sandbox = sinon.sandbox.create();
+        serviceParams = {
+            type: 'mysql',
+            mysql_version: '5.6.27',
+            database_name: 'mydb'
+        };
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -75,42 +72,38 @@ describe('mysql deployer', () => {
     });
 
     describe('preDeploy', () => {
-        it('should create a security group', () => {
+        it('should create a security group', async () => {
             const groupId = 'FakeSgGroupId';
             const preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
             const createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
-                .returns(Promise.resolve(preDeployContext));
+                .resolves(preDeployContext);
 
-            return mysql.preDeploy(serviceContext)
-                .then(retPreDeployContext => {
-                    expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
-                    expect(retPreDeployContext.securityGroups.length).to.equal(1);
-                    expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
-                    expect(createSgStub.callCount).to.equal(1);
-                });
+            const retPreDeployContext = await mysql.preDeploy(serviceContext);
+            expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
+            expect(retPreDeployContext.securityGroups.length).to.equal(1);
+            expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
+            expect(createSgStub.callCount).to.equal(1);
         });
     });
 
     describe('bind', () => {
-        it('should add the source sg to its own sg as an ingress rule', () => {
+        it('should add the source sg to its own sg as an ingress rule', async () => {
             const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                                                                'postgresql', serviceParams, accountConfig);
+                'postgresql', serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService',
-            'beanstalk', {type: 'beanstalk'}, accountConfig);
+                'beanstalk', { type: 'beanstalk' }, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
-                .returns(Promise.resolve(new BindContext(dependencyServiceContext, dependentOfServiceContext)));
+                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
-            return mysql.bind(dependencyServiceContext, dependencyPreDeployContext,
-                              dependentOfServiceContext, dependentOfPreDeployContext)
-                .then(bindContext => {
-                    expect(bindContext).to.be.instanceof(BindContext);
-                    expect(bindSgStub.callCount).to.equal(1);
-                });
+            const bindContext = await mysql.bind(dependencyServiceContext, dependencyPreDeployContext,
+                dependentOfServiceContext, dependentOfPreDeployContext);
+            expect(bindContext).to.be.instanceof(BindContext);
+            expect(bindSgStub.callCount).to.equal(1);
         });
     });
 
@@ -147,79 +140,69 @@ describe('mysql deployer', () => {
             dependenciesDeployContexts = [];
         });
 
-        it('should create the cluster if it doesnt exist', () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
+        it('should create the cluster if it doesnt exist', async () => {
+            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(cloudFormationCalls, 'createStack')
-                .returns(Promise.resolve(deployedStack));
+                .resolves(deployedStack);
             const addCredentialsStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore')
-                .returns(Promise.resolve(deployedStack));
+                .resolves(deployedStack);
 
-            return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.callCount).to.equal(1);
-                    expect(createStackStub.callCount).to.equal(1);
-                    expect(addCredentialsStub.callCount).to.equal(1);
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
-                });
+            const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(createStackStub.callCount).to.equal(1);
+            expect(addCredentialsStub.callCount).to.equal(1);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
+            expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
 
-        it('should not update the database if it already exists', () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(deployedStack));
-            const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
+        it('should not update the database if it already exists', async () => {
+            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(deployedStack);
+            const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').resolves(null);
 
-            return mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts)
-                .then(deployContext => {
-                    expect(getStackStub.callCount).to.equal(1);
-                    expect(updateStackStub.callCount).to.equal(0);
-                    expect(deployContext).to.be.instanceof(DeployContext);
-                    expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
-                    expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-                    expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
-                });
+            const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(updateStackStub.callCount).to.equal(0);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
+            expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
     });
 
     describe('unPreDeploy', () => {
-        it('should delete the security group', () => {
+        it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup')
-                .returns(Promise.resolve(new UnPreDeployContext(serviceContext)));
+                .resolves(new UnPreDeployContext(serviceContext));
 
-            return mysql.unPreDeploy(serviceContext)
-                .then(unPreDeployContext => {
-                    expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
-                    expect(unPreDeployStub.callCount).to.equal(1);
-                });
+            const unPreDeployContext = await mysql.unPreDeploy(serviceContext);
+            expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
+            expect(unPreDeployStub.callCount).to.equal(1);
         });
     });
 
     describe('unBind', () => {
-        it('should unbind the security group', () => {
+        it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhasesCommon, 'unBindSecurityGroups')
-                .returns(Promise.resolve(new UnBindContext(serviceContext)));
+                .resolves(new UnBindContext(serviceContext));
 
-            return mysql.unBind(serviceContext)
-                .then(unBindContext => {
-                    expect(unBindContext).to.be.instanceof(UnBindContext);
-                    expect(unBindStub.callCount).to.equal(1);
-                });
+            const unBindContext = await mysql.unBind(serviceContext);
+            expect(unBindContext).to.be.instanceof(UnBindContext);
+            expect(unBindStub.callCount).to.equal(1);
         });
     });
 
     describe('unDeploy', () => {
-        it('should undeploy the stack', () => {
+        it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService')
-                .returns(Promise.resolve(new UnDeployContext(serviceContext)));
-            const deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').returns(Promise.resolve({}));
+                .resolves(new UnDeployContext(serviceContext));
+            const deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves({});
 
-            return mysql.unDeploy(serviceContext)
-                .then(unDeployContext => {
-                    expect(unDeployContext).to.be.instanceof(UnDeployContext);
-                    expect(unDeployStackStub.callCount).to.equal(1);
-                    expect(deleteParametersStub.callCount).to.equal(1);
-                });
+            const unDeployContext = await mysql.unDeploy(serviceContext);
+            expect(unDeployContext).to.be.instanceof(UnDeployContext);
+            expect(unDeployStackStub.callCount).to.equal(1);
+            expect(deleteParametersStub.callCount).to.equal(1);
         });
     });
 });
