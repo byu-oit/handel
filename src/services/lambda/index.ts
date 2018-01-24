@@ -27,6 +27,7 @@ import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as util from '../../common/util';
+import awsWrapper from '../../aws/aws-wrapper';
 import { ConsumeEventsContext, DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, ProduceEventsContext, UnPreDeployContext, UnDeployContext } from '../../datatypes';
 import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
 
@@ -158,9 +159,49 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
             return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
         }
     }
-
     // Didn't find the consumer, so throw an error
     throw Error('Consumer serviceName not found in dynamodb event_consumers.');
+}
+
+function permissionInPolicy(principal: string, policy: any): boolean {
+    for (const statement of policy.Statement) {
+        if (statement.Principal.Service === principal) {
+            return true;
+        }
+    }
+    return false
+}
+
+async function checkPolicyPermissions(functionName: string, principal: string): Promise<boolean> {
+    const getPolicyParams: AWS.Lambda.GetPolicyRequest = {
+        FunctionName: functionName
+    };
+    try {
+        const getPolicyResponse = await awsWrapper.lambda.getPolicy(getPolicyParams);
+        const policy = JSON.parse(getPolicyResponse.Policy!);
+        return permissionInPolicy(principal, policy)
+    }
+    catch (err) {
+        if (err.code === 'ResourceNotFoundException') {
+            return false;
+        }
+        throw err;
+    }
+}
+
+async function addAlexaSkillKitIfNotExists(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {
+    const functionName = ownDeployContext.eventOutputs.lambdaName;
+    const principal = producerDeployContext.eventOutputs.principal
+    const producerServiceType = producerServiceContext.serviceType;
+    let sourceArn;
+
+    winston.verbose(`Attempting to find permission ${producerServiceType} in function ${functionName}`);
+    const hasPermission = await checkPolicyPermissions(functionName, principal)
+    if (!hasPermission){
+        await lambdaCalls.addLambdaPermission(functionName, principal, sourceArn)
+    }
+    winston.verbose(`Permission ${producerServiceType} in function ${functionName} does not exist`);
+    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
 }
 
 async function addOtherPermissions(producerServiceType: string, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
@@ -174,9 +215,6 @@ async function addOtherPermissions(producerServiceType: string, producerServiceC
     else if (producerServiceType === 'cloudwatchevent') {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = producerDeployContext.eventOutputs.eventRuleArn;
-    }
-    else if (producerServiceType === 'alexaskillkit') {
-        principal = producerDeployContext.eventOutputs.principal;
     }
     else if (producerServiceType === 'iot') {
         principal = producerDeployContext.eventOutputs.principal;
@@ -252,6 +290,8 @@ export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServ
     const producerServiceType = producerServiceContext.serviceType;
     if (producerServiceType === 'dynamodb') {
         return addDynamoDBPermissions(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext);
+    } else if (producerServiceType === 'alexaskillkit') {
+        return addAlexaSkillKitIfNotExists(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext)
     } else {
         return addOtherPermissions(producerServiceType, producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
     }

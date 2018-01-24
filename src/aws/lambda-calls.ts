@@ -18,13 +18,9 @@ import * as uuid from 'uuid';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
-function statementIsSame(functionName: string, principal: string, sourceArn: string, statement: any): boolean {
+function statementIsSame(functionName: string, principal: string, sourceArn: string | undefined, statement: any): boolean {
     if (statement.Principal.Service !== principal) {
         return false;
-    }
-
-    if (principal === 'alexa-appkit.amazon.com') {
-        return true;
     }
 
     if (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn) {
@@ -33,7 +29,7 @@ function statementIsSame(functionName: string, principal: string, sourceArn: str
     return true;
 }
 
-export async function addLambdaPermission(functionName: string, principal: string, sourceArn: string): Promise<any> {
+export async function addLambdaPermission(functionName: string, principal: string, sourceArn: string | undefined): Promise<any> {
     const addPermissionParams: AWS.Lambda.AddPermissionRequest = {
         Action: 'lambda:InvokeFunction',
         FunctionName: functionName,
@@ -48,7 +44,7 @@ export async function addLambdaPermission(functionName: string, principal: strin
     return getLambdaPermission(functionName, principal, sourceArn);
 }
 
-export async function getLambdaPermission(functionName: string, principal: string, sourceArn: string): Promise<any> {
+export async function getLambdaPermission(functionName: string, principal: string, sourceArn: string | undefined): Promise<any> {
     const getPolicyParams: AWS.Lambda.GetPolicyRequest = {
         FunctionName: functionName
     };

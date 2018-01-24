@@ -166,23 +166,6 @@ describe('lambdaCalls', () => {
         });
     });
 
-    it('should just return the permission statement if alexa skill kit is the principal', async () => {
-        const getPolicyStub = sandbox.stub(awsWrapper.lambda, 'getPolicy');
-        getPolicyStub.onFirstCall().resolves({
-            Policy: `{
-            "Statement": [{
-                "Principal": {
-                    "Service": "alexa-appkit.amazon.com"
-                }
-            }]
-        }`
-        });
-
-        const statement = await lambdaCalls.addLambdaPermissionIfNotExists('FakeFunction', 'alexa-appkit.amazon.com', 'FakeSourceArn');
-        expect(getPolicyStub.callCount).to.equal(1);
-        expect(statement).to.not.equal(null);
-    });
-
     describe('addLambdaEventSourceMapping', () => {
         it('should should create the Event Source Mapping for the lambda function and dynamodb table', async () => {
             const createMappingStub = sandbox.stub(awsWrapper.lambda, 'createEventSourceMapping').resolves({});
