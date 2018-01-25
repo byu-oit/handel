@@ -35,6 +35,8 @@ Resource-Level Tags
 -------------------
 On resources that support it, Handel allows you to specify tags for that resource. It will make the appropriate calls on your behalf to tag the resources it creates with whatever tags you choose to apply.
 
+Resource-level tags will override any application-level tags with the same name.
+
 See a service such as :ref:`efs` for an example about how you can apply tags to Handel services.
 
 .. _tagging-default-tags:
