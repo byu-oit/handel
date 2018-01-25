@@ -30,6 +30,9 @@ export interface AccountConfig {
     elasticache_subnet_group: string;
     rds_subnet_group: string;
     redshift_subnet_group: string;
+    required_tags?: string[];
+    // Allow for account config extensions. Allows future plugins to have their own account-level settings.
+    [key: string]: any;
 }
 
 /***********************************

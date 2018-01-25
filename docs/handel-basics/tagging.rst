@@ -49,3 +49,10 @@ In addition to the ones you specify yourself, Handel will automatically apply th
 * *env* - This will contain the value of the *<environment_name>* that your service is a part of.
 
 See :ref:`handel-file-explanation` for a refresher on where these automatically applied values fit in your Handel file.
+
+Requiring Tags
+--------------
+
+Some organizations may wish to enforce a specific resource tagging scheme. For example, in addition to Handel's `app` and `env` tags, they may wish to require that all resource have a `technical-owner` and `business-owner` tag.
+
+Tag requirements can be configured in the :ref:`account-config-file`. If a user attempts to deploy an application that does not define the required tags either at the application level or the resource level, the deployment will fail.
