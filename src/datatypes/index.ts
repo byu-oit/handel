@@ -42,19 +42,22 @@ export class ServiceContext<Config extends ServiceConfig> {
     public serviceType: string;
     public params: Config;
     public accountConfig: AccountConfig;
+    public tags: Tags;
 
     constructor(appName: string,
                 environmentName: string,
                 serviceName: string,
                 serviceType: string,
                 params: Config,
-                accountConfig: AccountConfig) {
+                accountConfig: AccountConfig,
+                tags: Tags = {}) {
             this.appName = appName;
             this.environmentName = environmentName;
             this.serviceName = serviceName;
             this.serviceType = serviceType;
             this.params = params;
             this.accountConfig = accountConfig;
+            this.tags = tags;
     }
 }
 
@@ -237,6 +240,7 @@ export interface HandelFileParser {
 export interface HandelFile {
     version: number;
     name: string;
+    tags?: Tags;
     environments: HandelFileEnvironments;
 }
 
@@ -256,14 +260,17 @@ export class EnvironmentContext {
     public environmentName: string;
     public serviceContexts: ServiceContexts;
     public accountConfig: AccountConfig;
+    public tags: Tags;
 
     constructor(appName: string,
                 environmentName: string,
-                accountConfig: AccountConfig) {
+                accountConfig: AccountConfig,
+                tags: Tags = {}) {
         this.appName = appName;
         this.environmentName = environmentName;
         this.serviceContexts = {};
         this.accountConfig = accountConfig;
+        this.tags = tags;
     }
 }
 

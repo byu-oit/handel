@@ -199,12 +199,12 @@ export function createEnvironmentContext(handelFile: HandelFile, environmentName
         throw new Error(`Can't find the requested environment in the deploy spec: ${environmentName}`);
     }
 
-    const environmentContext = new EnvironmentContext(handelFile.name, environmentName, accountConfig);
+    const environmentContext = new EnvironmentContext(handelFile.name, environmentName, accountConfig, handelFile.tags || {});
 
     _.forEach(environmentSpec, (serviceSpec, serviceName) => {
         const serviceType = serviceSpec.type;
         const serviceContext = new ServiceContext(handelFile.name, environmentName, serviceName,
-            serviceType, serviceSpec, accountConfig);
+            serviceType, serviceSpec, accountConfig, handelFile.tags || {});
         environmentContext.serviceContexts[serviceName] = serviceContext;
     });
 
