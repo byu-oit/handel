@@ -64,7 +64,10 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
         'Action': [
             's3:PutObject',
             's3:GetObject',
-            's3:DeleteObject'
+            's3:DeleteObject',
+            's3:GetObjectAcl',
+            's3:PutObjectAcl',
+            's3:DeleteObjectAcl'
         ],
         'Resource': [
             `arn:aws:s3:::${bucketName}/*`
