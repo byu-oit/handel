@@ -276,5 +276,51 @@ describe('Deploy phase common module', () => {
             expect(returnTags.env).to.equal('FakeEnv');
             expect(returnTags.mytag).to.equal('myvalue');
         });
+
+        it('should include any application-level tags', () => {
+            serviceContext.tags = {
+                aTag: 'a value'
+            };
+            serviceContext.params = {
+                type: 'faketype',
+                tags: {
+                    mytag: 'myvalue'
+                }
+            };
+
+            const returnTags = deployPhaseCommon.getTags(serviceContext);
+            expect(returnTags.mytag).to.equal('myvalue');
+            expect(returnTags.aTag).to.equal('a value');
+        });
+
+        it('should prefer service tags to application tags', () => {
+            serviceContext.tags = {
+                mytag: 'application'
+            };
+            serviceContext.params = {
+                type: 'faketype',
+                tags: {
+                    mytag: 'service'
+                }
+            };
+
+            const returnTags = deployPhaseCommon.getTags(serviceContext);
+            expect(returnTags.mytag).to.equal('service');
+        });
+
+        it('should prefer Handel tags to service or application tags', () => {
+             serviceContext.tags = {
+                env: 'application'
+            };
+            serviceContext.params = {
+                type: 'faketype',
+                tags: {
+                    env: 'service'
+                }
+            };
+
+            const returnTags = deployPhaseCommon.getTags(serviceContext);
+            expect(returnTags.env).to.equal('service');
+        });
     });
 });

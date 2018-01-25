@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import config from '../../src/account-config/account-config';
 import { AccountConfig, HandelFile, ServiceDeployers } from '../../src/datatypes/index';
 import * as parserV1 from '../../src/handelfile/parser-v1';
@@ -82,6 +83,10 @@ describe('parser-v1', () => {
             validHandelFile = {
                 version: 1,
                 name: 'my-app-name',
+                tags: {
+                    tag: 'value',
+                    another_tag: 'another value'
+                },
                 environments: {
                     dev: {
                         webapp: {
@@ -121,6 +126,39 @@ describe('parser-v1', () => {
             const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'name\' field may not be greater');
+        });
+
+        it('should complain about a tag key that is too long', () => {
+            const tooLongName = 'a'.repeat(200);
+            validHandelFile.tags = { [tooLongName] : 'foo'};
+
+            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include('maximum of 127 characters');
+        });
+
+        it('should complain about a tag key that has invalid characters', () => {
+            validHandelFile.tags = { 'aa{}' : 'foo'};
+
+            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include('consisting of numbers, letters, and some special characters');
+        });
+
+        it('should complain about an empty tag value', () => {
+            validHandelFile.tags = {'tag': ''};
+
+            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include('Tag values must have at least 1 character');
+        });
+
+        it('should complain about tag values that are too long', () => {
+            validHandelFile.tags = {'tag': 'a'.repeat(256)};
+
+            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include('Tag values may contain a maximum of 255 characters');
         });
 
         it('should complain about a missing environments field', () => {

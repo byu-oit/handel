@@ -192,16 +192,17 @@ export function getResourceName(serviceContext: ServiceContext<ServiceConfig>) {
 }
 
 export function getTags(serviceContext: ServiceContext<ServiceConfig>): Tags {
-    let tags: Tags = {
-        app: serviceContext.appName,
-        env: serviceContext.environmentName
+    const serviceParams = serviceContext.params;
+
+    const handelTags: Tags = {
+             app: serviceContext.appName,
+             env: serviceContext.environmentName
     };
 
-    // Add user-defined tags if specified
-    const serviceParams = serviceContext.params;
-    if (serviceParams.tags) {
-        tags = Object.assign(tags, serviceParams.tags);
-    }
+    const appTags = serviceContext.tags;
 
-    return tags;
+    const serviceTags = serviceParams.tags;
+
+    // Service tags overwrite app tags, which overwrite Handel tags
+    return Object.assign({}, handelTags, appTags, serviceTags);
 }
