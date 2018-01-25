@@ -8,11 +8,32 @@ Most AWS services support the `tagging of resources <https://aws.amazon.com/answ
 * Providing information about teams developing the product such as contact information.
 * Specifying which resources may be automatically shut down or terminated by an external script.
 
-Handel Support for Tagging
---------------------------
-On resources that support it, Handel allows you to specify tags for that resource. It will make the appropriate calls on your behalf to tag the resources it creates with whatever tags you choose to apply.
+AWS services have limits on the total number of tags that may be applied to each service. As of January 2018, most services have a limit of `50 tags <https://aws.amazon.com/blogs/security/now-organize-your-aws-resources-by-using-up-to-50-tags-per-resource/>`_.
 
-AWS services have limits on the total number of tags that may be applied to each service. Generally that limit is currently `50 tags <https://aws.amazon.com/blogs/security/now-organize-your-aws-resources-by-using-up-to-50-tags-per-resource/>`_.
+Application-Level Tags
+----------------------
+
+In your handel.yml file, you can specify tags that apply to all supported resources in the stack, as well as the underlying Cloudformation stacks.  You can specify these tags using a top-level 'tags' object:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: <name of the app being deployed>
+
+    tags:
+      your-tag: value
+      another-tag: another value
+      technical-owner: Joe Developer <joe_developer@example.com>
+      business-owner: Jill Manager <jill_manager@example.com>
+
+    environments:
+      ...
+
+
+Resource-Level Tags
+-------------------
+On resources that support it, Handel allows you to specify tags for that resource. It will make the appropriate calls on your behalf to tag the resources it creates with whatever tags you choose to apply.
 
 See a service such as :ref:`efs` for an example about how you can apply tags to Handel services.
 
