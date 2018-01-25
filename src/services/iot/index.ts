@@ -20,8 +20,16 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../datatypes';
-import { IotServiceConfig, IotServiceEventConsumer } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from '../../datatypes';
+import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'IOT';
 
@@ -121,7 +129,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
         throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
     }
 
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const serviceParams = ownServiceContext.params;
     const stackName = getStackNameFromRuleName(ruleName);
     const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;
@@ -159,3 +167,5 @@ export const producedEventsSupportedServices = [
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

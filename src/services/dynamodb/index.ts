@@ -19,9 +19,17 @@ import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import {getTags} from '../../common/tagging-common';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext
+} from '../../datatypes';
 import * as autoscaling from './autoscaling';
-import { DynamoDBConfig, DynamoDBServiceEventConsumer } from './config-types';
+import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
@@ -207,7 +215,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
         tablePartitionKeyName: serviceParams.partition_key.name,
         tableReadCapacityUnits: throughputConfig.read.initial,
         tableWriteCapacityUnits: throughputConfig.write.initial,
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Add sort key if provided
@@ -302,7 +310,7 @@ export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, 
     const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
 
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
 
     const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, stackTags);
@@ -330,3 +338,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

@@ -26,9 +26,20 @@ import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import {getTags} from '../../common/tagging-common';
 import * as util from '../../common/util';
-import { ConsumeEventsContext, DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, ProduceEventsContext, UnPreDeployContext, UnDeployContext } from '../../datatypes';
-import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
+import {
+    ConsumeEventsContext,
+    DeployContext,
+    EnvironmentVariables,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'Lambda';
 
@@ -66,7 +77,7 @@ function getCompiledLambdaTemplate(stackName: string, ownServiceContext: Service
         memorySize: memorySize,
         timeout: timeout,
         policyStatements,
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Inject environment variables (if any)
@@ -241,7 +252,7 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     }
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -281,3 +292,5 @@ export const consumedDeployOutputTypes = [
     'policies',
     'securityGroups'
 ];
+
+export const supportsTagging = true;

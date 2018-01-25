@@ -22,8 +22,18 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType} from './config-types';
 
 const SERVICE_NAME = 'MySQL';
 const MYSQL_PORT = 3306;
@@ -61,7 +71,7 @@ function getCompiledMysqlTemplate(stackName: string,
         storageType: serviceParams.storage_type || MySQLStorageType.STANDARD,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(mysqlVersion),
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Add parameters to parameter group if specified
@@ -130,7 +140,7 @@ export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
             DBUsername: dbUsername,
             DBPassword: dbPassword
         });
-        const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+        const stackTags = getTags(ownServiceContext);
         winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
         const deployedStack = await cloudFormationCalls.createStack(stackName,
                                                                     compiledTemplate,
@@ -171,3 +181,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

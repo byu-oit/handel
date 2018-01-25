@@ -22,8 +22,18 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { HandlebarsMemcachedTemplate, MemcachedServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {HandlebarsMemcachedTemplate, MemcachedServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'Memcached';
 const MEMCACHED_PORT = 11211;
@@ -60,7 +70,7 @@ function getCompiledMemcachedTemplate(stackName: string, ownServiceContext: Serv
         memcachedSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         nodeCount: serviceParams.node_count || 1,
         memcachedPort: MEMCACHED_PORT,
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Either create custom parameter group if params are specified, or just use default
@@ -108,7 +118,7 @@ export async function deploy(ownServiceContext: ServiceContext<MemcachedServiceC
     winston.info(`${SERVICE_NAME} - Deploying cluster '${stackName}'`);
 
     const compiledTemplate = await getCompiledMemcachedTemplate(stackName, ownServiceContext, ownPreDeployContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying cluster '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -134,3 +144,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

@@ -18,10 +18,11 @@ import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../../common/handlebars-utils';
+import {getTags} from '../../../common/tagging-common';
 import * as util from '../../../common/util';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../datatypes';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../../datatypes';
 import * as apigatewayCommon from '../common';
-import { APIGatewayConfig } from '../config-types';
+import {APIGatewayConfig} from '../config-types';
 
 async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGatewayConfig>, serviceName: string): Promise<AWS.S3.ManagedUpload.SendData> {
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
@@ -47,7 +48,7 @@ function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: Ser
         functionTimeout: getParam(serviceParams, 'function_timeout', 'timeout', '3').toString(),
         lambdaRuntime: getParam(serviceParams, 'lambda_runtime', 'runtime', undefined),
         policyStatements: apigatewayCommon.getPolicyStatementsForLambdaRole(ownServiceContext, dependenciesDeployContexts),
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Add binary media types if specified
@@ -122,7 +123,7 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
 export async function deploy(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], serviceName: string) {
     const s3ObjectInfo = await uploadDeployableArtifactToS3(ownServiceContext, serviceName);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ObjectInfo, ownPreDeployContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);

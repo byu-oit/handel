@@ -20,8 +20,9 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { HandlebarsS3Template, S3ServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
+import {HandlebarsS3Template, S3ServiceConfig} from './config-types';
 import * as lifecycleSection from './lifecycles';
 
 const SERVICE_NAME = 'S3';
@@ -87,7 +88,7 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
         bucketName: bucketName,
         bucketACL: serviceParams.bucket_acl,
         versioningStatus: versioningStatus,
-        tags: deployPhaseCommon.getTags(ownServiceContext),
+        tags: getTags(ownServiceContext),
         lifecycle_policy: lifecycleSection.getLifecycleConfig(ownServiceContext)
     };
 
@@ -128,7 +129,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>,
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -147,3 +148,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

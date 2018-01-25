@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { expect } from 'chai';
+import {expect} from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -23,7 +23,7 @@ import * as iamCalls from '../../src/aws/iam-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as util from '../../src/common/util';
-import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import {AccountConfig, DeployContext, ServiceConfig, ServiceContext} from '../../src/datatypes';
 
 describe('Deploy phase common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -262,65 +262,4 @@ describe('Deploy phase common module', () => {
         });
     });
 
-    describe('getTags', () => {
-        it('should return the Handel-injected tags, plus any user-defined tags', () => {
-            serviceContext.params = {
-                type: 'faketype',
-                tags: {
-                    mytag: 'myvalue'
-                }
-            };
-
-            const returnTags = deployPhaseCommon.getTags(serviceContext);
-            expect(returnTags.app).to.equal('FakeApp');
-            expect(returnTags.env).to.equal('FakeEnv');
-            expect(returnTags.mytag).to.equal('myvalue');
-        });
-
-        it('should include any application-level tags', () => {
-            serviceContext.tags = {
-                aTag: 'a value'
-            };
-            serviceContext.params = {
-                type: 'faketype',
-                tags: {
-                    mytag: 'myvalue'
-                }
-            };
-
-            const returnTags = deployPhaseCommon.getTags(serviceContext);
-            expect(returnTags.mytag).to.equal('myvalue');
-            expect(returnTags.aTag).to.equal('a value');
-        });
-
-        it('should prefer service tags to application tags', () => {
-            serviceContext.tags = {
-                mytag: 'application'
-            };
-            serviceContext.params = {
-                type: 'faketype',
-                tags: {
-                    mytag: 'service'
-                }
-            };
-
-            const returnTags = deployPhaseCommon.getTags(serviceContext);
-            expect(returnTags.mytag).to.equal('service');
-        });
-
-        it('should prefer Handel tags to service or application tags', () => {
-             serviceContext.tags = {
-                env: 'application'
-            };
-            serviceContext.params = {
-                type: 'faketype',
-                tags: {
-                    env: 'service'
-                }
-            };
-
-            const returnTags = deployPhaseCommon.getTags(serviceContext);
-            expect(returnTags.env).to.equal('service');
-        });
-    });
 });

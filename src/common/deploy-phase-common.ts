@@ -21,7 +21,14 @@ import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../common/util';
-import { AccountConfig, DeployContext, EnvironmentVariables, ServiceConfig, ServiceContext, Tags } from '../datatypes/index';
+import {
+    AccountConfig,
+    DeployContext,
+    EnvironmentVariables,
+    ServiceConfig,
+    ServiceContext,
+    Tags
+} from '../datatypes';
 
 /**
  * Given a ServiceContext and suffix, return the env var name used for environment variables naming
@@ -189,20 +196,4 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
 
 export function getResourceName(serviceContext: ServiceContext<ServiceConfig>) {
     return `${serviceContext.appName}-${serviceContext.environmentName}-${serviceContext.serviceName}-${serviceContext.serviceType}`;
-}
-
-export function getTags(serviceContext: ServiceContext<ServiceConfig>): Tags {
-    const serviceParams = serviceContext.params;
-
-    const handelTags: Tags = {
-             app: serviceContext.appName,
-             env: serviceContext.environmentName
-    };
-
-    const appTags = serviceContext.tags;
-
-    const serviceTags = serviceParams.tags;
-
-    // Service tags overwrite app tags, which overwrite Handel tags
-    return Object.assign({}, handelTags, appTags, serviceTags);
 }

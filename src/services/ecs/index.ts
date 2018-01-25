@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import * as _ from 'lodash';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
@@ -26,11 +25,12 @@ import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scalin
 import * as volumesSection from '../../common/ecs-volumes';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../datatypes';
 import * as asgCycling from './asg-cycling';
 import * as cluster from './cluster';
 import * as clusterAutoScalingSection from './cluster-auto-scaling';
-import { EcsServiceConfig, HandlebarsEcsTemplateConfig } from './config-types';
+import {EcsServiceConfig, HandlebarsEcsTemplateConfig} from './config-types';
 
 const SERVICE_NAME = 'ECS';
 const DEFAULT_INSTANCE_TYPE = 't2.micro';
@@ -83,7 +83,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
                 ecsServiceRoleArn: ecsServiceRole.Arn,
                 policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
                 deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-                tags: deployPhaseCommon.getTags(ownServiceContext),
+                tags: getTags(ownServiceContext),
                 containerConfigs,
                 autoScaling,
                 oneOrMoreTasksHasRouting,
@@ -164,7 +164,7 @@ export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>
     const userDataScript = await cluster.getUserDataScript(clusterName, dependenciesDeployContexts);
     const ecsServiceRole = await cluster.createEcsServiceRoleIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript, ecsServiceRole!);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     await asgCycling.cycleInstances(instancesToCycle);
     winston.info(`${SERVICE_NAME} - Finished deploying service '${stackName}'`);
@@ -189,3 +189,5 @@ export const consumedDeployOutputTypes = [
     'policies',
     'securityGroups'
 ];
+
+export const supportsTagging = true;

@@ -88,3 +88,5 @@ export const consumedDeployOutputTypes = [
     'policies',
     'securityGroups'
 ];
+
+export const supportsTagging = true;

@@ -25,8 +25,9 @@ import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scalin
 import * as volumesSection from '../../common/ecs-volumes';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
-import { FargateServiceConfig, HandlebarsFargateTemplateConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../datatypes';
+import {FargateServiceConfig, HandlebarsFargateTemplateConfig} from './config-types';
 
 const SERVICE_NAME = 'ECS Fargate';
 
@@ -65,7 +66,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
                 vpcId: accountConfig.vpc,
                 policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
                 deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-                tags: deployPhaseCommon.getTags(ownServiceContext),
+                tags: getTags(ownServiceContext),
                 containerConfigs,
                 autoScaling,
                 oneOrMoreTasksHasRouting,
@@ -119,7 +120,7 @@ export async function deploy(ownServiceContext: ServiceContext<FargateServiceCon
 
     await ecsCalls.createDefaultClusterIfNotExists();
     const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
     return new DeployContext(ownServiceContext);
@@ -142,3 +143,5 @@ export const consumedDeployOutputTypes = [
     'policies',
     'securityGroups'
 ];
+
+export const supportsTagging = true;

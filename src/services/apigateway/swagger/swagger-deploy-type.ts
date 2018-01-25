@@ -21,10 +21,11 @@ import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../../common/handlebars-utils';
+import {getTags} from '../../../common/tagging-common';
 import * as util from '../../../common/util';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags } from '../../../datatypes';
+import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags} from '../../../datatypes';
 import * as apigatewayCommon from '../common';
-import { APIGatewayConfig } from '../config-types';
+import {APIGatewayConfig} from '../config-types';
 
 const VALID_METHOD_NAMES = [
     'get',
@@ -244,7 +245,7 @@ export function check(ownServiceContext: ServiceContext<APIGatewayConfig>, depen
 export async function deploy(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], serviceName: string) {
     const swagger = loadSwaggerFile(ownServiceContext);
     let lambdasToCreate = getLambdasToCreate(stackName, swagger, ownServiceContext, dependenciesDeployContexts);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const enrichedSwagger = enrichSwagger(stackName, swagger, ownServiceContext.accountConfig);
 
     lambdasToCreate = await uploadDeployableArtifactsToS3(ownServiceContext, lambdasToCreate, serviceName, enrichedSwagger);

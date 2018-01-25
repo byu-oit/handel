@@ -40,7 +40,8 @@ describe('check', () => {
                     ],
                     check: (serviceContext: ServiceContext<ServiceConfig>) => {
                         return [];
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 efs: {
                     producedEventsSupportedServices: [],
@@ -50,6 +51,7 @@ describe('check', () => {
                         'securityGroups'
                     ],
                     consumedDeployOutputTypes: [],
+                    supportsTagging: true,
                 }
                 // We're pretending that EFS doesn't implement check (even though it really does) for the purposes of this test.
             };
@@ -99,6 +101,26 @@ describe('check', () => {
 
             const checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
             expect(checkResults).to.deep.equal(ecsErrors);
+        });
+
+        it('should enforce required tags from the account config file', () => {
+            accountConfig.required_tags = ['app_tag', 'resource_tag'];
+
+            const serviceDeployers = getServiceDeployers();
+            const environmentContext = getEnvironmentContext();
+
+            const appTags = {app_tag: 'value'};
+
+            // A will have all required tags set, one at the app level, one at the resource level
+            environmentContext.serviceContexts.A.tags = appTags;
+            environmentContext.serviceContexts.A.params.tags = {resource_tag: 'value'};
+
+            // B forgot the resource tag!
+            environmentContext.serviceContexts.B.tags = appTags;
+
+            const checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
+            expect(checkResults).to.have.lengthOf(1);
+            expect(checkResults[0]).to.include('Missing required tag \'resource_tag\'');
         });
     });
 });
