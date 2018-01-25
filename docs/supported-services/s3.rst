@@ -41,7 +41,7 @@ This service takes the following parameters:
    * - bucket_acl
      - string
      - No
-     - disabled
+     - 
      - **Warning:** A canned access control list (ACL) that grants predefined permissions to the bucket. These are global permissions ie, PublicRead means the bucket is open to the world. Allowed values: *AuthenticatedRead*, *AwsExecRead*, *BucketOwnerRead*, *BucketOwnerFullControl*, *LogDeliveryWrite*, *Private*, *PublicRead*
    * - versioning
      - string
@@ -56,7 +56,7 @@ This service takes the following parameters:
    * - lifecycles
      - :ref:`s3-lifecycles`
      - No
-     - disabled
+     - 
      - Lifecycle Policies to apply to the bucket. See `AWS Docs for more info <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig-rule.html>`_
    * - tags
      - :ref:`s3-tags`
