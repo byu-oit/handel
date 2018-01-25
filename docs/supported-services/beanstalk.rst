@@ -8,8 +8,19 @@ Service Limitations
 -------------------
 
 No WAR support
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 This Handel Beanstalk service does not yet support Java WAR stack types. Support is planned to be added in the near future.
+
+Limited Tagging Support
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. ATTENTION::
+
+  CloudFormation doesn't allow Beanstalk tags to be modified after initial environment creation. Beanstalk just recently added
+  support for updating tags, but CloudFormation doesn't yet support that feature change for Beanstalk.
+
+  Until this support is added, if you try to modify your *tags* element after your environment is created, your CloudFormation stack will fail to update.
+
 
 Parameters
 ----------
@@ -73,7 +84,7 @@ Parameters
      - 
      - Any user-specified environment variables to inject in the application.
    * - tags
-     - :ref:`beanstalk-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your Beanstalk environment
@@ -161,29 +172,6 @@ The Routing element is defined by the following schema:
        - <string> # Optional
 
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
-
-.. _beanstalk-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-
-.. ATTENTION::
-
-  CloudFormation doesn't allow Beanstalk tags to be modified after initial environment creation. Beanstalk just recently added
-  support for updating tags, but CloudFormation doesn't yet support that feature change for Beanstalk.
-
-  Until this support is added, if you try to modify your *tags* element after your environment is created, your CloudFormation stack will fail to update.
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 .. _beanstalk-example-handel-files:
 

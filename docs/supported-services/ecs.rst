@@ -18,6 +18,10 @@ This service currently does not support the following ECS task features:
 * Extra networking items such as manually specifying DNS Servers, DNS Search Domains, and extra hosts in the /etc/hosts file
 * Task definition options such as specifying an entry point, command, or working directory. These options are available in your Dockerfile and can be specified there.
 
+.. IMPORTANT::
+
+    This service only offers limited tagging support. ECS resources will not be tagged, but any load balancers, EC2 instances, and the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
 Parameters
 ----------
 .. list-table::
@@ -64,7 +68,7 @@ Parameters
      - 0
      - Configures the log retention duration for CloudWatch logs. If set to `0`, logs are kept indefinitely.
    * - tags
-     - :ref:`ecs-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - This section allows you to specify any tags you wish to apply to your ECS service.
@@ -191,21 +195,6 @@ The `load_balancer` section is defined by the following schema:
        - <string> # Optional.
 
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
-
-.. _ecs-tags:
-
-Tags
-~~~~
-The `tags` section is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 .. _ecs-logging:
 

@@ -69,7 +69,7 @@ This service takes the following parameters:
      -
      - Configuration for CloudFront. If not specified, CloudFront is not enabled.
    * - tags
-     - :ref:`s3staticsite-tags`
+     - :ref:`tagging-resources`
      - No
      -
      - Any tags you want to apply to your S3 bucket
@@ -163,21 +163,6 @@ is equivalent to:
 .. code-block:: yaml
 
     cloudfront_max_ttl: 172800
-
-.. _s3staticsite-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

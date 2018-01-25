@@ -66,7 +66,7 @@ Parameters
      - 
      - Any environment variables you want to inject into your code.
    * - tags
-     - :ref:`lambda-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your Lambda
@@ -83,21 +83,6 @@ The EnvironmentVariables element is defined by the following schema:
       <YOUR_ENV_NAME>: <your_env_value>
 
 <YOUR_ENV_NAME> is a string that will be the name of the injected environment variable. <your_env_value> is its value. You may specify an arbitrary number of environment variables in this section.
-
-.. _lambda-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

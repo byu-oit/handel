@@ -12,7 +12,12 @@ This service does not provision any AWS resources, it just serves to add additio
 
     As an example of how you would use this service, you may want to run a Lambda that inspects your EC2 instances to audit them for certain characteristics. You can use this *apiaccess* service to grant that read-only access to EC2 to give you that information. 
     
-    Since this service provides limited read-only access, in the EC2 exammple you would not be able to do things like start instances, create AMIs, etc.
+    Since this service provides limited read-only access, in the EC2 example you would not be able to do things like start instances, create AMIs, etc.
+
+.. NOTE::
+
+    This service does not currently support resource tagging.
+
 
 Parameters
 ----------

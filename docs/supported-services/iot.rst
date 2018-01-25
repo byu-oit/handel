@@ -12,6 +12,11 @@ This Handel service is quite new, and as such doesn't support all of IoT yet. In
 * Creating IoT Certificates.
 * Creating IoT Policies.
 
+.. IMPORTANT::
+
+    This service only offers limited tagging support. IoT resources will not be tagged, but the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
+
 Parameters
 ----------
 .. list-table:: 
@@ -32,6 +37,11 @@ Parameters
      - No
      - AWS IoT rule created by Handel
      - The description you would like to be applied to the IoT rule.
+   * - tags
+     - :ref:`tagging-resources`
+     - No
+     -
+     - Tags to be applied to the Cloudformation stack which provisions this resource.
 
 Example Handel File
 -------------------
