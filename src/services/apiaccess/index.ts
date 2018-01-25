@@ -78,4 +78,4 @@ export const producedDeployOutputTypes = [
 
 export const consumedDeployOutputTypes = [];
 
-export const supportsTagging = true;
+export const supportsTagging = false;
