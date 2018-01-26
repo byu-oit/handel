@@ -1,6 +1,6 @@
 {
   "name": "handel",
-  "version": "0.23.0",
+  "version": "0.23.1",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "./bin/handel",
   "scripts": {
