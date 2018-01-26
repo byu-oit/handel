@@ -42,7 +42,8 @@ describe('consumeEvents module', () => {
                     consumedDeployOutputTypes: [],
                     consumeEvents: (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) => {
                         return Promise.resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 s3: {
                     producedEventsSupportedServices: [
@@ -52,7 +53,8 @@ describe('consumeEvents module', () => {
                     consumedDeployOutputTypes: [],
                     consumeEvents: (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) => {
                         return Promise.reject(new Error('S3 doesn\'t consume events'));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 

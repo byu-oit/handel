@@ -86,7 +86,8 @@ describe('unBind', () => {
                     ],
                     unBind: (toUnBindServiceContext) => {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 efs: {
                     producedEventsSupportedServices: [],
@@ -98,7 +99,8 @@ describe('unBind', () => {
                     consumedDeployOutputTypes: [],
                     unBind: (toUnBindServiceContext) => {
                         return Promise.resolve(new UnBindContext(toUnBindServiceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -119,7 +121,8 @@ describe('unBind', () => {
                     ],
                     unBind: (toUnBindServiceContext) => {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 efs: {
                     producedEventsSupportedServices: [],
@@ -129,6 +132,7 @@ describe('unBind', () => {
                         'environmentVariables',
                     ],
                     consumedDeployOutputTypes: [],
+                    supportsTagging: true,
                     // Simulating that EFS doesn't implement unbind
                 }
             };

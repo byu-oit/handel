@@ -71,7 +71,8 @@ describe('preDeploy', () => {
                     consumedDeployOutputTypes: [],
                     unPreDeploy: (serviceContext) => {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -84,7 +85,8 @@ describe('preDeploy', () => {
                     ],
                     unPreDeploy: (serviceContext) => {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -105,7 +107,8 @@ describe('preDeploy', () => {
                     consumedDeployOutputTypes: [],
                     unPreDeploy: (serviceContext) => {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -115,7 +118,8 @@ describe('preDeploy', () => {
                         'scripts',
                         'environmentVariables',
                         'policies'
-                    ]
+                    ],
+                    supportsTagging: true,
                     // Simulating that ECS doesn't implement unpredeploy
                 }
             };

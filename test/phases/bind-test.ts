@@ -92,7 +92,8 @@ describe('bind', () => {
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 efs: {
                     producedEventsSupportedServices: [],
@@ -100,7 +101,8 @@ describe('bind', () => {
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
                         return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -115,7 +117,8 @@ describe('bind', () => {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
-                    // Simulating that ECS doesn't implement bind
+                    // Simulating that ECS doesn't implement bind,
+                    supportsTagging: true,
                 },
                 efs: {
                     producedEventsSupportedServices: [],
@@ -123,7 +126,8 @@ describe('bind', () => {
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
                         return Promise.resolve(new BindContext(toBindServiceContext, dependentOfServiceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
