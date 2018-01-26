@@ -71,7 +71,8 @@ describe('preDeploy', () => {
                     consumedDeployOutputTypes: [],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
                         return new PreDeployContext(serviceContext);
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -84,7 +85,8 @@ describe('preDeploy', () => {
                     ],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
                         return new PreDeployContext(serviceContext);
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -105,7 +107,8 @@ describe('preDeploy', () => {
                     consumedDeployOutputTypes: [],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
                         return new PreDeployContext(serviceContext);
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -115,7 +118,8 @@ describe('preDeploy', () => {
                         'environmentVariables',
                         'securityGroups',
                         'policies'
-                    ]
+                    ],
+                    supportsTagging: true,
                     // We're pretending here that ECS doesn't implement predeploy for the purposes of this test, even though it really does
                 }
             };

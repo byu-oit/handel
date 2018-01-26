@@ -42,7 +42,8 @@ describe('produceEvents module', () => {
                     consumedDeployOutputTypes: [],
                     produceEvents: async (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) => {
                         throw new Error(`Lambda doesn't produce events`);
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 s3: {
                     producedEventsSupportedServices: [
@@ -52,7 +53,8 @@ describe('produceEvents module', () => {
                     consumedDeployOutputTypes: [],
                     produceEvents: async (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) => {
                         return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 

@@ -79,7 +79,8 @@ describe('unDeploy', () => {
                     consumedDeployOutputTypes: [],
                     unDeploy: (toUnDeployServiceContext) => {
                         throw new Error('Should not have called ECS in this level');
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -92,7 +93,8 @@ describe('unDeploy', () => {
                     ],
                     unDeploy: (toUnDeployServiceContext) => {
                         return Promise.resolve(new UnDeployContext(toUnDeployServiceContext));
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -112,7 +114,8 @@ describe('unDeploy', () => {
                     consumedDeployOutputTypes: [],
                     unDeploy: (toUnDeployServiceContext) => {
                         throw new Error('Should not have called ECS in this level');
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -123,6 +126,7 @@ describe('unDeploy', () => {
                         'environmentVariables',
                         'policies'
                     ],
+                    supportsTagging: true,
                     // Simulating that ECS doesn't implement undeploy
                 }
             };

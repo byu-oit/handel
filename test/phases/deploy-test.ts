@@ -97,7 +97,8 @@ describe('deploy', () => {
                     consumedDeployOutputTypes: [],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
                         throw new Error('Should not have called ECS in this level');
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -110,7 +111,8 @@ describe('deploy', () => {
                     ],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
                         return new DeployContext(toDeployServiceContext);
-                    }
+                    },
+                    supportsTagging: true,
                 }
             };
 
@@ -130,7 +132,8 @@ describe('deploy', () => {
                     consumedDeployOutputTypes: [],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
                         throw new Error('Should not have called ECS in this level');
-                    }
+                    },
+                    supportsTagging: true,
                 },
                 ecs: {
                     producedEventsSupportedServices: [],
@@ -140,7 +143,8 @@ describe('deploy', () => {
                         'environmentVariables',
                         'securityGroups',
                         'policies'
-                    ]
+                    ],
+                    supportsTagging: true,
                     // Simulating that ECS doesnt implement deploy
                 }
             };
