@@ -34,7 +34,8 @@ describe('parser-v1', () => {
                     'environmentVariables',
                     'policies'
                 ],
-                producedEventsSupportedServices: []
+                producedEventsSupportedServices: [],
+                supportsTagging: true,
             },
             dynamodb: {
                 producedDeployOutputTypes: [
@@ -44,7 +45,8 @@ describe('parser-v1', () => {
                 consumedDeployOutputTypes: [],
                 producedEventsSupportedServices: [
                     'lambda'
-                ]
+                ],
+                supportsTagging: true,
             },
             ecs: {
                 producedDeployOutputTypes: [],
@@ -54,7 +56,8 @@ describe('parser-v1', () => {
                     'policies',
                     'securityGroups'
                 ],
-                producedEventsSupportedServices: []
+                producedEventsSupportedServices: [],
+                supportsTagging: true,
             },
             efs: {
                 producedDeployOutputTypes: [
@@ -63,7 +66,8 @@ describe('parser-v1', () => {
                     'securityGroups'
                 ],
                 consumedDeployOutputTypes: [],
-                producedEventsSupportedServices: []
+                producedEventsSupportedServices: [],
+                supportsTagging: true,
             },
             apigateway: {
                 producedDeployOutputTypes: [],
@@ -71,7 +75,8 @@ describe('parser-v1', () => {
                     'environmentVariables',
                     'policies'
                 ],
-                producedEventsSupportedServices: []
+                producedEventsSupportedServices: [],
+                supportsTagging: true,
             }
         };
     });
