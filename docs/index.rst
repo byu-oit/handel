@@ -39,6 +39,7 @@ including taking care of all the tricky security bits to make the services be ab
    getting-started/handel-vs-cloudformation
    getting-started/installation
    getting-started/tutorial-creating-an-app
+   getting-started/cli-reference
 
 .. _handel-basics:
 
