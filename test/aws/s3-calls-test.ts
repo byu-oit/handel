@@ -230,5 +230,37 @@ describe('s3Calls', () => {
             expect(getBucketStub.callCount).to.equal(2);
             expect(createBucketStub.callCount).to.equal(1);
         });
+
+        it('should apply any provided tags to the bucket', async () => {
+            const bucketName = 'FakeBucket';
+            const getBucketStub = sandbox.stub(awsWrapper.s3, 'listBuckets');
+            getBucketStub.onCall(0).resolves({
+                Buckets: []
+            });
+            getBucketStub.onCall(1).resolves({
+                Buckets: [{
+                    Name: bucketName
+                }]
+            });
+            const createBucketStub = sandbox.stub(awsWrapper.s3, 'createBucket').resolves({});
+            const tagBucketStub = sandbox.stub(awsWrapper.s3, 'putBucketTagging').resolves({});
+
+            const bucket = await s3Calls.createBucketIfNotExists(bucketName, 'us-west-2', {tag: 'value'});
+            expect(bucket).to.deep.equal({
+                Name: bucketName
+            });
+            expect(getBucketStub.callCount).to.equal(2);
+            expect(createBucketStub.callCount).to.equal(1);
+            expect(tagBucketStub.callCount).to.equal(1);
+            expect(tagBucketStub.firstCall.args[0]).to.deep.equal({
+                Bucket: bucketName,
+                Tagging: {
+                    TagSet: [{
+                        Key: 'tag',
+                        Value: 'value'
+                    }]
+                }
+            });
+        });
     });
 });
