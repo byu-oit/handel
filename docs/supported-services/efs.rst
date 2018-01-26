@@ -32,25 +32,10 @@ Parameters
      - general_purpose
      - What kind of performance for the EFS mount. Allowed values: general_purpose, max_io
    * - tags
-     - :ref:`efs-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you wish to apply to this EFS mount.
-
-.. _efs-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

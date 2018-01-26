@@ -60,7 +60,7 @@ Parameters
      - 
      - Any cache parameters you wish for your Memcached cluster. See `Memcached Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Memcached.html>`_ for the list of parameters you can provide.
    * - tags
-     - :ref:`memcached-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you wish to apply to this Memcached cluster.
@@ -74,22 +74,6 @@ Parameters
     If you have that same cache.m4.large type, but with a cluster size of 4, it will cost about $448/month since you are being charged for four full Memcached instances.
 
     **Be careful to calculate how much this service will cost you if you are using a cluster of more than 1 node.**
-
-.. _memcached-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
-
 
 Example Handel File
 -------------------

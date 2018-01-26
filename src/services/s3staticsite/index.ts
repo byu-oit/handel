@@ -23,8 +23,14 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { CloudFrontConfig, HandlebarsCloudFrontParams, HandlebarsS3StaticSiteTemplate, S3StaticSiteServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
+import {
+    CloudFrontConfig,
+    HandlebarsCloudFrontParams,
+    HandlebarsS3StaticSiteTemplate,
+    S3StaticSiteServiceConfig
+} from './config-types';
 
 const SERVICE_NAME = 'S3 Static Site';
 
@@ -66,7 +72,7 @@ async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticS
         logFilePrefix,
         indexDocument,
         errorDocument,
-        tags: deployPhaseCommon.getTags(ownServiceContext),
+        tags: getTags(ownServiceContext),
 
     };
 
@@ -212,7 +218,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     const bucketName = cloudFormationCalls.getOutput('BucketName', deployedStack)!;
     // Upload files from path_to_website to S3
@@ -232,3 +238,5 @@ export const producedEventsSupportedServices = [];
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

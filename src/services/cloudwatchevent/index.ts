@@ -22,8 +22,16 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../datatypes';
-import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from '../../datatypes';
+import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'CloudWatch Events';
 
@@ -85,7 +93,7 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
     winston.info(`${SERVICE_NAME} - Deploying event rule ${stackName}`);
 
     const eventRuleTemplate = await getCompiledEventRuleTemplate(stackName, ownServiceContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, eventRuleTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying event rule ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -145,3 +153,5 @@ export const producedEventsSupportedServices = [
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

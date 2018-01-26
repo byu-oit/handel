@@ -20,8 +20,17 @@ import * as snsCalls from '../../aws/sns-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { SnsServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    ConsumeEventsContext,
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from '../../datatypes';
+import {SnsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SNS';
 
@@ -114,7 +123,7 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying topic '${stackName}'`);
 
     const compiledSnsTemplate = await getCompiledSnsTemplate(stackName, ownServiceContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledSnsTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying topic '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -182,3 +191,5 @@ export const producedDeployOutputTypes = [
 export const consumedDeployOutputTypes = [
     'cloudwatchevent'
 ];
+
+export const supportsTagging = true;

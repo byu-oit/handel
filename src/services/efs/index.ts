@@ -21,8 +21,18 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { EfsServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {EfsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'EFS';
 const EFS_PORT = 2049;
@@ -94,7 +104,7 @@ async function getCompiledEfsTemplate(stackName: string, ownServiceContext: Serv
         securityGroupId,
         subnetAId,
         subnetBId,
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     return handlebarsUtils.compileTemplate(`${__dirname}/efs-template.yml`, handlebarsParams);
@@ -132,7 +142,7 @@ export async function deploy(ownServiceContext: ServiceContext<EfsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying EFS mount '${stackName}'`);
 
     const compiledTemplate = await getCompiledEfsTemplate(stackName, ownServiceContext, ownPreDeployContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying EFS mount '${stackName}'`);
     const fileSystemId = getFileSystemIdFromStack(deployedStack);
@@ -161,3 +171,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

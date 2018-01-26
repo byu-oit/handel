@@ -58,3 +58,5 @@ The account config file is a YAML file that must contain the following informati
   ssh_bastion_sg: <string> # The ID of the security group you
   elasticache_subnet_group: <string> # The name of the ElastiCache subnet group to use when deploying ElastiCache clusters.
   rds_subnet_group: <string> # The name of the RDS subnet group to use when deploying RDS clusters.
+  required_tags: # Optional. Allows an organization to enforce rules about tagging resources. This is a list of tag names that must be set on each Handel application or resource.
+  - <string>

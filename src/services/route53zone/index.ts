@@ -20,8 +20,9 @@ import * as route53 from '../../aws/route53-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
+import {HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'Route53';
 
@@ -48,7 +49,7 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
 
     const handlebarsParams: HandlebarsRoute53ZoneTemplate = {
         name: serviceParams.name,
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     if (serviceParams.private) {
@@ -90,7 +91,7 @@ export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServic
     winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
 
     const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -107,3 +108,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

@@ -52,3 +52,5 @@ export const producedEventsSupportedServices = [
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = false;

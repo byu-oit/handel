@@ -4,6 +4,14 @@ SNS (Simple Notification Service)
 =================================
 This document contains information about the SNS service supported in Handel. This Handel service provisions an SNS topic for use by your applications.
 
+Service Limitations
+-------------------
+
+.. IMPORTANT::
+
+    This service only offers limited tagging support. SNS Topics will not be tagged, but the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
+
 Parameters
 ----------
 .. list-table::
@@ -24,6 +32,11 @@ Parameters
      - No
      -
      - An optional list of statically-defined subscriptions. You can also dynamically add subscriptions in your application code.
+   * - tags
+     - :ref:`tagging-resources`
+     - No
+     -
+     - Tags to be applied to the Cloudformation stack which provisions this resource.
 
 .. _sns-subscriptions:
 

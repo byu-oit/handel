@@ -52,7 +52,7 @@ Parameters
      - false
      - If true, your Lambdas will be deployed inside your account's VPC.
    * - tags
-     - :ref:`apigateway-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your API Gateway app.
@@ -283,21 +283,6 @@ If you need to use path params with the HTTP passthrough, you can use the *x-htt
     }
 
 The above example shows mapping the "name" path parameter in the API Gateway request to the "person" path parameter in the backend request.
-
-.. _apigateway-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

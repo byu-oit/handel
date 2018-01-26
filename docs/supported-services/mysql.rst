@@ -75,7 +75,7 @@ Parameters
      - 
      - A list of key/value MySQL parameter group pairs to configure your database. You will need to look in the AWS Console to see the list of available parameters for MySQL.
    * - tags
-     - :ref:`mysql-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you wish to apply to this MySQL instance.
@@ -85,22 +85,6 @@ Parameters
     Be aware that large database instances are very expensive. The *db.cr1.8xl* instance type, for example, costs about $3,400/month. Make sure you check how much you will be paying!
 
     You can use the excellent `EC2Instances.info <http://www.ec2instances.info/rds/>`_ site to easily see pricing information for RDS databases.
-
-
-.. _mysql-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 
 Example Handel File

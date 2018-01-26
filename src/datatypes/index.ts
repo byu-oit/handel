@@ -30,6 +30,9 @@ export interface AccountConfig {
     elasticache_subnet_group: string;
     rds_subnet_group: string;
     redshift_subnet_group: string;
+    required_tags?: string[];
+    // Allow for account config extensions. Allows future plugins to have their own account-level settings.
+    [key: string]: any;
 }
 
 /***********************************
@@ -211,6 +214,14 @@ export interface ServiceDeployer {
     producedEventsSupportedServices: string[];
     producedDeployOutputTypes: string[];
     consumedDeployOutputTypes: string[];
+    /**
+     * If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
+     *
+     * If not specified, 'true' is assumed, effectively making tagging enforcement opt-out.
+     *
+     * If the deployer deploys anything to Cloudformation, it should declare that it supports tagging.
+     */
+    supportsTagging: boolean;
     check?(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[];
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
     bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext>;

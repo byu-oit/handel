@@ -58,7 +58,7 @@ Parameters
      -
      - You can configure `global secondary indexes <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html>`_ for fast queries on other partition and sort keys in addition to the ones on your table.
    * - tags
-     - :ref:`dynamodb-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your Dynamo Table
@@ -164,21 +164,6 @@ throughput is not configured for the index, the table's configuration will be us
 .. WARNING::
 
     Be aware that using Global Secondary Indexes can greatly increase your cost. When you use global indexes, you are effectively creating a new table. This will increase your cost by the amount required for storage and allocated IOPS for the global index.
-
-.. _dynamodb-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

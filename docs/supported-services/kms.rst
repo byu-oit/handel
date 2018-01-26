@@ -12,6 +12,11 @@ access to the key, as key policies can easily make keys unmanageable.
 While the AWS API allows for multiple aliases to point to a single key, this service matches the AWS Console in enforcing
 a one-to-one relationship between keys.
 
+.. IMPORTANT::
+
+    This service only offers limited tagging support. KMS Keys will not be tagged, but the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
+
 Parameters
 ----------
 This service takes the following parameters:
@@ -39,6 +44,11 @@ This service takes the following parameters:
      - No
      - true
      - Whether to allow AWS to auto-rotate the underlying Master Key.
+   * - tags
+     - :ref:`tagging-resources`
+     - No
+     -
+     - Tags to be applied to the Cloudformation stack which provisions this resource.
 
 Example Handel File
 -------------------

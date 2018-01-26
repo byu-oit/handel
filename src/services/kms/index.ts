@@ -19,8 +19,9 @@ import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { KmsServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
+import {KmsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'KMS';
 
@@ -105,7 +106,7 @@ export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -123,3 +124,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

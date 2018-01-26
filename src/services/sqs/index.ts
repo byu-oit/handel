@@ -20,8 +20,16 @@ import * as sqsCalls from '../../aws/sqs-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { ConsumeEventsContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
-import { HandlebarsSqsTemplate, SqsServiceConfig } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    ConsumeEventsContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from '../../datatypes';
+import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SQS';
 
@@ -191,7 +199,7 @@ export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -230,3 +238,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

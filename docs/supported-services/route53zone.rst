@@ -42,25 +42,10 @@ Parameters
      - false
      - Whether or not this is a private zone. If it is a private zone, it is only accessible by the VPC in your account config file.
    * - tags
-     - :ref:`route53zone-tags`
+     - :ref:`tagging-resources`
      - No
      -
      - Any tags you want to apply to your Hosted Zone
-
-.. _route53zone-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

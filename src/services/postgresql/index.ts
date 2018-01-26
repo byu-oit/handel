@@ -22,8 +22,18 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
+import {getTags} from '../../common/tagging-common';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType} from './config-types';
 
 const SERVICE_NAME = 'PostgreSQL';
 const POSTGRES_PORT = 5432;
@@ -64,7 +74,7 @@ async function getCompiledPostgresTemplate(stackName: string,
         storageType: serviceParams.storage_type || PostgreSQLStorageType.STANDARD,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(postgresVersion),
-        tags: deployPhaseCommon.getTags(ownServiceContext)
+        tags: getTags(ownServiceContext)
     };
 
     // Add parameters to parameter group if specified
@@ -135,7 +145,7 @@ export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>
             DBUsername: dbUsername,
             DBPassword: dbPassword
         });
-        const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+        const stackTags = getTags(ownServiceContext);
         winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
         const deployedStack = await cloudFormationCalls.createStack(stackName,
                                                                     compiledTemplate,
@@ -176,3 +186,5 @@ export const producedDeployOutputTypes = [
 ];
 
 export const consumedDeployOutputTypes = [];
+
+export const supportsTagging = true;

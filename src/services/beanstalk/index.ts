@@ -21,9 +21,27 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import {getTags} from '../../common/tagging-common';
 import * as util from '../../common/util';
-import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { BeanstalkScalingPolicyAlarmDimensions, BeanstalkServiceConfig, EbextensionsToInject, HandlebarsBeanstalkAutoScalingDimension, HandlebarsBeanstalkAutoScalingTemplate, HandlebarsBeanstalkOptionSetting, HandlebarsBeanstalkScalingPolicy, HandlebarsBeanstalkTemplate } from './config-types';
+import {
+    DeployContext,
+    EnvironmentVariables,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from '../../datatypes';
+import {
+    BeanstalkScalingPolicyAlarmDimensions,
+    BeanstalkServiceConfig,
+    EbextensionsToInject,
+    HandlebarsBeanstalkAutoScalingDimension,
+    HandlebarsBeanstalkAutoScalingTemplate,
+    HandlebarsBeanstalkOptionSetting,
+    HandlebarsBeanstalkScalingPolicy,
+    HandlebarsBeanstalkTemplate
+} from './config-types';
 import * as deployableArtifact from './deployable-artifact';
 
 const SERVICE_NAME = 'Beanstalk';
@@ -76,7 +94,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         solutionStack: serviceParams.solution_stack,
         optionSettings: [],
         policyStatements,
-        tags: deployPhaseCommon.getTags(serviceContext)
+        tags: getTags(serviceContext)
     };
 
     // Configure min and max size of ASG
@@ -328,7 +346,7 @@ export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceC
     const ebextensionFiles = await getSystemInjectedEbExtensions(stackName, ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
     const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, serviceRole, s3ArtifactInfo);
-    const stackTags = deployPhaseCommon.getTags(ownServiceContext);
+    const stackTags = getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -353,3 +371,5 @@ export const consumedDeployOutputTypes = [
     'credentials',
     'securityGroups'
 ];
+
+export const supportsTagging = true;
