@@ -7,3 +7,4 @@ npm-debug.log
 coverage/
 .idea/
 dist/
+lerna-debug.log
