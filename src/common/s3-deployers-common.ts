@@ -27,7 +27,7 @@ export async function createLoggingBucketIfNotExists(accountConfig: AccountConfi
     };
 
     const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', {});
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', accountConfig.handel_resource_tags || {});
     return cloudFormationCalls.getOutput('BucketName', deployedStack);
 }
 

@@ -17,11 +17,12 @@
 import * as winston from 'winston';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
-import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext } from '../datatypes';
+import {AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, Tags} from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as handlebarsUtils from './handlebars-utils';
+import {getTags} from './tagging-common';
 
-async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number | null, accountConfig: AccountConfig) {
+async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number | null, accountConfig: AccountConfig, tags: Tags) {
     const sgName = `${stackName}-sg`;
     const handlebarsParams: any = {
         groupName: sgName,
@@ -36,10 +37,10 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
     const stack = await cloudformationCalls.getStack(sgName);
     let deployedStack;
     if (!stack) {
-        deployedStack = await cloudformationCalls.createStack(sgName, compiledTemplate, [], {});
+        deployedStack = await cloudformationCalls.createStack(sgName, compiledTemplate, [], tags);
     }
     else {
-        deployedStack = await cloudformationCalls.updateStack(sgName, compiledTemplate, [], {});
+        deployedStack = await cloudformationCalls.updateStack(sgName, compiledTemplate, [], tags);
     }
     const groupId = cloudformationCalls.getOutput('GroupId', deployedStack);
     return ec2Calls.getSecurityGroupById(groupId!, accountConfig.vpc);
@@ -49,7 +50,7 @@ export async function preDeployCreateSecurityGroup(serviceContext: ServiceContex
     const sgName = deployPhaseCommon.getResourceName(serviceContext);
     winston.info(`${serviceName} - Creating security group '${sgName}'`);
 
-    const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig);
+    const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig, getTags(serviceContext));
     winston.info(`${serviceName} - Finished creating security group '${sgName}'`);
     const preDeployContext = new PreDeployContext(serviceContext);
     preDeployContext.securityGroups.push(securityGroup!);

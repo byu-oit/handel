@@ -16,6 +16,8 @@
  */
 import * as AWS from 'aws-sdk';
 import * as winston from 'winston';
+import {Tags} from '../datatypes';
+import {toAWSTagStyle} from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
 async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
@@ -35,19 +37,6 @@ async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
 
 function getCfErrorMessage(stackName: string, errors: string[]) {
     return `Errors while creating stack '${stackName}': \n${errors.join('\n')}`;
-}
-
-function getCfTags(tags: any): AWS.CloudFormation.Tags {
-    const cfTags = [];
-    for (const tagName in tags) {
-        if(tags.hasOwnProperty(tagName)) {
-            cfTags.push({
-                Key: tagName,
-                Value: tags[tagName]
-            });
-        }
-    }
-    return cfTags;
 }
 
 /**
@@ -91,7 +80,7 @@ export async function waitForStack(stackName: string, stackState: string): Promi
  * This method will wait for the stack to be in a create complete state
  * before resolving the promise
  */
-export async function createStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags: any): Promise<AWS.CloudFormation.Stack> {
+export async function createStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags?: Tags | null): Promise<AWS.CloudFormation.Stack> {
     const params: AWS.CloudFormation.CreateStackInput = {
         StackName: stackName,
         OnFailure: 'DELETE',
@@ -102,8 +91,8 @@ export async function createStack(stackName: string, templateBody: AWS.CloudForm
     };
 
     // Add tags to the stack if provided
-    if (tags && tags.length > 0) {
-        params.Tags = getCfTags(tags);
+    if (tags) {
+        params.Tags = toAWSTagStyle(tags);
     }
 
     winston.verbose(`Creating CloudFormation stack '${stackName}'`);
@@ -125,7 +114,7 @@ export async function createStack(stackName: string, templateBody: AWS.CloudForm
  * This method will wait for the stack to be in an update complete state
  * before resolving the promise.
  */
-export async function updateStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags: any) {
+export async function updateStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags?: Tags | null) {
     const params: AWS.CloudFormation.UpdateStackInput = {
         StackName: stackName,
         Parameters: parameters,
@@ -135,7 +124,7 @@ export async function updateStack(stackName: string, templateBody: AWS.CloudForm
 
     // Add tags to the stack if provided
     if (tags) {
-        params.Tags = getCfTags(tags);
+        params.Tags = toAWSTagStyle(tags);
     }
 
     winston.verbose(`Updating CloudFormation stack '${stackName}'`);

@@ -125,6 +125,10 @@ const awsWrapper = {
         deleteObjects: (params: AWS.S3.DeleteObjectsRequest) => {
             const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             return s3.deleteObjects(params).promise();
+        },
+        putBucketTagging: (params: AWS.S3.PutBucketTaggingRequest) => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.putBucketTagging(params).promise();
         }
     },
     ssm: {
