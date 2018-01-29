@@ -50,13 +50,27 @@ describe('cli module', () => {
             expect(errors[0]).to.contain(`'-e' parameter is required`);
         });
 
-        it('should suceed if all params are provided', () => {
+        it('should succeed if all params are provided', () => {
             const argv = {
                 e: 'dev,prod',
-                c: `${__dirname}/../test-account-config.yml`
+                c: `${__dirname}/../test-account-config.yml`,
+                t: 'foo=bar,bar=baz'
             };
             const errors = cli.validateDeployArgs(argv, handelFile);
             expect(errors.length).to.equal(0);
+        });
+
+        it('should fail if there are invalid tags', () => {
+            const argv = {
+                e: 'dev,prod',
+                c: `${__dirname}/../test-account-config.yml`,
+                t: 'foo=bar,bar,baz=,ab{}cd=abc'
+            };
+            const errors = cli.validateDeployArgs(argv, handelFile);
+            expect(errors).to.have.lengthOf(3);
+            expect(errors).to.include(`The value for -t is invalid: 'bar'`);
+            expect(errors).to.include(`The value for -t is invalid: 'baz='`);
+            expect(errors).to.include(`The value for -t is invalid: 'ab{}cd=abc'`);
         });
     });
 

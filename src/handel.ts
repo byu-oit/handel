@@ -38,12 +38,13 @@ Each phase has its own unique set of arguments it requires`;
 }
 
 function printDeployUsage(deployErrors: string[]): void {
-    const usageMsg = `Usage: handel deploy -c <accountConfig> -e <envsToDeploy> -v <deployVersion>
+    const usageMsg = `Usage: handel deploy -c <accountConfig> -e <envsToDeploy> -v <deployVersion> -t <key1>=<value1>,<key2>=<value2>
 
 Options:
 -c [required] -- Path to account config or base64 encoded JSON string of config
 -e [required] -- A comma-separated list of environments from your handel file to deploy
 -d -- If this flag is set, verbose debug output will be enabled
+-t -- If this flag is set, specifies a comma-separated list of extra application-level tags to apply to resources.
 
 Errors:
   ${deployErrors.join('\n  ')}`;

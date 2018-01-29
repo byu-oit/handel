@@ -21,8 +21,12 @@ import * as yaml from 'js-yaml';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
 import * as stsCalls from '../aws/sts-calls';
+import {TAG_KEY_PATTERN, TAG_VALUE_MAX_LENGTH} from '../common/tagging-common';
 import * as util from '../common/util';
-import { AccountConfig, EnvironmentResult, HandelFile, HandelFileParser, ServiceDeployers } from '../datatypes/index';
+import {
+    AccountConfig, EnvironmentResult, HandelFile, HandelFileParser, ServiceDeployers,
+    Tags
+} from '../datatypes';
 import * as checkLifecycle from '../lifecycles/check';
 import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
@@ -129,6 +133,21 @@ function validateEnvsInHandelFile(envsToDeploy: string, handelFile: HandelFile) 
     return errors;
 }
 
+function parseTagsArg(tagsArg: string | undefined): Tags {
+   if (!tagsArg) {
+       return {};
+   }
+   return tagsArg.split(',')
+       .reduce((tags: Tags, pair: string) => {
+           const matched = pair.match(TAG_PARAM_PATTERN);
+           if (!matched) {
+               throw new Error('Invalid value for -t');
+           }
+           tags[matched[1]] = matched[2];
+           return tags;
+       }, {});
+}
+
 async function confirmDelete(envName: string, forceDelete: boolean): Promise<boolean> {
     if (forceDelete) {
         return true;
@@ -171,6 +190,8 @@ PLEASE BACKUP your data sources before deleting this environment just to be safe
     }
 }
 
+const TAG_PARAM_PATTERN = RegExp(`^(${TAG_KEY_PATTERN})=(.{1,${TAG_VALUE_MAX_LENGTH}})$`);
+
 export function validateDeployArgs(argv: any, handelFile: HandelFile): string[] {
     let errors: string[] = [];
 
@@ -188,6 +209,13 @@ export function validateDeployArgs(argv: any, handelFile: HandelFile): string[] 
     }
     else { // Validate that the environments exist in the Handel file
         errors = errors.concat(validateEnvsInHandelFile(argv.e, handelFile));
+    }
+
+    if (argv.t) {
+        const tagErrors = argv.t.split(',')
+            .filter((pair: string) => !pair.match(TAG_PARAM_PATTERN))
+            .map((pair: string) => `The value for -t is invalid: '${pair}'`);
+        errors = errors.concat(tagErrors);
     }
 
     return errors;
@@ -233,10 +261,17 @@ export async function deployAction(handelFile: HandelFile, argv: any): Promise<v
         // Load all the currently implemented service deployers from the 'services' directory
         const serviceDeployers = util.getServiceDeployers();
 
+        // Parse command-line tags
+        const tags = parseTagsArg(argv.t);
+
         // Load Handel file from path and validate it
         winston.debug('Validating and parsing Handel file');
         const handelFileParser = util.getHandelFileParser(handelFile);
         validateHandelFile(handelFileParser, handelFile, serviceDeployers);
+
+        // Command-line tags override handelfile tags.
+        handelFile.tags = Object.assign({}, handelFile.tags, tags);
+
         const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceDeployers);
         logFinalResult('deploy', envDeployResults);
     }
