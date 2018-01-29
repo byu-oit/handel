@@ -47,7 +47,7 @@ async function getSubnetGroups(vpcId: string, subnetIds: string[]): Promise<AWS.
     const stack = await cloudFormationCalls.getStack(stackName);
     if (!stack) {
         winston.info(`Creating subnet groups for default VPC`);
-        const cfStack = await cloudFormationCalls.createStack(stackName, compiledTemplate, [], []);
+        const cfStack = await cloudFormationCalls.createStack(stackName, compiledTemplate, [], {});
         winston.info(`Created subnet groups for default VPC`);
         return cfStack;
     }

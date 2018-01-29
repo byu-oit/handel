@@ -143,7 +143,7 @@ export async function uploadFileToHandelBucket(diskFilePath: string, artifactPre
     const bucketName = `handel-${accountConfig.region}-${accountConfig.account_id}`;
 
     const artifactKey = `${artifactPrefix}/${s3FileName}`;
-    const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region); // Ensure Handel bucket exists in this region
+    const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region
     const s3ObjectInfo = await s3Calls.uploadFile(bucketName, artifactKey, diskFilePath);
     await s3Calls.cleanupOldVersionsOfFiles(bucketName, artifactPrefix);
     return s3ObjectInfo;

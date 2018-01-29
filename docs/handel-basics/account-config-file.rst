@@ -60,3 +60,6 @@ The account config file is a YAML file that must contain the following informati
   rds_subnet_group: <string> # The name of the RDS subnet group to use when deploying RDS clusters.
   required_tags: # Optional. Allows an organization to enforce rules about tagging resources. This is a list of tag names that must be set on each Handel application or resource.
   - <string>
+  handel_resource_tags: # Optional. Sets tags to be applied to any generic resources, such as lambda functions, that Handel uses internally.
+    <key>: <value>
+    <key>: <value>

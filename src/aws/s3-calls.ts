@@ -17,6 +17,8 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as winston from 'winston';
+import {AccountConfig, Tags} from '../datatypes';
+import {toAWSTagStyle} from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
 function getObjectsToDelete(objects: AWS.S3.Object[]) {
@@ -195,7 +197,7 @@ export async function cleanupOldVersionsOfFiles(bucketName: string, keyPrefix: s
 /**
  * Creates an S3 bucket in the given region
  */
-export async function createBucket(bucketName: string, region: string) {
+export async function createBucket(bucketName: string, region: string, tags?: Tags | null) {
     const createParams: AWS.S3.CreateBucketRequest = {
         Bucket: bucketName,
         ACL: 'private'
@@ -208,6 +210,14 @@ export async function createBucket(bucketName: string, region: string) {
     winston.verbose(`Creating S3 bucket ${bucketName}`);
     const bucket = await awsWrapper.s3.createBucket(createParams);
     winston.verbose(`Created S3 bucket ${bucketName}`);
+    if (tags && Object.getOwnPropertyNames(tags).length > 0) {
+        await awsWrapper.s3.putBucketTagging({
+            Bucket: bucketName,
+            Tagging: {
+                TagSet: toAWSTagStyle(tags)
+            }
+        });
+    }
     return bucket;
 }
 
@@ -232,13 +242,13 @@ export async function getBucket(bucketName: string) {
  * Creates the S3 bucket with the given name and region, or just
  * returns the information about the bucket if it already exists
  */
-export async function createBucketIfNotExists(bucketName: string, region: string) {
+export async function createBucketIfNotExists(bucketName: string, region: string, tags?: Tags | null) {
     const bucket = await getBucket(bucketName);
     if (bucket) {
         return bucket;
     }
     else {
-        const createResponse = await createBucket(bucketName, region);
+        const createResponse = await createBucket(bucketName, region, tags || {});
         return getBucket(bucketName);
     }
 }

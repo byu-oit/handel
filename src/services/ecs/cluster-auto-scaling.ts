@@ -105,7 +105,7 @@ export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountC
         };
         const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/cluster-scaling-lambda/scaling-lambda-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS auto-scaling`);
-        return cloudformationCalls.createStack(stackName, compiledTemplate, [], null);
+        return cloudformationCalls.createStack(stackName, compiledTemplate, [], accountConfig.handel_resource_tags);
     }
     else {
         return stack;
@@ -131,7 +131,7 @@ export async function createDrainingLambdaIfNotExists(accountConfig: AccountConf
 
         const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/cluster-draining-lambda/cluster-draining-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS draining`);
-        return cloudformationCalls.createStack(stackName, compiledTemplate, [], null);
+        return cloudformationCalls.createStack(stackName, compiledTemplate, [], accountConfig.handel_resource_tags);
     }
     else {
         // Stack already exists

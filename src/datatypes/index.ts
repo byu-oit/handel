@@ -31,6 +31,7 @@ export interface AccountConfig {
     rds_subnet_group: string;
     redshift_subnet_group: string;
     required_tags?: string[];
+    handel_resource_tags?: Tags;
     // Allow for account config extensions. Allows future plugins to have their own account-level settings.
     [key: string]: any;
 }
