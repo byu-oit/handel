@@ -1,18 +1,5 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
-        "allowJs": true,
-        "sourceMap": true,
-        "outDir": "dist",
-        "removeComments": false,
-        "strict": true,
-        "strictNullChecks": true,
-        "lib": [
-            "es7"
-        ]
-    },
-    "compileOnSave": false,
+    "extends": "../tsconfig",
     "include": [
         "src/**/*"
     ]
