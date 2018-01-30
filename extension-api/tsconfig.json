@@ -1,0 +1,10 @@
+{
+    "extends": "../tsconfig",
+    "compilerOptions": {
+        "outDir": "dist",
+        "declaration": true
+    },
+    "include": [
+      "extension-api.ts"
+    ]
+}
