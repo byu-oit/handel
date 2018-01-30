@@ -17,6 +17,18 @@
 import { EC2 } from 'aws-sdk';
 
 /***********************************
+ * Types for the Extension contract
+ ***********************************/
+
+export interface Extension {
+    loadHandelExtension(context: ExtensionContext): void;
+}
+
+export interface ExtensionContext {
+    service(name: string, deployer: ServiceDeployer): this;
+}
+
+/***********************************
  * Types for the Service Deployer contract
  ***********************************/
 export interface ServiceDeployer {
