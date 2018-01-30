@@ -12,8 +12,5 @@
             "es7"
         ]
     },
-    "compileOnSave": false,
-    "include": [
-        "src/**/*"
-    ]
+    "compileOnSave": false
 }
