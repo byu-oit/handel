@@ -11,7 +11,7 @@ set -eux
 npm run build
 
 # Create tags, update internal deps, and publish to NPM
-lerna publish --cd-version=$1  --force-publish=*
+cdVersion=$1 npm run publish-modules
 
 # Push commit and tag to GitHub
 git push
