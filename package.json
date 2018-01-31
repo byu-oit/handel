@@ -3,7 +3,8 @@
 		"postinstall": "lerna bootstrap",
 		"lint": "lerna run lint",
 		"build": "lerna run build",
-		"test": "lerna run test"
+		"test": "lerna run test",
+		"publish-modules": "lerna publish --cd-version=$cdVersion --force-publish=*"
 	},
 	"devDependencies": {
 		"eslint": "^4.16.0",
