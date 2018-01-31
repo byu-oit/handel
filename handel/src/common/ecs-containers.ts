@@ -16,12 +16,12 @@
  */
 import * as _ from 'lodash';
 import { DeployContext, EnvironmentVariables, ServiceContext } from '../datatypes/index';
+import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as routingSection from './ecs-routing';
 import { ContainerConfig, HandlebarsEcsTemplateContainer } from './ecs-shared-config-types';
 import * as volumesSection from './ecs-volumes';
-import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 
 function serviceDefinitionHasContainer(serviceParams: EcsServiceConfig, containerName: string) {
     for (const container of serviceParams.containers) {

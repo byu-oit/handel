@@ -26,10 +26,14 @@ import * as ecsCalls from '../../../src/aws/ecs-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
+import * as ecsContainers from '../../../src/common/ecs-containers';
+import * as ecsRouting from '../../../src/common/ecs-routing';
+import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as ecs from '../../../src/services/ecs';
+import * as asgCycling from '../../../src/services/ecs/asg-cycling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';
 
 const VALID_ECS_CONFIG: EcsServiceConfig = {
@@ -90,85 +94,23 @@ describe('ecs deployer', () => {
     });
 
     describe('check', () => {
-        it('should require the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'auto_scaling' section is required`);
-        });
+        let checkAutoScalingStub: sinon.SinonStub;
+        let checkLoadBalancerStub: sinon.SinonStub;
+        let checkContainersStub: sinon.SinonStub;
 
-        it('should require the min_tasks value in the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling.min_tasks;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'min_tasks' parameter is required`);
-        });
-
-        it('should require the max_tasks value in the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling.max_tasks;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'max_tasks' parameter is required`);
-        });
-
-        it('should require the type parameter when load_balancer section is present', () => {
-            delete serviceContext.params.load_balancer!.type;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'type' parameter is required`);
-        });
-
-        it('should require the https_certificate parameter when load_balancers type is https', () => {
-            delete serviceContext.params.load_balancer!.https_certificate;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'https_certificate' parameter is required`);
-        });
-
-        it('should validate dns hostnames', () => {
-            serviceContext.params.load_balancer!.dns_names = ['invalid hostname'];
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'dns_names' values must be valid hostnames`);
-        });
-
-        it('should require the container section be present', () => {
-            delete serviceContext.params.containers;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`You must specify at least one container`);
-        });
-
-        it('should require the name parameter in the container section', () => {
-            delete serviceContext.params.containers[0].name;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'name' parameter is required`);
-        });
-
-        it('should not allow more than one container to have routing specified', () => {
-            serviceContext.params.containers.push({
-                name: 'othercontainer',
-                port_mappings: [5000],
-                routing: {
-                    base_path: '/myotherpath'
-                }
-            });
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container`);
-        });
-
-        it('should require the port_mappings parameter when routing is specified', () => {
-            delete serviceContext.params.containers[0].port_mappings;
-            const errors = ecs.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'port_mappings' parameter is required`);
+        beforeEach(() => {
+            checkAutoScalingStub = sandbox.stub(ecsServiceAutoScaling, 'checkAutoScalingSection').returns([]);
+            checkLoadBalancerStub = sandbox.stub(ecsRouting, 'checkLoadBalancerSection').returns([]);
+            checkContainersStub = sandbox.stub(ecsContainers, 'checkContainers').returns([]);
         });
 
         it('should return no errors on a successful configuration', () => {
             const errors = ecs.check(serviceContext, []);
+
             expect(errors.length).to.equal(0);
+            expect(checkAutoScalingStub.callCount).to.equal(1);
+            expect(checkLoadBalancerStub.callCount).to.equal(1);
+            expect(checkContainersStub.callCount).to.equal(1);
         });
 
         describe('\'logging\' validation', () => {
@@ -176,12 +118,18 @@ describe('ecs deployer', () => {
                 serviceContext.params.logging = 'enabled';
                 const errors = ecs.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
+                expect(checkAutoScalingStub.callCount).to.equal(1);
+                expect(checkLoadBalancerStub.callCount).to.equal(1);
+                expect(checkContainersStub.callCount).to.equal(1);
             });
 
             it('should allow \'disabled\'', () => {
                 serviceContext.params.logging = 'disabled';
                 const errors = ecs.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
+                expect(checkAutoScalingStub.callCount).to.equal(1);
+                expect(checkLoadBalancerStub.callCount).to.equal(1);
+                expect(checkContainersStub.callCount).to.equal(1);
             });
 
             it('should reject anything else', () => {
@@ -189,6 +137,9 @@ describe('ecs deployer', () => {
                 const errors = ecs.check(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
+                expect(checkAutoScalingStub.callCount).to.equal(1);
+                expect(checkLoadBalancerStub.callCount).to.equal(1);
+                expect(checkContainersStub.callCount).to.equal(1);
             });
         });
     });
@@ -223,7 +174,7 @@ describe('ecs deployer', () => {
             const dependenciesDeployContexts = [];
             const dependency1ServiceName = 'Dependency1Service';
             const dependency1ServiceType = 'dynamodb';
-            const dependency1Params = {type: 'dynamodb'};
+            const dependency1Params = { type: 'dynamodb' };
             const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig));
             dependenciesDeployContexts.push(dependency1DeployContext);
             const envVarName = 'DYNAMODB_SOME_VAR';
@@ -242,7 +193,7 @@ describe('ecs deployer', () => {
 
             const dependency2ServiceName = 'Dependency2Service';
             const dependency2ServiceType = 'efs';
-            const dependency2Params = {type: 'efs'};
+            const dependency2Params = { type: 'efs' };
             const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig));
             dependenciesDeployContexts.push(dependency2DeployContext);
             const scriptContents = 'SOME SCRIPT';
@@ -271,8 +222,8 @@ describe('ecs deployer', () => {
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
 
-            const listECSinstancesStub = sandbox.stub(ecsCalls, 'listInstances').resolves([]);
-            const describeASGlaunchStub = sandbox.stub(autoScalingCalls, 'describeLaunchConfigurationsByInstanceIds').resolves({LaunchConfigurations: []});
+            const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
+            const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -283,8 +234,8 @@ describe('ecs deployer', () => {
             expect(createStackStub.callCount).to.equal(2);
             expect(deployStackStub.callCount).to.equal(1);
             expect(createCustomRoleStub.callCount).to.equal(1);
-            expect(listECSinstancesStub.callCount).to.equal(1);
-            expect(describeASGlaunchStub.callCount).to.equal(1);
+            expect(getInstancesToCycleStub.callCount).to.equal(1);
+            expect(cycleInstancesStub.callCount).to.equal(1);
 
             // DNS name setup
             expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
@@ -318,8 +269,8 @@ describe('ecs deployer', () => {
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
 
-            const listECSinstancesStub = sandbox.stub(ecsCalls, 'listInstances').resolves(null);
-            const describeASGlaunchStub = sandbox.stub(autoScalingCalls, 'describeLaunchConfigurationsByInstanceIds').resolves({LaunchConfigurations: []});
+            const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
+            const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -330,8 +281,8 @@ describe('ecs deployer', () => {
             expect(createStackStub.callCount).to.equal(2);
             expect(deployStackStub.callCount).to.equal(1);
             expect(createCustomRoleStub.callCount).to.equal(1);
-            expect(listECSinstancesStub.callCount).to.equal(1);
-            expect(describeASGlaunchStub.callCount).to.equal(0);
+            expect(getInstancesToCycleStub.callCount).to.equal(1);
+            expect(cycleInstancesStub.callCount).to.equal(1);
 
             // DNS name setup
             expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
