@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import * as clone from 'clone';
+import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as autoScalingCalls from '../../../src/aws/auto-scaling-calls';

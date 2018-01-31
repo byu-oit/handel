@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
 import * as handelFileParser from '../../src/handelfile/parser-v1';

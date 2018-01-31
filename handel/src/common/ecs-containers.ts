@@ -21,6 +21,7 @@ import * as deployPhaseCommon from './deploy-phase-common';
 import * as routingSection from './ecs-routing';
 import { ContainerConfig, HandlebarsEcsTemplateContainer } from './ecs-shared-config-types';
 import * as volumesSection from './ecs-volumes';
+import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 
 function serviceDefinitionHasContainer(serviceParams: EcsServiceConfig, containerName: string) {
     for (const container of serviceParams.containers) {
@@ -155,7 +156,7 @@ export function getContainersConfig(ownServiceContext: ServiceContext<EcsService
  * This function is called by the "check" lifecycle phase to check the information in the
  * "containers" section in the Handel service configuration
  */
-export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
+export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     // Require at least one container definition
     if (!params.containers || params.containers.length === 0) {

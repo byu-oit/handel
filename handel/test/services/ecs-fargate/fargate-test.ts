@@ -16,17 +16,18 @@
  */
 import { expect } from 'chai';
 import * as clone from 'clone';
+import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as ecsCalls from '../../../src/aws/ecs-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
+import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext, AccountConfig } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as ecsFargate from '../../../src/services/ecs-fargate';
 import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-types';
-import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 
 const VALID_FARGATE_CONFIG: FargateServiceConfig = {
     type: 'ecs-fargate',

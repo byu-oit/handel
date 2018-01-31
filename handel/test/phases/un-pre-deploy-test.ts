@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import config from '../../src/account-config/account-config';
 import { AccountConfig, EnvironmentContext, ServiceContext, ServiceDeployers, UnPreDeployContext } from '../../src/datatypes';
 import * as unPreDeployPhase from '../../src/phases/un-pre-deploy';

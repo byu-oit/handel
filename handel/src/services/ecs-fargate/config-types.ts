@@ -18,8 +18,8 @@ import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, H
 import { ServiceConfig, Tags } from '../../datatypes/index';
 
 export interface FargateServiceConfig extends ServiceConfig {
-    max_mb: number;
-    cpu_units: number;
+    max_mb?: number;
+    cpu_units?: number;
     containers: ContainerConfig[];
     auto_scaling: AutoScalingConfig;
     load_balancer?: LoadBalancerConfig;

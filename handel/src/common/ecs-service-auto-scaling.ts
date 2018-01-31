@@ -15,6 +15,7 @@
  *
  */
 import { ServiceContext } from '../datatypes/index';
+import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import { AutoScalingAlarmDimensions, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateScalingDimension, HandlebarsEcsTemplateScalingPolicy } from './ecs-shared-config-types';
 
@@ -77,7 +78,7 @@ export function getTemplateAutoScalingConfig(ownServiceContext: ServiceContext<E
     return autoScaling;
 }
 
-export function checkAutoScalingSection(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
+export function checkAutoScalingSection(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     if (!params.auto_scaling) {
         errors.push(`${serviceName} - The 'auto_scaling' section is required`);

@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
+import 'mocha';
 import * as sinon from 'sinon';
 import * as ebextensions from '../../../src/services/beanstalk/ebextensions';
 

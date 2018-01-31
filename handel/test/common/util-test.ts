@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
+import 'mocha';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
 import { EnvironmentContext } from '../../src/datatypes';
