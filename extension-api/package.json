@@ -1,0 +1,22 @@
+{
+  "name": "handel-extension-api",
+  "version": "0.23.1",
+  "description": "Orchestrates your AWS deployments so you don't have to.",
+  "main": "dist/extension-api.js",
+  "types": "dist/extension-api.d.ts",
+  "scripts": {
+    "lint": "tslint -p tsconfig.json -t stylish",
+    "build": "tsc"
+  },
+  "author": "David Woodruff",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.188.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.0",
+    "ts-node": "^3.3.0",
+    "tslint": "^5.8.0",
+    "typescript": "^2.5.3"
+  }
+}

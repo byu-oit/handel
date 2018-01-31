@@ -7,6 +7,9 @@
 		"publish-modules": "lerna publish --cd-version=$cdVersion --force-publish=*"
 	},
 	"devDependencies": {
-		"lerna": "^2.8.0"
+		"eslint": "^4.16.0",
+		"lerna": "^2.8.0",
+		"tslint": "^5.9.1",
+		"typescript": "^2.6.2"
 	}
 }

@@ -14,32 +14,26 @@
  * limitations under the License.
  *
  */
-import * as AWS from 'aws-sdk';
+
+import * as api from 'handel-extension-api';
+
+/*******************************************************************************************************************
+ * A number of these types are just aliases or extensions of the types in the extension API. This allows us to keep
+ * our types compatible while adding any internal extras we may need.
+ ******************************************************************************************************************/
+
+// tslint:disable:no-empty-interface
 
 /***********************************
  * Types for the Account Config File
  ***********************************/
-export interface AccountConfig {
-    account_id: number;
-    region: string;
-    vpc: string;
-    public_subnets: string[];
-    private_subnets: string[];
-    data_subnets: string[];
-    ssh_bastion_sg?: string;
-    elasticache_subnet_group: string;
-    rds_subnet_group: string;
-    redshift_subnet_group: string;
-    required_tags?: string[];
-    handel_resource_tags?: Tags;
-    // Allow for account config extensions. Allows future plugins to have their own account-level settings.
-    [key: string]: any;
+export interface AccountConfig extends api.AccountConfig {
 }
 
 /***********************************
  * Types for the context objects used by service deployers
  ***********************************/
-export class ServiceContext<Config extends ServiceConfig> {
+export class ServiceContext<Config extends ServiceConfig> implements api.ServiceContext<Config> {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -65,18 +59,13 @@ export class ServiceContext<Config extends ServiceConfig> {
     }
 }
 
-export interface ServiceConfig {
-    type: string;
-    tags?: Tags;
-    event_consumers?: ServiceEventConsumer[];
-    dependencies?: string[];
+export interface ServiceConfig extends api.ServiceConfig {
 }
 
-export interface ServiceEventConsumer {
-    service_name: string;
+export interface ServiceEventConsumer extends api.ServiceEventConsumer {
 }
 
-export class BindContext {
+export class BindContext implements api.BindContext {
     public dependencyServiceContext: ServiceContext<ServiceConfig>;
     public dependentOfServiceContext: ServiceContext<ServiceConfig>;
 
@@ -88,7 +77,7 @@ export class BindContext {
     }
 }
 
-export class ConsumeEventsContext {
+export class ConsumeEventsContext implements api.ConsumeEventsContext {
     public consumingServiceContext: ServiceContext<ServiceConfig>;
     public producingServiceContext: ServiceContext<ServiceConfig>;
 
@@ -100,7 +89,7 @@ export class ConsumeEventsContext {
     }
 }
 
-export class DeployContext {
+export class DeployContext implements api.DeployContext {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -138,7 +127,7 @@ export interface DeployContextEventOutputs {
     [key: string]: any;
 }
 
-export class PreDeployContext {
+export class PreDeployContext implements api.PreDeployContext {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -154,7 +143,7 @@ export class PreDeployContext {
     }
 }
 
-export class ProduceEventsContext {
+export class ProduceEventsContext implements api.ProduceEventsContext {
     public producingServiceContext: ServiceContext<ServiceConfig>;
     public consumingServiceContext: ServiceContext<ServiceConfig>;
 
@@ -166,7 +155,7 @@ export class ProduceEventsContext {
     }
 }
 
-export class UnDeployContext {
+export class UnDeployContext implements api.UnDeployContext {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -180,7 +169,7 @@ export class UnDeployContext {
     }
 }
 
-export class UnBindContext {
+export class UnBindContext implements api.UnBindContext {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -194,7 +183,7 @@ export class UnBindContext {
     }
 }
 
-export class UnPreDeployContext {
+export class UnPreDeployContext implements api.UnPreDeployContext {
     public appName: string;
     public environmentName: string;
     public serviceName: string;
@@ -211,27 +200,7 @@ export class UnPreDeployContext {
 /***********************************
  * Types for the Service Deployer contract
  ***********************************/
-export interface ServiceDeployer {
-    producedEventsSupportedServices: string[];
-    producedDeployOutputTypes: string[];
-    consumedDeployOutputTypes: string[];
-    /**
-     * If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
-     *
-     * If not specified, 'true' is assumed, effectively making tagging enforcement opt-out.
-     *
-     * If the deployer deploys anything to Cloudformation, it should declare that it supports tagging.
-     */
-    supportsTagging: boolean;
-    check?(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[];
-    preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
-    bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext>;
-    deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext>;
-    consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext>;
-    produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext>;
-    unPreDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnPreDeployContext>;
-    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnBindContext>;
-    unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext>;
+export interface ServiceDeployer extends api.ServiceDeployer {
 }
 
 export interface ServiceDeployers {
