@@ -25,11 +25,25 @@ import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scalin
 import * as volumesSection from '../../common/ecs-volumes';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../datatypes';
-import {FargateServiceConfig, HandlebarsFargateTemplateConfig} from './config-types';
+import { getTags } from '../../common/tagging-common';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import { FargateServiceConfig, HandlebarsFargateTemplateConfig } from './config-types';
 
 const SERVICE_NAME = 'ECS Fargate';
+
+interface AllowedFargateMemoryForCpu {
+    [cpuUnits: number]: number[];
+}
+
+const DEFAULT_MAX_MB = 512;
+const DEFAULT_CPU_UNITS = 256;
+const ALLOWED_FARGATE_MEMORY_FOR_CPU: AllowedFargateMemoryForCpu = {
+    256: [512, 1024, 2048],
+    512: [1024, 2048, 3072, 4096],
+    1024: [2048, 3072, 4096, 5120, 6144, 7168, 8192],
+    2048: [4096, 5120, 6144, 7168, 8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360, 16384],
+    4096: [8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360, 16384, 17408, 18432, 19456, 20480, 21504, 22528, 23552, 24576, 25600, 26624, 27648, 28672, 29696, 30720]
+};
 
 function getTaskRoleStatements(serviceContext: ServiceContext<FargateServiceConfig>, dependenciesDeployContexts: DeployContext[]) {
     const ownPolicyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
@@ -41,7 +55,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
 
     return Promise.all([route53.listHostedZones()])
         .then(results => {
-            const [ hostedZones ] = results;
+            const [hostedZones] = results;
             const serviceParams = ownServiceContext.params;
 
             // Configure auto-scaling
@@ -56,8 +70,8 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
             // Create object used for templating the CloudFormation template
             const handlebarsParams: HandlebarsFargateTemplateConfig = {
                 serviceName,
-                maxMb: serviceParams.max_mb || 512,
-                cpuUnits: serviceParams.cpu_units || 256,
+                maxMb: serviceParams.max_mb || DEFAULT_MAX_MB,
+                cpuUnits: serviceParams.cpu_units || DEFAULT_CPU_UNITS,
                 ecsSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
                 privateSubnetIds: accountConfig.private_subnets,
                 publicSubnetIds: accountConfig.public_subnets,
@@ -101,6 +115,12 @@ export function check(serviceContext: ServiceContext<FargateServiceConfig>, depe
 
     if (retention && typeof retention !== 'number') {
         errors.push(`${SERVICE_NAME} - The 'log_retention_in_days' parameter must be a number`);
+    }
+
+    const requestedCpuUnits = params.cpu_units || DEFAULT_CPU_UNITS;
+    const requestedMemory = params.max_mb || DEFAULT_MAX_MB;
+    if (!ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits] || !ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits].includes(requestedMemory)) {
+        errors.push(`${SERVICE_NAME} - Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
     }
 
     serviceAutoScalingSection.checkAutoScalingSection(serviceContext, SERVICE_NAME, errors);

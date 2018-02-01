@@ -34,8 +34,8 @@ import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-t
 
 const VALID_FARGATE_CONFIG: FargateServiceConfig = {
     type: 'ecs-fargate',
-    max_mb: 256,
-    cpu_units: 101,
+    max_mb: 512,
+    cpu_units: 256,
     auto_scaling: {
         min_tasks: 2,
         max_tasks: 2
