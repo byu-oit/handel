@@ -215,6 +215,13 @@ describe('parser-v1', () => {
             expect(errors[0]).to.include('\'type\' field is required in each service definition');
         });
 
+        it('should not allow the app name handel to be specified', () => {
+            validHandelFile.name = 'handel';
+            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`You may not use the name 'handel' for your app name`);
+        });
+
         it('should complain if an unsupported service type is specified', () => {
             validHandelFile.environments.dev.webapp.type = 'unsupportedtype';
             const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);

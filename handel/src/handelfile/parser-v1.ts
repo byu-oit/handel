@@ -172,6 +172,12 @@ export function validateHandelFile(handelFile: HandelFile, serviceDeployers: Ser
     }
     else {
         let errors: string[] = [];
+
+        // The app name 'handel' is not allowed
+        if(handelFile.name === 'handel') {
+            errors.push(`You may not use the name 'handel' for your app name`);
+        }
+
         errors = errors.concat(checkServiceTypes(handelFile, serviceDeployers)); // Check that environment and services are valid (not all ones will work);
         if (errors.length > 0) {
             return errors;

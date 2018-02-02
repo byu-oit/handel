@@ -188,7 +188,8 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
                 'ssm:GetParameter'
             ],
             Resource: [
-                `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`
+                `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`,
+                `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
             ]
         }
     ];
