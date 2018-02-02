@@ -44,6 +44,7 @@ export interface HandlebarsFargateTemplateConfig {
     autoScaling: HandlebarsEcsTemplateAutoScaling;
     oneOrMoreTasksHasRouting: boolean;
     logGroupName: string;
+    assignPublicIp: string;
     logRetentionInDays: number | null;
     loadBalancer?: HandlebarsEcsTemplateLoadBalancer;
     volumes?: HandlebarsEcsTemplateVolume[];

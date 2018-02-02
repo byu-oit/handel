@@ -83,7 +83,7 @@ Resources:
       {{/if}}
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
+          AssignPublicIp: {{assignPublicIp}}
           SecurityGroups: 
           - {{ecsSecurityGroupId}}
           Subnets:
