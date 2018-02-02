@@ -16,6 +16,7 @@
  */
 import * as _ from 'lodash';
 import { DeployContext, EnvironmentVariables, ServiceContext } from '../datatypes/index';
+import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as routingSection from './ecs-routing';
@@ -155,7 +156,7 @@ export function getContainersConfig(ownServiceContext: ServiceContext<EcsService
  * This function is called by the "check" lifecycle phase to check the information in the
  * "containers" section in the Handel service configuration
  */
-export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
+export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     // Require at least one container definition
     if (!params.containers || params.containers.length === 0) {

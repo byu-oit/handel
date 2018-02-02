@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, ServiceDeployers, UnBindContext } from '../../src/datatypes';

@@ -16,22 +16,27 @@
  */
 import { expect } from 'chai';
 import * as clone from 'clone';
+import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
+import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as ecsCalls from '../../../src/aws/ecs-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
+import * as ecsContainers from '../../../src/common/ecs-containers';
+import * as ecsRouting from '../../../src/common/ecs-routing';
+import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
+import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext, AccountConfig } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as ecsFargate from '../../../src/services/ecs-fargate';
 import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-types';
-import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 
 const VALID_FARGATE_CONFIG: FargateServiceConfig = {
     type: 'ecs-fargate',
-    max_mb: 256,
-    cpu_units: 101,
+    max_mb: 512,
+    cpu_units: 256,
     auto_scaling: {
         min_tasks: 2,
         max_tasks: 2
@@ -83,92 +88,17 @@ describe('fargate deployer', () => {
     });
 
     describe('check', () => {
-        it('should require the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'auto_scaling' section is required`);
-        });
-
-        it('should require the min_tasks value in the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling.min_tasks;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'min_tasks' parameter is required`);
-        });
-
-        it('should require the max_tasks value in the auto_scaling section', () => {
-            delete serviceContext.params.auto_scaling.max_tasks;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'max_tasks' parameter is required`);
-        });
-
-        it('should require the type parameter when load_balancer section is present', () => {
-            delete serviceContext.params.load_balancer!.type;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'type' parameter is required`);
-        });
-
-        it('should require the https_certificate parameter when load_balancers type is https', () => {
-            delete serviceContext.params.load_balancer!.https_certificate;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'https_certificate' parameter is required`);
-        });
-
-        it('should validate dns hostnames', () => {
-            serviceContext.params.load_balancer!.dns_names = ['invalid hostname'];
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'dns_names' values must be valid hostnames`);
-        });
-
-        it('should require the container section be present', () => {
-            delete serviceContext.params.containers;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`You must specify at least one container`);
-        });
-
-        it('should require the name parameter in the container section', () => {
-            delete serviceContext.params.containers[0].name;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'name' parameter is required`);
-        });
-
-        it('should not allow more than one container to have routing specified', () => {
-            serviceContext.params.containers.push({
-                name: 'othercontainer',
-                port_mappings: [5000],
-                routing: {
-                    base_path: '/myotherpath'
-                }
-            });
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container`);
-        });
-
-        it('should require the port_mappings parameter when routing is specified', () => {
-            delete serviceContext.params.containers[0].port_mappings;
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'port_mappings' parameter is required`);
-        });
-
         it('should return no errors on a successful configuration', () => {
+            const checkAutoScalingStub = sandbox.stub(ecsServiceAutoScaling, 'checkAutoScalingSection').returns([]);
+            const checkLoadBalancerStub = sandbox.stub(ecsRouting, 'checkLoadBalancerSection').returns([]);
+            const checkContainersStub = sandbox.stub(ecsContainers, 'checkContainers').returns([]);
+
             const errors = ecsFargate.check(serviceContext, []);
+
             expect(errors.length).to.equal(0);
-        });
-
-        it('should return no errors when \'log_retention_in_days\' is a number', () => {
-            serviceContext.params.log_retention_in_days = 30;
-
-            const errors = ecsFargate.check(serviceContext, []);
-            expect(errors).to.have.lengthOf(0);
+            expect(checkAutoScalingStub.callCount).to.equal(1);
+            expect(checkLoadBalancerStub.callCount).to.equal(1);
+            expect(checkContainersStub.callCount).to.equal(1);
         });
     });
 
@@ -234,6 +164,9 @@ describe('fargate deployer', () => {
             const dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName);
 
             // Stub out AWS calls
+            const getSubnetStub = sandbox.stub(ec2Calls, 'getSubnet').resolves({
+                MapPublicIpOnLaunch: true
+            });
             const createDefaultClusterStub = sandbox.stub(ecsCalls, 'createDefaultClusterIfNotExists').resolves({});
             const getHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').resolves([{
                 Id: '1',
@@ -247,6 +180,7 @@ describe('fargate deployer', () => {
             // Run the test
             const deployContext = await ecsFargate.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
+            expect(getSubnetStub.callCount).to.equal(2);
             expect(deployStackStub.callCount).to.equal(1);
             expect(createDefaultClusterStub.callCount).to.equal(1);
             expect(getHostedZonesStub.callCount).to.equal(1);

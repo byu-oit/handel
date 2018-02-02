@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sesCalls from '../../../src/aws/ses-calls';

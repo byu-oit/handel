@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import 'mocha';
 import config from '../../src/account-config/account-config';
 import { AccountConfig, EnvironmentContext, ServiceContext } from '../../src/datatypes';
 import * as deployOrderCalc from '../../src/deploy/deploy-order-calc';

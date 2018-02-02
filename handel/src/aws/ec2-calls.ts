@@ -129,7 +129,7 @@ export async function removeAllIngressFromSg(sgName: string, vpcId: string): Pro
  */
 export async function addIngressRuleToSgIfNotExists(sourceSg: AWS.EC2.SecurityGroup, destSg: AWS.EC2.SecurityGroup,
     protocol: string, startPort: number,
-    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup|null> {
+    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup | null> {
     const securityGroup = await getSecurityGroup(destSg.GroupName!, destSg.VpcId!);
     if (securityGroup) {
         if (!ingressRuleExists(securityGroup, startPort, endPort, protocol, sourceSg)) {
@@ -150,7 +150,7 @@ export async function addIngressRuleToSgIfNotExists(sourceSg: AWS.EC2.SecurityGr
  */
 export async function addIngressRuleToSecurityGroup(sourceSg: AWS.EC2.SecurityGroup, destSg: AWS.EC2.SecurityGroup,
     protocol: string, startPort: number,
-    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup|null> {
+    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup | null> {
     const addIngressParams: AWS.EC2.AuthorizeSecurityGroupIngressRequest = {
         GroupId: destSg.GroupId,
         IpPermissions: [
@@ -177,7 +177,7 @@ export async function addIngressRuleToSecurityGroup(sourceSg: AWS.EC2.SecurityGr
  * Given an owner (such as 'amazon' or '111111111111'), returns the latest
  * AMI for the given name substring, or null if no such AMI exists
  */
-export async function getLatestAmiByName(owner: string, nameSubstring: string): Promise<AWS.EC2.Image|null> {
+export async function getLatestAmiByName(owner: string, nameSubstring: string): Promise<AWS.EC2.Image | null> {
     const describeParams: AWS.EC2.DescribeImagesRequest = {
         Owners: [owner],
         Filters: [{
@@ -223,6 +223,29 @@ export async function getSubnets(vpcId: string): Promise<AWS.EC2.Subnet[]> {
     };
     const describeResponse = await awsWrapper.ec2.describeSubnets(describeParams);
     return describeResponse.Subnets!;
+}
+
+export async function getSubnet(subnetId: string): Promise<AWS.EC2.Subnet | null> {
+    winston.verbose(`Getting subnet '${subnetId}'`);
+    const describeParams = {
+        SubnetIds: [subnetId]
+    };
+
+    try {
+        const describeResponse = await awsWrapper.ec2.describeSubnets(describeParams);
+        if (describeResponse.Subnets && describeResponse.Subnets[0]) {
+            return describeResponse.Subnets[0];
+        }
+        else {
+            return null;
+        }
+    }
+    catch(err) {
+        if(err.code === 'InvalidSubnetID.NotFound') { // The subnet doesn't exist
+            return null;
+        }
+        throw err; // Don't handle any other errors
+    }
 }
 
 export async function getDefaultVpc(): Promise<AWS.EC2.Vpc> {

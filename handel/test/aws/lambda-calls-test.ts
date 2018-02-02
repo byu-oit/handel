@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import * as sinon from 'sinon';
 import awsWrapper from '../../src/aws/aws-wrapper';
 import * as lambdaCalls from '../../src/aws/lambda-calls';

@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import * as childProcess from 'child_process';
+import 'mocha';
 import * as sinon from 'sinon';
 import awsWrapper from '../../src/aws/aws-wrapper';
 import * as s3Calls from '../../src/aws/s3-calls';

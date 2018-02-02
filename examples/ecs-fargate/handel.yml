@@ -6,9 +6,8 @@ environments:
   dev:
     webapp:
       type: ecs-fargate
-      auto_scaling:
-        min_tasks: 1
-        max_tasks: 1
+      max_mb: 1024
+      cpu_units: 512
       containers:
       - name: mycontainer
         image_name: nginx:latest
@@ -16,5 +15,30 @@ environments:
         - 80
         routing:
           base_path: /
+        environment_variables:
+          MY_VAR: myValue
+      auto_scaling:
+        min_tasks: 1
+        max_tasks: 3
+        scaling_policies:
+        - type: up
+          adjustment:
+            value: 1
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: GreaterThanThreshold
+            threshold: 70
+        - type: down
+          adjustment:
+            value: 1
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: LessThanThreshold
+            threshold: 30
       load_balancer:
         type: http
+        dns_names:
+        - mytest.sim-dev.byu.edu
+      log_retention_in_days: 1
+      tags:
+        mytag: myvalue      

@@ -4,9 +4,9 @@ ECS Fargate
 ===========
 This page contains information about the ECS Fargate service supported in Handel. This Handel service provisions your application code as an ECS Fargate Service, with included supporting infrastructure such as load balancers and service auto-scaling groups.
 
-.. WARNING::
-
-    Support for ECS Fargate is currently in beta. Most things should work properly, but you may encounter bugs. If you do, please submit a `GitHub Issue <https://github.com/byu-oit/handel/issues>`_
+.. NOTE::
+  
+  As of February 1, 2017, the AWS Fargate service available in the *us-east-1* region.
 
 Service Limitations
 -------------------
@@ -46,12 +46,12 @@ Parameters
      - integer
      - No
      - 512
-     - The max total MB for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-memory>`_
+     - The max total MB for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-memory>`__
    * - cpu_units
      - integer
      - No
      - 256
-     - The max CPU units to use for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpuhttps://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu>`_
+     - The max CPU units to use for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpuhttps://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu>`__
    * - containers
      - :ref:`ecs-fargate-containers`
      - Yes

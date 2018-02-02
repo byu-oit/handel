@@ -83,7 +83,7 @@ Resources:
       {{/if}}
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
+          AssignPublicIp: {{assignPublicIp}}
           SecurityGroups: 
           - {{ecsSecurityGroupId}}
           Subnets:
@@ -201,7 +201,7 @@ Resources:
     Properties:
       MaxCapacity: {{autoScaling.maxTasks}}
       MinCapacity: {{autoScaling.minTasks}}
-      ResourceId: !Join ["", [ "service/{{serviceName}}/", !GetAtt EcsService.Name]]
+      ResourceId: !Join ["", [ "service/default/", !GetAtt EcsService.Name]]
       RoleARN: !GetAtt ServiceAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs

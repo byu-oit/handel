@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import 'mocha';
 import * as sinon from 'sinon';
 import awsWrapper from '../../src/aws/aws-wrapper';
 import * as ec2Calls from '../../src/aws/ec2-calls';
@@ -225,6 +226,50 @@ describe('ec2-calls', () => {
             const ami = await ec2Calls.getLatestAmiByName('amazon', 'some-ami-name');
             expect(ami).to.equal(null);
             expect(describeImagesStub.callCount).to.equal(1);
+        });
+    });
+
+    describe('getSubnet', () => {
+        it('should return the subnet when it exists', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets').resolves({
+                Subnets: [{}]
+            });
+
+            const subnet = await ec2Calls.getSubnet('FakeSubnetId');
+            expect(subnet).to.deep.equal({});
+            expect(describeSubnetsStub.callCount).to.equal(1);
+        });
+
+        it('should return null if the subnet doesnt exist', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets').resolves({});
+
+            const subnet = await ec2Calls.getSubnet('FakeSubnetId');
+            expect(subnet).to.equal(null);
+            expect(describeSubnetsStub.callCount).to.equal(1);
+        });
+
+        it('should return null if the describe response comes back empty for some reason', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets').rejects({
+                code: 'InvalidSubnetID.NotFound'
+            });
+
+            const subnet = await ec2Calls.getSubnet('FakeSubnetId');
+            expect(subnet).to.equal(null);
+            expect(describeSubnetsStub.callCount).to.equal(1);
+        });
+
+        it('should rethrow any other erorr', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets').rejects({
+                code: 'OtherError'
+            });
+
+            try {
+                const subnet = await ec2Calls.getSubnet('FakeSubnetId');
+                expect(true).to.equal(false); // Should not get here
+            }
+            catch (err) {
+                expect(describeSubnetsStub.callCount).to.equal(1);
+            }
         });
     });
 });
