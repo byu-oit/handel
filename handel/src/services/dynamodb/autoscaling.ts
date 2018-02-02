@@ -279,7 +279,7 @@ function getScalingConfig(config: ThroughputCapacity,
 
 class ThroughputCapacity {
 
-    public target: number;
+    public target!: number;
 
     public readonly initial: number;
     public readonly min: number;
@@ -297,7 +297,7 @@ class ThroughputCapacity {
 
 class AutoscalingDefinition {
 
-    public dependsOn: string;
+    public dependsOn!: string;
     public readonly min: number;
     public readonly max: number;
     public readonly target: number;
