@@ -6,7 +6,7 @@ Many applications have a need to securely store and access *secrets*. These secr
 
 .. WARNING::
 
-    **Do not** pass these secrets into your application as environment variables in your Handel file. Since you commit your Handel file to source control, any credentials you put in there would be compromised. 
+    **Do not** pass these secrets into your application as environment variables in your Handel file. Since you commit your Handel file to source control, any credentials you put in there would be compromised to anyone who can see your source code.
     
     Handel provides a different mechanism for passing secrets to your application, as explained in this document.
 
@@ -38,14 +38,34 @@ To see a concrete illustration of this, consider the following example Handel fi
 
 This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters that start with "my-lambda-app.dev". Thus, the parameter ``my-lambda-app.dev.somesecret`` would be available to this application, but the ``some-other-app.dev.somesecret`` parameter would not, because it does not start with the proper prefix of *<appName>.<environmentName>* in the Handel file.
 
+.. NOTE::
+
+    As a convenience, Handel injects an environment variable called ``HANDEL_PARAMETER_STORE_PREFIX`` into your application. This variable contains the pre-built ``<appName>.<environmentName>`` prefix so that you don't have to build it yourself.
+
+Global Parameters
+~~~~~~~~~~~~~~~~~
+It is a common desire to share some parameters globally with all apps living in an account. To support this, Handel also grants your application permission to access a special global namespace of parameters that start with the following prefix:
+
+.. code-block:: none
+
+    handel.global
+
+Parameters that start with this prefix are available to any app deployed using Handel in the account and region that you're running in.
+
+.. WARNING::
+
+    Any parameter you put here WILL be available to any other user of Handel in the account. Don't put secrets in this namespace that belong to just your app!
+
 Adding a Parameter to the Parameter Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 See the `Walkthrough <http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-walk.html>`_ in the AWS documentation for an example of how to add your parameters.
 
-.. IMPORTANT:: When you add your parameter, remember to start the name of the parameter with your application name from your Handel file.
+.. IMPORTANT:: 
+
+    When you add your parameter, remember to start the name of the parameter with your application name from your Handel file.
 
 Getting Parameters from the Parameter Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 Once you've added a parameter to the Parameter Store with the proper prefix, your deployed application should be able to access it. See the example of CLI access for the get-parameters call in the `Walkthrough <http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-walk.html>`_ for information on how to do this.
 
 The example in the walkthrough shows an example using the CLI, but you can use the AWS language SDKs with the getParameters call in a similar manner. See the documentation of the SDK you are using for examples.

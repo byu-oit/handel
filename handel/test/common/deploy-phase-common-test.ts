@@ -253,6 +253,7 @@ describe('Deploy phase common module', () => {
             const policyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
             expect(policyStatements.length).to.equal(2);
             expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
+            expect(policyStatements[1].Resource[1]).to.contain(`parameter/handel.global*`);
         });
     });
 
