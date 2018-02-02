@@ -215,6 +215,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
         tablePartitionKeyName: serviceParams.partition_key.name,
         tableReadCapacityUnits: throughputConfig.read.initial,
         tableWriteCapacityUnits: throughputConfig.write.initial,
+        ttlAttribute: serviceParams.ttl_attribute,
         tags: getTags(ownServiceContext)
     };
 

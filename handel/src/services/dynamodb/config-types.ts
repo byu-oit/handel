@@ -26,6 +26,7 @@ export interface DynamoDBConfig extends ServiceConfig {
     partition_key: KeyDefinition;
     sort_key?: KeyDefinition;
     provisioned_throughput?: ProvisionedThroughput;
+    ttl_attribute?: string;
     stream_view_type?: StreamViewType;
     local_indexes?: LocalIndexConfig[];
     global_indexes?: GlobalIndexConfig[];
