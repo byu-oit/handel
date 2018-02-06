@@ -1,0 +1,89 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created DynamoDB Table
+
+Resources:
+  Table:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+      {{#each attributeDefinitions}}
+      - AttributeName: {{attributeName}}
+        AttributeType: {{attributeType}}
+      {{/each}}
+      KeySchema:
+      - AttributeName: {{tablePartitionKeyName}}
+        KeyType: HASH
+      {{#if tableSortKeyName}}
+      - AttributeName: {{tableSortKeyName}}
+        KeyType: RANGE
+      {{/if}}
+      ProvisionedThroughput:
+        ReadCapacityUnits: {{tableWriteCapacityUnits}}
+        WriteCapacityUnits: {{tableWriteCapacityUnits}}
+      {{#if globalIndexes}}
+      GlobalSecondaryIndexes:
+      {{#each globalIndexes}}
+      - IndexName: {{indexName}}
+        KeySchema:
+        - AttributeName: {{indexPartitionKeyName}}
+          KeyType: HASH
+        {{#if indexSortKeyName}}
+        - AttributeName: {{indexSortKeyName}}
+          KeyType: RANGE
+        {{/if}}
+        Projection:
+          ProjectionType: INCLUDE
+          NonKeyAttributes:
+          {{#each indexProjectionAttributes}}
+          - {{this}}
+          {{/each}}
+        ProvisionedThroughput:
+          ReadCapacityUnits: {{indexReadCapacityUnits}}
+          WriteCapacityUnits: {{indexWriteCapacityUnits}}
+      {{/each}}
+      {{/if}}
+      {{#if localIndexes}}
+      LocalSecondaryIndexes:
+      {{#each localIndexes}}
+      - IndexName: {{indexName}}
+        KeySchema:
+        - AttributeName: {{indexPartitionKeyName}}
+          KeyType: HASH
+        - AttributeName: {{indexSortKeyName}}
+          KeyType: RANGE
+        Projection:
+          ProjectionType: INCLUDE
+          NonKeyAttributes:
+          {{#each indexProjectionAttributes}}
+          - {{this}}
+          {{/each}}
+      {{/each}}
+      {{/if}}
+      TableName: {{tableName}}
+      {{#if streamViewType}}
+      StreamSpecification:
+        StreamViewType: {{streamViewType}}
+      {{/if}}
+      {{#if ttlAttribute}}
+      TimeToLiveSpecification:
+        AttributeName: "{{ttlAttribute}}"
+        Enabled: true
+      {{/if}}
+      {{#if tags}}
+      Tags:
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+
+Outputs:
+  TableName:
+    Description: The name of the Dynamo table
+    Value: !Ref Table
+  {{#if streamViewType}}
+  StreamArn:
+    Description: The ARN of the DynamoDB stream
+    Value: !GetAtt Table.StreamArn
+  {{/if}}

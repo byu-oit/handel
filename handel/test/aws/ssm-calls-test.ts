@@ -1,0 +1,53 @@
+/*
+ * Copyright 2018 Brigham Young University
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+import { expect } from 'chai';
+import 'mocha';
+import * as sinon from 'sinon';
+import awsWrapper from '../../src/aws/aws-wrapper';
+import * as ssmCalls from '../../src/aws/ssm-calls';
+
+describe('ssmCalls module', () => {
+    let sandbox: sinon.SinonSandbox;
+
+    beforeEach(() => {
+        sandbox = sinon.sandbox.create();
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    describe('storeParameter', () => {
+        it('should add the given parameter to the store', async () => {
+            const putParameterStub = sandbox.stub(awsWrapper.ssm, 'putParameter').resolves({});
+
+            const response = await ssmCalls.storeParameter('ParamName', 'ParamType', 'ParamValue');
+            expect(response).to.deep.equal({});
+            expect(putParameterStub.callCount).to.equal(1);
+        });
+    });
+
+    describe('deleteParameters', () => {
+        it('should delete the list of parameters from the store', async () => {
+            const deleteParameterStub = sandbox.stub(awsWrapper.ssm, 'deleteParameter').resolves(true);
+
+            const success = await ssmCalls.deleteParameters(['Param1', 'Param1']);
+            expect(success).to.equal(true);
+            expect(deleteParameterStub.callCount).to.equal(2);
+        });
+    });
+});

@@ -4,9 +4,9 @@ ECS Fargate
 ===========
 This page contains information about the ECS Fargate service supported in Handel. This Handel service provisions your application code as an ECS Fargate Service, with included supporting infrastructure such as load balancers and service auto-scaling groups.
 
-.. WARNING::
-
-    Support for ECS Fargate is currently in beta. Most things should work properly, but you may encounter bugs. If you do, please submit a `GitHub Issue <https://github.com/byu-oit/handel/issues>`_
+.. NOTE::
+  
+  As of February 1, 2017, the AWS Fargate service available in the *us-east-1* region.
 
 Service Limitations
 -------------------
@@ -21,6 +21,11 @@ This service currently does not support the following ECS task features:
 * User-specified volumes from the EC2 host. You can specify services such as EFS that will mount a volume in your container for you, however.
 * Extra networking items such as manually specifying DNS Servers, DNS Search Domains, and extra hosts in the /etc/hosts file
 * Task definition options such as specifying an entry point, command, or working directory. These options are available in your Dockerfile and can be specified there.
+
+.. IMPORTANT::
+
+    This service only offers limited tagging support. ECS resources will not be tagged, but any load balancers and the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
 
 Parameters
 ----------
@@ -41,12 +46,12 @@ Parameters
      - integer
      - No
      - 512
-     - The max total MB for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-memory>`_
+     - The max total MB for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-memory>`__
    * - cpu_units
      - integer
      - No
      - 256
-     - The max CPU units to use for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpuhttps://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu>`_
+     - The max CPU units to use for all containers in your service. Valid values can be found `here <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpuhttps://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu>`__
    * - containers
      - :ref:`ecs-fargate-containers`
      - Yes
@@ -68,7 +73,7 @@ Parameters
      - 30
      - Configures the log retention duration for CloudWatch logs.
    * - tags
-     - :ref:`ecs-fargate-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - This section allows you to specify any tags you wish to apply to your ECS service.
@@ -181,21 +186,6 @@ The `load_balancer` section is defined by the following schema:
        - <string> # Optional.
 
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
-
-.. _ecs-fargate-tags:
-
-Tags
-~~~~
-The `tags` section is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 .. _ecs-fargate-logging:
 

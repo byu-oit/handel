@@ -4,6 +4,14 @@ SQS (Simple Queue Service)
 ==========================
 This document contains information about the SQS service supported in Handel. This Handel service provisions an SQS queue for use by your applications.
 
+Service Limitations
+-------------------
+
+.. IMPORTANT::
+
+    This service only offers limited tagging support. SNS Topics will not be tagged, but the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
+
 Parameters
 ----------
 
@@ -60,6 +68,11 @@ Parameters
      - No
      -
      - If present, indicates that the queue will use a `Dead-Letter Queue <http://http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_.
+   * - tags
+     - :ref:`tagging-resources`
+     - No
+     -
+     - Tags to be applied to the Cloudformation stack which provisions this resource.
 
 
 .. _sqs-dead-letter:

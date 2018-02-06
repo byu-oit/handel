@@ -42,6 +42,11 @@ Parameters
      - No
      - 5 for read and write
      - The ProvisionedThroughput element details how much provisioned IOPS you want on your table for reads and writes.
+   * - ttl_attribute
+     - string
+     - No
+     - None
+     - Configures the attribute to use for `DynamoDB TTL and auto-expiration <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html>`_.
    * - local_indexes
      - :ref:`dynamodb-local-indexes`
      - No
@@ -58,7 +63,7 @@ Parameters
      -
      - You can configure `global secondary indexes <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html>`_ for fast queries on other partition and sort keys in addition to the ones on your table.
    * - tags
-     - :ref:`dynamodb-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your Dynamo Table
@@ -164,21 +169,6 @@ throughput is not configured for the index, the table's configuration will be us
 .. WARNING::
 
     Be aware that using Global Secondary Indexes can greatly increase your cost. When you use global indexes, you are effectively creating a new table. This will increase your cost by the amount required for storage and allocated IOPS for the global index.
-
-.. _dynamodb-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
 
 Example Handel File
 -------------------

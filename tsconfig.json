@@ -2,7 +2,6 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
-        "allowJs": true,
         "sourceMap": true,
         "outDir": "dist",
         "removeComments": false,
@@ -12,8 +11,5 @@
             "es7"
         ]
     },
-    "compileOnSave": false,
-    "include": [
-        "src/**/*"
-    ]
+    "compileOnSave": false
 }

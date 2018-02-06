@@ -66,7 +66,7 @@ Parameters
      - 
      - Any cache parameters you wish for your Redis cluster. See `Redis Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Redis.html>`_ for the list of parameters you can provide.
    * - tags
-     - :ref:`redis-tags`
+     - :ref:`tagging-resources`
      - No
      - 
      - Any tags you wish to apply to this Redis cluster.
@@ -80,22 +80,6 @@ Parameters
     If you have that same cache.m4.large type, but with 1 read replica, it will cost you double at about $224/month since you are being charged for two full Redis instances.
 
     Taken to its extreme, a cache.m4.large with 5 read replicas will cost about $673/month. **Be careful to calculate how much this service will cost you if you are using read replicas**
-
-.. _redis-tags:
-
-Tags
-~~~~
-The Tags element is defined by the following schema:
-
-.. code-block:: yaml
-
-  tags:
-   <your_tag_name>: <your_tag_value>
-
-.. NOTE::
-
-    Handel automatically applies some tags for you. See :ref:`tagging-default-tags` for information about these tags.
-
 
 Example Handel File
 -------------------

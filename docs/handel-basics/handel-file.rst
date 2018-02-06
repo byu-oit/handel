@@ -31,6 +31,9 @@ The Handel file is a YAML file that must conform to the following specification:
 
     name: <name of the app being deployed>
 
+    tags:
+      tag-name: value
+
     environments:
       <environment_name>:
         <service_name>:

@@ -1,8 +1,13 @@
 .. _ses:
 
 SES (Simple Email Service)
-=================================
+==========================
 This document contains information about the SES service supported in Handel. This Handel service verifies an email address for use by your applications.
+
+.. NOTE::
+
+    This service does not currently support resource tagging.
+
 
 Parameters
 ----------

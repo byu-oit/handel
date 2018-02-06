@@ -4,6 +4,11 @@ CloudWatch Events
 =================
 This document contains information about the CloudWatch Events service supported in Handel. This Handel service provisions a CloudWatch Events rule, which can then be integrated with services like Lambda to invoke them when events fire.
 
+.. IMPORTANT::
+
+    This service only offers limited tagging support. Cloudwatch events will not be tagged, but the Cloudformation stack used to create them will be. See :ref:`tagging-unsupported-resources`.
+
+
 Parameters
 ----------
 
@@ -40,6 +45,11 @@ Parameters
      - No
      - enabled
      - What state the rule should be in. Allowed values: 'enabled', 'disabled'
+   * - tags
+     - :ref:`tagging-resources`
+     - No
+     -
+     - Tags to be applied to the Cloudformation stack which provisions this resource.
 
 Example Handel Files
 --------------------

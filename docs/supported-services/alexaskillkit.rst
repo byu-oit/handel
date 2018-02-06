@@ -1,8 +1,13 @@
 .. _alexaskillkit:
 
 Alexa Skill Kit
-=================
+===============
 This document contains information about the Alexa Skill kit service supported in Handel. This Handel service provisions a Alexa Skill kit permission, which is used to integrate with Lambda to invoke them.
+
+.. NOTE::
+
+    This service does not currently support resource tagging.
+
 
 Parameters
 ----------
