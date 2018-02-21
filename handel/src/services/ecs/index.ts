@@ -165,7 +165,7 @@ export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>
     const ecsServiceRole = await cluster.createEcsServiceRoleIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript, ecsServiceRole!);
     const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     await asgCycling.cycleInstances(instancesToCycle);
     winston.info(`${SERVICE_NAME} - Finished deploying service '${stackName}'`);
     return new DeployContext(ownServiceContext);

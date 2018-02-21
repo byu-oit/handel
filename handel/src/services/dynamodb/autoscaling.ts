@@ -63,7 +63,7 @@ export function deployAutoscaling(mainStackName: string,
         .then((compiledTemplate: string) => {
             const stackName = getAutoscalingStackName(ownServiceContext);
             return deployPhaseCommon.deployCloudFormationStack(
-                stackName, compiledTemplate, [], true, serviceName, stackTags
+                stackName, compiledTemplate, [], true, serviceName, 30, stackTags
             );
         });
 }
