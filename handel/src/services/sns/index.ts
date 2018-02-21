@@ -124,7 +124,7 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
 
     const compiledSnsTemplate = await getCompiledSnsTemplate(stackName, ownServiceContext);
     const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledSnsTemplate, [], true, SERVICE_NAME, stackTags);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledSnsTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying topic '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

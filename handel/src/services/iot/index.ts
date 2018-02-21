@@ -134,7 +134,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
     const stackName = getStackNameFromRuleName(ruleName);
     const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;
     const compiledTemplate = await getCompiledTopicRuleTemplate(description, ruleName, sql, ruleDisabled, actions);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, stackTags);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }

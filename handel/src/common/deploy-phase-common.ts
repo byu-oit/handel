@@ -121,11 +121,11 @@ export function getAllPolicyStatementsForServiceRole(ownServicePolicyStatements:
     return policyStatementsToConsume;
 }
 
-export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, stackTags: Tags) {
+export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
     const stack = await cloudformationCalls.getStack(stackName);
     if (!stack) {
         winston.info(`${serviceType} - Creating stack '${stackName}'`);
-        return cloudformationCalls.createStack(stackName, cfTemplate, cfParameters, stackTags);
+        return cloudformationCalls.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
     }
     else {
         if (updatesSupported) {

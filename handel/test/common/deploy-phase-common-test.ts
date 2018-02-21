@@ -168,7 +168,7 @@ describe('Deploy phase common module', () => {
         it('should create the stack if it doesnt exist yet', async () => {
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             const createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', {});
+            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
@@ -177,7 +177,7 @@ describe('Deploy phase common module', () => {
         it('should update the stack if it exists and updates are supported', async () => {
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             const updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', {});
+            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(1);
@@ -186,7 +186,7 @@ describe('Deploy phase common module', () => {
         it('should just return the stack if it exists and updates are not supported', async () => {
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             const updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve(null));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], false, 'FakeService', {});
+            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], false, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
