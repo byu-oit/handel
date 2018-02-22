@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as route53 from '../../../../src/aws/route53-calls';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../../../src/datatypes';
+import {AccountConfig, DeployContext, PreDeployContext, ServiceContext} from '../../../../src/datatypes';
 import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 
@@ -49,7 +49,7 @@ describe('apigateway proxy deploy type', () => {
     });
 
     describe('check', () => {
-        it('should require the \'path_to_code\' param', function () {
+        it('should require the \'path_to_code\' param', function() {
             this.timeout(10000);
             delete serviceContext.params.proxy!.path_to_code;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -57,7 +57,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
         });
 
-        it('should require the \'runtime\' param', function () {
+        it('should require the \'runtime\' param', function() {
             this.timeout(10000);
             delete serviceContext.params.proxy!.runtime;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -65,7 +65,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'runtime\' parameter is required');
         });
 
-        it('should require the \'handler\' param', function () {
+        it('should require the \'handler\' param', function() {
             this.timeout(10000);
             delete serviceContext.params.proxy!.handler;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
