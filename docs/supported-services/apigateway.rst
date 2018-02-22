@@ -51,11 +51,37 @@ Parameters
      - No
      - false
      - If true, your Lambdas will be deployed inside your account's VPC.
+   * - custom_domains
+     - Array of :ref:`apigateway-custom-domains`
+     - No
+     -
+     - An array of custom domains to map to this API Gateway instance.
    * - tags
      - :ref:`tagging-resources`
      - No
      - 
      - Any tags you want to apply to your API Gateway app.
+
+.. _apigateway-custom-domains:
+
+Custom Domain Mappings
+~~~~~~~~~~~~~~~~~~~~~~
+.. NOTE::
+
+    This service does not currently support sharing custom domains between API Gateway instances using Base Path Mappings.
+    At this time, you can only map one API Gateway to one custom domain, with no path mapping.
+
+API Gateway allows for mapping gateways to one or more custom domains. These custom domains are always served via HTTPS.
+
+The Custom Domains section is defined by the following schema:
+
+.. code-block:: yaml
+
+    custom_domains:
+    - dns_name: <string> # The DNS name for the API Gateway. Must be a valid DNS name.
+      https_certificate: <arn> # The Amazon Certificate Manager certificate to use. This certificate must be in the same region as the API Gateway instance.
+
+See :ref:`route53zone-records` for more information on how DNS records will be created.
 
 .. _apigateway-proxy:
 
