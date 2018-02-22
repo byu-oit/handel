@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-import { expect } from 'chai';
+import {expect} from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../../src/datatypes';
-import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
+import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../../../src/datatypes';
+import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 
 describe('apigateway proxy deploy type', () => {
@@ -48,7 +48,7 @@ describe('apigateway proxy deploy type', () => {
     });
 
     describe('check', () => {
-        it('should require the \'path_to_code\' param', function() {
+        it('should require the \'path_to_code\' param', function () {
             this.timeout(10000);
             delete serviceContext.params.proxy!.path_to_code;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -56,7 +56,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
         });
 
-        it('should require the \'runtime\' param', function() {
+        it('should require the \'runtime\' param', function () {
             this.timeout(10000);
             delete serviceContext.params.proxy!.runtime;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -64,7 +64,7 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'runtime\' parameter is required');
         });
 
-        it('should require the \'handler\' param', function() {
+        it('should require the \'handler\' param', function () {
             this.timeout(10000);
             delete serviceContext.params.proxy!.handler;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
@@ -72,26 +72,6 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'handler\' parameter is required');
         });
 
-        it('should fail if vpc is false and a dependency producing security groups is declared', function() {
-            this.timeout(10000);
-            serviceContext.params = {
-                type: 'apigateway',
-                proxy: {
-                    path_to_code: '.',
-                    handler: 'index.handler',
-                    runtime: 'node.js6.3'
-                },
-                dependencies: [
-                    'FakeDependency'
-                ]
-            };
-            const dependenciesServiceContexts = [
-                new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig)
-            ];
-            const errors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, 'API Gateway');
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'vpc\' parameter is required and must be true when declaring dependencies of type');
-        });
     });
 
     describe('deploy', () => {
