@@ -32,7 +32,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGa
     return s3ArtifactInfo;
 }
 
-function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[], s3ObjectInfo: AWS.S3.ManagedUpload.SendData, ownPreDeployContext: PreDeployContext) {
+async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[], s3ObjectInfo: AWS.S3.ManagedUpload.SendData, ownPreDeployContext: PreDeployContext) {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -72,6 +72,10 @@ function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: Ser
         handlebarsParams.vpc = true;
         handlebarsParams.vpcSecurityGroupIds = apigatewayCommon.getSecurityGroups(ownPreDeployContext);
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
+    }
+
+    if (serviceParams.custom_domains) {
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(serviceParams.custom_domains);
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);

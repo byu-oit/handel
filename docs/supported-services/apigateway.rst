@@ -10,6 +10,11 @@ No Authorizer Lambdas
 ~~~~~~~~~~~~~~~~~~~~~
 This service doesn't yet support specifying authorizer lambdas.
 
+No Regional Endpoints
+~~~~~~~~~~~~~~~~~~~~~
+
+This service currently supports only edge-optimized API Gateways.
+
 Parameters
 ----------
 
@@ -79,7 +84,7 @@ The Custom Domains section is defined by the following schema:
 
     custom_domains:
     - dns_name: <string> # The DNS name for the API Gateway. Must be a valid DNS name.
-      https_certificate: <arn> # The Amazon Certificate Manager certificate to use. This certificate must be in the same region as the API Gateway instance.
+      https_certificate: <arn> # The Amazon Certificate Manager certificate to use. This certificate must be in the us-east-1 region.
 
 See :ref:`route53zone-records` for more information on how DNS records will be created.
 
