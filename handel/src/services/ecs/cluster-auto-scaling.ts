@@ -26,6 +26,7 @@ interface Ec2InstanceMemoryMap {
     [key: string]: number;
 }
 
+// I have to hard-code these because AWS doesn't seem to provide an API to list instance type attributes like memory size, etc.
 const EC2_INSTANCE_MEMORY_MAP: Ec2InstanceMemoryMap = {
     't2.nano': 500,
     't2.micro': 1000,
@@ -51,6 +52,12 @@ const EC2_INSTANCE_MEMORY_MAP: Ec2InstanceMemoryMap = {
     'm3.large': 7500,
     'm3.xlarge': 15000,
     'm3.2xlarge': 30000,
+    'm5.large': 8000,
+    'm5.xlarge': 16000,
+    'm5.2xlarge': 32000,
+    'm5.4xlarge': 64000,
+    'm5.12xlarge': 192000,
+    'm5.24xlarge': 384000,
     'c1.medium': 1700,
     'c1.xlarge': 7000,
     'c4.large': 3750,
