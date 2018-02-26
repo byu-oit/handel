@@ -15,16 +15,61 @@
  *
  */
 import * as winston from 'winston';
+import {isValidHostname} from '../../aws/route53-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes/index';
-import { APIGatewayConfig } from './config-types';
+import * as util from '../../common/util';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from './swagger/swagger-deploy-type';
 
 const SERVICE_NAME = 'API Gateway';
+
+function checkCommon(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    const params = serviceContext.params;
+
+    const errors: string[] = [];
+
+    if (params.custom_domains) {
+        errors.push(...checkCustomDomains(params.custom_domains));
+    }
+
+    if (dependenciesServiceContexts) {
+        const serviceDeployers = util.getServiceDeployers();
+        dependenciesServiceContexts.forEach((dependencyServiceContext) => {
+            if (serviceDeployers[dependencyServiceContext.serviceType].producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
+                errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
+            }
+        });
+    }
+
+    return errors;
+}
+
+export function checkCustomDomains(customDomains?: CustomDomain[]): string[] {
+    if (!customDomains || customDomains.length === 0) {
+        return [];
+    }
+    // equivalent to flatMap
+    return customDomains.map(checkCustomDomain)
+        .reduce((acc, cur) => acc.concat(cur), []);
+}
+
+function checkCustomDomain(domain: CustomDomain): string[] {
+    const errors = [];
+    if (!domain.dns_name) {
+        errors.push(`${SERVICE_NAME} - 'dns_name' parameter is required`);
+    } else if (!isValidHostname(domain.dns_name)) {
+        errors.push(`${SERVICE_NAME} - 'dns_name' must be a valid DNS hostname`);
+    }
+    if (!domain.https_certificate) {
+        errors.push(`${SERVICE_NAME} - 'https_certificate' parameter is required`);
+    }
+    return errors;
+}
 
 /**
  * Service Deployer Contract Methods
@@ -35,17 +80,21 @@ const SERVICE_NAME = 'API Gateway';
 export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const params = serviceContext.params;
 
+    const commonErrors = checkCommon(serviceContext, dependenciesServiceContexts);
+
+    let deployTypeErrors: string[];
     if(params.proxy) {
-        return proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
+        deployTypeErrors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
     }
     else if(params.swagger) {
-        return swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
+        deployTypeErrors = swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
     }
     else {
         winston.warn(`Top-level proxy configuration is deprecated. You should use the 'proxy' section instead`);
-        return proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
+        deployTypeErrors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
         // return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
     }
+    return commonErrors.concat(deployTypeErrors);
 }
 
 export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {

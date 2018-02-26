@@ -91,7 +91,7 @@ function getLambdasToCreate(stackName: string, swagger: any, ownServiceContext: 
     return functionConfigs;
 }
 
-function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], lambdasToCreate: any[], swaggerS3ArtifactInfo: AWS.S3.ManagedUpload.SendData, stackTags: Tags): Promise<string> {
+async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], lambdasToCreate: any[], swaggerS3ArtifactInfo: AWS.S3.ManagedUpload.SendData, stackTags: Tags): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -119,6 +119,10 @@ function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: Ser
         handlebarsParams.vpc = true;
         handlebarsParams.vpcSecurityGroupIds = apigatewayCommon.getSecurityGroups(ownPreDeployContext);
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
+    }
+
+    if (params.custom_domains) {
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(params.custom_domains);
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-swagger-template.yml`, handlebarsParams);

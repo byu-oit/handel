@@ -23,6 +23,7 @@ export interface APIGatewayConfig extends ServiceConfig {
     binary_media_types?: string[];
     environment_variables?: EnvironmentVariables;
     vpc?: boolean;
+    custom_domains?: CustomDomain[];
 }
 
 export interface ProxyPassthroughConfig {
@@ -32,4 +33,10 @@ export interface ProxyPassthroughConfig {
     memory?: number;
     timeout?: number;
     environment_variables?: EnvironmentVariables;
+}
+
+export interface CustomDomain {
+    dns_name: string;
+    https_certificate: string;
+    // We could eventually add a 'path' here, but without allowing shared custom domains, there really isn't a use case for it
 }

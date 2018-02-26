@@ -98,11 +98,13 @@ DNS Records
 
 Certain supported services can create an alias record in this zone.  The currently supported services are:
 
-* Beanstalk
-* ECS
-* S3 Static Site
+* :ref:`API Gateway <apigateway-custom-domains>`
+* :ref:`Beanstalk <beanstalk-routing>`
+* :ref:`ECS <ecs-loadbalancer>`
+* :ref:`ECS (Fargate) <ecs-fargate-loadbalancer>`
+* :ref:`S3 Static Site <s3staticsite-cloudfront>`
 
-Beanstalk and ECS can support multiple DNS entries.
+API Gateway, Beanstalk, ECS, and ECS (Fargate) can support multiple DNS entries.
 
 See the individual service documentation for how to define the DNS names.
 

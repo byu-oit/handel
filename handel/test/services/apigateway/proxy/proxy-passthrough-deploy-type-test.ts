@@ -14,13 +14,14 @@
  * limitations under the License.
  *
  */
-import { expect } from 'chai';
+import {expect} from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
+import * as route53 from '../../../../src/aws/route53-calls';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../../src/datatypes';
-import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
+import {AccountConfig, DeployContext, PreDeployContext, ServiceContext} from '../../../../src/datatypes';
+import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 
 describe('apigateway proxy deploy type', () => {
@@ -72,26 +73,6 @@ describe('apigateway proxy deploy type', () => {
             expect(errors[0]).to.contain('\'handler\' parameter is required');
         });
 
-        it('should fail if vpc is false and a dependency producing security groups is declared', function() {
-            this.timeout(10000);
-            serviceContext.params = {
-                type: 'apigateway',
-                proxy: {
-                    path_to_code: '.',
-                    handler: 'index.handler',
-                    runtime: 'node.js6.3'
-                },
-                dependencies: [
-                    'FakeDependency'
-                ]
-            };
-            const dependenciesServiceContexts = [
-                new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig)
-            ];
-            const errors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, 'API Gateway');
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'vpc\' parameter is required and must be true when declaring dependencies of type');
-        });
     });
 
     describe('deploy', () => {
@@ -131,6 +112,56 @@ describe('apigateway proxy deploy type', () => {
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(uploadDeployableArtifactToHandelBucketStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
+        });
+
+        it('should deploy custom domains', async () => {
+             // Set up input parameters
+            const ownPreDeployContext = new PreDeployContext(serviceContext);
+            const dependenciesDeployContexts = getDependencyDeployContexts('FakeApp', 'FakeEnv');
+
+            serviceContext.params.custom_domains = [
+                {
+                    dns_name: 'api.example.com',
+                    https_certificate: 'arn:fake'
+                },
+                {
+                    dns_name: 'api.mycompany.com',
+                    https_certificate: 'arn:fake2'
+                }
+            ];
+
+            // Stub out dependent services
+            const bucketName = 'FakeBucket';
+            const bucketKey = 'FakeBucketKey';
+            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+                Bucket: bucketName,
+                Key: bucketKey
+            });
+            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+                Outputs: [{
+                    OutputKey: 'RestApiId',
+                    OutputValue: 'someApiId'
+                }]
+            });
+
+            const route53stub = sandbox.stub(route53, 'listHostedZones').resolves([
+                {
+                    Id: '1',
+                    Name: 'example.com.'
+                },
+                {
+                    Id: '2',
+                    Name: 'api.mycompany.com.'
+                }
+            ]);
+
+            const deployContext = await proxyPassthroughDeployType.deploy('FakeStack', serviceContext, ownPreDeployContext, dependenciesDeployContexts, 'API Gateway');
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(uploadDeployableArtifactToHandelBucketStub.callCount).to.equal(1);
+            expect(deployStackStub.callCount).to.equal(1);
+            const cloudformation = deployStackStub.firstCall.args[1];
+            expect(cloudformation).to.contain('CustomDomainApiExampleCom');
+            expect(cloudformation).to.contain('CustomDomainApiMycompanyCom');
         });
     });
 });

@@ -19,7 +19,6 @@ import * as winston from 'winston';
 import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../../common/handlebars-utils';
 import {getTags} from '../../../common/tagging-common';
-import * as util from '../../../common/util';
 import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../../datatypes';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
@@ -33,7 +32,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGa
     return s3ArtifactInfo;
 }
 
-function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[], s3ObjectInfo: AWS.S3.ManagedUpload.SendData, ownPreDeployContext: PreDeployContext) {
+async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[], s3ObjectInfo: AWS.S3.ManagedUpload.SendData, ownPreDeployContext: PreDeployContext) {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -75,6 +74,10 @@ function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: Ser
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
     }
 
+    if (serviceParams.custom_domains) {
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(serviceParams.custom_domains);
+    }
+
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
 }
 
@@ -102,7 +105,6 @@ function getParam(params: any, oldParamName: string, newParamName: string | unde
 }
 
 export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>, serviceName: string): string[] {
-    const serviceDeployers = util.getServiceDeployers();
     const checkErrors: string[] = [];
 
     const params = serviceContext.params;
@@ -110,13 +112,6 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
     checkForParam(params, 'lambda_runtime', 'runtime', checkErrors);
     checkForParam(params, 'handler_function', 'handler', checkErrors);
 
-    if (dependenciesServiceContexts) {
-        dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            if (serviceDeployers[dependencyServiceContext.serviceType].producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
-                checkErrors.push(`${serviceName} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
-            }
-        });
-    }
     return checkErrors;
 }
 

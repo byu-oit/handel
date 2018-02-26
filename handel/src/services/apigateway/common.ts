@@ -16,15 +16,16 @@
  */
 import * as _ from 'lodash';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
+import * as route53 from '../../aws/route53-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
-import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceContext } from '../../datatypes/index';
-import { APIGatewayConfig } from './config-types';
+import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceContext } from '../../datatypes';
+import {APIGatewayConfig, CustomDomain} from './config-types';
 
 export function getEnvVarsForService(ownEnvironmentVariables: EnvironmentVariables | undefined, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[]) {
     let returnEnvVars = {};
 
-    if(ownEnvironmentVariables) {
+    if (ownEnvironmentVariables) {
         returnEnvVars = _.assign(returnEnvVars, ownEnvironmentVariables);
     }
 
@@ -63,4 +64,23 @@ export function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
 
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+}
+
+export async function getCustomDomainHandlebarsParams(customDomains?: CustomDomain[]): Promise<any[]> {
+    if (!customDomains) {
+      return [];
+    }
+    const zones = await route53.listHostedZones();
+    return customDomains.map(domain => {
+        const {dns_name, https_certificate} = domain;
+        const hostedZone = route53.getBestMatchingHostedZone(dns_name, zones);
+        if (!hostedZone) {
+            throw new Error(`Unable to find hosted zone for DNS name '${dns_name}'`);
+        }
+        return {
+            name: dns_name,
+            zoneId: hostedZone.Id,
+            certificateArn: https_certificate
+        };
+    });
 }
