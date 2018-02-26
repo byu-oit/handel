@@ -53,7 +53,6 @@ export interface HandlebarsCloudFrontParams {
     defaultTTL: number;
     priceClass: string;
     httpsCertificateId?: string;
-    setIPV6FunctionBody: string;
     dnsNames?: HandlebarsCloudFrontDnsName[];
 }
 
