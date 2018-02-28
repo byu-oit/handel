@@ -193,6 +193,10 @@ async function addOtherPermissions(producerServiceType: string, producerServiceC
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.topicRuleArnPrefix, ownServiceContext.serviceName);
     }
+    else if (producerServiceType === 's3') {
+        principal = producerDeployContext.eventOutputs.principal;
+        sourceArn = producerDeployContext.eventOutputs.bucketArn;
+    }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
     }

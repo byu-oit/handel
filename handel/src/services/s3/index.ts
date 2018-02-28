@@ -16,13 +16,15 @@
  */
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as s3Calls from '../../aws/s3-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import {getTags} from '../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
-import {HandlebarsS3Template, S3ServiceConfig} from './config-types';
+import { getTags } from '../../common/tagging-common';
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
+import { HandlebarsS3Template, S3ServiceConfig, S3ServiceEventConsumer, S3ServiceEventFilterList } from './config-types';
 import * as lifecycleSection from './lifecycles';
 
 const SERVICE_NAME = 'S3';
@@ -40,6 +42,7 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
     const accountConfig = serviceContext.accountConfig;
 
     const bucketName = cloudFormationCalls.getOutput('BucketName', cfStack);
+    const bucketArn = cloudFormationCalls.getOutput('BucketArn', cfStack);
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
@@ -75,6 +78,11 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
         ]
     });
 
+    // Output certain information for events
+    deployContext.eventOutputs.bucketName = bucketName;
+    deployContext.eventOutputs.bucketArn = bucketArn;
+    deployContext.eventOutputs.principal = 's3.amazonaws.com';
+
     return deployContext;
 }
 
@@ -101,6 +109,20 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/s3-template.yml`, handlebarsParams);
+}
+
+function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AWS.S3.FilterRuleList {
+    if (filterList) {
+        return filterList.map(item => {
+            return {
+                Name: item.name,
+                Value: item.value
+            };
+        });
+    }
+    else {
+        return [];
+    }
 }
 
 /**
@@ -142,8 +164,29 @@ export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-// TODO - No events supported yet, but we will support some like Lambda
-export const producedEventsSupportedServices = [];
+export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+    winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+    // Add subscription to sns service
+    const bucketName = ownDeployContext.eventOutputs.bucketName;
+    const consumerServiceType = consumerServiceContext.serviceType;
+    const eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName) as S3ServiceEventConsumer;
+    let consumerArn;
+    if (consumerServiceType === 'lambda') {
+        consumerArn = consumerDeployContext.eventOutputs.lambdaArn;
+    }
+    else {
+        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
+    }
+    const filters = getS3EventFilters(eventConsumerConfig.filters);
+
+    const result = await s3Calls.configureBucketNotifications(bucketName, consumerServiceType, consumerArn, eventConsumerConfig.bucket_events, filters);
+    winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+}
+
+export const producedEventsSupportedServices = [
+    'lambda'
+];
 
 export const producedDeployOutputTypes = [
     'environmentVariables',
