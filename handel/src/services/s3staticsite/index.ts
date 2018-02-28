@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import * as fs from 'fs-extra';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as route53Calls from '../../aws/route53-calls';
@@ -86,36 +85,31 @@ async function getCloudfrontTemplateParameters(ownServiceContext: ServiceContext
         return Promise.resolve(undefined);
     }
 
-    const getIpv6Function = fs.readFile(`${__dirname}/set-ipv6.js`, 'utf-8').then(code => JSON.stringify(code));
-    const getHostedZones = route53Calls.listHostedZones();
+    const hostedZones = await route53Calls.listHostedZones();
 
-    return Promise.all([getIpv6Function, getHostedZones]).then(results => {
-        const [ipV6FunctionBody, hostedZones] = results;
-        const handlebarsParams: HandlebarsCloudFrontParams = {
-            logging: !cf.logging || cf.logging === 'enabled',
-            minTTL: computeTTL(cf.min_ttl, 0),
-            maxTTL: computeTTL(cf.max_ttl, TTL_UNITS.year),
-            defaultTTL: computeTTL(cf.default_ttl, TTL_UNITS.day),
-            priceClass: computePriceClass(cf.price_class, 'all'),
-            httpsCertificateId: cf.https_certificate,
-            setIPV6FunctionBody: ipV6FunctionBody
-        };
+    const handlebarsParams: HandlebarsCloudFrontParams = {
+        logging: !cf.logging || cf.logging === 'enabled',
+        minTTL: computeTTL(cf.min_ttl, 0),
+        maxTTL: computeTTL(cf.max_ttl, TTL_UNITS.year),
+        defaultTTL: computeTTL(cf.default_ttl, TTL_UNITS.day),
+        priceClass: computePriceClass(cf.price_class, 'all'),
+        httpsCertificateId: cf.https_certificate,
+    };
 
-        const dnsNames = cf.dns_names;
-        if (dnsNames) {
-            handlebarsParams.dnsNames = dnsNames.map(dnsName => {
-                const zone = route53Calls.getBestMatchingHostedZone(dnsName, hostedZones);
-                if (!zone) {
-                    throw new Error(`No Route53 hosted zone found matching '${dnsName}'`);
-                }
-                return {
-                    name: dnsName,
-                    zoneId: zone.Id
-                };
-            });
-        }
-        return handlebarsParams;
-    });
+    const dnsNames = cf.dns_names;
+    if (dnsNames) {
+        handlebarsParams.dnsNames = dnsNames.map(dnsName => {
+            const zone = route53Calls.getBestMatchingHostedZone(dnsName, hostedZones);
+            if (!zone) {
+                throw new Error(`No Route53 hosted zone found matching '${dnsName}'`);
+            }
+            return {
+                name: dnsName,
+                zoneId: zone.Id
+            };
+        });
+    }
+    return handlebarsParams;
 }
 
 function computePriceClass(priceClass: number | string | undefined, defaultValue: number | string): string {
