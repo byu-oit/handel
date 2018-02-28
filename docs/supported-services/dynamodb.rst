@@ -27,6 +27,11 @@ Parameters
      - Yes
      - 
      - This must always be *dynamodb* for this service type.
+   * - table_name
+     - string
+     - No
+     - '<app name>-<environment>-<service name>-dynamodb'
+     - Sets the name of the Dynamod table to be created.
    * - partition_key
      - :ref:`dynamodb-partition-key`
      - Yes
