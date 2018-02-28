@@ -23,7 +23,7 @@ function statementIsSame(functionName: string, principal: string, sourceArn: str
         return false;
     }
 
-    if (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn) {
+    if (sourceArn && (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn)) {
         return false;
     }
     return true;
@@ -49,13 +49,13 @@ export async function getLambdaPermission(functionName: string, principal: strin
         FunctionName: functionName
     };
 
-    winston.verbose(`Attempting to find permission ${sourceArn} in function ${functionName}`);
+    winston.verbose(`Attempting to find permissions for ${principal} in function ${functionName}`);
     try {
         const getPolicyResponse = await awsWrapper.lambda.getPolicy(getPolicyParams);
         const policy = JSON.parse(getPolicyResponse.Policy!);
         for (const statement of policy.Statement) {
             if (statementIsSame(functionName, principal, sourceArn, statement)) {
-                winston.verbose(`Found permission ${sourceArn} in function ${functionName}`);
+                winston.verbose(`Found permission ${principal} in function ${functionName}`);
                 return statement;
             }
         }
@@ -112,7 +112,7 @@ export async function addLambdaEventSourceMapping(functionName: string, tableNam
                 winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${tableName} already exists`);
                 deferred.resolve();
             } else {
-                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`)
+                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`);
                 deferred.reject(err);
             }
         }

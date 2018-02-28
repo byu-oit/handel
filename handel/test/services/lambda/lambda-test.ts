@@ -26,7 +26,6 @@ import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as lambda from '../../../src/services/lambda';
-import awsWrapper from '../../../src/aws/aws-wrapper';
 import { LambdaServiceConfig } from '../../../src/services/lambda/config-types';
 
 describe('lambda deployer', () => {
@@ -211,51 +210,12 @@ describe('lambda deployer', () => {
             const principal = 'alexa-appkit.amazon.com';
             const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'alexaskillkit', { type: 'alexaskillkit' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
+            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
             producerDeployContext.eventOutputs.principal = principal;
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermission').resolves({});
-            const policy = {
-                Statement: [{
-                    Principal: {
-                        Service: 'OtherPrincipal'
-                    },
-                    Condition: {
-                        ArnLike: {
-                            'AWS:SourceArn': 'OtherSourceArn'
-                        }
-                    }
-                }]
-            };
-
-            const getPolicyStub = sandbox.stub(awsWrapper.lambda, 'getPolicy').resolves({
-                Policy: JSON.stringify(policy)
-            });
 
             const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
             expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should skip adding permissions for the alexaskillkit service type if it exists', async () => {
-            const principal = 'alexa-appkit.amazon.com';
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'alexaskillkit', { type: 'alexaskillkit' }, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.principal = principal;
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermission').resolves({});
-            const policy = {
-                Statement: [{
-                    Principal: {
-                        Service: principal
-                    }
-                }]
-            };
-
-            const getPolicyStub = sandbox.stub(awsWrapper.lambda, 'getPolicy').resolves({
-                Policy: JSON.stringify(policy)
-            });
-
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(0);
         });
 
         it('should add permissions for the iot service type', async () => {
