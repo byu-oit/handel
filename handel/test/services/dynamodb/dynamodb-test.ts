@@ -178,6 +178,30 @@ describe('dynamodb deployer', () => {
             expect(errors[0]).to.include('The \'type\' field in the \'sort_key\' section is required in the \'local_indexes\' section');
         });
 
+        describe('table_name', () => {
+            it('should validate that the name is at least 3 characters long', () => {
+                serviceParams.table_name = 'a';
+
+                const errors = dynamodb.check(serviceContext, []);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include('between 3 and 255 characters');
+            });
+            it('should validate that the name is at most 255 characters long', () => {
+                serviceParams.table_name = 'a'.repeat(256);
+
+                const errors = dynamodb.check(serviceContext, []);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include('between 3 and 255 characters');
+            });
+            it('should validate that the name has valid characters', () => {
+                serviceParams.table_name = 'abc#def';
+
+                const errors = dynamodb.check(serviceContext, []);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include('alphanumeric characters, underscores (_), hyphens (-), and dots (.)');
+            });
+        });
+
         describe('provisioned_throughput', () => {
             it('should validate read_capacity_units', () => {
                 serviceParams.provisioned_throughput = {
@@ -254,6 +278,27 @@ describe('dynamodb deployer', () => {
             expect(deployContext.policies.length).to.equal(1);
             expect(deployContext.policies[0].Resource[0]).to.equal(tableArn);
             expect(deployContext.environmentVariables[`${serviceName}_TABLE_NAME`.toUpperCase()]).to.equal(tableName);
+        });
+
+        it('should allow the table name to be set', async () => {
+            const ownPreDeployContext = new PreDeployContext(serviceContext);
+
+            const tableName = 'MyFakeTable';
+            const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
+
+            serviceParams.table_name = tableName;
+
+            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                Outputs: [{
+                    OutputKey: 'TableName',
+                    OutputValue: tableName
+                }]
+            }));
+
+            const deployContext = await dynamodb.deploy(serviceContext, ownPreDeployContext, []);
+            expect(deployStackStub.callCount).to.equal(1);
+            const call = deployStackStub.firstCall;
+            expect(call.args[1]).to.include(`TableName: ${tableName}`);
         });
 
         describe('autoscaling', () => {
