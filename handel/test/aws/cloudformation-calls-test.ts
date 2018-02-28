@@ -100,7 +100,7 @@ describe('cloudformationCalls', () => {
                 }]
             });
 
-            const stack = await cloudformationCalls.createStack(stackName, 'FakeTemplateBody', [], {});
+            const stack = await cloudformationCalls.createStack(stackName, 'FakeTemplateBody', [], 30, {});
             expect(stack.StackName).to.equal(stackName);
             expect(createStackStub.callCount).to.equal(1);
             expect(waitForStub.callCount).to.equal(1);

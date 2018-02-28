@@ -145,6 +145,7 @@ export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
         const deployedStack = await cloudFormationCalls.createStack(stackName,
                                                                     compiledTemplate,
                                                                     cfParameters,
+                                                                    30,
                                                                     stackTags);
         winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
         await rdsDeployersCommon.addDbCredentialToParameterStore(ownServiceContext,

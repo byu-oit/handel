@@ -120,6 +120,36 @@ Resources:
               responses: {}
         swagger: '2.0'
 
+  {{#each customDomains}}
+  CustomDomain{{logicalId name}}:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      CertificateArn: {{certificateArn}}
+      DomainName: {{name}}
+  CustomDomainBasePath{{logicalId name}}:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName: !Ref CustomDomain{{logicalId name}}
+      RestApiId: !Ref ServerlessRestApi
+      Stage: {{../stageName}}
+  CustomDomainDns{{logicalId name}}:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: {{zoneId}}
+      Comment: Handel-created DNS Records for {{name}}
+      RecordSets:
+      - Name: {{name}}
+        Type: A
+        AliasTarget:
+          HostedZoneId: Z2FDTNDATAQYW2 # This is Cloudfront's zone
+          DNSName: !GetAtt CustomDomain{{logicalId name}}.DistributionDomainName
+      - Name: {{name}}
+        Type: AAAA
+        AliasTarget:
+          HostedZoneId: Z2FDTNDATAQYW2 # This is Cloudfront's zone
+          DNSName: !GetAtt CustomDomain{{logicalId name}}.DistributionDomainName
+  {{/each}}
+
 Outputs:
   LambdaArn:
     Value:

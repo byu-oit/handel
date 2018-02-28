@@ -23,6 +23,7 @@ export interface DynamoDBServiceEventConsumer extends ServiceEventConsumer {
 }
 
 export interface DynamoDBConfig extends ServiceConfig {
+    table_name?: string;
     partition_key: KeyDefinition;
     sort_key?: KeyDefinition;
     provisioned_throughput?: ProvisionedThroughput;

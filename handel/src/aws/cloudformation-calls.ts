@@ -80,14 +80,14 @@ export async function waitForStack(stackName: string, stackState: string): Promi
  * This method will wait for the stack to be in a create complete state
  * before resolving the promise
  */
-export async function createStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags?: Tags | null): Promise<AWS.CloudFormation.Stack> {
+export async function createStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, timeoutInMinutes: number, tags?: Tags | null): Promise<AWS.CloudFormation.Stack> {
     const params: AWS.CloudFormation.CreateStackInput = {
         StackName: stackName,
         OnFailure: 'DELETE',
         Parameters: parameters,
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
         TemplateBody: templateBody,
-        TimeoutInMinutes: 30
+        TimeoutInMinutes: timeoutInMinutes
     };
 
     // Add tags to the stack if provided

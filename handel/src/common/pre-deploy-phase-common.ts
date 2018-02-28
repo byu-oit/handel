@@ -37,7 +37,7 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
     const stack = await cloudformationCalls.getStack(sgName);
     let deployedStack;
     if (!stack) {
-        deployedStack = await cloudformationCalls.createStack(sgName, compiledTemplate, [], tags);
+        deployedStack = await cloudformationCalls.createStack(sgName, compiledTemplate, [], 30, tags);
     }
     else {
         deployedStack = await cloudformationCalls.updateStack(sgName, compiledTemplate, [], tags);

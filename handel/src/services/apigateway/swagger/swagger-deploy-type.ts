@@ -91,7 +91,7 @@ function getLambdasToCreate(stackName: string, swagger: any, ownServiceContext: 
     return functionConfigs;
 }
 
-function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], lambdasToCreate: any[], swaggerS3ArtifactInfo: AWS.S3.ManagedUpload.SendData, stackTags: Tags): Promise<string> {
+async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], lambdasToCreate: any[], swaggerS3ArtifactInfo: AWS.S3.ManagedUpload.SendData, stackTags: Tags): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -119,6 +119,10 @@ function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: Ser
         handlebarsParams.vpc = true;
         handlebarsParams.vpcSecurityGroupIds = apigatewayCommon.getSecurityGroups(ownPreDeployContext);
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
+    }
+
+    if (params.custom_domains) {
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(params.custom_domains);
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-swagger-template.yml`, handlebarsParams);
@@ -251,7 +255,7 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     lambdasToCreate = await uploadDeployableArtifactsToS3(ownServiceContext, lambdasToCreate, serviceName, enrichedSwagger);
     const swaggerS3ArtifactInfo = await uploadSwaggerToS3(ownServiceContext, enrichedSwagger);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, lambdasToCreate, swaggerS3ArtifactInfo, stackTags);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, stackTags);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);

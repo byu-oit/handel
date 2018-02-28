@@ -291,7 +291,7 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
     const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, stackTags);
+    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
