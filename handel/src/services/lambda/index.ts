@@ -17,7 +17,6 @@
 import * as _ from 'lodash';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import awsWrapper from '../../aws/aws-wrapper';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as lambdaCalls from '../../aws/lambda-calls';
@@ -27,7 +26,7 @@ import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
+import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import {
     ConsumeEventsContext,
