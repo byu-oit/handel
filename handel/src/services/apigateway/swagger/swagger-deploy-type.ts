@@ -122,7 +122,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
     }
 
     if (params.custom_domains) {
-        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(params.custom_domains);
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, params.custom_domains);
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-swagger-template.yml`, handlebarsParams);
