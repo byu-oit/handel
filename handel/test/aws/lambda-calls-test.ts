@@ -84,6 +84,25 @@ describe('lambdaCalls', () => {
             expect(statement.Condition.ArnLike['AWS:SourceArn']).to.equal(sourceArn);
         });
 
+        it('should return the given permission if the principal is defined but the source arn is null', async () => {
+            const alexaPrincipal = 'alexa-appkit.amazon.com';
+            const policy = {
+                Statement: [{
+                    Principal: {
+                        Service: alexaPrincipal
+                    }
+                }]
+            };
+
+            const getPolicyStub = sandbox.stub(awsWrapper.lambda, 'getPolicy').resolves({
+                Policy: JSON.stringify(policy)
+            });
+
+            const statement = await lambdaCalls.getLambdaPermission('FakeFunctionName', alexaPrincipal, undefined);
+            expect(statement).to.not.equal(null);
+            expect(statement.Principal.Service).to.equal(alexaPrincipal);
+        });
+
         it('should return null when the requested permissions is not present in the policy', async () => {
             const policy = {
                 Statement: [{

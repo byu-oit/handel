@@ -207,9 +207,11 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the alexaskillkit service type', async () => {
+            const principal = 'alexa-appkit.amazon.com';
             const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'alexaskillkit', { type: 'alexaskillkit' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
+            producerDeployContext.eventOutputs.principal = principal;
 
             const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
