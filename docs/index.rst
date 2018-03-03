@@ -19,7 +19,7 @@ Here's an example Handel file defining a Beanstalk application to be deployed wi
         webapp:
           type: beanstalk
           path_to_code: .
-          solution_stack: 64bit Amazon Linux 2016.09 v4.0.1 running Node.js
+          solution_stack: 64bit Amazon Linux 2017.09 v4.4.5 running Node.js
           dependencies:
           - bucket
           - queue
