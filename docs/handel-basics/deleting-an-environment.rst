@@ -8,16 +8,18 @@ Once you've created an application using Handel, you may decide to delete one or
 
     If you delete an environment, it will delete all data in your environment! 
     
-    Please review the data in an environment carefully before deleting it. You are responsible fo
-    
-To delete an environment, do the following:
+    Please review the data in an environment carefully before deleting it! Handel just helps you create and delete your resources, you are responsible for making sure you don't delete resources you care about.
 
 Execute Handel's delete lifecycle, passing in the environment you want to delete:
 
 .. code-block:: bash
 
     # Note that you need to also pass in the account config file
-    handel delete -c ~/projects/byu/handel-account-configs/prd-swat-oit-byu.yml -e dev
+    handel delete -c default-us-east-1 -e dev
+
+.. IMPORTANT::
+
+    Make sure to replace the *-c* and *-e* flags in the above command with the correct values for your application.
 
 When you execute that command, Handel will show you a big warning message like the following:
 
