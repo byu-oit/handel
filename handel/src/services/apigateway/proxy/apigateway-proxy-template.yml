@@ -59,6 +59,8 @@ Resources:
       StageName: {{stageName}}
   LambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn:
+    - LambdaPolicy # Explicitly required for VPC lambdas, otherwise policy isn't ready and attached before Lambda creation
     Properties:
       Code:
         S3Bucket: {{s3Bucket}}
