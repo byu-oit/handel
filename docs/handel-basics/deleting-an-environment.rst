@@ -10,16 +10,12 @@ Once you've created an application using Handel, you may decide to delete one or
     
     Please review the data in an environment carefully before deleting it! Handel just helps you create and delete your resources, you are responsible for making sure you don't delete resources you care about.
 
-Execute Handel's delete lifecycle, passing in the environment you want to delete:
+Execute Handel's delete lifecycle at the command line. Here is an example of deleting an environment:
 
 .. code-block:: bash
 
-    # Note that you need to also pass in the account config file
+    # Make sure to replace the *-c* and *-e* flags in the below command with the correct values for your application.
     handel delete -c default-us-east-1 -e dev
-
-.. IMPORTANT::
-
-    Make sure to replace the *-c* and *-e* flags in the above command with the correct values for your application.
 
 When you execute that command, Handel will show you a big warning message like the following:
 
@@ -43,4 +39,4 @@ When you execute that command, Handel will show you a big warning message like t
 
     ? Enter 'yes' to delete your environment. Handel will refuse to delete the environment with any other answer:
 
-Type 'yes' at the prompt to delete the environment. Handel will then proceed to delete the environment.
+Type *yes* at the prompt to delete the environment. Handel will then proceed to delete the environment.
