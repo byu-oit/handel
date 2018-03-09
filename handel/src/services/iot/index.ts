@@ -19,7 +19,6 @@ import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
-import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import {getTags} from '../../common/tagging-common';
 import {
     DeployContext,
@@ -27,6 +26,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventConsumer,
     UnDeployContext
 } from '../../datatypes';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
@@ -108,11 +108,10 @@ export async function deploy(ownServiceContext: ServiceContext<IotServiceConfig>
     return getDeployContext(stackName, ownServiceContext); // Empty deploy
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<IotServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+export async function produceEvents(ownServiceContext: ServiceContext<IotServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: IotServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
 
     // Create topic rule
-    const eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName) as IotServiceEventConsumer;
     const consumerServiceType = consumerServiceContext.serviceType;
     const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
     const sql = eventConsumerConfig.sql;

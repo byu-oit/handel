@@ -20,7 +20,6 @@ import * as s3Calls from '../../aws/s3-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
 import { getTags } from '../../common/tagging-common';
 import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
@@ -164,12 +163,11 @@ export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     // Add subscription to sns service
     const bucketName = ownDeployContext.eventOutputs.bucketName;
     const consumerServiceType = consumerServiceContext.serviceType;
-    const eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName) as S3ServiceEventConsumer;
     let consumerArn;
     if (consumerServiceType === 'lambda') {
         consumerArn = consumerDeployContext.eventOutputs.lambdaArn;
