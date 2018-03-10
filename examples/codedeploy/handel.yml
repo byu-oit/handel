@@ -1,0 +1,14 @@
+version: 1
+
+name: codedeploy-test
+
+environments:
+  dev:
+    webapp:
+      type: codedeploy
+      path_to_code: .
+      instance_type: t2.micro
+      auto_scaling:
+        min_instances: 1
+        max_instances: 2
+      key_name: ces-dev

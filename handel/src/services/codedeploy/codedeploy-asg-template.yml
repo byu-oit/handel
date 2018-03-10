@@ -1,0 +1,127 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created CodeDeploy service
+
+Resources:
+
+  #
+  # Configure IAM resources
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{appName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{appName}}
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: Role
+
+  #
+  # Configure Auto-Scale group
+  #
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: true # TODO - CHANGE THIS BASED ON THE SUBNET IT DEPLOYS IN!!!
+      BlockDeviceMappings:
+      - DeviceName: "/dev/xvda"
+        Ebs:
+          VolumeSize: 8
+          VolumeType: gp2
+          DeleteOnTermination: true
+      IamInstanceProfile:
+        Ref: InstanceProfile
+      ImageId: {{amiImageId}}
+      InstanceMonitoring: false
+      InstanceType: {{instanceType}}
+      {{#if sshKeyName}}
+      KeyName: {{sshKeyName}}
+      {{/if}}
+      SecurityGroups:
+      - {{securityGroupId}}
+      UserData: {{{userData}}}
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Cooldown: {{asgCooldown}}
+      HealthCheckGracePeriod: 300
+      HealthCheckType: EC2
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      MaxSize: {{maxInstances}}
+      MinSize: {{minInstances}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+        PropagateAtLaunch: true
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{appName}}
+        PropagateAtLaunch: true
+      VPCZoneIdentifier:
+      {{#each privateSubnetIds}}
+      - {{this}}
+      {{/each}}
+
+  #
+  # Configure CodeDeploy resources
+  #
+  Application:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: {{appName}}
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref Application
+      AutoScalingGroups:
+      - !Ref AutoScalingGroup
+      Deployment:
+        Description: Handel-created deployment for '{{appName}}'
+        Revision:
+          RevisionType: S3
+          S3Location:
+            Bucket: {{s3BucketName}}
+            BundleType: zip
+            Key: {{s3KeyName}}
+      DeploymentConfigName: {{deploymentConfigName}}
+      ServiceRoleArn: {{serviceRoleArn}}
+
+  # TODO - Configure user-defined scaling policies
+  # TODO - Configure IAM resources
+  # TODO - Configure ALB resources

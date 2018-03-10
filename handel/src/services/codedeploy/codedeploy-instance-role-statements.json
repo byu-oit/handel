@@ -1,0 +1,24 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "s3:Get*",
+            "s3:List*"
+        ],
+        "Resource": [
+            "arn:aws:s3:::{{handelBucketName}}",
+            "arn:aws:s3:::aws-codedeploy-{{region}}"
+        ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "s3:Get*",
+            "s3:List*"
+        ],
+        "Resource": [
+            "arn:aws:s3:::{{handelBucketName}}/*",
+            "arn:aws:s3:::aws-codedeploy-{{region}}/*"
+        ]
+    }
+]
