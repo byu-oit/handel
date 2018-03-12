@@ -150,7 +150,6 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     const userDataScript = await getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo);
-    console.log(codeDeployTemplate);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
     return new DeployContext(ownServiceContext);

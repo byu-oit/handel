@@ -123,5 +123,4 @@ Resources:
       ServiceRoleArn: {{serviceRoleArn}}
 
   # TODO - Configure user-defined scaling policies
-  # TODO - Configure IAM resources
   # TODO - Configure ALB resources
