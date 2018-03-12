@@ -17,8 +17,8 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as winston from 'winston';
-import {AccountConfig, Tags} from '../datatypes';
-import {toAWSTagStyle} from './aws-tags';
+import { AccountConfig, Tags } from '../datatypes';
+import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
 function getObjectsToDelete(objects: AWS.S3.Object[]) {
@@ -251,4 +251,105 @@ export async function createBucketIfNotExists(bucketName: string, region: string
         const createResponse = await createBucket(bucketName, region, tags || {});
         return getBucket(bucketName);
     }
+}
+
+// TODO - I would like to find a way to reduce duplication in this function. The TS types make it difficult to generalize this the way I would in untyped JS
+function notificationConfigExists(notificationType: string, notificationArn: string, existingNotificationsConfig: AWS.S3.NotificationConfiguration): boolean {
+    if (notificationType === 'lambda') {
+        const lambdaNotificationConfigs = existingNotificationsConfig.LambdaFunctionConfigurations;
+        if (lambdaNotificationConfigs) {
+            const lambdaNotificationExists = lambdaNotificationConfigs.find(item => item.LambdaFunctionArn === notificationArn);
+            return lambdaNotificationExists ? true : false;
+        }
+        else {
+            return false;
+        }
+    }
+    else if (notificationType === 'sns') {
+        const topicNotificationConfigs = existingNotificationsConfig.TopicConfigurations;
+        if (topicNotificationConfigs) {
+            const topicNotificationExists = topicNotificationConfigs.find(item => item.TopicArn === notificationArn);
+            return topicNotificationExists ? true : false;
+        }
+        else {
+            return false;
+        }
+    }
+    else if (notificationType === 'sqs') {
+        const queueNotificationConfigs = existingNotificationsConfig.QueueConfigurations;
+        if (queueNotificationConfigs) {
+            const topicNotificationExists = queueNotificationConfigs.find(item => item.QueueArn === notificationArn);
+            return topicNotificationExists ? true : false;
+        }
+        else {
+            return false;
+        }
+    }
+    else {
+        throw new Error(`Invalid/unsupported notification type from S3 bucket specified: ${notificationType}`);
+    }
+}
+
+// TODO - I would like to find a way to reduce duplication in this function. The TS types make it difficult to generalize this the way I would in untyped JS
+function createNotificationConfig(bucketName: string, notificationType: string, notificationArn: string, notificationEvents: AWS.S3.EventList, eventFilters: AWS.S3.FilterRuleList) {
+    const putNotificationParams: AWS.S3.PutBucketNotificationConfigurationRequest = {
+        Bucket: bucketName,
+        NotificationConfiguration: {}
+    };
+    if (notificationType === 'lambda') {
+        putNotificationParams.NotificationConfiguration.LambdaFunctionConfigurations = [
+            {
+                LambdaFunctionArn: notificationArn,
+                Events: notificationEvents,
+                Filter: {
+                    Key: {
+                        FilterRules: eventFilters
+                    }
+                }
+            }
+        ];
+    }
+    else if (notificationType === 'sns') {
+        putNotificationParams.NotificationConfiguration.TopicConfigurations = [
+            {
+                TopicArn: notificationArn,
+                Events: notificationEvents,
+                Filter: {
+                    Key: {
+                        FilterRules: eventFilters
+                    }
+                }
+            }
+        ];
+    }
+    else if (notificationType === 'sqs') {
+        putNotificationParams.NotificationConfiguration.QueueConfigurations = [
+            {
+                QueueArn: notificationArn,
+                Events: notificationEvents,
+                Filter: {
+                    Key: {
+                        FilterRules: eventFilters
+                    }
+                }
+            }
+        ];
+    }
+    else {
+        throw new Error(`Invalid/unsupported notification type from S3 bucket specified: ${notificationType}`);
+    }
+    return awsWrapper.s3.putBucketNotificationConfiguration(putNotificationParams);
+}
+
+export async function configureBucketNotifications(bucketName: string, notificationType: string, notificationArn: string, notificationEvents: AWS.S3.EventList, eventFilters: AWS.S3.FilterRuleList) {
+    const getConfigParams: AWS.S3.GetBucketNotificationConfigurationRequest = {
+        Bucket: bucketName
+    };
+    const existingConfig = await awsWrapper.s3.getBucketNotificationConfiguration(getConfigParams);
+    // if (!notificationConfigExists(notificationType, notificationArn, existingConfig)) {
+        // console.log("CREATING NOTIFICATION!");
+        return createNotificationConfig(bucketName, notificationType, notificationArn, notificationEvents, eventFilters);
+    // } else {
+        // console.log("ALREADY EXISTS!");
+    // }
 }

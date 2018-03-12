@@ -23,7 +23,7 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
-import { CloudWatchEventsConfig } from '../../../src/services/cloudwatchevent/config-types';
+import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from '../../../src/services/cloudwatchevent/config-types';
 
 describe('cloudwatchevent deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -87,6 +87,11 @@ describe('cloudwatchevent deployer', () => {
     });
 
     describe('produceEvents', () => {
+        const eventConfigConsumer: CloudWatchEventsServiceEventConsumer = {
+            service_name: 'FakeConsumerService',
+            event_input: ''
+        };
+
         it('should add a target for the lambda service type', async () => {
             const consumerServiceName = 'ConsumerService';
             const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'lambda', {type: 'lambda'}, accountConfig);
@@ -106,7 +111,7 @@ describe('cloudwatchevent deployer', () => {
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(addTargetStub.callCount).to.equal(1);
         });
@@ -130,7 +135,7 @@ describe('cloudwatchevent deployer', () => {
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(addTargetStub.callCount).to.equal(1);
         });
@@ -154,7 +159,7 @@ describe('cloudwatchevent deployer', () => {
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
             try {
-                const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
                 expect(true).to.equal(false); // Should not get here
             }
             catch (err) {

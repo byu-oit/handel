@@ -31,6 +31,7 @@ import {
     UnDeployContext
 } from '../../datatypes';
 import {SnsServiceConfig} from './config-types';
+import { ServiceEventConsumer } from 'handel-extension-api';
 
 const SERVICE_NAME = 'SNS';
 
@@ -129,7 +130,7 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+export async function produceEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     // Add subscription to sns service
     const topicArn = ownDeployContext.eventOutputs.topicArn;

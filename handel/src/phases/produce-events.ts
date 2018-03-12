@@ -17,21 +17,21 @@
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceDeployers } from '../datatypes';
+import { DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceDeployers, ServiceEventConsumer } from '../datatypes';
 
 interface ProduceEventsAction {
-    consumerServiceName: string;
+    eventConsumerConfig: ServiceEventConsumer;
     producerServiceContext: ServiceContext<ServiceConfig>;
     producerDeployContext: DeployContext;
     producerServiceDeployer: ServiceDeployer;
 }
 
-async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, producerServiceDeployer: ServiceDeployer) {
+async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: ServiceEventConsumer, consumerDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, producerServiceDeployer: ServiceDeployer) {
     if (!producerServiceDeployer.produceEvents) {
         throw new Error(`Tried to execute 'produceEvents' phase in '${producerServiceContext.serviceType}', which doesn't implement that phase`);
     }
     winston.debug(`Producing events from ${producerServiceContext.serviceName} for service ${consumerServiceContext.serviceName}`);
-    const produceEventsContext = await producerServiceDeployer.produceEvents(producerServiceContext, producerDeployContext, consumerServiceContext, consumerDeployContext);
+    const produceEventsContext = await producerServiceDeployer.produceEvents(producerServiceContext, producerDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
     if (!(produceEventsContext instanceof ProduceEventsContext)) {
         throw new Error(`Expected ProduceEventsContext back from 'produceEvents' phase of service deployer`);
     }
@@ -54,27 +54,19 @@ export async function produceEvents(serviceDeployers: ServiceDeployers, environm
                 const producerDeployContext = deployContexts[producerServiceName];
 
                 // Run produce events for each service this service produces to
-                for(const consumerService of producerServiceContext.params.event_consumers) {
-                    const consumerServiceName = consumerService.service_name;
-                    produceEventActions.push({
-                        consumerServiceName,
-                        producerServiceContext,
-                        producerDeployContext,
-                        producerServiceDeployer
-                    });
+                for(const eventConsumerConfig of producerServiceContext.params.event_consumers) {
+                    const consumerServiceName = eventConsumerConfig.service_name;
+                    const produceEventsContextName = util.getProduceEventsContextName(producerServiceContext.serviceName, consumerServiceName);
+
+                    const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
+                    const consumerDeployContext = deployContexts[consumerServiceName];
+
+                    const produceEventsContext = await produceEvent(consumerServiceContext, eventConsumerConfig, consumerDeployContext, producerServiceContext, producerDeployContext, producerServiceDeployer);
+                    produceEventsContexts[produceEventsContextName] = produceEventsContext;
                 }
             }
         }
     }
 
-    for(const action of produceEventActions) {
-        const produceEventsContextName = util.getProduceEventsContextName(action.producerServiceContext.serviceName, action.consumerServiceName);
-
-        const consumerServiceContext = environmentContext.serviceContexts[action.consumerServiceName];
-        const consumerDeployContext = deployContexts[action.consumerServiceName];
-
-        const produceEventsContext = await produceEvent(consumerServiceContext, consumerDeployContext, action.producerServiceContext, action.producerDeployContext, action.producerServiceDeployer);
-        produceEventsContexts[produceEventsContextName] = produceEventsContext;
-    }
     return produceEventsContexts; // This was built-up dynamically above
 }

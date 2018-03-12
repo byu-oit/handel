@@ -21,7 +21,7 @@ import config from '../../../src/account-config/account-config';
 import * as snsCalls from '../../../src/aws/sns-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../../src/datatypes';
 import * as sns from '../../../src/services/sns';
 import { SnsServiceConfig } from '../../../src/services/sns/config-types';
 
@@ -113,6 +113,10 @@ describe('sns deployer', () => {
     });
 
     describe('produceEvents', () => {
+        const eventConsumerConfig: ServiceEventConsumer = {
+            service_name: 'consumerService'
+        };
+
         it('should subscribe the service to the topic when a lambda is given', async () => {
             const ownDeployContext = new DeployContext(serviceContext);
             ownDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
@@ -123,7 +127,7 @@ describe('sns deployer', () => {
 
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
-            const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(subscribeToTopicStub.callCount).to.equal(1);
         });
@@ -138,7 +142,7 @@ describe('sns deployer', () => {
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
             try {
-                const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
                 expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
                 expect(true).to.equal(false);
             }

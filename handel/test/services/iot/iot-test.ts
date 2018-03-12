@@ -22,7 +22,7 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as iot from '../../../src/services/iot';
-import { IotServiceConfig } from '../../../src/services/iot/config-types';
+import { IotServiceConfig, IotServiceEventConsumer } from '../../../src/services/iot/config-types';
 
 describe('iot deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -79,6 +79,7 @@ describe('iot deployer', () => {
 
     describe('produceEvents', () => {
         let ownDeployContext: DeployContext;
+        let eventConsumerConfig: IotServiceEventConsumer;
 
         beforeEach(() => {
             serviceContext.params = {
@@ -88,6 +89,10 @@ describe('iot deployer', () => {
                     sql: 'select * from something;',
                     rule_disabled: false
                 }]
+            };
+            eventConsumerConfig = {
+                service_name: 'FakeConsumer',
+                sql: 'FakeSql'
             };
 
             ownDeployContext = new DeployContext(serviceContext);
@@ -107,7 +112,7 @@ describe('iot deployer', () => {
                 ]
             }));
 
-            const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(deployStackStub.callCount).to.equal(1);
         });
@@ -117,7 +122,7 @@ describe('iot deployer', () => {
             const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             try {
-                const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
                 expect(true).to.equal(false); // Should not get here
             }
             catch (err) {
