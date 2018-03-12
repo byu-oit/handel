@@ -21,7 +21,7 @@ import config from '../../../src/account-config/account-config';
 import * as snsCalls from '../../../src/aws/sns-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext, ServiceEventConsumer } from '../../../src/datatypes';
+import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, ServiceEventConsumer, UnDeployContext } from '../../../src/datatypes';
 import * as sns from '../../../src/services/sns';
 import { SnsServiceConfig } from '../../../src/services/sns/config-types';
 
