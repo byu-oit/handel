@@ -75,7 +75,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
     }
 
     if (serviceParams.custom_domains) {
-        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(serviceParams.custom_domains);
+        handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, serviceParams.custom_domains);
     }
 
     return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);

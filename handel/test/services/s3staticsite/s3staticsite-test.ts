@@ -239,7 +239,7 @@ describe('s3staticsite deployer', () => {
                         maxTTL: 31536000,
                         defaultTTL: 86400,
                         priceClass: 'PriceClass_All'
-                    }).and.has.property('setIPV6FunctionBody');
+                    });
             });
 
             it('should allow DNS names to be set', async () => {

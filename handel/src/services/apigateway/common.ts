@@ -66,7 +66,7 @@ export function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
 }
 
-export async function getCustomDomainHandlebarsParams(customDomains?: CustomDomain[]): Promise<any[]> {
+export async function getCustomDomainHandlebarsParams(serviceContext: ServiceContext<any>, customDomains?: CustomDomain[]): Promise<any[]> {
     if (!customDomains) {
       return [];
     }
@@ -77,10 +77,18 @@ export async function getCustomDomainHandlebarsParams(customDomains?: CustomDoma
         if (!hostedZone) {
             throw new Error(`Unable to find hosted zone for DNS name '${dns_name}'`);
         }
+
+        let cert: string;
+        if (https_certificate.indexOf('arn:') === 0) {
+            cert = https_certificate;
+        } else {
+            cert = `arn:aws:acm:us-east-1:${serviceContext.accountConfig.account_id}:certificate/${https_certificate}`;
+        }
+
         return {
             name: dns_name,
             zoneId: hostedZone.Id,
-            certificateArn: https_certificate
+            certificateArn: cert
         };
     });
 }

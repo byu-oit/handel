@@ -23,8 +23,8 @@ import { ServiceConfig, ServiceContext } from '../datatypes';
  * name to fit in it.
  */
 export function getClusterName(serviceContext: ServiceContext<ServiceConfig>) {
-    const appFragment = serviceContext.appName.substring(0, 9);
-    const envFragement = serviceContext.environmentName.substring(0, 3);
-    const serviceFragment = serviceContext.serviceName.substring(0, 6);
+    const appFragment = serviceContext.appName.substring(0, 9).replace(/-/g, '');
+    const envFragement = serviceContext.environmentName.substring(0, 3).replace(/-/g, '');
+    const serviceFragment = serviceContext.serviceName.substring(0, 6).replace(/-/g, '');
     return `${appFragment}-${envFragement}-${serviceFragment}`;
 }

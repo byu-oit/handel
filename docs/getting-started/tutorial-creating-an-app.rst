@@ -15,6 +15,7 @@ This tutorial contains the following steps:
 1. :ref:`creating-first-handel-app-write-the-app`
 2. :ref:`creating-first-handel-app-create-handel-file`
 3. :ref:`creating-first-handel-app-deploy`
+4. :ref:`creating-first-handel-app-delete`
 
 Follow along with each of these steps in the sections below in order to complete the tutorial.
 
@@ -94,7 +95,7 @@ Now that you've got a working app, you need to create a Handel file specifying h
         webapp: # This is the name of your single service inside your 'dev' environment.
           type: beanstalk # Every Handel service requires a 'type' parameter
           path_to_code: . # This contains the path to the directory where your code lives that should be sent to Beanstalk
-          solution_stack: 64bit Amazon Linux 2017.09 v4.4.4 running Node.js # This specifies which Beanstalk 'solution stack' should be used for the app.
+          solution_stack: 64bit Amazon Linux 2017.09 v4.4.5 running Node.js # This specifies which Beanstalk 'solution stack' should be used for the app.
 
 .. NOTE::
 
@@ -130,6 +131,42 @@ Now that you've written your app, created your Handel file, and obtained your ac
     * The *-e* parameter is a comma-separated string list that specifies which environments from your Handel file you want to deploy
 
 Once you've executed that command, Handel should start up and deploy your application. You can sign into the AWS Console and go to the "ElasticBeanstalk" service to see your deployed application.
+
+.. _creating-first-handel-app-delete:
+
+Delete the created app
+~~~~~~~~~~~~~~~~~~~~~~
+Since this was a tutorial using a *Hello World* app, we want to delete it now that we're done with it. To delete your app, run the following command:
+
+.. code-block:: bash
+
+    handel delete -c default-us-east-1 -e dev
+
+When you execute the above command, it will show you something like this confirmation prompt:
+
+.. code-block:: none
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    WARNING: YOU ARE ABOUT TO DELETE YOUR HANDEL ENVIRONMENT 'dev'!
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    If you choose to delete this environment, you will lose all data stored in the environment!
+
+    In particular, you will lose all data in the following:
+
+    * Databases
+    * Caches
+    * S3 Buckets
+    * EFS Mounts
+
+    PLEASE REVIEW this environment thoroughly, as you are responsible for all data loss associated with an accidental deletion.
+    PLEASE BACKUP your data sources before deleting this environment just to be safe.
+
+    ? Enter 'yes' to delete your environment. Handel will refuse to delete the environment with any other answer:
+
+Type *yes* and hit *Enter*, and Handel will proceed to delete the environment.
+
+Congratulations, you've finished the tutorial!
 
 Next Steps
 ----------

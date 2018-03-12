@@ -211,7 +211,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     const throughputConfig = autoscaling.getThroughputConfig(serviceParams.provisioned_throughput, null);
 
     const handlebarsParams: any = {
-        tableName: stackName,
+        tableName: serviceParams.table_name || stackName,
         attributeDefinitions: getDefinedAttributes(ownServiceContext),
         tablePartitionKeyName: serviceParams.partition_key.name,
         tableReadCapacityUnits: throughputConfig.read.initial,
@@ -237,6 +237,8 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
 }
 
+const TABLE_NAME_ALLOWED_PATTERN = /^[a-zA-Z0-9_\-.]{3,255}$/;
+
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
@@ -246,6 +248,10 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
 export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors = [];
     const params = serviceContext.params;
+
+    if (params.table_name && !TABLE_NAME_ALLOWED_PATTERN.test(params.table_name)) {
+        errors.push(`${SERVICE_NAME} - The table_name parameter must be between 3 and 255 characters long and may only include alphanumeric characters, underscores (_), hyphens (-), and dots (.)`);
+    }
 
     if (!params.partition_key) {
         errors.push(`${SERVICE_NAME} - The 'partition_key' section is required`);
