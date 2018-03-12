@@ -172,6 +172,12 @@ export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceC
     if (consumerServiceType === 'lambda') {
         consumerArn = consumerDeployContext.eventOutputs.lambdaArn;
     }
+    else if(consumerServiceType === 'sns') {
+        consumerArn = consumerDeployContext.eventOutputs.topicArn;
+    }
+    else if(consumerServiceType === 'sqs') {
+        consumerArn = consumerDeployContext.eventOutputs.queueArn;
+    }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
     }
@@ -183,7 +189,9 @@ export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceC
 }
 
 export const producedEventsSupportedServices = [
-    'lambda'
+    'lambda',
+    'sns',
+    'sqs'
 ];
 
 export const producedDeployOutputTypes = [

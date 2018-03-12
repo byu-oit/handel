@@ -130,10 +130,6 @@ const awsWrapper = {
             const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             return s3.putBucketTagging(params).promise();
         },
-        getBucketNotificationConfiguration: (params: AWS.S3.GetBucketNotificationConfigurationRequest): Promise<AWS.S3.NotificationConfiguration> => {
-            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
-            return s3.getBucketNotificationConfiguration(params).promise();
-        },
         putBucketNotificationConfiguration: (params: AWS.S3.PutBucketNotificationConfigurationRequest): Promise<{}> => {
             const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             return s3.putBucketNotificationConfiguration(params).promise();

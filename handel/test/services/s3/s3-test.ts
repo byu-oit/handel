@@ -18,13 +18,16 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
+import * as s3Calls from '../../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as s3 from '../../../src/services/s3';
-import { S3ServiceConfig } from '../../../src/services/s3/config-types';
+import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 
 describe('s3 deployer', () => {
+    const appName = 'FakeApp';
+    const envName = 'FakeEnv';
     let sandbox: sinon.SinonSandbox;
     let ownServiceContext: ServiceContext<S3ServiceConfig>;
     let serviceParams: S3ServiceConfig;
@@ -35,7 +38,7 @@ describe('s3 deployer', () => {
         serviceParams = {
             type: 's3'
         };
-        ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3', serviceParams, accountConfig);
+        ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 's3', serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
@@ -109,6 +112,75 @@ describe('s3 deployer', () => {
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_NAME).to.equal(bucketName);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_URL).to.contain(bucketName);
                 expect(deployContext.environmentVariables.FAKESERVICE_REGION_ENDPOINT).to.not.equal(null);
+            });
+        });
+
+        describe('produceEvents', () => {
+            const bucketName = 'FakeBucketName';
+            const bucketEvents = [
+                'FakeEvent'
+            ];
+            let ownDeployContext: DeployContext;
+            let eventConsumerConfig: S3ServiceEventConsumer;
+
+            beforeEach(() => {
+                ownDeployContext = new DeployContext(ownServiceContext);
+                ownDeployContext.eventOutputs.bucketName = bucketName;
+                eventConsumerConfig = {
+                    service_name: 'FakeConsumer',
+                    bucket_events: bucketEvents
+                };
+            });
+
+            const servicesToTest = [
+                {
+                    serviceType: 'lambda',
+                    arnPropertyName: 'lambdaArn',
+                    arnPropertyValue: 'FakeLambdaArn'
+                },
+                {
+                    serviceType: 'sns',
+                    arnPropertyName: 'topicArn',
+                    arnPropertyValue: 'FakeTopicArn'
+                },
+                {
+                    serviceType: 'sqs',
+                    arnPropertyName: 'queueArn',
+                    arnPropertyValue: 'FakeQueueArn'
+                }
+            ];
+            servicesToTest.forEach(serviceToTest => {
+                it(`should produce events to the ${serviceToTest} service type`, async () => {
+                    const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', serviceToTest.serviceType, {type: serviceToTest.serviceType}, accountConfig);
+                    const consumerDeployContext = new DeployContext(consumerServiceContext);
+                    consumerDeployContext.eventOutputs[serviceToTest.arnPropertyName] = serviceToTest.arnPropertyValue;
+
+                    const configureBucketNotificationsStub = sandbox.stub(s3Calls, 'configureBucketNotifications').resolves({});
+
+                    const produceEventsContext = await s3.produceEvents(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+                    expect(configureBucketNotificationsStub.callCount).to.equal(1);
+                    expect(configureBucketNotificationsStub.getCall(0).args).to.deep.equal([
+                        bucketName,
+                        serviceToTest.serviceType,
+                        serviceToTest.arnPropertyValue,
+                        bucketEvents,
+                        []
+                    ]);
+                    expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
+                });
+            });
+
+            it('should throw an error on all other service types', async () => {
+                const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', 'someother', {type: 'someother'}, accountConfig);
+                const consumerDeployContext = new DeployContext(consumerServiceContext);
+
+                try {
+                    const produceEventsContext = await s3.produceEvents(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+                    expect(true).to.equal(false); // SHould not get here
+                }
+                catch(err) {
+                    expect(err.message).to.contain('Unsupported event consumer type');
+                }
             });
         });
 

@@ -18,9 +18,3 @@ environments:
         filters:
         - name: prefix
           value: myfolder3
-      - service_name: function
-        bucket_events:
-        - s3:ObjectCreated:*
-        filters:
-        - name: prefix
-          value: myfolder4
