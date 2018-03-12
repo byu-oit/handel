@@ -31,7 +31,7 @@ async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig
         throw new Error(`Tried to execute 'produceEvents' phase in '${producerServiceContext.serviceType}', which doesn't implement that phase`);
     }
     winston.debug(`Producing events from ${producerServiceContext.serviceName} for service ${consumerServiceContext.serviceName}`);
-    const produceEventsContext = await producerServiceDeployer.produceEvents(producerServiceContext, producerDeployContext, consumerServiceContext, eventConsumerConfig, consumerDeployContext);
+    const produceEventsContext = await producerServiceDeployer.produceEvents(producerServiceContext, producerDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
     if (!(produceEventsContext instanceof ProduceEventsContext)) {
         throw new Error(`Expected ProduceEventsContext back from 'produceEvents' phase of service deployer`);
     }

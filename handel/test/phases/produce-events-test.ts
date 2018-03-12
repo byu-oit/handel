@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployContext, EnvironmentContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceDeployers, DeployContexts } from '../../src/datatypes';
+import { AccountConfig, DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceDeployers } from '../../src/datatypes';
 import * as produceEvents from '../../src/phases/produce-events';
 
 describe('produceEvents module', () => {
@@ -52,7 +52,7 @@ describe('produceEvents module', () => {
                     ],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
-                    produceEvents: async (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) => {
+                    produceEvents: async (ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext) => {
                         return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
                     },
                     supportsTagging: true,
