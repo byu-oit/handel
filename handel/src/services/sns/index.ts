@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { ServiceEventConsumer } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as snsCalls from '../../aws/sns-calls';
@@ -31,7 +32,6 @@ import {
     UnDeployContext
 } from '../../datatypes';
 import {SnsServiceConfig} from './config-types';
-import { ServiceEventConsumer } from 'handel-extension-api';
 
 const SERVICE_NAME = 'SNS';
 
@@ -86,11 +86,11 @@ function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfSt
     return deployContext;
 }
 
-function getPolicyStatementForCloudWatchEventConsumption(topicArn: string): any {
+function getPolicyStatementForEventConsumption(topicArn: string, trustedService: string): any {
     return {
         Effect: 'Allow',
         Principal: {
-            Service: 'events.amazonaws.com'
+            Service: trustedService
         },
         Action: 'sns:Publish',
         Resource: topicArn,
@@ -163,7 +163,11 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SnsService
     let policyStatement;
     if (producerServiceType === 'cloudwatchevent') {
         producerArn = producerDeployContext.eventOutputs.eventRuleArn;
-        policyStatement = getPolicyStatementForCloudWatchEventConsumption(topicArn);
+        policyStatement = getPolicyStatementForEventConsumption(topicArn, 'events.amazonaws.com');
+    }
+    else if (producerServiceType === 's3') {
+        producerArn = producerDeployContext.eventOutputs.bucketArn;
+        policyStatement = getPolicyStatementForEventConsumption(topicArn, 's3.amazonaws.com');
     }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);

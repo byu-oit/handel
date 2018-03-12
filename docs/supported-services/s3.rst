@@ -151,9 +151,10 @@ This Handel file shows an S3 service being configured:
           versioning: enabled
 
 .. _s3-events-example:
+
 S3 Events
 ~~~~~~~~~
-This Handel file shows an S3 service that is configured to send events to a Lambda:
+This Handel file shows an S3 service that is configured to send events to a Lambda function:
 
 .. code-block:: yaml
 
@@ -203,6 +204,8 @@ Events produced by this service
 The CloudWatch Events service currently produces events for the following services types:
 
 * Lambda
+* SNS
+* SQS
 
 Events consumed by this service
 -------------------------------

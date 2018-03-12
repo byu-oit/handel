@@ -154,10 +154,13 @@ describe('sns deployer', () => {
     });
 
     describe('consumeEvents', () => {
-        it('should consume cloud watch event service', async () => {
-            const deployContext = new DeployContext(serviceContext);
+        let deployContext: DeployContext;
+        beforeEach(() => {
+            deployContext = new DeployContext(serviceContext);
             deployContext.eventOutputs.topicArn = 'FakeTopicArn';
+        });
 
+        it('should consume cloud watch event service', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'cloudwatchevent', { type: 'cloudwatchevent' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.eventRuleArn = 'FakeRuleArn';
@@ -169,10 +172,19 @@ describe('sns deployer', () => {
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
 
-        it('should throw an error because SNS cant consume other services', async () => {
-            const deployContext = new DeployContext(serviceContext);
-            deployContext.eventOutputs.topicArn = 'FakeTopicArn';
+        it('should consume S3 event services', async () => {
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig);
+            const producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
 
+            const addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').resolves({});
+
+            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            expect(addSnsPermissionStub.callCount).to.equal(1);
+            expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
+        });
+
+        it('should throw an error because SNS cant consume other services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.otherArn = 'FakeArn';
