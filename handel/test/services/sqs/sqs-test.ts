@@ -132,11 +132,15 @@ describe('sqs deployer', () => {
     });
 
     describe('consumeEvents', () => {
-        it('should consume from SNS event services', async () => {
-            const deployContext = new DeployContext(serviceContext);
+        let deployContext: DeployContext;
+
+        beforeEach(() => {
+            deployContext = new DeployContext(serviceContext);
             deployContext.eventOutputs.queueUrl = 'FakeQueueUrl';
             deployContext.eventOutputs.queueArn = 'FakeQueueArn';
+        });
 
+        it('should consume from SNS event services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'sns', { type: 'sns' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
@@ -148,11 +152,19 @@ describe('sqs deployer', () => {
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
 
-        it('should throw an error because SQS cant consume other services', async () => {
-            const deployContext = new DeployContext(serviceContext);
-            deployContext.eventOutputs.queueUrl = 'FakeQueueUrl';
-            deployContext.eventOutputs.queueArn = 'FakeQueueArn';
+        it('should consume from S3 event services', async () => {
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig);
+            const producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
 
+            const addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').resolves({});
+
+            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            expect(addSqsPermissionStub.callCount).to.equal(1);
+            expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
+        });
+
+        it('should throw an error because SQS cant consume other services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.otherArn = 'FakeArn';

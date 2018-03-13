@@ -28,8 +28,13 @@ async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
     const stackEvents = describeResponse.StackEvents;
     const failEvents = [];
     for (const stackEvent of stackEvents!) {
-        if (stackEvent.ResourceStatus!.includes('FAILED')) {
-            failEvents.push(stackEvent.ResourceStatusReason!);
+        const resStatus = stackEvent.ResourceStatus;
+        if (resStatus!.includes('FAILED') && (stackEvent.ResourceStatusReason !== 'Resource creation cancelled' && stackEvent.ResourceStatusReason !== 'Resource update cancelled')) {
+            failEvents.push(`${resStatus} : ${stackEvent.ResourceType} : ${stackEvent.ResourceStatusReason}`);
+        }
+        else if (stackEvent.ResourceType === 'AWS::CloudFormation::Stack' &&
+                 (resStatus === 'CREATE_COMPLETE' || resStatus === 'UPDATE_COMPLETE')) {
+            break;
         }
     }
     return failEvents;
@@ -100,7 +105,8 @@ export async function createStack(stackName: string, templateBody: AWS.CloudForm
     const stackId = createResult.StackId;
     winston.verbose(`Created CloudFormation stack '${stackName}'`);
     try {
-        return waitForStack(stackName, 'stackCreateComplete');
+        const createdStack = await waitForStack(stackName, 'stackCreateComplete');
+        return createdStack;
     }
     catch (err) {
         const errors = await getErrorsForFailedStack(stackId!);
@@ -133,7 +139,8 @@ export async function updateStack(stackName: string, templateBody: AWS.CloudForm
         const stackId = createResult.StackId;
         winston.verbose(`Updated CloudFormation stack '${stackName}'`);
         try {
-            return waitForStack(stackName, 'stackUpdateComplete');
+            const updatedStack = await waitForStack(stackName, 'stackUpdateComplete');
+            return updatedStack;
         }
         catch (err) {
             const errors = await getErrorsForFailedStack(stackId!);

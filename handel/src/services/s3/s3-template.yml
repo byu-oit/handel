@@ -69,3 +69,9 @@ Outputs:
     Description: The name of the bucket
     Value: 
       Ref: Bucket
+  BucketArn:
+    Description: The ARN of the bucket
+    Value: 
+      Fn::GetAtt: 
+        - "Bucket"
+        - "Arn"

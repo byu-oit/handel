@@ -26,7 +26,8 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceConfig,
-    ServiceContext
+    ServiceContext,
+    ServiceEventConsumer
 } from '../../datatypes';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
@@ -326,7 +327,7 @@ export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, 
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<DynamoDBConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
+export async function produceEvents(ownServiceContext: ServiceContext<DynamoDBConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }
 

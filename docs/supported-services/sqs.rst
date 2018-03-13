@@ -189,4 +189,5 @@ Events consumed by this service
 -------------------------------
 The SQS service can currently consume events from the following Handel services:
 
+* S3
 * SNS

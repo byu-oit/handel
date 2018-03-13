@@ -18,18 +18,18 @@ import * as uuid from 'uuid';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
-function statementIsSame(functionName: string, principal: string, sourceArn: string, statement: any): boolean {
+function statementIsSame(functionName: string, principal: string, sourceArn: string | undefined, statement: any): boolean {
     if (statement.Principal.Service !== principal) {
         return false;
     }
 
-    if (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn) {
+    if (sourceArn && (!statement.Condition || !statement.Condition.ArnLike || statement.Condition.ArnLike['AWS:SourceArn'] !== sourceArn)) {
         return false;
     }
     return true;
 }
 
-export async function addLambdaPermission(functionName: string, principal: string, sourceArn: string): Promise<any> {
+export async function addLambdaPermission(functionName: string, principal: string, sourceArn: string | undefined): Promise<any> {
     const addPermissionParams: AWS.Lambda.AddPermissionRequest = {
         Action: 'lambda:InvokeFunction',
         FunctionName: functionName,
@@ -44,18 +44,18 @@ export async function addLambdaPermission(functionName: string, principal: strin
     return getLambdaPermission(functionName, principal, sourceArn);
 }
 
-export async function getLambdaPermission(functionName: string, principal: string, sourceArn: string): Promise<any> {
+export async function getLambdaPermission(functionName: string, principal: string, sourceArn: string | undefined): Promise<any> {
     const getPolicyParams: AWS.Lambda.GetPolicyRequest = {
         FunctionName: functionName
     };
 
-    winston.verbose(`Attempting to find permission ${sourceArn} in function ${functionName}`);
+    winston.verbose(`Attempting to find permissions for ${principal} in function ${functionName}`);
     try {
         const getPolicyResponse = await awsWrapper.lambda.getPolicy(getPolicyParams);
         const policy = JSON.parse(getPolicyResponse.Policy!);
         for (const statement of policy.Statement) {
             if (statementIsSame(functionName, principal, sourceArn, statement)) {
-                winston.verbose(`Found permission ${sourceArn} in function ${functionName}`);
+                winston.verbose(`Found permission ${principal} in function ${functionName}`);
                 return statement;
             }
         }
@@ -112,7 +112,7 @@ export async function addLambdaEventSourceMapping(functionName: string, tableNam
                 winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${tableName} already exists`);
                 deferred.resolve();
             } else {
-                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`)
+                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`);
                 deferred.reject(err);
             }
         }

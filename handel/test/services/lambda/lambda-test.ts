@@ -206,10 +206,25 @@ describe('lambda deployer', () => {
             expect(addLambdaPermissionStub.callCount).to.equal(1);
         });
 
+        it('should add permissions for the s3 service type', async () => {
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 's3', { type: 's3' }, accountConfig);
+            const producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs.principal = 'FakePrincipal';
+            producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
+
+            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
+
+            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext);
+            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+            expect(addLambdaPermissionStub.callCount).to.equal(1);
+        });
+
         it('should add permissions for the alexaskillkit service type', async () => {
+            const principal = 'alexa-appkit.amazon.com';
             const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'alexaskillkit', { type: 'alexaskillkit' }, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
+            producerDeployContext.eventOutputs.principal = principal;
 
             const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);

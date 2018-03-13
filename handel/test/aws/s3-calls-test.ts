@@ -51,7 +51,7 @@ describe('s3Calls', () => {
 
             const uploadStub = sandbox.stub(awsWrapper.s3, 'upload').resolves({});
 
-            const uploadResponse = await s3Calls.uploadFile('handel-fake-bucket', 'my-key', filePath)
+            const uploadResponse = await s3Calls.uploadFile('handel-fake-bucket', 'my-key', filePath);
             expect(uploadResponse).to.deep.equal({});
             expect(uploadStub.callCount).to.equal(1);
         });
@@ -118,7 +118,7 @@ describe('s3Calls', () => {
         it('should return an empty list when there are no results', async () => {
             const listObjectsStub = sandbox.stub(awsWrapper.s3, 'listObjectsV2').resolves({});
 
-            const objects = await s3Calls.listFilesByPrefix('FakeBucket', 'FakePrefix')
+            const objects = await s3Calls.listFilesByPrefix('FakeBucket', 'FakePrefix');
             expect(objects.length).to.equal(0);
             expect(listObjectsStub.callCount).to.equal(1);
         });
@@ -128,7 +128,7 @@ describe('s3Calls', () => {
         it('should delete the objects', async () => {
             const deleteObjectsStub = sandbox.stub(awsWrapper.s3, 'deleteObjects').resolves(true);
 
-            const results = await s3Calls.deleteFiles('FakeBucket', [{ Key: 'FakeKey' }])
+            const results = await s3Calls.deleteFiles('FakeBucket', [{ Key: 'FakeKey' }]);
             expect(results).to.equal(true);
             expect(deleteObjectsStub.callCount).to.equal(1);
         });
@@ -163,7 +163,7 @@ describe('s3Calls', () => {
         it('should create the bucket', async () => {
             const createBucketStub = sandbox.stub(awsWrapper.s3, 'createBucket').resolves({});
 
-            const bucket = await s3Calls.createBucket('handel-fake-bucket', 'us-badregion-5')
+            const bucket = await s3Calls.createBucket('handel-fake-bucket', 'us-badregion-5');
             expect(bucket).to.deep.equal({});
             expect(createBucketStub.callCount).to.equal(1);
         });
@@ -262,6 +262,56 @@ describe('s3Calls', () => {
                     }]
                 }
             });
+        });
+    });
+
+    describe('configureBucketNotifications', () => {
+        const servicesToTest = [
+            'lambda',
+            'sns',
+            'sqs'
+        ];
+        servicesToTest.forEach(serviceToTest => {
+            it(`should configure bucket notifications for the ${serviceToTest} type`, async () => {
+                const bucketName = 'FakeS3BucketName';
+                const notificationArn = 'FakeNotificationArn';
+                const notificationEvents: AWS.S3.EventList = [
+                    's3:ObjectCreated*'
+                ];
+                const eventFilters: AWS.S3.FilterRuleList = [
+                    {
+                        Name: 'suffix',
+                        Value: '.xml'
+                    }
+                ];
+                const putNotificationStub = sandbox.stub(awsWrapper.s3, 'putBucketNotificationConfiguration').resolves({});
+
+                await s3Calls.configureBucketNotifications(bucketName, serviceToTest, notificationArn, notificationEvents, eventFilters);
+                expect(putNotificationStub.callCount).to.equal(1);
+            });
+        });
+
+        it('should throw an error for other service types', async () => {
+            const bucketName = 'FakeS3BucketName';
+            const notificationType = 'othertype';
+            const notificationArn = 'FakeNotificationArn';
+            const notificationEvents: AWS.S3.EventList = [
+                's3:ObjectCreated*'
+            ];
+            const eventFilters: AWS.S3.FilterRuleList = [
+                {
+                    Name: 'suffix',
+                    Value: '.xml'
+                }
+            ];
+
+            try {
+                await s3Calls.configureBucketNotifications(bucketName, notificationType, notificationArn, notificationEvents, eventFilters);
+                expect(true).to.equal(false);
+            }
+            catch(err) {
+                expect(err.message).to.contain('unsupported notification type');
+            }
         });
     });
 });

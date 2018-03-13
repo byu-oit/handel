@@ -26,7 +26,7 @@ import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
+import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import {
     ConsumeEventsContext,
@@ -39,7 +39,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from '../../datatypes';
-import {DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig} from './config-types';
+import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
 
 const SERVICE_NAME = 'Lambda';
 
@@ -169,7 +169,6 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
             return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
         }
     }
-
     // Didn't find the consumer, so throw an error
     throw Error('Consumer serviceName not found in dynamodb event_consumers.');
 }
@@ -192,6 +191,10 @@ async function addOtherPermissions(producerServiceType: string, producerServiceC
     else if (producerServiceType === 'iot') {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.topicRuleArnPrefix, ownServiceContext.serviceName);
+    }
+    else if (producerServiceType === 's3') {
+        principal = producerDeployContext.eventOutputs.principal;
+        sourceArn = producerDeployContext.eventOutputs.bucketArn;
     }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);

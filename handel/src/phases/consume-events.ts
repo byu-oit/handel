@@ -33,36 +33,34 @@ export async function consumeEvents(serviceDeployers: ServiceDeployers, environm
     const consumeEventActions: ConsumeEventAction[] = [];
     const consumeEventsContexts: ConsumeEventsContexts = {};
 
-    _.forEach(environmentContext.serviceContexts, (producerServiceContext: ServiceContext<ServiceConfig>, producerServiceName: string) => {
-        if (producerServiceContext.params.event_consumers) { // Only look at those services producing events
-            _.forEach(producerServiceContext.params.event_consumers, (consumerService: ServiceEventConsumer) => {
-                const consumerServiceName = consumerService.service_name;
+    for (const producerServiceName in environmentContext.serviceContexts) {
+        if (environmentContext.serviceContexts.hasOwnProperty(producerServiceName)) {
+            const producerServiceContext = environmentContext.serviceContexts[producerServiceName];
+            if (producerServiceContext.params.event_consumers) { // Only look at those services producing events
+                for(const eventConsumerConfig of producerServiceContext.params.event_consumers) {
+                    const producerDeployContext = deployContexts[producerServiceName];
 
-                const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
-                consumeEventActions.push({
-                    consumerServiceContext,
-                    consumerDeployContext: deployContexts[consumerServiceName],
-                    consumerServiceDeployer: serviceDeployers[consumerServiceContext.serviceType],
-                    producerServiceContext,
-                    producerDeployContext: deployContexts[producerServiceName]
-                });
-            });
+                    const consumerServiceName = eventConsumerConfig.service_name;
+                    const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
+                    const consumerDeployContext = deployContexts[consumerServiceName];
+                    const consumerServiceDeployer = serviceDeployers[consumerServiceContext.serviceType];
+
+                    const consumeEventsContextName = util.getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
+                    winston.debug(`Consuming events from service ${consumeEventsContextName}`);
+                    if (!consumerServiceDeployer.consumeEvents) {
+                        throw new Error(`Tried to invoke the 'consumeEvents' phase on the '${consumerServiceContext.serviceType}' service, but it does not implement it`);
+                    }
+
+                    const consumeEventsContext = await consumerServiceDeployer.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext);
+                    if (!(consumeEventsContext instanceof ConsumeEventsContext)) {
+                        throw new Error('Expected ConsumeEventsContext back from \'consumeEvents\' phase of service deployer');
+                    }
+
+                    consumeEventsContexts[consumeEventsContextName] = consumeEventsContext;
+                }
+            }
         }
-    });
-
-    for(const action of consumeEventActions) {
-        const consumeEventsContextName = util.getConsumeEventsContextName(action.consumerServiceContext.serviceName, action.producerServiceContext.serviceName);
-        winston.debug(`Consuming events from service ${consumeEventsContextName}`);
-        if(!action.consumerServiceDeployer.consumeEvents) {
-            throw new Error(`Tried to invoke the 'consumeEvents' phase on the '${action.consumerServiceContext.serviceType}' service, but it does not implement it`);
-        }
-
-        const consumeEventsContext = await action.consumerServiceDeployer.consumeEvents(action.consumerServiceContext, action.consumerDeployContext, action.producerServiceContext, action.producerDeployContext);
-        if (!(consumeEventsContext instanceof ConsumeEventsContext)) {
-            throw new Error('Expected ConsumeEventsContext back from \'consumeEvents\' phase of service deployer');
-        }
-
-        consumeEventsContexts[consumeEventsContextName] = consumeEventsContext;
     }
+
     return consumeEventsContexts; // This was built-up dynamically above
 }

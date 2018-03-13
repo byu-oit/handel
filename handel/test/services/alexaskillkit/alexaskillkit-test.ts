@@ -56,7 +56,10 @@ describe('alexaskillkit deployer', () => {
             const ownDeployContext = new DeployContext(serviceContext);
             const consumerServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'lambda', {type: 'alexaskillkit'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
-            const produceEventsContext = await alexaSkillKit.produceEvents(serviceContext, ownDeployContext, consumerServiceContext, consumerDeployContext);
+            const eventConfigConsumer = {
+                service_name: 'FakeService2'
+            };
+            const produceEventsContext = await alexaSkillKit.produceEvents(serviceContext, ownDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
         });
     });
