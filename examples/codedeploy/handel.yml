@@ -6,9 +6,23 @@ environments:
   dev:
     webapp:
       type: codedeploy
-      path_to_code: .
-      instance_type: t2.micro
-      auto_scaling:
+      path_to_code: . # Required. appspec.yml must be at the root of the directory provided
+      instance_type: t2.micro # Optional. Default: t2.micro
+      key_name: ces-dev # Optional
+      os: windows # Optional. Default: linux
+      deployment: # Optional
+        style: in-place # Optional
+        config: halfatatime # Optional. Only support the default configuration types
+      auto_scaling: # If not specified, use single instance?
         min_instances: 1
         max_instances: 2
-      key_name: ces-dev
+        # TODO - Support auto-scaling rules (follow Beanstalk-style auto-scaling rules)
+      routing: # Optional, won't add routing if you don't specify it
+        type: https
+        https_certificate: someid # Required if HTTPS
+        dns_names: # Optional
+        - mydnsname.byu.edu
+      tags:
+        faketag: fakevalue
+
+      

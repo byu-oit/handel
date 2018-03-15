@@ -75,13 +75,13 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      Cooldown: {{asgCooldown}}
+      Cooldown: {{autoScaling.cooldown}}
       HealthCheckGracePeriod: 300
       HealthCheckType: EC2
       LaunchConfigurationName:
         Ref: LaunchConfiguration
-      MaxSize: {{maxInstances}}
-      MinSize: {{minInstances}}
+      MaxSize: {{autoScaling.maxInstances}}
+      MinSize: {{autoScaling.minInstances}}
       Tags:
       {{#if tags}}
       {{#each tags}}
@@ -109,6 +109,12 @@ Resources:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
       ApplicationName: !Ref Application
+      AutoRollbackConfiguration:
+        Enabled: true
+        Events:
+        - DEPLOYMENT_FAILURE
+        - DEPLOYMENT_STOP_ON_REQUEST
+        - DEPLOYMENT_STOP_ON_ALARM
       AutoScalingGroups:
       - !Ref AutoScalingGroup
       Deployment:
@@ -124,3 +130,148 @@ Resources:
 
   # TODO - Configure user-defined scaling policies
   # TODO - Configure ALB resources
+    # 
+  # Configure Load Balancer if requested
+  # 
+  {{#if routing}}
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AlbSecurityGroup
+    Properties:
+      Name: {{routing.albName}}
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: 60
+      Subnets:
+      {{#each publicSubnetIds}}
+      - {{this}}
+      {{/each}}
+      SecurityGroups:
+      - Ref: AlbSecurityGroup
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routing.albName}}
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: {{vpcId}}
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        {{#if routing.httpsCertificate}}
+        FromPort: '443'
+        ToPort: '443'
+        {{else}}
+        FromPort: '80'
+        ToPort: '80'
+        {{/if}}
+        CidrIp: 0.0.0.0/0
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routing.albName}}-alb
+  CodeDeployIngressFromAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AlbSecurityGroup
+    Properties:
+      GroupId: {{securityGroupId}}
+      IpProtocol: tcp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId:
+        Ref: AlbSecurityGroup
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+    - AlbTargetGroup
+    - Alb
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup
+      LoadBalancerArn:
+        Ref: Alb
+      {{#if routing.httpsCertificate}}
+      Port: '443'
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: {{routing.httpsCertificate}}
+      {{else}}
+      Port: '80'
+      Protocol: HTTP
+      {{/if}}
+  AlbListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn:
+    - AlbListener
+    - AlbTargetGroup
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - "{{routingInfo.basePath}}"
+      ListenerArn:
+        Ref: AlbListener
+      Priority: 1
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: {{routingInfo.healthCheckPath}}
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: {{routingInfo.albName}}
+      Port: 80
+      Protocol: HTTP
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routingInfo.albName}}
+      UnhealthyThresholdCount: 2
+      VpcId: {{vpcId}}
+  {{#each routing.dnsNames}}
+  DnsName{{@index}}:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      Comment: Handel-created DNS Records for {{name}}
+      HostedZoneId: {{zoneId}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+  {{/each}}
+Outputs:
+  ALBDnsName:
+    Description: The DNS Name of the ALB
+    Value: !GetAtt Alb.DNSName
+  {{/if}}

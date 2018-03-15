@@ -17,6 +17,7 @@
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
+import * as route53 from '../../aws/route53-calls';
 import * as bindPhaseCommon from '../../common/bind-phase-common';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -25,7 +26,7 @@ import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as taggingCommon from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { CodeDeployServiceConfig, HandlebarsCodeDeployTemplate } from './config-types';
+import { CodeDeployServiceConfig, HandlebarsCodeDeployAutoScalingConfig, HandlebarsCodeDeployRoutingConfig, HandlebarsCodeDeployTemplate } from './config-types';
 
 const SERVICE_NAME = 'CodeDeploy';
 
@@ -51,6 +52,44 @@ async function getAmiFromPrefix(): Promise<AWS.EC2.Image> {
     return ami;
 }
 
+function getAutoScalingConfig(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): HandlebarsCodeDeployAutoScalingConfig {
+    const params = ownServiceContext.params;
+    const autoScalingConfig: HandlebarsCodeDeployAutoScalingConfig = { // Set initial defaults
+        minInstances: 1,
+        maxInstances: 1,
+        cooldown: '300' // TODO - Change this when scaling is implemented
+    };
+    if(params.auto_scaling) {
+        if(params.auto_scaling.min_instances) { autoScalingConfig.minInstances = params.auto_scaling.min_instances; }
+        if(params.auto_scaling.max_instances) { autoScalingConfig.maxInstances = params.auto_scaling.max_instances; }
+    }
+    return autoScalingConfig;
+}
+
+async function getRoutingConfig(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<HandlebarsCodeDeployRoutingConfig | undefined> {
+    const params = ownServiceContext.params;
+    if(params.routing) {
+        const routingConfig: HandlebarsCodeDeployRoutingConfig = {
+            albName: stackName.substring(0, 32).replace(/-$/, ''), // Configure the shortened ALB name (it has a limit of 32 chars)
+            basePath: params.routing.base_path ? params.routing.base_path : '/',
+            healthCheckPath: params.routing.health_check_path ? params.routing.health_check_path : '/'
+        };
+        if(params.routing.type === 'https') {
+            routingConfig.httpsCertificate = params.routing.https_certificate;
+        }
+        if(params.routing.dns_names) { // Add DNS names if specified
+            const hostedZones = await route53.listHostedZones();
+            routingConfig.dnsNames = params.routing.dns_names.map(name => {
+                return {
+                    name: name,
+                    zoneId: route53.getBestMatchingHostedZone(name, hostedZones)!.Id
+                };
+            });
+        }
+        return routingConfig;
+    }
+}
+
 async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
@@ -64,9 +103,8 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         instanceType: params.instance_type || 't2.micro',
         securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         userData: new Buffer(userDataScript).toString('base64'),
-        asgCooldown: '300', // TODO - Change this when scaling is implemented
-        minInstances: params.auto_scaling.min_instances,
-        maxInstances: params.auto_scaling.max_instances,
+        autoScaling: getAutoScalingConfig(ownServiceContext),
+        routing: await getRoutingConfig(stackName, ownServiceContext),
         tags: stackTags,
         privateSubnetIds: accountConfig.private_subnets,
         s3BucketName: s3ArtifactInfo.Bucket,
