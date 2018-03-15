@@ -36,21 +36,46 @@ const SERVICE_NAME = 'Step Functions';
  */
 
 export function check(serviceContext: ServiceContext<StepFunctionsConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+    let definition: any;
     const errors = [];
 
     // Check that definition is a valid JSON/YAML file
     if (!('definition' in serviceContext.params)) {
         errors.push(`${SERVICE_NAME} - The 'definition' parameter is required.`);
     } else if (path.extname(serviceContext.params.definition) === '.json') {
-        if (util.readJsonFileSync(serviceContext.params.definition) === null) {
+        definition = util.readJsonFileSync(serviceContext.params.definition);
+        if (definition === null) {
             errors.push(`${SERVICE_NAME} - ${serviceContext.params.definition} is not a valid JSON file.`);
         }
     } else if (['.yml', '.yaml'].includes(path.extname(serviceContext.params.definition))) {
-        if (util.readYamlFileSync(serviceContext.params.definition) === null) {
+        definition = util.readYamlFileSync(serviceContext.params.definition);
+        if (definition === null) {
             errors.push(`${SERVICE_NAME} - ${serviceContext.params.definition} is not a valid YAML file.`);
         }
     } else {
         errors.push(`${SERVICE_NAME} - The 'definition' parameter must have file extension .json, .yml, or .yaml.`);
+    }
+    if (definition != null) {
+        const start: string = definition.StartAt;
+        const states: any = definition.States;
+        const startIsString = typeof start == 'string';
+        const statesIsObject = states instanceof Object;
+        if (statesIsObject) {
+            const dependencies: string[] = serviceContext.params.dependencies || [];
+            for (const key in states) {
+                if (states.hasOwnProperty(key) && dependencies.indexOf(states[key].Resource) == -1) {
+                    errors.push(`${SERVICE_NAME} - Service '${states[key].Resource}' not found in dependencies.`)
+                }
+            }
+        } else {
+            errors.push(`${SERVICE_NAME} - States must be an object.`);
+        }
+        if (!startIsString) {
+            errors.push(`${SERVICE_NAME} - StartAt must be a string.`);
+        }
+        if (startIsString && statesIsObject && !(start in states)) {
+            errors.push(`${SERVICE_NAME} - Start state '${start}' does not exist`);
+        }
     }
 
     return errors;
@@ -67,7 +92,6 @@ export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConf
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<StepFunctionsConfig>): Promise<UnDeployContext> {
-    await iamCalls.detachPoliciesFromRole(deployPhaseCommon.getResourceName(ownServiceContext));
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
@@ -129,10 +153,6 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
         STATE_MACHINE_ARN: stateMachineArn,
         STATE_MACHINE_NAME: stateMachineName
     }));
-
-    // Inject event outputs
-    deployContext.eventOutputs.stateMachineArn = stateMachineArn;
-    deployContext.eventOutputs.stateMachineName = stateMachineName;
 
     return deployContext;
 }

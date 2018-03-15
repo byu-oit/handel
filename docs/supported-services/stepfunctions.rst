@@ -36,7 +36,25 @@ Parameters
 
 State Machine Definition
 ~~~~~~~~~~~~~~~~~~~~~~~~
-For the most part, the definition file you provide in the *definition* section is in `Amazon States Language <https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html>`_. Instead of providing an ARN in the 'Resource' field of a state, however, one should give the service name from the Handel file. For convenience, Handel supports both JSON and YAML formats for the definition file, where pure States Language is based on JSON alone.
+For the most part, the definition file you provide in the *definition* section is in `Amazon States Language <https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html>`_. Instead of providing an ARN in the 'Resource' field of a state, however, one should give the service name from the Handel file.
+
+.. note::
+   For convenience, Handel supports both JSON and YAML formats for the definition file, where pure States Language is based on JSON alone.
+
+A definition file could look something like this:
+
+.. code-block:: yaml
+
+    StartAt: FooState
+    States:
+      FooState:
+        Type: Task
+        Resource: foo # service name
+        Next: BarState
+      BarState:
+        Type: Task
+        Resource: bar # service name
+        End: true
 
 Example Handel File
 -------------------
@@ -61,25 +79,10 @@ Example Handel File
           runtime: python3.6
         machine:
           type: step_functions
-          definition: state_machine.yml
+          definition: state_machine.yml # definition file
           dependencies:
           - foo
           - bar
-
-The previous Handel file defines a state machine that depends on two Lambda functions, named foo and bar. Its definition file, state_machine.yml, could look something like this:
-
-.. code-block:: yaml
-
-    StartAt: FooState
-    States:
-      FooState:
-        Type: Task
-        Resource: foo # Same as service name
-        Next: BarState
-      BarState:
-        Type: Task
-        Resource: bar # Same as service name
-        End: true
 
 Depending on this service
 -------------------------
