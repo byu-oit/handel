@@ -1,0 +1,7 @@
+# Export any environment variables injected by Handel
+{{#each envVarsToInject}}
+export {{@key}}='{{{this}}}'
+{{/each}}
+
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+. $SCRIPT_DIR/{{{originalScriptLocation}}}

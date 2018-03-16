@@ -31,12 +31,6 @@ async function zipDir(dirPath: string): Promise<string> {
   return zippedPath;
 }
 
-function makeTmpDir(): string {
-  const tempDirPath = `${os.tmpdir()}/${uuid()}`;
-  fs.mkdirSync(tempDirPath);
-  return tempDirPath;
-}
-
 function replaceTagsInDockerRunFile(fileName: string, tempDirPath: string, ownServiceContext: ServiceContext<ServiceConfig>, accountConfig: AccountConfig) {
   const tagsToReplace = [
     { regex: /\<aws_account_id\>/g, value: accountConfig.account_id },
@@ -88,7 +82,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Servi
 async function prepareAndUploadDir(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {
   const accountConfig = ownServiceContext.accountConfig;
 
-  const tempDirPath = makeTmpDir();
+  const tempDirPath = util.makeTmpDir();
   await util.copyDirectory(pathToArtifact, tempDirPath);
   replaceTagsInDockerRunDir(tempDirPath, ownServiceContext, accountConfig);
   ebextensions.addEbextensionsToDir(ebextensionsToInject, tempDirPath);
@@ -107,7 +101,7 @@ async function prepareAndUploadFile(ownServiceContext: ServiceContext<ServiceCon
   const artifactDir = path.dirname(absArtifactPath);
 
   // Copy file to upload to a temp dir (so that we can also include ebextensions if applicable)
-  const tempDirPath = makeTmpDir();
+  const tempDirPath = util.makeTmpDir();
   winston.debug('Copy to', tempDirPath, 'file', '\n' + JSON.stringify(pathToArtifact, null, 2));
   await util.copyFile(pathToArtifact, `${tempDirPath}/${fileName}`);
 
@@ -181,7 +175,6 @@ export async function prepareAndUploadDeployableArtifact(ownServiceContext: Serv
     return prepareAndUploadWar(ownServiceContext, pathToArtifact, ebextensionsToInject);
   }
   else if (lowerArchivePath.endsWith('.jar')) { // Java JAR file
-    console.log("HELLO!");
     return prepareAndUploadJar(ownServiceContext, pathToArtifact, ebextensionsToInject);
   }
   else if (lowerArchivePath.endsWith('.zip')) { // User-managed ZIP file (send up as-is)

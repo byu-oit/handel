@@ -24,5 +24,8 @@ environments:
         - codedeploytest.sim-dev.byu.edu
       tags:
         faketag: fakevalue
-
+      dependencies:
+      - bucket
+    bucket:
+      type: s3
       

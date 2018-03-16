@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as fs from 'fs';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
@@ -25,7 +26,7 @@ import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as taggingCommon from '../../common/tagging-common';
 import * as util from '../../common/util';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import { AccountConfig, DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from '../../datatypes';
 import { CodeDeployServiceConfig, HandlebarsCodeDeployAutoScalingConfig, HandlebarsCodeDeployRoutingConfig, HandlebarsCodeDeployTemplate } from './config-types';
 
 const SERVICE_NAME = 'CodeDeploy';
@@ -41,6 +42,17 @@ async function getStatementsForInstanceRole(ownServiceContext: ServiceContext<Co
     let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(ownServiceContext));
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+}
+
+function getEnvVariablesToInject(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
+    const serviceParams = serviceContext.params;
+    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
+    envVarsToInject = Object.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
+
+    if (serviceParams.environment_variables) {
+        envVarsToInject = Object.assign(envVarsToInject, serviceParams.environment_variables);
+    }
+    return envVarsToInject;
 }
 
 async function getAmiFromPrefix(): Promise<AWS.EC2.Image> {
@@ -157,12 +169,50 @@ async function getUserDataScript(ownServiceContext: ServiceContext<CodeDeploySer
     return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-instance-userdata-template.sh`, userdataVariables);
 }
 
-async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<AWS.S3.ManagedUpload.SendData> {
+async function enrichUploadDir(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
+    const pathToAppSpec = `${dirPath}/appspec.yml`;
+    const appSpecFile = util.readYamlFileSync(pathToAppSpec);
+    if(appSpecFile.hooks) { // There are hooks to be enriched with env vars
+        for(const hookName in appSpecFile.hooks) {
+            if(appSpecFile.hooks.hasOwnProperty(hookName)) {
+                const hookDefinition = appSpecFile.hooks[hookName];
+                for(let i = 0; i < hookDefinition.length; i++) {
+                    const eventMapping = hookDefinition[i];
+
+                    // Write wrapper script to upload directory
+                    const handlebarsParams = {
+                        originalScriptLocation: eventMapping.location,
+                        envVarsToInject: getEnvVariablesToInject(serviceContext, dependenciesDeployContexts)
+                    };
+                    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
+                    const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;
+                    util.writeFileSync(`${dirPath}/${wrapperScriptLocation}`, compiledTemplate);
+
+                    // Modify the appspec.yml entry to invoke our wrapper
+                    eventMapping.location = wrapperScriptLocation;
+                }
+            }
+        }
+
+        // Save our modified appspec file to overwrite the user-provided one
+        util.writeFileSync(pathToAppSpec, JSON.stringify(appSpecFile));
+    }
+}
+
+async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<AWS.S3.ManagedUpload.SendData> {
+    const params = serviceContext.params;
+
+    // We copy to a temporary directory so we can enrich it with Handel-added files for things like environment variables
+    const tempDirPath = util.makeTmpDir();
+    await util.copyDirectory(params.path_to_code, tempDirPath);
+    await enrichUploadDir(tempDirPath, serviceContext, dependenciesDeployContexts);
+
     const s3FileName = `codedeploy-deployable-${uuid()}.zip`;
     winston.info(`${SERVICE_NAME} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const pathToArtifact = serviceContext.params.path_to_code;
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
     winston.info(`${SERVICE_NAME} - Uploaded deployable artifact to S3: ${s3FileName}`);
+
+    util.deleteFolderRecursive(tempDirPath); // Delete the whole temp folder now that we're done with it
     return s3ArtifactInfo;
 }
 
@@ -190,9 +240,8 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     const stackTags = taggingCommon.getTags(ownServiceContext);
     const serviceRole = await createCodeDeployServiceRoleIfNotExists(ownServiceContext);
     const userDataScript = await getUserDataScript(ownServiceContext, dependenciesDeployContexts);
-    const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
+    const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo);
-    console.log(codeDeployTemplate);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
     return new DeployContext(ownServiceContext);
