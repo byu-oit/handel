@@ -54,7 +54,7 @@ Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      AssociatePublicIpAddress: true # TODO - CHANGE THIS BASED ON THE SUBNET IT DEPLOYS IN!!!
+      AssociatePublicIpAddress: {{assignPublicIp}}
       BlockDeviceMappings:
       - DeviceName: "/dev/xvda"
         Ebs:
@@ -107,14 +107,12 @@ Resources:
       ApplicationName: {{appName}}
   DeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
+    {{#if routing}}
+    DependsOn:
+    - AlbTargetGroup
+    {{/if}}
     Properties:
       ApplicationName: !Ref Application
-      AutoRollbackConfiguration:
-        Enabled: true
-        Events:
-        - DEPLOYMENT_FAILURE
-        - DEPLOYMENT_STOP_ON_REQUEST
-        - DEPLOYMENT_STOP_ON_ALARM
       AutoScalingGroups:
       - !Ref AutoScalingGroup
       Deployment:
@@ -126,14 +124,68 @@ Resources:
             BundleType: zip
             Key: {{s3KeyName}}
       DeploymentConfigName: {{deploymentConfigName}}
+      {{#if routing}}
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+        - Name: !GetAtt AlbTargetGroup.TargetGroupName
+      {{else}}
+      DeploymentStyle:
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      {{/if}}
       ServiceRoleArn: {{serviceRoleArn}}
 
-  # TODO - Configure user-defined scaling policies
-  # TODO - Configure ALB resources
-    # 
+  {{#each scalingPolicies}}
+  #
+  # Configure user-defined scaling policies if present
+  #
+  ScalingAlarm{{@index}}:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+      - Ref: ScalingPolicy{{@index}}
+      AlarmDescription: Handel-created alarm for Beanstalk app '{{../stackName}}' auto-scaling
+      ComparisonOperator: {{comparisonOperator}}
+      Dimensions:
+      {{#if dimensions}}
+      {{#each dimensions}}
+      - Name: {{name}}
+        Value: {{value}}
+      {{/each}}
+      {{else}}
+      - Name: AutoScalingGroupName
+        Value: 
+          Ref: AWSEBAutoScalingGroup
+      {{/if}}
+      EvaluationPeriods: {{evaluationPeriods}}
+      {{#if scaleDown}}
+      InsufficientDataActions:
+      - Ref: ScalingPolicy{{@index}}
+      {{/if}}
+      MetricName: {{metricName}}
+      Namespace: {{namespace}}
+      Period: {{period}}
+      Statistic: {{statistic}}
+      Threshold: {{threshold}}
+  ScalingPolicy{{@index}}:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: {{adjustmentType}}
+      AutoScalingGroupName: 
+        Ref: AWSEBAutoScalingGroup
+      Cooldown: {{cooldown}}
+      PolicyType: SimpleScaling
+      ScalingAdjustment: {{adjustmentValue}}
+  {{/each}}
+
+  {{#if routing}}
+  # 
   # Configure Load Balancer if requested
   # 
-  {{#if routing}}
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
@@ -226,7 +278,7 @@ Resources:
       Conditions:
       - Field: path-pattern
         Values:
-        - "{{routingInfo.basePath}}"
+        - "{{routing.basePath}}"
       ListenerArn:
         Ref: AlbListener
       Priority: 1
@@ -234,11 +286,11 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: {{routingInfo.healthCheckPath}}
+      HealthCheckPath: {{routing.healthCheckPath}}
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      Name: {{routingInfo.albName}}
+      Name: {{routing.albName}}
       Port: 80
       Protocol: HTTP
       Tags:
@@ -249,7 +301,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{routingInfo.albName}}
+        Value: {{routing.albName}}
       UnhealthyThresholdCount: 2
       VpcId: {{vpcId}}
   {{#each routing.dnsNames}}

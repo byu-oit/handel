@@ -68,6 +68,7 @@ function getAutoScalingConfig(ownServiceContext: ServiceContext<CodeDeployServic
 
 async function getRoutingConfig(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<HandlebarsCodeDeployRoutingConfig | undefined> {
     const params = ownServiceContext.params;
+    const accountConfig = ownServiceContext.accountConfig;
     if(params.routing) {
         const routingConfig: HandlebarsCodeDeployRoutingConfig = {
             albName: stackName.substring(0, 32).replace(/-$/, ''), // Configure the shortened ALB name (it has a limit of 32 chars)
@@ -75,7 +76,7 @@ async function getRoutingConfig(stackName: string, ownServiceContext: ServiceCon
             healthCheckPath: params.routing.health_check_path ? params.routing.health_check_path : '/'
         };
         if(params.routing.type === 'https') {
-            routingConfig.httpsCertificate = params.routing.https_certificate;
+            routingConfig.httpsCertificate = `arn:aws:acm:${accountConfig.region}:${accountConfig.account_id}:certificate/${params.routing.https_certificate}`;
         }
         if(params.routing.dns_names) { // Add DNS names if specified
             const hostedZones = await route53.listHostedZones();
@@ -107,10 +108,13 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         routing: await getRoutingConfig(stackName, ownServiceContext),
         tags: stackTags,
         privateSubnetIds: accountConfig.private_subnets,
+        publicSubnetIds: accountConfig.public_subnets,
+        vpcId: accountConfig.vpc,
         s3BucketName: s3ArtifactInfo.Bucket,
         s3KeyName: s3ArtifactInfo.Key,
         deploymentConfigName: 'CodeDeployDefault.OneAtATime', // TODO - Add support for multiple kinds later
-        serviceRoleArn: serviceRole.Arn
+        serviceRoleArn: serviceRole.Arn,
+        assignPublicIp: await ec2Calls.shouldAssignPublicIp(accountConfig.private_subnets)
     };
 
     // Add ssh key name if present
@@ -188,6 +192,7 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     const userDataScript = await getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo);
+    console.log(codeDeployTemplate);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
     return new DeployContext(ownServiceContext);

@@ -41,11 +41,14 @@ export interface HandlebarsCodeDeployTemplate {
     routing?: HandlebarsCodeDeployRoutingConfig;
     tags: Tags;
     privateSubnetIds: string[];
+    publicSubnetIds: string[];
+    vpcId: string;
     s3BucketName: string;
     s3KeyName: string;
     deploymentConfigName: string;
     serviceRoleArn: string;
     sshKeyName?: string;
+    assignPublicIp: boolean;
 }
 
 export interface HandlebarsCodeDeployAutoScalingConfig {

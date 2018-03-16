@@ -263,3 +263,20 @@ export async function getDefaultVpc(): Promise<AWS.EC2.Vpc> {
     const describeResponse = await awsWrapper.ec2.describeVpcs(describeParams);
     return describeResponse.Vpcs![0];
 }
+
+export async function shouldAssignPublicIp(subnetIds: string[]): Promise<boolean> {
+    const subnetsAssignPublicIp = [];
+    for(const subnetId of subnetIds) {
+        const subnet = await getSubnet(subnetId);
+        if(!subnet) {
+            throw new Error(`The subnet '${subnetId}' from your account config file could not be found`);
+        }
+        subnetsAssignPublicIp.push(subnet.MapPublicIpOnLaunch);
+    }
+    const allAssignIpvaluesSame = subnetsAssignPublicIp.every( (val, i, arr) => val === arr[0] );
+    if(!allAssignIpvaluesSame) {
+        throw new Error(`You cannot mix public and private subnets in each subnets section in the Handel account config file.`);
+    }
+
+    return subnetsAssignPublicIp[0] ? true : false;
+}
