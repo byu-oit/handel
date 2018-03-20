@@ -20,6 +20,7 @@ import * as route53 from '../../aws/route53-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as instanceAutoScaling from '../../common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import {getTags} from '../../common/tagging-common';
 import * as util from '../../common/util';
@@ -33,13 +34,10 @@ import {
     UnPreDeployContext
 } from '../../datatypes';
 import {
-    BeanstalkScalingPolicyAlarmDimensions,
     BeanstalkServiceConfig,
     EbextensionsToInject,
-    HandlebarsBeanstalkAutoScalingDimension,
     HandlebarsBeanstalkAutoScalingTemplate,
     HandlebarsBeanstalkOptionSetting,
-    HandlebarsBeanstalkScalingPolicy,
     HandlebarsBeanstalkTemplate
 } from './config-types';
 import * as deployableArtifact from './deployable-artifact';
@@ -202,58 +200,15 @@ function getPolicyStatementsForServiceRole() {
     return JSON.parse(util.readFileSync(`${__dirname}/beanstalk-service-role-statements.json`));
 }
 
-function getAutoScalingDimensions(dimensionsConfig: BeanstalkScalingPolicyAlarmDimensions): HandlebarsBeanstalkAutoScalingDimension[] | undefined {
-    if (dimensionsConfig) { // User-provided dimensions
-        const dimensions: HandlebarsBeanstalkAutoScalingDimension[] = [];
-        for (const dimensionName in dimensionsConfig) {
-            if (dimensionsConfig.hasOwnProperty(dimensionName)) {
-                dimensions.push({
-                    name: dimensionName,
-                    value: dimensionsConfig[dimensionName]
-                });
-            }
-        }
-    }
-    else {
-        return undefined;
-    }
-}
-
 function getAutoScalingEbExtension(stackName: string, ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<string> {
     const serviceParams = ownServiceContext.params;
 
     const handlebarsParams: HandlebarsBeanstalkAutoScalingTemplate = {
         stackName,
-        scalingPolicies: []
+        scalingPolicies: instanceAutoScaling.getScalingPoliciesConfig(ownServiceContext)
     };
 
     if (serviceParams.auto_scaling && serviceParams.auto_scaling.scaling_policies) {
-        for (const policyConfig of serviceParams.auto_scaling.scaling_policies) {
-            const scalingPolicy: HandlebarsBeanstalkScalingPolicy = {
-                adjustmentType: policyConfig.adjustment.type || 'ChangeInCapacity',
-                adjustmentValue: policyConfig.adjustment.value,
-                cooldown: policyConfig.adjustment.cooldown || 300,
-                statistic: policyConfig.alarm.statistic || 'Average',
-                comparisonOperator: policyConfig.alarm.comparison_operator,
-                dimensions: getAutoScalingDimensions(policyConfig.alarm.dimensions!),
-                metricName: policyConfig.alarm.metric_name,
-                namespace: policyConfig.alarm.namespace || 'AWS/EC2',
-                period: policyConfig.alarm.period || 60,
-                evaluationPeriods: policyConfig.alarm.evaluation_periods || 5,
-                threshold: policyConfig.alarm.threshold
-            };
-
-            if (policyConfig.type === 'up') {
-                scalingPolicy.scaleUp = true;
-            }
-            else {
-                scalingPolicy.scaleDown = true;
-                scalingPolicy.adjustmentValue = -scalingPolicy.adjustmentValue; // Remove instead of add on scale down
-            }
-
-            handlebarsParams.scalingPolicies.push(scalingPolicy);
-        }
-
         return handlebarsUtils.compileTemplate(`${__dirname}/autoscaling-ebextension-template.yml`, handlebarsParams);
     }
     else {

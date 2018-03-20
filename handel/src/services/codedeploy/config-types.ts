@@ -1,4 +1,4 @@
-import { EnvironmentVariables, ServiceConfig, Tags } from '../../datatypes';
+import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, InstanceAutoScalingConfig, ServiceConfig, Tags } from '../../datatypes';
 
 export interface CodeDeployServiceConfig extends ServiceConfig {
     path_to_code: string;
@@ -6,7 +6,7 @@ export interface CodeDeployServiceConfig extends ServiceConfig {
     key_name?: string;
     os?: string;
     deployment?: CodeDeployDeploymentConfig;
-    auto_scaling?: CodeDeployAutoScalingConfig;
+    auto_scaling?: InstanceAutoScalingConfig;
     routing?: CodeDeployRoutingConfig;
     environment_variables?: EnvironmentVariables;
     tags?: Tags;
@@ -15,11 +15,6 @@ export interface CodeDeployServiceConfig extends ServiceConfig {
 export interface CodeDeployDeploymentConfig {
     style: string;
     config: string;
-}
-
-export interface CodeDeployAutoScalingConfig {
-    min_instances: number;
-    max_instances: number;
 }
 
 export interface CodeDeployRoutingConfig {
@@ -55,6 +50,7 @@ export interface HandlebarsCodeDeployAutoScalingConfig {
     minInstances: number;
     maxInstances: number;
     cooldown: string;
+    scalingPolicies: HandlebarsInstanceScalingPolicy[];
 }
 
 export interface HandlebarsCodeDeployRoutingConfig {

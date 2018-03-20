@@ -23,6 +23,7 @@ import * as bindPhaseCommon from '../../common/bind-phase-common';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as instanceAutoScaling from '../../common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as taggingCommon from '../../common/tagging-common';
 import * as util from '../../common/util';
@@ -69,12 +70,16 @@ function getAutoScalingConfig(ownServiceContext: ServiceContext<CodeDeployServic
     const autoScalingConfig: HandlebarsCodeDeployAutoScalingConfig = { // Set initial defaults
         minInstances: 1,
         maxInstances: 1,
-        cooldown: '300' // TODO - Change this when scaling is implemented
+        cooldown: '300', // TODO - Change this later
+        scalingPolicies: instanceAutoScaling.getScalingPoliciesConfig(ownServiceContext)
     };
+
+    // Set min/max to user-defined if specified
     if(params.auto_scaling) {
         if(params.auto_scaling.min_instances) { autoScalingConfig.minInstances = params.auto_scaling.min_instances; }
         if(params.auto_scaling.max_instances) { autoScalingConfig.maxInstances = params.auto_scaling.max_instances; }
     }
+
     return autoScalingConfig;
 }
 
@@ -169,7 +174,7 @@ async function getUserDataScript(ownServiceContext: ServiceContext<CodeDeploySer
     return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-instance-userdata-template.sh`, userdataVariables);
 }
 
-async function enrichUploadDir(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
+async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
     const pathToAppSpec = `${dirPath}/appspec.yml`;
     const appSpecFile = util.readYamlFileSync(pathToAppSpec);
     if(appSpecFile.hooks) { // There are hooks to be enriched with env vars
@@ -197,6 +202,10 @@ async function enrichUploadDir(dirPath: string, serviceContext: ServiceContext<C
         // Save our modified appspec file to overwrite the user-provided one
         util.writeFileSync(pathToAppSpec, JSON.stringify(appSpecFile));
     }
+}
+
+async function enrichUploadDir(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
+    await injectEnvVarsIntoAppSpec(dirPath, serviceContext, dependenciesDeployContexts);
 }
 
 async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<AWS.S3.ManagedUpload.SendData> {

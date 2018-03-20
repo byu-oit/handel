@@ -332,6 +332,68 @@ export interface UnPreDeployContexts {
 export type DeployOrder = string[][];
 
 /***********************************
+ * Types used for services that do instance auto scaling
+ ***********************************/
+export interface InstanceAutoScalingConfig {
+    min_instances: number;
+    max_instances: number;
+    scaling_policies?: InstanceScalingPolicyConfig[];
+}
+
+export interface InstanceScalingPolicyConfig {
+    type: InstanceScalingPolicyType;
+    adjustment: InstanceScalingPolicyAdjustment;
+    alarm: InstanceScalingPolicyAlarm;
+}
+
+export interface InstanceScalingPolicyAdjustment {
+    type?: string;
+    value: number;
+    cooldown?: number;
+}
+
+export interface InstanceScalingPolicyAlarm {
+    namespace?: string;
+    dimensions?: InstanceScalingPolicyAlarmDimensions;
+    metric_name: string;
+    statistic?: string;
+    threshold: number;
+    comparison_operator: string;
+    period?: number;
+    evaluation_periods?: number;
+}
+
+export interface InstanceScalingPolicyAlarmDimensions {
+    [key: string]: string;
+}
+
+export enum InstanceScalingPolicyType {
+    UP = 'up',
+    DOWN = 'down'
+}
+
+export interface HandlebarsInstanceScalingPolicy {
+    adjustmentType: string;
+    adjustmentValue: number;
+    cooldown: number;
+    statistic: string;
+    comparisonOperator: string;
+    dimensions: HandlebarsInstanceScalingDimension[] | undefined;
+    metricName: string;
+    namespace: string;
+    period: number;
+    evaluationPeriods: number;
+    threshold: number;
+    scaleUp?: boolean;
+    scaleDown?: boolean;
+}
+
+export interface HandlebarsInstanceScalingDimension {
+    name: string;
+    value: string;
+}
+
+/***********************************
  * Other Types
  ***********************************/
 export interface Tags {
