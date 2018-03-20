@@ -13,10 +13,28 @@ environments:
       # deployment: # Optional
       #   style: in-place # Optional
       #   config: halfatatime # Optional. Only support the default configuration types
-      auto_scaling: # If not specified, use single instance?
+      auto_scaling:
         min_instances: 1
-        max_instances: 2
-        # TODO - Support auto-scaling rules (follow Beanstalk-style auto-scaling rules)
+        max_instances: 4
+        scaling_policies:
+        - type: up
+          adjustment:
+            value: 1
+            cooldown: 60
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: GreaterThanThreshold
+            threshold: 70
+            period: 60
+        - type: down
+          adjustment:
+            value: 1
+            cooldown: 60
+          alarm:
+            metric_name: CPUUtilization
+            comparison_operator: LessThanThreshold
+            threshold: 30
+            period: 60
       routing: # Optional, won't add routing if you don't specify it
         type: https
         https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd # Required if HTTPS

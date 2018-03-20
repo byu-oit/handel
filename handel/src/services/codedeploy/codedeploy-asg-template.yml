@@ -138,7 +138,7 @@ Resources:
       {{/if}}
       ServiceRoleArn: {{serviceRoleArn}}
 
-  {{#each scalingPolicies}}
+  {{#each autoScaling.scalingPolicies}}
   #
   # Configure user-defined scaling policies if present
   #
@@ -148,7 +148,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
       - Ref: ScalingPolicy{{@index}}
-      AlarmDescription: Handel-created alarm for Beanstalk app '{{../stackName}}' auto-scaling
+      AlarmDescription: Handel-created alarm for Beanstalk app '{{../appName}}' auto-scaling
       ComparisonOperator: {{comparisonOperator}}
       Dimensions:
       {{#if dimensions}}
@@ -159,7 +159,7 @@ Resources:
       {{else}}
       - Name: AutoScalingGroupName
         Value: 
-          Ref: AWSEBAutoScalingGroup
+          Ref: AutoScalingGroup
       {{/if}}
       EvaluationPeriods: {{evaluationPeriods}}
       {{#if scaleDown}}
@@ -176,7 +176,7 @@ Resources:
     Properties:
       AdjustmentType: {{adjustmentType}}
       AutoScalingGroupName: 
-        Ref: AWSEBAutoScalingGroup
+        Ref: AutoScalingGroup
       Cooldown: {{cooldown}}
       PolicyType: SimpleScaling
       ScalingAdjustment: {{adjustmentValue}}
