@@ -2,10 +2,6 @@ version: 1
 
 name: codedeploy-test
 
-tags:
-  data-sensitivity: internal
-  team: test
-
 environments:
   dev:
     webapp:
@@ -40,10 +36,7 @@ environments:
             threshold: 30
             period: 60
       routing: # Optional, won't add routing if you don't specify it
-        type: https
-        https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd # Required if HTTPS
-        dns_names: # Optional
-        - codedeploytest.sim-dev.byu.edu
+        type: http
       environment_variables:
         MY_ENV_VAR: myValue
       tags:

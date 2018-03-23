@@ -37,8 +37,6 @@ environments:
             threshold: 30
       load_balancer:
         type: http
-        dns_names:
-        - mytest.sim-dev.byu.edu
       log_retention_in_days: 1
       tags:
         mytag: myvalue      

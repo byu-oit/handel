@@ -77,7 +77,7 @@ Parameters
      - :ref:`beanstalk-routing`
      - No
      - 
-     - The Routing element details what kind of routing you want to your ECS service (if any)
+     - The Routing element details what kind of routing you want to your Beanstalk service
    * - environment_variables
      - :ref:`beanstalk-environment-variables`
      - No
