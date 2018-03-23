@@ -34,6 +34,7 @@ describe('instance auto scaling common module', () => {
         serviceParams = {
             type: 'codedeploy',
             path_to_code: '.',
+            os: 'linux',
             auto_scaling: {
                 min_instances: 1,
                 max_instances: 1,
