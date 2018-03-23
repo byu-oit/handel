@@ -28,92 +28,20 @@ import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as taggingCommon from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { AccountConfig, DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import * as alb from './alb';
+import * as asgLaunchConfig from './asg-launchconfig';
 import { CodeDeployServiceConfig, HandlebarsCodeDeployAutoScalingConfig, HandlebarsCodeDeployRoutingConfig, HandlebarsCodeDeployTemplate } from './config-types';
+import * as deployableArtifact from './deployable-artifact';
+import * as iamRoles from './iam-roles';
 
 const SERVICE_NAME = 'CodeDeploy';
-
-async function getStatementsForInstanceRole(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<any[]> {
-    const accountConfig = ownServiceContext.accountConfig;
-    const ownPolicyStatementsTemplate = `${__dirname}/codedeploy-instance-role-statements.json`;
-    const handlebarsParams = {
-        region: accountConfig.region,
-        handelBucketName: deployPhaseCommon.getHandelUploadsBucketName(accountConfig)
-    };
-    const compiledPolicyStatements = await handlebarsUtils.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
-    let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
-    ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(ownServiceContext));
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
-}
-
-function getEnvVariablesToInject(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = Object.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        envVarsToInject = Object.assign(envVarsToInject, serviceParams.environment_variables);
-    }
-    return envVarsToInject;
-}
-
-async function getAmiFromPrefix(): Promise<AWS.EC2.Image> {
-    // Just use the AWS AMI for now
-    const ami = await ec2Calls.getLatestAmiByName('amazon', 'amzn-ami-hvm');
-    if (!ami) {
-        throw new Error('Could not find the latest Amazon AMI');
-    }
-    return ami;
-}
-
-function getAutoScalingConfig(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): HandlebarsCodeDeployAutoScalingConfig {
-    const params = ownServiceContext.params;
-    const autoScalingConfig: HandlebarsCodeDeployAutoScalingConfig = { // Set initial defaults
-        minInstances: 1,
-        maxInstances: 1,
-        cooldown: '300', // TODO - Change this later
-        scalingPolicies: instanceAutoScaling.getScalingPoliciesConfig(ownServiceContext)
-    };
-
-    // Set min/max to user-defined if specified
-    if(params.auto_scaling) {
-        if(params.auto_scaling.min_instances) { autoScalingConfig.minInstances = params.auto_scaling.min_instances; }
-        if(params.auto_scaling.max_instances) { autoScalingConfig.maxInstances = params.auto_scaling.max_instances; }
-    }
-
-    return autoScalingConfig;
-}
-
-async function getRoutingConfig(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<HandlebarsCodeDeployRoutingConfig | undefined> {
-    const params = ownServiceContext.params;
-    const accountConfig = ownServiceContext.accountConfig;
-    if(params.routing) {
-        const routingConfig: HandlebarsCodeDeployRoutingConfig = {
-            albName: stackName.substring(0, 32).replace(/-$/, ''), // Configure the shortened ALB name (it has a limit of 32 chars)
-            basePath: params.routing.base_path ? params.routing.base_path : '/',
-            healthCheckPath: params.routing.health_check_path ? params.routing.health_check_path : '/'
-        };
-        if(params.routing.type === 'https') {
-            routingConfig.httpsCertificate = `arn:aws:acm:${accountConfig.region}:${accountConfig.account_id}:certificate/${params.routing.https_certificate}`;
-        }
-        if(params.routing.dns_names) { // Add DNS names if specified
-            const hostedZones = await route53.listHostedZones();
-            routingConfig.dnsNames = params.routing.dns_names.map(name => {
-                return {
-                    name: name,
-                    zoneId: route53.getBestMatchingHostedZone(name, hostedZones)!.Id
-                };
-            });
-        }
-        return routingConfig;
-    }
-}
 
 async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
-    const ami = await getAmiFromPrefix();
-    const policyStatements = await getStatementsForInstanceRole(ownServiceContext, dependenciesDeployContexts);
+    const ami = await asgLaunchConfig.getCodeDeployAmi();
+    const policyStatements = await iamRoles.getStatementsForInstanceRole(ownServiceContext, dependenciesDeployContexts);
     const handlebarsParams: HandlebarsCodeDeployTemplate = {
         appName: stackName,
         policyStatements,
@@ -121,8 +49,8 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         instanceType: params.instance_type || 't2.micro',
         securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         userData: new Buffer(userDataScript).toString('base64'),
-        autoScaling: getAutoScalingConfig(ownServiceContext),
-        routing: await getRoutingConfig(stackName, ownServiceContext),
+        autoScaling: asgLaunchConfig.getAutoScalingConfig(ownServiceContext),
+        routing: await alb.getRoutingConfig(stackName, ownServiceContext),
         tags: stackTags,
         privateSubnetIds: accountConfig.private_subnets,
         publicSubnetIds: accountConfig.public_subnets,
@@ -139,90 +67,7 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         handlebarsParams.sshKeyName = params.key_name;
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-asg-template.yml`, handlebarsParams);
-}
-
-async function createCodeDeployServiceRoleIfNotExists(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<AWS.IAM.Role> {
-    const accountConfig = ownServiceContext.accountConfig;
-    const policyStatements = JSON.parse(util.readFileSync(`${__dirname}/codedeploy-service-role-statements.json`));
-    const createdRole = await deployPhaseCommon.createCustomRole('codedeploy.amazonaws.com', 'HandelCodeDeployServiceRole', policyStatements, accountConfig);
-    if (!createdRole) {
-        throw new Error('Expected role to be created for CodeDeploy service, but none was returned');
-    }
-    return createdRole;
-}
-
-async function getUserDataScript(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<string> {
-    const params = ownServiceContext.params;
-
-    // Add scripts from dependencies
-    const dependencyScripts: string[] = [];
-    for (const deployContext of dependenciesDeployContexts) {
-        for (const script of deployContext.scripts) {
-            dependencyScripts.push(script);
-        }
-    }
-    const agentInstallVariables = {
-        region: ownServiceContext.accountConfig.region
-    };
-    const codeDeployInstallScript = await handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-agent-install-fragment.sh`, agentInstallVariables);
-
-    const userdataVariables = {
-        dependencyScripts,
-        codeDeployInstallScript
-    };
-    return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-instance-userdata-template.sh`, userdataVariables);
-}
-
-async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
-    const pathToAppSpec = `${dirPath}/appspec.yml`;
-    const appSpecFile = util.readYamlFileSync(pathToAppSpec);
-    if(appSpecFile.hooks) { // There are hooks to be enriched with env vars
-        for(const hookName in appSpecFile.hooks) {
-            if(appSpecFile.hooks.hasOwnProperty(hookName)) {
-                const hookDefinition = appSpecFile.hooks[hookName];
-                for(let i = 0; i < hookDefinition.length; i++) {
-                    const eventMapping = hookDefinition[i];
-
-                    // Write wrapper script to upload directory
-                    const handlebarsParams = {
-                        originalScriptLocation: eventMapping.location,
-                        envVarsToInject: getEnvVariablesToInject(serviceContext, dependenciesDeployContexts)
-                    };
-                    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
-                    const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;
-                    util.writeFileSync(`${dirPath}/${wrapperScriptLocation}`, compiledTemplate);
-
-                    // Modify the appspec.yml entry to invoke our wrapper
-                    eventMapping.location = wrapperScriptLocation;
-                }
-            }
-        }
-
-        // Save our modified appspec file to overwrite the user-provided one
-        util.writeFileSync(pathToAppSpec, JSON.stringify(appSpecFile));
-    }
-}
-
-async function enrichUploadDir(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
-    await injectEnvVarsIntoAppSpec(dirPath, serviceContext, dependenciesDeployContexts);
-}
-
-async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<AWS.S3.ManagedUpload.SendData> {
-    const params = serviceContext.params;
-
-    // We copy to a temporary directory so we can enrich it with Handel-added files for things like environment variables
-    const tempDirPath = util.makeTmpDir();
-    await util.copyDirectory(params.path_to_code, tempDirPath);
-    await enrichUploadDir(tempDirPath, serviceContext, dependenciesDeployContexts);
-
-    const s3FileName = `codedeploy-deployable-${uuid()}.zip`;
-    winston.info(`${SERVICE_NAME} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
-    winston.info(`${SERVICE_NAME} - Uploaded deployable artifact to S3: ${s3FileName}`);
-
-    util.deleteFolderRecursive(tempDirPath); // Delete the whole temp folder now that we're done with it
-    return s3ArtifactInfo;
+    return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
 }
 
 /**
@@ -247,9 +92,9 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
 
     const stackTags = taggingCommon.getTags(ownServiceContext);
-    const serviceRole = await createCodeDeployServiceRoleIfNotExists(ownServiceContext);
-    const userDataScript = await getUserDataScript(ownServiceContext, dependenciesDeployContexts);
-    const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts);
+    const serviceRole = await iamRoles.createCodeDeployServiceRoleIfNotExists(ownServiceContext);
+    const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
+    const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);

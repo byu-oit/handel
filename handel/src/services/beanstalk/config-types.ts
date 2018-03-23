@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, ServiceConfig, Tags, InstanceAutoScalingConfig } from '../../datatypes/index';
+import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, InstanceAutoScalingConfig, ServiceConfig, Tags } from '../../datatypes/index';
 
 export interface EbextensionsToInject {
     [ebextensionFileName: string]: string;

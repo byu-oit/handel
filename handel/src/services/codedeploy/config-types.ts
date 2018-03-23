@@ -2,9 +2,9 @@ import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, InstanceAutoScal
 
 export interface CodeDeployServiceConfig extends ServiceConfig {
     path_to_code: string;
+    os: string;
     instance_type?: string;
     key_name?: string;
-    os?: string;
     deployment?: CodeDeployDeploymentConfig;
     auto_scaling?: InstanceAutoScalingConfig;
     routing?: CodeDeployRoutingConfig;

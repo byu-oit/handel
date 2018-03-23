@@ -2,14 +2,18 @@ version: 1
 
 name: codedeploy-test
 
+tags:
+  data-sensitivity: internal
+  team: test
+
 environments:
   dev:
     webapp:
       type: codedeploy
       path_to_code: . # Required. appspec.yml must be at the root of the directory provided
       instance_type: t2.micro # Optional. Default: t2.micro
+      os: linux # Required. Only Linux supported at this time
       key_name: ces-dev # Optional
-      # os: linux # Optional. Default: linux
       # deployment: # Optional
       #   style: in-place # Optional
       #   config: halfatatime # Optional. Only support the default configuration types
@@ -40,10 +44,12 @@ environments:
         https_certificate: c4a82252-b609-4f7c-aae8-83777377a0fd # Required if HTTPS
         dns_names: # Optional
         - codedeploytest.sim-dev.byu.edu
+      environment_variables:
+        MY_ENV_VAR: myValue
       tags:
         faketag: fakevalue
       dependencies:
-      - bucket
-    bucket:
-      type: s3
+      - mount
+    mount:
+      type: efs
       

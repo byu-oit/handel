@@ -13,6 +13,7 @@ function getAutoScalingDimensions(dimensionsConfig: InstanceScalingPolicyAlarmDi
                 });
             }
         }
+        return dimensions;
     }
     else {
         return undefined;
