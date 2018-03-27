@@ -28,6 +28,21 @@ function delay(millis: number) {
     });
 }
 
+export async function getLaunchConfiguration(launchConfigName: string): Promise<AWS.AutoScaling.LaunchConfiguration | null> {
+    const describeParams = {
+        LaunchConfigurationNames: [
+            launchConfigName
+        ]
+    };
+    const describeResponse = await awsWrapper.autoScaling.describeLaunchConfigurations(describeParams);
+    if(describeResponse.LaunchConfigurations && describeResponse.LaunchConfigurations[0]) {
+        return describeResponse.LaunchConfigurations[0];
+    }
+    else {
+        return null;
+    }
+}
+
 export async function cycleInstances(instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> {
     const recycleWk = async (result: AWS.AutoScaling.ActivityType[], instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> => {
         if (instancesToCycle.length < 1) { return result; }

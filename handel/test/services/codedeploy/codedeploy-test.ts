@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
+import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
@@ -89,6 +90,8 @@ describe('codedeploy deployer', () => {
             const createRoleStub = sandbox.stub(iamRoles, 'createCodeDeployServiceRoleIfNotExists').resolves({
                 Arn: 'MyFakeArn'
             });
+            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves({});
+            const shouldRollInstancesStub = sandbox.stub(asgLaunchConfig, 'shouldRollInstances').resolves(true);
             const getUserDataStub = sandbox.stub(asgLaunchConfig, 'getUserDataScript').resolves('FakeScript');
             const uploadArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifactToS3').resolves({
                 Bucket: 'FakeBucket',
@@ -101,10 +104,13 @@ describe('codedeploy deployer', () => {
             const getRoutingStub = sandbox.stub(alb, 'getRoutingConfig').resolves({});
             const assignPublicIpStub = sandbox.stub(ec2Calls, 'shouldAssignPublicIp').resolves(true);
             const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const rollInstancesStub = sandbox.stub(asgLaunchConfig, 'rollInstances').resolves();
 
             const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(createRoleStub.callCount).to.equal(1);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(shouldRollInstancesStub.callCount).to.equal(1);
             expect(getUserDataStub.callCount).to.equal(1);
             expect(uploadArtifactStub.callCount).to.equal(1);
             expect(getAmiStub.callCount).to.equal(1);
@@ -112,6 +118,7 @@ describe('codedeploy deployer', () => {
             expect(getRoutingStub.callCount).to.equal(1);
             expect(assignPublicIpStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
+            expect(rollInstancesStub.callCount).to.equal(1);
         });
     });
 

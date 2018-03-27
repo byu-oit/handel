@@ -326,4 +326,10 @@ Outputs:
   ALBDnsName:
     Description: The DNS Name of the ALB
     Value: !GetAtt Alb.DNSName
+  AutoScalingGroupName:
+    Description: The name of the auto-scaling group
+    Value: !Ref AutoScalingGroup
+  LaunchConfigName:
+    Description: The name of the launch configuration
+    Value: !Ref LaunchConfiguration
   {{/if}}

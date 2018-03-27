@@ -18,6 +18,8 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
+import * as autoScalingCalls from '../../../src/aws/auto-scaling-calls';
+import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
@@ -37,6 +39,8 @@ describe('codedeploy asg-launchconfig config module', () => {
             type: 'codedeploy',
             path_to_code: '.',
             os: 'linux',
+            instance_type: 't2.micro',
+            key_name: 'mykey',
             auto_scaling: {
                 min_instances: 1,
                 max_instances: 4,
@@ -100,6 +104,31 @@ describe('codedeploy asg-launchconfig config module', () => {
             const userDataScript = await asgLaunchConfig.getUserDataScript(serviceContext, deployContexts);
             expect(userDataScript).to.equal('CompiledScript');
             expect(compileTemplateStub.callCount).to.equal(2);
+        });
+    });
+
+    describe('shouldRollInstances', () => {
+        it('should return false if there is no existing stack yet', async () => {
+
+        });
+
+        it('should return true if the key name field has changed', async () => {
+            const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').returns('FakeLaunchConfig');
+            const getLaunchConfigStub = sandbox.stub(autoScalingCalls, 'getLaunchConfiguration').resolves({
+                
+            })
+        });
+
+        it('should return true if the instance type field has changed', async () => {
+
+        });
+
+        it('should return true if the AMI id has changed', async () => {
+
+        });
+
+        it('should return false if no important fields have changed', async () => {
+
         });
     });
 });

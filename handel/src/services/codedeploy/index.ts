@@ -17,6 +17,7 @@
 import * as fs from 'fs';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
+import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
 import * as bindPhaseCommon from '../../common/bind-phase-common';
@@ -36,16 +37,15 @@ import * as iamRoles from './iam-roles';
 
 const SERVICE_NAME = 'CodeDeploy';
 
-async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
+async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, amiToDeploy: AWS.EC2.Image): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
-    const ami = await asgLaunchConfig.getCodeDeployAmi();
     const policyStatements = await iamRoles.getStatementsForInstanceRole(ownServiceContext, dependenciesDeployContexts);
     const handlebarsParams: HandlebarsCodeDeployTemplate = {
         appName: stackName,
         policyStatements,
-        amiImageId: ami.ImageId!,
+        amiImageId: amiToDeploy.ImageId!,
         instanceType: params.instance_type || 't2.micro',
         securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         userData: new Buffer(userDataScript).toString('base64'),
@@ -93,10 +93,23 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
 
     const stackTags = taggingCommon.getTags(ownServiceContext);
     const serviceRole = await iamRoles.createCodeDeployServiceRoleIfNotExists(ownServiceContext);
+    const existingStack = await cloudformationCalls.getStack(stackName);
+    const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
+    const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
-    const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo);
+    const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo, amiToDeploy);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
+
+    // If we need to roll the instances (calculated prior to deploy) do so now
+    if(shouldRollInstances) {
+        winston.info('Change necessitated new EC2 instances. Rolling auto-scaling group to get new instances...');
+        await asgLaunchConfig.rollInstances(ownServiceContext);
+    }
+    else { // TODO - Remove this later
+        winston.info('Not rolling instances');
+    }
+
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
     return new DeployContext(ownServiceContext);
 }
