@@ -61,7 +61,7 @@ async function getCompiledEventRuleTemplate(stackName: string, serviceContext: S
     const template = await handlebarsUtils.compileTemplate(`${__dirname}/event-rule-template.yml`, handlebarsParams);
     // NOTE: This is a bit odd, but the syntax of event patterns is complex enough that it's easiest to just provide
     //  a pass-through to the AWS event rule syntax for anyone wanting to specify an event pattern.
-    const templateObj = yaml.safeLoad(template);
+    const templateObj = yaml.safeLoad(template) as any;
     if (serviceParams.event_pattern) {
         templateObj.Resources.EventsRule.Properties.EventPattern = serviceParams.event_pattern;
     }
