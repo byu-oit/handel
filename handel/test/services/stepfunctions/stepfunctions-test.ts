@@ -104,7 +104,6 @@ describe('stepfunctions deployer', () => {
             serviceContext.params.dependencies = ['only-lambda'];
             sandbox.stub(util, 'readYamlFileSync').returns(getSimpleMachine());
             const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
-            console.log(errors);
             expect(errors.length).to.equal(0);
         });
 
@@ -134,6 +133,15 @@ describe('stepfunctions deployer', () => {
             const errors = stepfunctions.check(serviceContext, dependencies);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('not found in dependencies');
+        });
+
+        it('should only check for service dependencies on states with a resource field', () => {
+            const machine = getSimpleMachine();
+            machine.OtherState = {Type: 'Succeed'};
+            serviceContext.params.definition = 'state_machine.yml';
+            sandbox.stub(util, 'readYamlFileSync').returns(machine);
+            const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
+            expect(errors.length).to.equal(0);
         });
     });
 

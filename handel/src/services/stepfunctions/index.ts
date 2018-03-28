@@ -61,9 +61,9 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
         const startIsString = typeof start == 'string';
         const statesIsObject = states instanceof Object;
         if (statesIsObject) {
-            const dependencies: string[] = serviceContext.params.dependencies || [];
+            const dependencies: string[] = dependenciesServiceContexts.map(context => context.serviceName);
             for (const key in states) {
-                if (states.hasOwnProperty(key) && dependencies.indexOf(states[key].Resource) == -1) {
+                if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) == -1) {
                     errors.push(`${SERVICE_NAME} - Service '${states[key].Resource}' not found in dependencies.`)
                 }
             }
