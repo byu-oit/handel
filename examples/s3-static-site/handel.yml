@@ -2,6 +2,10 @@ version: 1
 
 name: my-static-site
 
+tags:
+  data-sensitivity: public
+  team: faketeam
+
 environments:
   dev:
     site:

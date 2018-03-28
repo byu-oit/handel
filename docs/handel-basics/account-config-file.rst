@@ -46,7 +46,7 @@ The account config file is a YAML file that must contain the following informati
 
 .. code-block:: yaml
 
-  account_id: <number> # Required. The numeric ID of your AWS account
+  account_id: <string> # Required. The numeric ID of your AWS account.
   region: <string> # Required. The region, such as 'us-west-2' that your VPC resides in.
   vpc: <string> # Required. The ID of your VPC in which to deploy your applications.
   public_subnets: # Required. A list of one or more subnet IDs from your VPC where you want to deploy publicly available resources.
@@ -63,3 +63,10 @@ The account config file is a YAML file that must contain the following informati
   handel_resource_tags: # Optional. Sets tags to be applied to any generic resources, such as lambda functions, that Handel uses internally.
     <key>: <value>
     <key>: <value>
+
+.. IMPORTANT::
+
+    **Be sure to put quotes around the *account_id* field in your account config file!**
+    
+    If you dont, YAML will treat it as a number. This can cause problems if your account ID starts with a *0*, because the 
+    JavaScript YAML parser that Handel uses will parse it as an octal number, resulting in a totally different account ID.

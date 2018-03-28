@@ -58,7 +58,7 @@ export interface ServiceDeployer {
  * Types for the Account Config File
  ***********************************/
 export interface AccountConfig {
-    account_id: number;
+    account_id: string;
     region: string;
     vpc: string;
     public_subnets: string[];

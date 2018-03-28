@@ -36,7 +36,7 @@ describe('default account config module', () => {
     describe('getDefaultAccountConfig', () => {
         it('should return the account config file for the default VPC', async () => {
             // Set up data to use
-            const accountId = 111111111111;
+            const accountId = '111111111111';
             const region = 'us-east-1';
             const vpcId = 'vpc-ffffffff';
             const rdsSubnetGroupName = 'FakeRdsSubnetGroup';

@@ -31,7 +31,7 @@ describe('deploy-order-calc', () => {
 
     describe('getDeployOrder', () => {
         function getEnvironmentContextFromYamlFile(filePath: string): EnvironmentContext {
-            const doc = yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
+            const doc = yaml.safeLoad(fs.readFileSync(filePath, 'utf8')) as any; // These take a few different forms
 
             const environmentContext = new EnvironmentContext(doc.name, 'dev', accountConfig);
             for (const serviceName in doc.environments.dev) {

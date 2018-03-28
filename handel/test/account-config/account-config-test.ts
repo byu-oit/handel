@@ -61,7 +61,7 @@ describe('account config module', () => {
             const existsStub = sandbox.stub(fs, 'existsSync').returns(true);
             const resolveStub = sandbox.stub(path, 'resolve').returns('FakeAbsolutePath');
             const readYamlStub = sandbox.stub(util, 'readYamlFileSync').returns({
-                account_id: 11111111111,
+                account_id: '11111111111',
                 region: 'us-west-2',
                 vpc: 'vpc-ffffffff',
                 public_subnets: ['subnet-aaaaaaaa'],
