@@ -1,6 +1,6 @@
 {
   "name": "handel-extension-api",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "dist/extension-api.js",
   "types": "dist/extension-api.d.ts",
