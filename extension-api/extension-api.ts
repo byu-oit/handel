@@ -21,7 +21,7 @@ import { EC2 } from 'aws-sdk';
  ***********************************/
 
 export interface Extension {
-    loadHandelExtension(context: ExtensionContext): void;
+    loadHandelExtension(context: ExtensionContext): void | Promise<void>;
 }
 
 export interface ExtensionContext {
