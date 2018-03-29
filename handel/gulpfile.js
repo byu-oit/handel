@@ -5,7 +5,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const runSeq = require('run-sequence');
 const mergeStream = require('merge-stream');
-const mocha = require('gulp-spawn-mocha');
 
 gulp.task('clean', (done) => {
     fs.remove(path.join(__dirname, 'dist'), done);
