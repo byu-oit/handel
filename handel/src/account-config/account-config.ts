@@ -79,7 +79,7 @@ export default function(accountConfigParam: any): Promise<AccountConfig> {
                 return resolve(accountConfig);
             }
             else {
-                accountConfig = yaml.safeLoad(new Buffer(accountConfigParam, 'base64').toString());
+                accountConfig = yaml.safeLoad(new Buffer(accountConfigParam, 'base64').toString()) as AccountConfig;
                 validateAccountConfig(accountConfig);
                 return resolve(accountConfig);
             }

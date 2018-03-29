@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, Tags } from '../../datatypes/index';
+import { ServiceConfig, ServiceEventConsumer, Tags } from '../../datatypes/index';
 
 export interface S3ServiceConfig extends ServiceConfig {
     bucket_name?: string;
@@ -36,6 +36,24 @@ export interface S3LifecycleTransition {
     type: string;
     days?: number;
     date?: string;
+}
+
+export interface S3ServiceEventConsumer extends ServiceEventConsumer {
+    bucket_events: S3ServiceEventEventsList;
+    filters?: S3ServiceEventFilterList;
+}
+
+export type S3ServiceEventEventsList = string[];
+export type S3ServiceEventFilterList = S3ServiceEventFilter[];
+
+export interface S3ServiceEventFilter {
+    name: S3ServiceEventFilterName;
+    value: string;
+}
+
+export enum S3ServiceEventFilterName {
+    SUFFIX = 'suffix',
+    PREFIX = 'prefix'
 }
 
 export interface HandlebarsS3Template {

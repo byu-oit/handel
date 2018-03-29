@@ -1,0 +1,51 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Step Functions state machine
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{stateMachineName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+              - "states.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{stateMachineName}}
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: {{stateMachineName}}
+      DefinitionString: '{{{definitionString}}}'
+      RoleArn: !GetAtt Role.Arn
+Outputs:
+  StateMachineArn:
+    Description: The ARN of the state machine
+    Value: !Ref StateMachine
+  StateMachineName:
+    Description: The name of the state machine
+    Value: !GetAtt StateMachine.Name

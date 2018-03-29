@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as minimist from 'minimist';
 import * as cli from './cli';
+import { HandelFile } from './datatypes';
 
 function printAndExit(msg: string): void {
     // tslint:disable-next-line:no-console
@@ -65,9 +66,9 @@ Errors:
     printAndExit(usageMsg);
 }
 
-function loadHandelFile() {
+function loadHandelFile(): HandelFile | undefined {
     try {
-        return yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8'));
+        return yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8')) as HandelFile;
     }
     catch (e) {
         if (e.code === 'ENOENT') {
@@ -83,7 +84,7 @@ function loadHandelFile() {
 }
 
 export async function run() {
-    const handelFile = loadHandelFile();
+    const handelFile = loadHandelFile()!; // It wil either come back with a HandelFile object or exit inside the method
     const deployPhase = process.argv[2];
     const argv = minimist(process.argv.slice(2));
     let errors = [];

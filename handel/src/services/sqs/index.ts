@@ -214,6 +214,9 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SqsService
     if (producerServiceType === 'sns') {
         producerArn = producerDeployContext.eventOutputs.topicArn;
     }
+    else if (producerServiceType === 's3') {
+        producerArn = producerDeployContext.eventOutputs.bucketArn;
+    }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
     }

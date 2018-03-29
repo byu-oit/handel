@@ -139,7 +139,7 @@ describe('efs deployer', () => {
 
             const unDeployContext = await efs.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
-            expect(unDeployStackStub.callCount).to.equal(1);;
+            expect(unDeployStackStub.callCount).to.equal(1);
         });
     });
 });

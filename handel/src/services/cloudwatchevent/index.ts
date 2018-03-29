@@ -21,7 +21,6 @@ import * as cloudWatchEventsCalls from '../../aws/cloudwatch-events-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as produceEventsPhaseCommon from '../../common/produce-events-phase-common';
 import {getTags} from '../../common/tagging-common';
 import {
     DeployContext,
@@ -29,6 +28,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventConsumer,
     UnDeployContext
 } from '../../datatypes';
 import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
@@ -61,7 +61,7 @@ async function getCompiledEventRuleTemplate(stackName: string, serviceContext: S
     const template = await handlebarsUtils.compileTemplate(`${__dirname}/event-rule-template.yml`, handlebarsParams);
     // NOTE: This is a bit odd, but the syntax of event patterns is complex enough that it's easiest to just provide
     //  a pass-through to the AWS event rule syntax for anyone wanting to specify an event pattern.
-    const templateObj = yaml.safeLoad(template);
+    const templateObj = yaml.safeLoad(template) as any;
     if (serviceParams.event_pattern) {
         templateObj.Resources.EventsRule.Properties.EventPattern = serviceParams.event_pattern;
     }
@@ -99,7 +99,7 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
+export async function produceEvents(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownDeployContext: DeployContext, eventConsumerConfig: CloudWatchEventsServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
 
     const ruleName = deployPhaseCommon.getResourceName(ownServiceContext);
@@ -109,14 +109,10 @@ export async function produceEvents(ownServiceContext: ServiceContext<CloudWatch
     let input;
     if (consumerServiceType === 'lambda') {
         targetArn = consumerDeployContext.eventOutputs.lambdaArn;
-        const eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName) as CloudWatchEventsServiceEventConsumer;
-        if (!eventConsumerConfig) { throw new Error(`No event_consumer config found in producer service for '${consumerServiceContext.serviceName}'`); }
         input = eventConsumerConfig.event_input;
     }
     else if (consumerServiceType === 'sns') {
         targetArn = consumerDeployContext.eventOutputs.topicArn;
-        const eventConsumerConfig = produceEventsPhaseCommon.getEventConsumerConfig(ownServiceContext, consumerServiceContext.serviceName) as CloudWatchEventsServiceEventConsumer;
-        if (!eventConsumerConfig) { throw new Error(`No event_consumer config found in producer service for '${consumerServiceContext.serviceName}'`); }
         input = eventConsumerConfig.event_input;
     }
     else {

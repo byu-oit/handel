@@ -15,7 +15,7 @@
  *
  */
 import * as winston from 'winston';
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer } from '../../datatypes';
 
 const SERVICE_NAME = 'Alexa Skill Kit';
 
@@ -40,7 +40,7 @@ export function deploy(ownServiceContext: ServiceContext<ServiceConfig>, ownPreD
     return Promise.resolve(getDeployContext(ownServiceContext));
 }
 
-export function produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
+export function produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - No events to produce from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
     return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
 }

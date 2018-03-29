@@ -138,4 +138,5 @@ The Lambda service can consume events from the following service types:
 * CloudWatch Events
 * DynamoDB
 * IoT
+* S3
 * SNS
