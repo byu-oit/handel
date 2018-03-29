@@ -109,26 +109,79 @@ describe('codedeploy asg-launchconfig config module', () => {
 
     describe('shouldRollInstances', () => {
         it('should return false if there is no existing stack yet', async () => {
-
+            const amiToDeploy = {
+                ImageId: 'OldId'
+            };
+            const response = await asgLaunchConfig.shouldRollInstances(serviceContext, amiToDeploy, null);
+            expect(response).to.equal(false);
         });
 
-        it('should return true if the key name field has changed', async () => {
-            const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').returns('FakeLaunchConfig');
-            const getLaunchConfigStub = sandbox.stub(autoScalingCalls, 'getLaunchConfiguration').resolves({
-                
-            })
-        });
+        const shouldRollTestParams = [
+            {
+                changedField: 'the key name field',
+                amiToDeploy: {
+                    ImageId: 'OldId'
+                },
+                launchConfig: {
+                    KeyName: 'oldkey',
+                    InstanceType: 't2.micro',
+                    ImageId: 'OldId'
+                },
+                returnValue: true
+            },
+            {
+                changedField: 'the instance type field',
+                amiToDeploy: {
+                    ImageId: 'OldId'
+                },
+                launchConfig: {
+                    KeyName: 'mykey',
+                    InstanceType: 't2.medium',
+                    ImageId: 'OldId'
+                },
+                returnValue: true
+            },
+            {
+                changedField: 'the image id field',
+                amiToDeploy: {
+                    ImageId: 'NewId'
+                },
+                launchConfig: {
+                    KeyName: 'mykey',
+                    InstanceType: 't2.micro',
+                    ImageId: 'OldId'
+                },
+                returnValue: true
+            },
+            {
+                changedField: 'none of the fields',
+                amiToDeploy: {
+                    ImageId: 'OldId'
+                },
+                launchConfig: {
+                    KeyName: 'mykey',
+                    InstanceType: 't2.micro',
+                    ImageId: 'OldId'
+                },
+                returnValue: false
+            }
+        ];
+        shouldRollTestParams.forEach(testParams => {
+            it(`should return ${testParams.returnValue} if ${testParams.changedField} has changed`, async () => {
+                const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').returns('FakeLaunchConfig');
+                const getLaunchConfigStub = sandbox.stub(autoScalingCalls, 'getLaunchConfiguration').resolves(testParams.launchConfig);
 
-        it('should return true if the instance type field has changed', async () => {
+                const existingStack: AWS.CloudFormation.Stack = {
+                    StackName: 'ExistingStack',
+                    CreationTime: new Date(),
+                    StackStatus: 'UPDATE_COMPLETE'
+                };
 
-        });
-
-        it('should return true if the AMI id has changed', async () => {
-
-        });
-
-        it('should return false if no important fields have changed', async () => {
-
+                const response = await asgLaunchConfig.shouldRollInstances(serviceContext, testParams.amiToDeploy, existingStack);
+                expect(response).to.equal(testParams.returnValue);
+                expect(getOutputStub.callCount).to.equal(1);
+                expect(getLaunchConfigStub.callCount).to.equal(1);
+            });
         });
     });
 });
