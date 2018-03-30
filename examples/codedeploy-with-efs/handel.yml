@@ -7,12 +7,7 @@ environments:
     webapp:
       type: codedeploy
       path_to_code: . # Required. appspec.yml must be at the root of the directory provided
-      instance_type: t2.micro # Optional. Default: t2.micro
       os: linux # Required. Only Linux supported at this time
-      key_name: ces-dev # Optional
-      # deployment: # Optional
-      #   style: in-place # Optional
-      #   config: halfatatime # Optional. Only support the default configuration types
       auto_scaling:
         min_instances: 1
         max_instances: 4
@@ -37,10 +32,6 @@ environments:
             period: 60
       routing: # Optional, won't add routing if you don't specify it
         type: http
-      environment_variables:
-        MY_ENV_VAR: myValue
-      tags:
-        faketag: fakevalue
       dependencies:
       - mount
     mount:
