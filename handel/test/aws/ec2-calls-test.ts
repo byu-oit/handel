@@ -272,4 +272,114 @@ describe('ec2-calls', () => {
             }
         });
     });
+
+    describe('shouldAssignPublicIp', () => {
+        const subnetId1 = 'subnet-fake1';
+        const subnetId2 = 'subnet-fake2';
+        const subnetIds = [
+            subnetId1,
+            subnetId2
+        ];
+
+        it('should return true if the subnet maps public IPs on launch', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets');
+            describeSubnetsStub.onCall(0).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId1,
+                        MapPublicIpOnLaunch: true
+                    }
+                ]
+            });
+            describeSubnetsStub.onCall(1).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId2,
+                        MapPublicIpOnLaunch: true
+                    }
+                ]
+            });
+
+            const result = await ec2Calls.shouldAssignPublicIp(subnetIds);
+            expect(result).to.equal(true);
+            expect(describeSubnetsStub.callCount).to.equal(2);
+        });
+
+        it('should return false if the subnet doesnt map public IPs on launch', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets');
+            describeSubnetsStub.onCall(0).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId1,
+                        MapPublicIpOnLaunch: false
+                    }
+                ]
+            });
+            describeSubnetsStub.onCall(1).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId2,
+                        MapPublicIpOnLaunch: false
+                    }
+                ]
+            });
+
+            const result = await ec2Calls.shouldAssignPublicIp(subnetIds);
+            expect(result).to.equal(false);
+            expect(describeSubnetsStub.callCount).to.equal(2);
+        });
+
+        it('should throw an error if one of the requested subnets doesnt exist', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets');
+            describeSubnetsStub.onCall(0).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId1,
+                        MapPublicIpOnLaunch: false
+                    }
+                ]
+            });
+            describeSubnetsStub.onCall(1).resolves({
+                Subnets: []
+            });
+
+            try {
+                const result = await ec2Calls.shouldAssignPublicIp(subnetIds);
+                expect(true).to.equal(false); // Should not get here
+            }
+            catch (err) {
+                expect(err.message).to.contain('from your account config file could not be found');
+                expect(describeSubnetsStub.callCount).to.equal(2);
+            }
+        });
+
+        it('should throw an error if the requested subnets have a mixture of map public IPs', async () => {
+            const describeSubnetsStub = sandbox.stub(awsWrapper.ec2, 'describeSubnets');
+            describeSubnetsStub.onCall(0).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId1,
+                        MapPublicIpOnLaunch: false
+                    }
+                ]
+            });
+            describeSubnetsStub.onCall(1).resolves({
+                Subnets: [
+                    {
+                        Id: subnetId2,
+                        MapPublicIpOnLaunch: true
+                    }
+                ]
+            });
+
+            try {
+                const result = await ec2Calls.shouldAssignPublicIp(subnetIds);
+                expect(true).to.equal(false);
+            }
+            catch (err) {
+                expect(err.message).to.contain('You cannot mix public and private subnets');
+                expect(describeSubnetsStub.callCount).to.equal(2);
+            }
+        });
+    });
 });

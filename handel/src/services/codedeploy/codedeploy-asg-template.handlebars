@@ -1,0 +1,335 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created CodeDeploy service
+
+Resources:
+
+  #
+  # Configure IAM resources
+  #
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{appName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+  Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{appName}}
+      Roles:
+      - !Ref Role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: Role
+
+  #
+  # Configure Auto-Scale group
+  #
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: {{assignPublicIp}}
+      BlockDeviceMappings:
+      - DeviceName: "/dev/xvda"
+        Ebs:
+          VolumeSize: 8
+          VolumeType: gp2
+          DeleteOnTermination: true
+      IamInstanceProfile:
+        Ref: InstanceProfile
+      ImageId: {{amiImageId}}
+      InstanceMonitoring: false
+      InstanceType: {{instanceType}}
+      {{#if sshKeyName}}
+      KeyName: {{sshKeyName}}
+      {{/if}}
+      SecurityGroups:
+      - {{securityGroupId}}
+      UserData: {{{userData}}}
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Cooldown: {{autoScaling.cooldown}}
+      HealthCheckGracePeriod: 300
+      HealthCheckType: EC2
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      MaxSize: {{autoScaling.maxInstances}}
+      MinSize: {{autoScaling.minInstances}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+        PropagateAtLaunch: true
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{appName}}
+        PropagateAtLaunch: true
+      VPCZoneIdentifier:
+      {{#each privateSubnetIds}}
+      - {{this}}
+      {{/each}}
+
+  #
+  # Configure CodeDeploy resources
+  #
+  Application:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: {{appName}}
+  DeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    {{#if routing}}
+    DependsOn:
+    - AlbTargetGroup
+    {{/if}}
+    Properties:
+      ApplicationName: !Ref Application
+      AutoScalingGroups:
+      - !Ref AutoScalingGroup
+      Deployment:
+        Description: Handel-created deployment for '{{appName}}'
+        Revision:
+          RevisionType: S3
+          S3Location:
+            Bucket: {{s3BucketName}}
+            BundleType: zip
+            Key: {{s3KeyName}}
+      DeploymentConfigName: {{deploymentConfigName}}
+      {{#if routing}}
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+        - Name: !GetAtt AlbTargetGroup.TargetGroupName
+      {{else}}
+      DeploymentStyle:
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+        DeploymentType: IN_PLACE
+      {{/if}}
+      ServiceRoleArn: {{serviceRoleArn}}
+
+  {{#each autoScaling.scalingPolicies}}
+  #
+  # Configure user-defined scaling policies if present
+  #
+  ScalingAlarm{{@index}}:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+      - Ref: ScalingPolicy{{@index}}
+      AlarmDescription: Handel-created alarm for Beanstalk app '{{../appName}}' auto-scaling
+      ComparisonOperator: {{comparisonOperator}}
+      Dimensions:
+      {{#if dimensions}}
+      {{#each dimensions}}
+      - Name: {{name}}
+        Value: {{value}}
+      {{/each}}
+      {{else}}
+      - Name: AutoScalingGroupName
+        Value: 
+          Ref: AutoScalingGroup
+      {{/if}}
+      EvaluationPeriods: {{evaluationPeriods}}
+      {{#if scaleDown}}
+      InsufficientDataActions:
+      - Ref: ScalingPolicy{{@index}}
+      {{/if}}
+      MetricName: {{metricName}}
+      Namespace: {{namespace}}
+      Period: {{period}}
+      Statistic: {{statistic}}
+      Threshold: {{threshold}}
+  ScalingPolicy{{@index}}:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: {{adjustmentType}}
+      AutoScalingGroupName: 
+        Ref: AutoScalingGroup
+      Cooldown: {{cooldown}}
+      PolicyType: SimpleScaling
+      ScalingAdjustment: {{adjustmentValue}}
+  {{/each}}
+
+  {{#if routing}}
+  # 
+  # Configure Load Balancer if requested
+  # 
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AlbSecurityGroup
+    Properties:
+      Name: {{routing.albName}}
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: 60
+      Subnets:
+      {{#each publicSubnetIds}}
+      - {{this}}
+      {{/each}}
+      SecurityGroups:
+      - Ref: AlbSecurityGroup
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routing.albName}}
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: {{vpcId}}
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        {{#if routing.httpsCertificate}}
+        FromPort: '443'
+        ToPort: '443'
+        {{else}}
+        FromPort: '80'
+        ToPort: '80'
+        {{/if}}
+        CidrIp: 0.0.0.0/0
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routing.albName}}-alb
+  CodeDeployIngressFromAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn: AlbSecurityGroup
+    Properties:
+      GroupId: {{securityGroupId}}
+      IpProtocol: tcp
+      FromPort: '0'
+      ToPort: '65535'
+      SourceSecurityGroupId:
+        Ref: AlbSecurityGroup
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+    - AlbTargetGroup
+    - Alb
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup
+      LoadBalancerArn:
+        Ref: Alb
+      {{#if routing.httpsCertificate}}
+      Port: '443'
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: {{routing.httpsCertificate}}
+      {{else}}
+      Port: '80'
+      Protocol: HTTP
+      {{/if}}
+  AlbListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn:
+    - AlbListener
+    - AlbTargetGroup
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: AlbTargetGroup
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - "{{routing.basePath}}"
+      ListenerArn:
+        Ref: AlbListener
+      Priority: 1
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: {{routing.healthCheckPath}}
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: {{routing.albName}}
+      Port: 80
+      Protocol: HTTP
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{routing.albName}}
+      UnhealthyThresholdCount: 2
+      VpcId: {{vpcId}}
+  {{#each routing.dnsNames}}
+  DnsName{{@index}}:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      Comment: Handel-created DNS Records for {{name}}
+      HostedZoneId: {{zoneId}}
+      RecordSets:
+        - Name: {{name}}
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+        - Name: {{name}}
+          Type: AAAA
+          AliasTarget:
+            DNSName: !GetAtt Alb.DNSName
+            HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
+  {{/each}}
+Outputs:
+  ALBDnsName:
+    Description: The DNS Name of the ALB
+    Value: !GetAtt Alb.DNSName
+  AutoScalingGroupName:
+    Description: The name of the auto-scaling group
+    Value: !Ref AutoScalingGroup
+  LaunchConfigName:
+    Description: The name of the launch configuration
+    Value: !Ref LaunchConfiguration
+  {{/if}}

@@ -193,6 +193,13 @@ describe('Deploy phase common module', () => {
         });
     });
 
+    describe('getHandelUploadsBucketName', () => {
+        it('should return the name of the bucket used by Handel for application uploads', () => {
+            const bucketName = deployPhaseCommon.getHandelUploadsBucketName(accountConfig);
+            expect(bucketName).to.equal('handel-us-west-2-123456789012');
+        });
+    });
+
     describe('uploadFileToHandelBucket', () => {
         it('should upload the given file to the bucket', async () => {
             const diskFilePath = 'FakePath';

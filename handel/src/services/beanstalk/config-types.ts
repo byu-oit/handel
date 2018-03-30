@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, ServiceConfig, Tags } from '../../datatypes/index';
+import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, InstanceAutoScalingConfig, ServiceConfig, Tags } from '../../datatypes/index';
 
 export interface EbextensionsToInject {
     [ebextensionFileName: string]: string;
@@ -27,50 +27,12 @@ export interface BeanstalkServiceConfig extends ServiceConfig {
     key_name?: string;
     min_instances?: number; // TODO - This is deprecated and slated to be removed
     max_instances?: number; // TODO - This is deprecated and slated to be removed
-    auto_scaling?: BeanstalkAutoScalingConfig;
+    auto_scaling?: InstanceAutoScalingConfig;
     instance_type?: string;
     health_check_url?: string;
     routing?: BeanstalkRoutingConfig;
     environment_variables?: EnvironmentVariables;
     tags?: Tags;
-}
-
-export interface BeanstalkAutoScalingConfig {
-    min_instances: number;
-    max_instances: number;
-    scaling_policies?: BeanstalkScalingPolicyConfig[];
-}
-
-export interface BeanstalkScalingPolicyConfig {
-    type: BeanstalkScalingPolicyType;
-    adjustment: BeanstalkScalingPolicyAdjustment;
-    alarm: BeanstalkScalingPolicyAlarm;
-}
-
-export interface BeanstalkScalingPolicyAdjustment {
-    type?: string;
-    value: number;
-    cooldown?: number;
-}
-
-export interface BeanstalkScalingPolicyAlarm {
-    namespace?: string;
-    dimensions?: BeanstalkScalingPolicyAlarmDimensions;
-    metric_name: string;
-    statistic?: string;
-    threshold: number;
-    comparison_operator: string;
-    period?: number;
-    evaluation_periods?: number;
-}
-
-export interface BeanstalkScalingPolicyAlarmDimensions {
-    [key: string]: string;
-}
-
-export enum BeanstalkScalingPolicyType {
-    UP = 'up',
-    DOWN = 'down'
 }
 
 export interface BeanstalkRoutingConfig {
@@ -103,26 +65,5 @@ export interface HandlebarsBeanstalkOptionSetting {
 
 export interface HandlebarsBeanstalkAutoScalingTemplate {
     stackName: string;
-    scalingPolicies: HandlebarsBeanstalkScalingPolicy[];
-}
-
-export interface HandlebarsBeanstalkScalingPolicy {
-    adjustmentType: string;
-    adjustmentValue: number;
-    cooldown: number;
-    statistic: string;
-    comparisonOperator: string;
-    dimensions: HandlebarsBeanstalkAutoScalingDimension[] | undefined;
-    metricName: string;
-    namespace: string;
-    period: number;
-    evaluationPeriods: number;
-    threshold: number;
-    scaleUp?: boolean;
-    scaleDown?: boolean;
-}
-
-export interface HandlebarsBeanstalkAutoScalingDimension {
-    name: string;
-    value: string;
+    scalingPolicies: HandlebarsInstanceScalingPolicy[];
 }

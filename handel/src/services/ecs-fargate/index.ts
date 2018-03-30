@@ -51,23 +51,6 @@ function getTaskRoleStatements(serviceContext: ServiceContext<FargateServiceConf
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
 }
 
-async function getAssignPublicIp(subnetIds: string[]): Promise<string> {
-    const subnetsAssignPublicIp = [];
-    for(const subnetId of subnetIds) {
-        const subnet = await ec2Calls.getSubnet(subnetId);
-        if(!subnet) {
-            throw new Error(`ECS Fargate: The subnet '${subnetId}' from your account config file could not be found`);
-        }
-        subnetsAssignPublicIp.push(subnet.MapPublicIpOnLaunch);
-    }
-    const allAssignIpvaluesSame = subnetsAssignPublicIp.every( (val, i, arr) => val === arr[0] );
-    if(!allAssignIpvaluesSame) {
-        throw new Error(`ECS Fargate - You may not specify subnets in the 'private_subnets' Account Config File that have different values for auto-assigning public IP addresses`);
-    }
-
-    return subnetsAssignPublicIp[0] ? 'ENABLED' : 'DISABLED';
-}
-
 async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<string> {
     const accountConfig = ownServiceContext.accountConfig;
     const serviceParams = ownServiceContext.params;
@@ -82,7 +65,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
     const logRetention = ownServiceContext.params.log_retention_in_days;
 
     // Figure out whether the private subnets should auto-assign public IPs
-    const assignPublicIp = await getAssignPublicIp(accountConfig.private_subnets);
+    const shouldAssignPublicIp = await ec2Calls.shouldAssignPublicIp(accountConfig.private_subnets);
 
     // Create object used for templating the CloudFormation template
     const handlebarsParams: HandlebarsFargateTemplateConfig = {
@@ -105,7 +88,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
         logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
         // Default to not set, which means infinite.
         logRetentionInDays: logRetention !== 0 ? logRetention! : null,
-        assignPublicIp
+        assignPublicIp: shouldAssignPublicIp ? 'ENABLED' : 'DISABLED'
     };
 
     // Configure routing if present in any of the containers

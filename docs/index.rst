@@ -65,6 +65,7 @@ including taking care of all the tricky security bits to make the services be ab
    supported-services/alexaskillkit
    supported-services/apiaccess
    supported-services/apigateway
+   supported-services/codedeploy
    supported-services/beanstalk
    supported-services/cloudwatchevents
    supported-services/dynamodb

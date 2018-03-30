@@ -164,9 +164,7 @@ describe('fargate deployer', () => {
             const dependenciesDeployContexts = getDependenciesDeployContextsForDeploy(appName, envName);
 
             // Stub out AWS calls
-            const getSubnetStub = sandbox.stub(ec2Calls, 'getSubnet').resolves({
-                MapPublicIpOnLaunch: true
-            });
+            const assignPublicIpStub = sandbox.stub(ec2Calls, 'shouldAssignPublicIp').resolves(true);
             const createDefaultClusterStub = sandbox.stub(ecsCalls, 'createDefaultClusterIfNotExists').resolves({});
             const getHostedZonesStub = sandbox.stub(route53calls, 'listHostedZones').resolves([{
                 Id: '1',
@@ -180,7 +178,7 @@ describe('fargate deployer', () => {
             // Run the test
             const deployContext = await ecsFargate.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
-            expect(getSubnetStub.callCount).to.equal(2);
+            expect(assignPublicIpStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
             expect(createDefaultClusterStub.callCount).to.equal(1);
             expect(getHostedZonesStub.callCount).to.equal(1);

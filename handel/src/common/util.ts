@@ -19,8 +19,10 @@ import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
+import * as os from 'os';
 import pascalCase = require('pascal-case');
 import * as path from 'path';
+import * as uuid from 'uuid';
 import * as winston from 'winston';
 import { AccountConfig, HandelFile, ServiceDeployers } from '../datatypes';
 
@@ -274,4 +276,10 @@ export function deleteFolderRecursive(dirPath: string) {
  */
 export function normalizeLogicalId(id: string) {
     return pascalCase(id, undefined, true);
+}
+
+export function makeTmpDir(): string {
+    const tempDirPath = `${os.tmpdir()}/${uuid()}`;
+    fs.mkdirSync(tempDirPath);
+    return tempDirPath;
 }

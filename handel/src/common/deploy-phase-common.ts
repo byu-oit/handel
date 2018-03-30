@@ -139,8 +139,12 @@ export async function deployCloudFormationStack(stackName: string, cfTemplate: s
     }
 }
 
+export function getHandelUploadsBucketName(accountConfig: AccountConfig) {
+    return `handel-${accountConfig.region}-${accountConfig.account_id}`;
+}
+
 export async function uploadFileToHandelBucket(diskFilePath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig) {
-    const bucketName = `handel-${accountConfig.region}-${accountConfig.account_id}`;
+    const bucketName = getHandelUploadsBucketName(accountConfig);
 
     const artifactKey = `${artifactPrefix}/${s3FileName}`;
     const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region

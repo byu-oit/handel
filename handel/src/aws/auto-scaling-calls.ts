@@ -28,6 +28,72 @@ function delay(millis: number) {
     });
 }
 
+export async function setNewDesiredAndMaxValues(autoScalingGroupName: string, desiredCount: number, maxCount: number): Promise<void> {
+    const updateParams: AWS.AutoScaling.UpdateAutoScalingGroupType = {
+        AutoScalingGroupName: autoScalingGroupName,
+        DesiredCapacity: desiredCount,
+        MaxSize: maxCount
+    };
+    await awsWrapper.autoScaling.updateAutoScalingGroup(updateParams);
+}
+
+async function sleepAwait(ms: number) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+export async function waitForAllInstancesToBeReady(autoScalinGroupName: string, desiredCount: number, postWaitSleepTime: number): Promise<void> {
+    for (;;) {
+        winston.verbose('Checking auto scaling group to see if done rolling');
+        const currentGroupState = await getAutoScalingGroup(autoScalinGroupName);
+        if(!currentGroupState) {
+            throw new Error('Could not find needed auto scaling group!');
+        }
+
+        // Wait until desiredCount = autoscaling group count, and all instances are in ready state
+        if(currentGroupState.Instances && currentGroupState.Instances.length === desiredCount) {
+            winston.verbose('Number of instances equals desired count');
+            const nonReadyInstances = currentGroupState.Instances.filter(instance => instance.LifecycleState !== 'InService');
+            if(nonReadyInstances.length === 0) {
+                winston.verbose(`All instances are ready, waiting ${postWaitSleepTime / 1000} more seconds to accomodate any draining in ALBs`);
+                await sleepAwait(postWaitSleepTime); // This extra wait can be used to wait for things like ALB draining
+                break;
+            }
+        }
+
+        await sleepAwait(10000); // Check every 5 seconds
+    }
+}
+
+export async function getAutoScalingGroup(autoScalingGroupName: string): Promise<AWS.AutoScaling.AutoScalingGroup | null> {
+    const describeParams: AWS.AutoScaling.Types.AutoScalingGroupNamesType = {
+        AutoScalingGroupNames: [autoScalingGroupName]
+    };
+    const describeResponse = await awsWrapper.autoScaling.describeAutoScalingGroups(describeParams);
+    if (describeResponse.AutoScalingGroups.length > 0) {
+        return describeResponse.AutoScalingGroups[0];
+    }
+    else {
+        return null;
+    }
+}
+
+export async function getLaunchConfiguration(launchConfigName: string): Promise<AWS.AutoScaling.LaunchConfiguration | null> {
+    const describeParams = {
+        LaunchConfigurationNames: [
+            launchConfigName
+        ]
+    };
+    const describeResponse = await awsWrapper.autoScaling.describeLaunchConfigurations(describeParams);
+    if (describeResponse.LaunchConfigurations && describeResponse.LaunchConfigurations[0]) {
+        return describeResponse.LaunchConfigurations[0];
+    }
+    else {
+        return null;
+    }
+}
+
 export async function cycleInstances(instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> {
     const recycleWk = async (result: AWS.AutoScaling.ActivityType[], instancesToCycle: AWS.ECS.ContainerInstance[]): Promise<AWS.AutoScaling.ActivityType[] | null> => {
         if (instancesToCycle.length < 1) { return result; }

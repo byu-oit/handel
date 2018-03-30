@@ -21,10 +21,11 @@ import config from '../../../src/account-config/account-config';
 import * as route53 from '../../../src/aws/route53-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
+import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, InstanceScalingPolicyType, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';
-import { BeanstalkRoutingType, BeanstalkScalingPolicyType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
+import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 
 describe('beanstalk deployer', () => {
@@ -45,7 +46,7 @@ describe('beanstalk deployer', () => {
                 max_instances: 4,
                 scaling_policies: [
                     {
-                        type: BeanstalkScalingPolicyType.UP,
+                        type: InstanceScalingPolicyType.UP,
                         adjustment: {
                             value: 1,
                             cooldown: 60
@@ -59,7 +60,7 @@ describe('beanstalk deployer', () => {
                         }
                     },
                     {
-                        type: BeanstalkScalingPolicyType.DOWN,
+                        type: InstanceScalingPolicyType.DOWN,
                         adjustment: {
                             value: 1,
                             cooldown: 60
@@ -131,6 +132,7 @@ describe('beanstalk deployer', () => {
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({
                 RoleName: 'FakeServiceRole'
             });
+            const getScalingPoliciesStub = sandbox.stub(instanceAutoScaling, 'getScalingPoliciesConfig').returns({});
             const prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').resolves({
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
@@ -142,6 +144,7 @@ describe('beanstalk deployer', () => {
 
             const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
             expect(createCustomRoleStub.callCount).to.equal(1);
+            expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -151,6 +154,7 @@ describe('beanstalk deployer', () => {
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({
                 RoleName: 'FakeServiceRole'
             });
+            const getScalingPoliciesStub = sandbox.stub(instanceAutoScaling, 'getScalingPoliciesConfig').returns({});
             const prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').resolves({
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
@@ -178,6 +182,7 @@ describe('beanstalk deployer', () => {
 
             const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
             expect(createCustomRoleStub.callCount).to.equal(1);
+            expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.firstCall.args[1]).to.have.property('02dns-names.config');
             expect(deployStackStub.callCount).to.equal(1);

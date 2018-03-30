@@ -1,13 +1,13 @@
 version: 1
 
-name: beanstalk-example
+name: codedeploy-test
 
 environments:
   dev:
     webapp:
-      type: beanstalk
-      path_to_code: .
-      solution_stack: 64bit Amazon Linux 2017.03 v4.1.0 running Node.js
+      type: codedeploy
+      path_to_code: . # Required. appspec.yml must be at the root of the directory provided
+      os: linux # Required. Only Linux supported at this time
       auto_scaling:
         min_instances: 1
         max_instances: 4
@@ -30,11 +30,10 @@ environments:
             comparison_operator: LessThanThreshold
             threshold: 30
             period: 60
-      environment_variables:
-        MY_INJECTED_VAR: myValue
-      routing:
+      routing: # Optional, won't add routing if you don't specify it
         type: http
       dependencies:
-      - queue
-    queue:
-      type: sqs
+      - mount
+    mount:
+      type: efs
+      
