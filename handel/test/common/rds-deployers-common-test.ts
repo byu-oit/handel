@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../src/common/rds-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext, UnDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('RDS deployers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -37,7 +38,7 @@ describe('RDS deployers common module', () => {
 
     describe('getDeployContext', () => {
         it('should return the RDS deploy context from the service context and deployed stack', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
             const dbAddress = 'FakeAddress';
             const dbPort = 55555;
             const dbUsername = 'FakeUsername';
@@ -71,7 +72,7 @@ describe('RDS deployers common module', () => {
         it('should store the database password to the parameter store', async () => {
             const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
 
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
             const deployedStack = await rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword', {});
             expect(deployedStack).to.deep.equal({});
             expect(storeParamStub.callCount).to.equal(2);
@@ -82,7 +83,7 @@ describe('RDS deployers common module', () => {
         it('should delete the RDS parameters from the parameter store', async () => {
             const deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves(true);
 
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
             const unDeployContext = new UnDeployContext(serviceContext);
             const retUnDeployContext = await rdsDeployersCommon.deleteParametersFromParameterStore(serviceContext, unDeployContext);
             expect(retUnDeployContext).to.deep.equal(unDeployContext);

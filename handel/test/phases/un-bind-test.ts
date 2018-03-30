@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, ServiceDeployers, UnBindContext } from '../../src/datatypes';
+import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, UnBindContext } from '../../src/datatypes';
 import * as unBindPhase from '../../src/phases/un-bind';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('unBind', () => {
     let sandbox: sinon.SinonSandbox;
@@ -52,7 +53,7 @@ describe('unBind', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             // Construct ServiceContext A
@@ -63,7 +64,7 @@ describe('unBind', () => {
                 some: 'param',
                 dependencies: [serviceNameB]
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             // Set deploy order
@@ -75,7 +76,7 @@ describe('unBind', () => {
         });
 
         it('should execute UnBind on all the services in parallel', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -103,14 +104,14 @@ describe('unBind', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
             expect(unBindContexts.B).to.be.instanceof(UnBindContext);
         });
 
         it('should return emtpy unbind contexts for services that dont implement unbind', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -136,9 +137,9 @@ describe('unBind', () => {
                     supportsTagging: true,
                     // Simulating that EFS doesn't implement unbind
                 }
-            };
+            });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
             expect(unBindContexts.B).to.be.instanceof(UnBindContext);
         });
     });

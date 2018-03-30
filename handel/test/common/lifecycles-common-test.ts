@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as lifecyclesCommon from '../../src/common/lifecycles-common';
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('lifecycles common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -29,7 +30,7 @@ describe('lifecycles common module', () => {
     beforeEach(async () => {
         sandbox = sinon.sandbox.create();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -47,8 +48,8 @@ describe('lifecycles common module', () => {
         it('should return an empty bind context', async () => {
             const appName = 'FakeApp';
             const envName = 'FakeEnv';
-            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', {type: 'efs'}, accountConfig);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', {type: 'ecs'}, accountConfig);
+            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', {type: 'efs'}, accountConfig, new FakeServiceRegistry());
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', {type: 'ecs'}, accountConfig, new FakeServiceRegistry());
 
             const bindContext = await lifecyclesCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext);
             expect(bindContext).to.be.instanceof(BindContext);

@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { AccountConfig, BindContexts, DeployContexts, DeployOrder, EnvironmentContext, EnvironmentDeployResult, HandelFile, HandelFileParser, PreDeployContexts, ServiceDeployers } from '../datatypes';
+import { AccountConfig, BindContexts, DeployContexts, DeployOrder, EnvironmentContext, EnvironmentDeployResult, HandelFile, HandelFileParser, PreDeployContexts} from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
 import * as bindPhase from '../phases/bind';
 import * as checkPhase from '../phases/check';
@@ -25,26 +26,26 @@ import * as deployPhase from '../phases/deploy';
 import * as preDeployPhase from '../phases/pre-deploy';
 import * as produceEventsPhase from '../phases/produce-events';
 
-async function setupEventBindings(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
-    const consumeEventsContexts = await consumeEventsPhase.consumeEvents(serviceDeployers, environmentContext, deployContexts);
-    const produceEventsContexts = await produceEventsPhase.produceEvents(serviceDeployers, environmentContext, deployContexts);
+async function setupEventBindings(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
+    const consumeEventsContexts = await consumeEventsPhase.consumeEvents(serviceRegistry, environmentContext, deployContexts);
+    const produceEventsContexts = await produceEventsPhase.produceEvents(serviceRegistry, environmentContext, deployContexts);
     return {
         consumeEventsContexts: consumeEventsContexts,
         produceEventsContexts: produceEventsContexts
     };
 }
 
-async function bindAndDeployServices(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder) {
+async function bindAndDeployServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder) {
     const bindContexts: BindContexts = {};
     const deployContexts: DeployContexts = {};
     for (let currentLevel = 0; deployOrder[currentLevel]; currentLevel++) {
-        const levelBindResults = await bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, currentLevel);
+        const levelBindResults = await bindPhase.bindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, currentLevel);
         for (const serviceName in levelBindResults) {
             if (levelBindResults.hasOwnProperty(serviceName)) {
                 bindContexts[serviceName] = levelBindResults[serviceName];
             }
         }
-        const levelDeployResults = await deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, currentLevel);
+        const levelDeployResults = await deployPhase.deployServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployContexts, deployOrder, currentLevel);
         for (const serviceName in levelDeployResults) {
             if (levelDeployResults.hasOwnProperty(serviceName)) {
                 deployContexts[serviceName] = levelDeployResults[serviceName];
@@ -62,22 +63,22 @@ async function bindAndDeployServices(serviceDeployers: ServiceDeployers, environ
 /**
  * Performs the actual deploy
  */
-async function deployEnvironment(accountConfig: AccountConfig, serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext): Promise<EnvironmentDeployResult> {
+async function deployEnvironment(accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<EnvironmentDeployResult> {
     if (!accountConfig || !environmentContext) {
         return Promise.resolve(new EnvironmentDeployResult('failure', 'Invalid configuration'));
     }
     else {
         winston.info(`Starting deploy for environment ${environmentContext.environmentName}`);
 
-        const errors = checkPhase.checkServices(serviceDeployers, environmentContext);
+        const errors = await checkPhase.checkServices(serviceRegistry, environmentContext);
         if (errors.length === 0) {
             try {
                 // Run pre-deploy (all services get run in parallel, regardless of level)
-                const preDeployResults = await preDeployPhase.preDeployServices(serviceDeployers, environmentContext);
+                const preDeployResults = await preDeployPhase.preDeployServices(serviceRegistry, environmentContext);
                 // Deploy services (this will be done ordered levels at a time)
                 const deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
-                const bindAndDeployResults = await bindAndDeployServices(serviceDeployers, environmentContext, preDeployResults, deployOrder);
-                const eventBindingResults = await setupEventBindings(serviceDeployers, environmentContext, bindAndDeployResults.deployContexts);
+                const bindAndDeployResults = await bindAndDeployServices(serviceRegistry, environmentContext, preDeployResults, deployOrder);
+                const eventBindingResults = await setupEventBindings(serviceRegistry, environmentContext, bindAndDeployResults.deployContexts);
                 return new EnvironmentDeployResult('success', 'Success');
             }
             catch (err) {
@@ -90,12 +91,12 @@ async function deployEnvironment(accountConfig: AccountConfig, serviceDeployers:
     }
 }
 
-export async function deploy(accountConfig: AccountConfig, handelFile: HandelFile, environmentsToDeploy: string[], handelFileParser: HandelFileParser, serviceDeployers: ServiceDeployers): Promise<EnvironmentDeployResult[]> {
+export async function deploy(accountConfig: AccountConfig, handelFile: HandelFile, environmentsToDeploy: string[], handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): Promise<EnvironmentDeployResult[]> {
     // Check current credentials against the accountConfig
     const envDeployPromises: Array<Promise<EnvironmentDeployResult>> = [];
     for (const environmentToDeploy of environmentsToDeploy) {
         const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDeploy, accountConfig);
-        envDeployPromises.push(deployEnvironment(accountConfig, serviceDeployers, environmentContext));
+        envDeployPromises.push(deployEnvironment(accountConfig, serviceRegistry, environmentContext));
     }
     return Promise.all(envDeployPromises);
 }

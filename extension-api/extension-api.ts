@@ -77,6 +77,13 @@ export interface AccountConfig {
 /***********************************
  * Types for the context objects used by service deployers
  ***********************************/
+
+export interface ServiceRegistry {
+    findDeployerFor(prefix: string, name: string): ServiceDeployer;
+    hasService(prefix: string, name: string): boolean;
+    validPrefixes(): Set<string>;
+}
+
 export interface ServiceContext<Config extends ServiceConfig> {
     appName: string;
     environmentName: string;
@@ -84,6 +91,7 @@ export interface ServiceContext<Config extends ServiceConfig> {
     serviceType: string;
     params: Config;
     accountConfig: AccountConfig;
+    serviceRegistry: ServiceRegistry;
     tags: Tags;
 }
 

@@ -25,6 +25,7 @@ import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as util from '../../src/common/util';
 import {AccountConfig, DeployContext, ServiceConfig, ServiceContext} from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('Deploy phase common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +39,7 @@ describe('Deploy phase common module', () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         accountConfig = retAccountConfig;
-        serviceContext = new ServiceContext(appName, envName, serviceName, 'FakeType', {type: 'FakeType'}, retAccountConfig);
+        serviceContext = new ServiceContext(appName, envName, serviceName, 'FakeType', {type: 'FakeType'}, retAccountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -72,14 +73,14 @@ describe('Deploy phase common module', () => {
     describe('getEnvVarsFromDependencyDeployContexts', () => {
         it('should return an object with the env vars from all given DeployContexts', () => {
             const deployContexts = [];
-            const serviceContext1 = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService1', 'FakeType1', {type: 'FakeType1'}, serviceContext.accountConfig);
+            const serviceContext1 = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService1', 'FakeType1', {type: 'FakeType1'}, serviceContext.accountConfig, new FakeServiceRegistry());
             const deployContext1 = new DeployContext(serviceContext1);
             const envVarName1 = 'ENV_VAR_1';
             const envVarValue1 = 'someValue1';
             deployContext1.environmentVariables[envVarName1] = envVarValue1;
             deployContexts.push(deployContext1);
 
-            const serviceContext2 = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', {type: 'FakeType2'}, serviceContext.accountConfig);
+            const serviceContext2 = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', {type: 'FakeType2'}, serviceContext.accountConfig, new FakeServiceRegistry());
             const deployContext2 = new DeployContext(serviceContext2);
             const envVarName2 = 'ENV_VAR_2';
             const envVarValue2 = 'someValue2';
@@ -135,7 +136,7 @@ describe('Deploy phase common module', () => {
             }];
 
             const dependenciesDeployContexts = [];
-            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'sqs', {type: 'sqs'}, serviceContext.accountConfig);
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'sqs', {type: 'sqs'}, serviceContext.accountConfig, new FakeServiceRegistry());
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.policies.push({
                 'Effect': 'Allow',

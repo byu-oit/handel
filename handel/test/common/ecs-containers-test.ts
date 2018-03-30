@@ -21,8 +21,9 @@ import config from '../../src/account-config/account-config';
 import * as ecsContainers from '../../src/common/ecs-containers';
 import * as ecsRouting from '../../src/common/ecs-routing';
 import * as ecsVolumes from '../../src/common/ecs-volumes';
-import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, DeployContext, ServiceContext } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('ecs containers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -63,7 +64,7 @@ describe('ecs containers common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig, {});
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -75,7 +76,7 @@ describe('ecs containers common module', () => {
             const getMountPointsStub = sandbox.stub(ecsVolumes, 'getMountPointsForContainer').returns([]);
             const getRoutingInfoStub = sandbox.stub(ecsRouting, 'getRoutingInformationForContainer').returns([]);
 
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'efs', { type: 'efs' }, accountConfig, {});
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'efs', { type: 'efs' }, accountConfig, new FakeServiceRegistry());
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             const containerConfigs = ecsContainers.getContainersConfig(serviceContext, [dependencyDeployContext], 'FakeClusterName');
 

@@ -21,10 +21,9 @@ import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
 import pascalCase = require('pascal-case');
-import * as path from 'path';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelFile, ServiceDeployers } from '../datatypes';
+import { AccountConfig, HandelFile } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {
@@ -142,24 +141,6 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string) {
             reject(err);
         });
     });
-}
-
-/**
- * Reads all the service deployer modules out of the 'services' directory
- */
-export function getServiceDeployers(): ServiceDeployers {
-    const deployers: ServiceDeployers = {};
-
-    const servicesPath = path.join(__dirname, '../services');
-    const serviceTypes = fs.readdirSync(servicesPath);
-    serviceTypes.forEach(serviceType => {
-        const servicePath = `${servicesPath}/${serviceType}`;
-        if (fs.lstatSync(servicePath).isDirectory()) {
-            deployers[serviceType] = require(servicePath);
-        }
-    });
-
-    return deployers;
 }
 
 /**
@@ -282,4 +263,8 @@ export function makeTmpDir(): string {
     const tempDirPath = `${os.tmpdir()}/${uuid()}`;
     fs.mkdirSync(tempDirPath);
     return tempDirPath;
+}
+
+export function documentationUrl(path: string) {
+    return `https://handel.readthedocs.io/en/latest/${path}`;
 }

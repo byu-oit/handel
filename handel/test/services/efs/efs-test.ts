@@ -25,6 +25,7 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as efs from '../../../src/services/efs';
 import { EfsPerformanceMode, EfsServiceConfig } from '../../../src/services/efs/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('efs deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -40,7 +41,7 @@ describe('efs deployer', () => {
         serviceParams = {
             type: 'efs'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -80,7 +81,7 @@ describe('efs deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', { type: 'ecs' }, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', { type: 'ecs' }, accountConfig, new FakeServiceRegistry());
 
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 

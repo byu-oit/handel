@@ -17,8 +17,9 @@
 import { expect } from 'chai';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceContext, ServiceDeployers, UnPreDeployContext } from '../../src/datatypes';
+import { AccountConfig, EnvironmentContext, ServiceContext, UnPreDeployContext } from '../../src/datatypes';
 import * as unPreDeployPhase from '../../src/phases/un-pre-deploy';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('preDeploy', () => {
     let accountConfig: AccountConfig;
@@ -45,7 +46,7 @@ describe('preDeploy', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             // Construct ServiceContext A
@@ -56,12 +57,12 @@ describe('preDeploy', () => {
                 some: 'param',
                 dependencies: [serviceNameB]
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
         });
 
         it('should execute unpredeploy on all services, even across levels', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -89,15 +90,15 @@ describe('preDeploy', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const unPreDeployContexts = await unPreDeployPhase.unPreDeployServices(serviceDeployers, environmentContext);
+            const unPreDeployContexts = await unPreDeployPhase.unPreDeployServices(serviceRegistry, environmentContext);
             expect(unPreDeployContexts[serviceNameA]).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployContexts[serviceNameB]).to.be.instanceof(UnPreDeployContext);
         });
 
         it('should return empty unpredeploy contexts for deployers that dont implement unpredeploy', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -123,9 +124,9 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                     // Simulating that ECS doesn't implement unpredeploy
                 }
-            };
+            });
 
-            const unPreDeployContexts = await unPreDeployPhase.unPreDeployServices(serviceDeployers, environmentContext);
+            const unPreDeployContexts = await unPreDeployPhase.unPreDeployServices(serviceRegistry, environmentContext);
             expect(unPreDeployContexts[serviceNameA]).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployContexts[serviceNameB]).to.be.instanceof(UnPreDeployContext);
         });

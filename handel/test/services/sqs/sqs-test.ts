@@ -24,6 +24,7 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as sqs from '../../../src/services/sqs';
 import { SqsServiceConfig } from '../../../src/services/sqs/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('sqs deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -53,7 +54,7 @@ describe('sqs deployer', () => {
                 visibility_timeout: 40
             }
         };
-        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, serviceParams, accountConfig, new FakeServiceRegistry());
         sandbox = sinon.sandbox.create();
     });
 
@@ -141,7 +142,7 @@ describe('sqs deployer', () => {
         });
 
         it('should consume from SNS event services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'sns', { type: 'sns' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'sns', { type: 'sns' }, accountConfig, new FakeServiceRegistry());
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
 
@@ -153,7 +154,7 @@ describe('sqs deployer', () => {
         });
 
         it('should consume from S3 event services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig, new FakeServiceRegistry());
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
 
@@ -165,7 +166,7 @@ describe('sqs deployer', () => {
         });
 
         it('should throw an error because SQS cant consume other services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig, new FakeServiceRegistry());
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.otherArn = 'FakeArn';
 

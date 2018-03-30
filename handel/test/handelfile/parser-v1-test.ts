@@ -15,19 +15,21 @@
  *
  */
 import { expect } from 'chai';
+import {ServiceRegistry} from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, HandelFile, ServiceDeployers } from '../../src/datatypes/index';
+import { AccountConfig, HandelFile } from '../../src/datatypes';
 import * as parserV1 from '../../src/handelfile/parser-v1';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('parser-v1', () => {
-    let serviceDeployers: ServiceDeployers;
+    let serviceRegistry: ServiceRegistry;
     let accountConfig: AccountConfig;
 
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
 
-        serviceDeployers = {
+        serviceRegistry = new FakeServiceRegistry({
             lambda: {
                 producedDeployOutputTypes: [],
                 consumedDeployOutputTypes: [
@@ -78,7 +80,7 @@ describe('parser-v1', () => {
                 producedEventsSupportedServices: [],
                 supportsTagging: true,
             }
-        };
+        });
     });
 
     describe('validateHandelFile', () => {
@@ -105,152 +107,152 @@ describe('parser-v1', () => {
             };
         });
 
-        it('should complain about a missing version', () => {
+        it('should complain about a missing version', async () => {
             delete validHandelFile.version;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'version\' field is required');
         });
 
-        it('should complain about a missing name field', () => {
+        it('should complain about a missing name field', async () => {
             delete validHandelFile.name;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'name\' field is required');
         });
 
-        it('should complain about a name field that doesnt match the regex', () => {
+        it('should complain about a name field that doesnt match the regex', async () => {
             validHandelFile.name = 'invalid_name';
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'name\' field may only use alphanumeric characters and dashes');
         });
 
-        it('should complain about a name field that is too long', () => {
+        it('should complain about a name field that is too long', async () => {
             validHandelFile.name = 'thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday';
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'name\' field may not be greater');
         });
 
-        it('should complain about a tag key that is too long', () => {
+        it('should complain about a tag key that is too long', async () => {
             const tooLongName = 'a'.repeat(200);
             validHandelFile.tags = { [tooLongName] : 'foo'};
 
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('maximum of 127 characters');
         });
 
-        it('should complain about a tag key that has invalid characters', () => {
+        it('should complain about a tag key that has invalid characters', async () => {
             validHandelFile.tags = { 'aa{}' : 'foo'};
 
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('consisting of numbers, letters, and some special characters');
         });
 
-        it('should complain about an empty tag value', () => {
+        it('should complain about an empty tag value', async () => {
             validHandelFile.tags = {'tag': ''};
 
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Tag values must have at least 1 character');
         });
 
-        it('should complain about tag values that are too long', () => {
+        it('should complain about tag values that are too long', async () => {
             validHandelFile.tags = {'tag': 'a'.repeat(256)};
 
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Tag values may contain a maximum of 255 characters');
         });
 
-        it('should complain about a missing environments field', () => {
+        it('should complain about a missing environments field', async () => {
             delete validHandelFile.environments;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'environments\' field is required');
         });
 
-        it('should complain about an empty environments field', () => {
+        it('should complain about an empty environments field', async () => {
             validHandelFile.environments = {};
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'environments\' field must contain at least 1 environment definition');
         });
 
-        it('should complain about an environment name that contains the wrong characters', () => {
+        it('should complain about an environment name that contains the wrong characters', async () => {
             validHandelFile.environments.dev_test = validHandelFile.environments.dev;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Environment name fields may only contain alphanumeric characters and dashes, and be no greater than 10 characters in length');
         });
 
-        it('should complain about an environment name that is too long', () => {
+        it('should complain about an environment name that is too long', async () => {
             validHandelFile.environments.thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday = validHandelFile.environments.dev;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Environment name fields may only contain alphanumeric characters and dashes, and be no greater than 10 characters in length');
         });
 
-        it('should complain about a service name that contains the wrong characters', () => {
+        it('should complain about a service name that contains the wrong characters', async () => {
             validHandelFile.environments.dev.other_service = validHandelFile.environments.dev.webapp;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Service name fields may only contain alphanumeric characters and dashes, and be no greater than 20 characters in length');
         });
 
-        it('should complain about a service name that is too long', () => {
+        it('should complain about a service name that is too long', async () => {
             validHandelFile.environments.dev.thisfieldiswaytolongofanameanditisgettinglongerandlongerbytheday = validHandelFile.environments.dev.webapp;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Service name fields may only contain alphanumeric characters and dashes, and be no greater than 20 characters in length');
         });
 
-        it('should complain about a service that doesnt contain the type field', () => {
+        it('should complain about a service that doesnt contain the type field', async () => {
             delete validHandelFile.environments.dev.webapp.type;
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'type\' field is required in each service definition');
         });
 
-        it('should not allow the app name handel to be specified', () => {
+        it('should not allow the app name handel to be specified', async () => {
             validHandelFile.name = 'handel';
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`You may not use the name 'handel' for your app name`);
         });
 
-        it('should complain if an unsupported service type is specified', () => {
+        it('should complain if an unsupported service type is specified', async () => {
             validHandelFile.environments.dev.webapp.type = 'unsupportedtype';
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('Unsupported service type specified');
         });
 
-        it('should complain about a service that depends on a service it cant consume', () => {
+        it('should complain about a service that depends on a service it cant consume', async () => {
             validHandelFile.environments.dev.table.dependencies = [
                 'webapp' // Dynamo can't depend on API Gateway
             ];
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'apigateway\' service type is not consumable by the \'dynamodb\' service type');
         });
 
-        it('should complain about a service that produces events to a service that cant consume them', () => {
+        it('should complain about a service that produces events to a service that cant consume them', async () => {
             validHandelFile.environments.dev.table.event_consumers = [
                 {
                     service_name: 'webapp'
                 }
             ];
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'apigateway\' service type can\'t consume events from the \'dynamodb\' service type');
         });
 
-        it('should work on a handel file that has valid top-level information', () => {
-            const errors = parserV1.validateHandelFile(validHandelFile, serviceDeployers);
+        it('should work on a handel file that has valid top-level information', async () => {
+            const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(0);
         });
     });
@@ -268,7 +270,7 @@ describe('parser-v1', () => {
                     }
                 }
             };
-            const environmentContext = parserV1.createEnvironmentContext(handelFile, 'dev', accountConfig);
+            const environmentContext = parserV1.createEnvironmentContext(handelFile, 'dev', accountConfig, new FakeServiceRegistry());
             expect(environmentContext.appName).to.equal('test');
             expect(environmentContext.environmentName).to.equal('dev');
             expect(environmentContext.serviceContexts.A.serviceType).to.equal('dynamodb');

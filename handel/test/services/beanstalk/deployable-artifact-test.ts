@@ -26,6 +26,7 @@ import { AccountConfig, ServiceContext } from '../../../src/datatypes';
 import { BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 import * as ebextensions from '../../../src/services/beanstalk/ebextensions';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('deployable artifact module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -41,7 +42,7 @@ describe('deployable artifact module', () => {
             path_to_code: '.',
             solution_stack: 'FakeStack'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'beanstalk', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'beanstalk', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {

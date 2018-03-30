@@ -20,8 +20,8 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import * as util from '../../common/util';
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
+import { DEFAULT_EXTENSION_PREFIX } from '../../service-registry';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from './swagger/swagger-deploy-type';
@@ -38,9 +38,9 @@ function checkCommon(serviceContext: ServiceContext<APIGatewayConfig>, dependenc
     }
 
     if (dependenciesServiceContexts) {
-        const serviceDeployers = util.getServiceDeployers();
         dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            if (serviceDeployers[dependencyServiceContext.serviceType].producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
+            const deployer = serviceContext.serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, dependencyServiceContext.serviceType);
+            if (deployer.producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
                 errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
             }
         });

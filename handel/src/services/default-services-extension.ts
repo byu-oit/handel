@@ -16,17 +16,33 @@
  */
 
 import * as fs from 'fs-extra';
-import { ExtensionContext } from 'handel-extension-api';
+import {ExtensionContext} from 'handel-extension-api';
 import * as path from 'path';
 
 export async function loadHandelExtension(context: ExtensionContext) {
+    for (const service of await listDefaultServices()) {
+        context.service(service.name, await import(service.path));
+    }
+}
+
+export interface DefaultService {
+    name: string;
+    path: string;
+}
+
+export async function listDefaultServices(): Promise<DefaultService[]> {
     const servicesPath = __dirname;
     const serviceTypes = await fs.readdir(servicesPath);
 
+    const result = [];
     for (const serviceType of serviceTypes) {
         const servicePath = path.join(servicesPath, serviceType);
         if ((await fs.lstat(servicePath)).isDirectory()) {
-            context.service(serviceType, await import(servicePath));
+            result.push({
+                name: serviceType,
+                path: servicePath,
+            });
         }
     }
+    return result;
 }

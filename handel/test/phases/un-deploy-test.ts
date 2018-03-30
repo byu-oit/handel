@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceContext, ServiceDeployers, UnDeployContext } from '../../src/datatypes';
+import { AccountConfig, EnvironmentContext, ServiceContext, UnDeployContext } from '../../src/datatypes';
 import * as unDeployPhase from '../../src/phases/un-deploy';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('unDeploy', () => {
     let sandbox: sinon.SinonSandbox;
@@ -47,7 +48,7 @@ describe('unDeploy', () => {
             type: serviceTypeB,
             other: 'param'
         };
-        const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
+        const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
         environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
         // Construct ServiceContext A
@@ -58,7 +59,7 @@ describe('unDeploy', () => {
             some: 'param',
             dependencies: [serviceNameB]
         };
-        const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
+        const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
         environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
         // Set deploy order
@@ -69,7 +70,7 @@ describe('unDeploy', () => {
         const levelToUnDeploy = 1;
 
         it('should UnDeploy the services in the given level', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -97,14 +98,14 @@ describe('unDeploy', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const unDeployContexts = await unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnDeploy);
+            const unDeployContexts = await unDeployPhase.unDeployServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnDeploy);
             expect(unDeployContexts[serviceNameA]).to.be.instanceOf(UnDeployContext);
         });
 
         it('should return emtpy undeploy contexts for services that dont implment undeploy', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -130,9 +131,9 @@ describe('unDeploy', () => {
                     supportsTagging: true,
                     // Simulating that ECS doesn't implement undeploy
                 }
-            };
+            });
 
-            const unDeployContexts = await unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnDeploy);
+            const unDeployContexts = await unDeployPhase.unDeployServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnDeploy);
             expect(unDeployContexts[serviceNameA]).to.be.instanceOf(UnDeployContext);
         });
     });

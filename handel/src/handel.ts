@@ -99,7 +99,7 @@ export async function run() {
             }
             break;
         case 'check':
-            cli.checkAction(handelFile, argv);
+            await cli.checkAction(handelFile, argv);
             break;
         case 'delete':
             errors = cli.validateDeleteArgs(argv, handelFile);

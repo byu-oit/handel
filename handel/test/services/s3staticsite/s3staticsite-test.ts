@@ -27,6 +27,7 @@ import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as s3StaticSite from '../../../src/services/s3staticsite';
 import { S3StaticSiteServiceConfig } from '../../../src/services/s3staticsite/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('s3staticsite deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -40,7 +41,7 @@ describe('s3staticsite deployer', () => {
             type: 's3staticsite',
             path_to_code: '.',
         };
-        ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3staticsite', serviceParams, accountConfig);
+        ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3staticsite', serviceParams, accountConfig, new FakeServiceRegistry());
         sandbox = sinon.sandbox.create();
     });
 

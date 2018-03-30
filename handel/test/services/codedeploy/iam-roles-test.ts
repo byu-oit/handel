@@ -24,6 +24,7 @@ import * as util from '../../../src/common/util';
 import { AccountConfig, DeployContext, InstanceScalingPolicyType, ServiceContext } from '../../../src/datatypes';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('codedeploy asg-launchconfig config module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +39,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             path_to_code: '.',
             os: 'linux'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, new FakeServiceRegistry());
         sandbox = sinon.sandbox.create();
     });
 

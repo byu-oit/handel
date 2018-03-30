@@ -14,20 +14,21 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { AccountConfig, DeployOrder, EnvironmentContext, EnvironmentDeleteResult, HandelFile, HandelFileParser, ServiceDeployers, UnBindContexts, UnDeployContexts } from '../datatypes';
+import { AccountConfig, DeployOrder, EnvironmentContext, EnvironmentDeleteResult, HandelFile, HandelFileParser, UnBindContexts, UnDeployContexts } from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
 import * as unBindPhase from '../phases/un-bind';
 import * as unDeployPhase from '../phases/un-deploy';
 import * as unPreDeployPhase from '../phases/un-pre-deploy';
 
-async function unDeployAndUnBindServices(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployOrder: DeployOrder) {
+async function unDeployAndUnBindServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder) {
     const unBindContexts: UnBindContexts = {};
     const unDeployContexts: UnDeployContexts = {};
     for (let currentLevel = deployOrder.length - 1; deployOrder[currentLevel]; currentLevel--) {
         // Un-deploy all services in the current level
-        const levelUnDeployResults = await unDeployPhase.unDeployServicesInLevel(serviceDeployers, environmentContext, deployOrder, currentLevel);
+        const levelUnDeployResults = await unDeployPhase.unDeployServicesInLevel(serviceRegistry, environmentContext, deployOrder, currentLevel);
         for (const serviceName in levelUnDeployResults) {
             if (levelUnDeployResults.hasOwnProperty(serviceName)) {
                 unDeployContexts[serviceName] = levelUnDeployResults[serviceName];
@@ -35,7 +36,7 @@ async function unDeployAndUnBindServices(serviceDeployers: ServiceDeployers, env
         }
 
         // Un-bind all services in the current level
-        const levelUnBindResults = await unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, currentLevel);
+        const levelUnBindResults = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, currentLevel);
         for (const serviceName in levelUnBindResults) {
             if (levelUnBindResults.hasOwnProperty(serviceName)) {
                 unBindContexts[serviceName] = levelUnBindResults[serviceName];
@@ -49,7 +50,7 @@ async function unDeployAndUnBindServices(serviceDeployers: ServiceDeployers, env
     };
 }
 
-async function deleteEnvironment(accountConfig: AccountConfig, serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext): Promise<EnvironmentDeleteResult> {
+async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<EnvironmentDeleteResult> {
     if (!accountConfig || !environmentContext) {
         return new EnvironmentDeleteResult('failure', 'Invalid configuration');
     }
@@ -58,8 +59,8 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceDeployers:
 
         try {
             const deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
-            const unDeployAndUnBindResults = await unDeployAndUnBindServices(serviceDeployers, environmentContext, deployOrder);
-            const unPreDeployResults = await unPreDeployPhase.unPreDeployServices(serviceDeployers, environmentContext);
+            const unDeployAndUnBindResults = await unDeployAndUnBindServices(serviceRegistry, environmentContext, deployOrder);
+            const unPreDeployResults = await unPreDeployPhase.unPreDeployServices(serviceRegistry, environmentContext);
             return new EnvironmentDeleteResult('success', 'Success');
         }
         catch (err) {
@@ -68,8 +69,8 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceDeployers:
     }
 }
 
-export async function deleteEnv(accountConfig: AccountConfig, handelFile: HandelFile, environmentToDelete: string, handelFileParser: HandelFileParser, serviceDeployers: ServiceDeployers): Promise<EnvironmentDeleteResult> {
+export async function deleteEnv(accountConfig: AccountConfig, handelFile: HandelFile, environmentToDelete: string, handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): Promise<EnvironmentDeleteResult> {
     // Run the delete on the environment specified
     const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDelete, accountConfig);
-    return deleteEnvironment(accountConfig, serviceDeployers, environmentContext);
+    return deleteEnvironment(accountConfig, serviceRegistry, environmentContext);
 }

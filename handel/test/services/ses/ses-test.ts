@@ -22,6 +22,7 @@ import * as sesCalls from '../../../src/aws/ses-calls';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext } from '../../../src/datatypes';
 import * as ses from '../../../src/services/ses';
 import { SesServiceConfig } from '../../../src/services/ses/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('ses deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +39,7 @@ describe('ses deployer', () => {
             type: 'ses',
             address: 'user@example.com'
         };
-        serviceContext = new ServiceContext(app, env, service, 'ses', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(app, env, service, 'ses', serviceParams, accountConfig, new FakeServiceRegistry());
         sandbox = sinon.sandbox.create();
     });
 

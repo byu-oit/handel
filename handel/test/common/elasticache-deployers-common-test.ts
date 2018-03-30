@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as elasticacheDeployersCommon from '../../src/common/elasticache-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('elasticache deployers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -36,7 +37,7 @@ describe('elasticache deployers common module', () => {
 
     describe('getClusterName', () => {
         it('should return the shortened cluster name from the ServiceContext, removing hyphens in the segments', () => {
-            const serviceContext = new ServiceContext('My-FakeAppWithALongNameWithManyCharacters', 'MyLongEnvName', 'MyLongishServiceName', 'redis', {type: 'redis'}, accountConfig);
+            const serviceContext = new ServiceContext('My-FakeAppWithALongNameWithManyCharacters', 'MyLongEnvName', 'MyLongishServiceName', 'redis', {type: 'redis'}, accountConfig, new FakeServiceRegistry());
             const clusterName = elasticacheDeployersCommon.getClusterName(serviceContext);
             expect(clusterName).to.equal('MyFakeAp-MyL-MyLong');
         });

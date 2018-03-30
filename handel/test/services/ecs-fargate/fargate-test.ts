@@ -32,6 +32,7 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as ecsFargate from '../../../src/services/ecs-fargate';
 import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 const VALID_FARGATE_CONFIG: FargateServiceConfig = {
     type: 'ecs-fargate',
@@ -79,7 +80,7 @@ describe('fargate deployer', () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_FARGATE_CONFIG);
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs-fargate', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs-fargate', serviceParams, accountConfig, new FakeServiceRegistry());
 
     });
 
@@ -133,7 +134,7 @@ describe('fargate deployer', () => {
             const dependency1ServiceName = 'Dependency1Service';
             const dependency1ServiceType = 'dynamodb';
             const dependency1Params = { type: 'dynamodb' };
-            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig));
+            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig, new FakeServiceRegistry()));
             dependenciesDeployContexts.push(dependency1DeployContext);
             const envVarName = 'DYNAMODB_SOME_VAR';
             const envVarValue = 'SomeValue';
@@ -152,7 +153,7 @@ describe('fargate deployer', () => {
             const dependency2ServiceName = 'Dependency2Service';
             const dependency2ServiceType = 'efs';
             const dependency2Params = { type: 'efs' };
-            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig));
+            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig, new FakeServiceRegistry()));
             dependenciesDeployContexts.push(dependency2DeployContext);
             const scriptContents = 'SOME SCRIPT';
             dependency2DeployContext.scripts.push(scriptContents);

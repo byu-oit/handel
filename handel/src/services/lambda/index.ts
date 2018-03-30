@@ -40,6 +40,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from '../../datatypes';
+import { DEFAULT_EXTENSION_PREFIX } from '../../service-registry';
 import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
 
 const SERVICE_NAME = 'Lambda';
@@ -223,7 +224,6 @@ async function addOtherPermissions(producerServiceType: string, producerServiceC
  */
 
 export function check(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const serviceDeployers = util.getServiceDeployers();
     const errors: string[] = [];
 
     const serviceParams = serviceContext.params;
@@ -238,7 +238,8 @@ export function check(serviceContext: ServiceContext<LambdaServiceConfig>, depen
     }
     if (dependenciesServiceContexts) {
         dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            if (serviceDeployers[dependencyServiceContext.serviceType].producedDeployOutputTypes.indexOf('securityGroups') !== -1 && !serviceParams.vpc) {
+            const deployer = serviceContext.serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, dependencyServiceContext.serviceType);
+            if (deployer.producedDeployOutputTypes.indexOf('securityGroups') !== -1 && !serviceParams.vpc) {
                 errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
             }
         });

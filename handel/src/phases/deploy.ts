@@ -14,12 +14,13 @@
  * limitations under the License.
  *
  */
-import * as _ from 'lodash';
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployContext, DeployContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceConfig, ServiceContext, ServiceDeployers } from '../datatypes';
+import { DeployContext, DeployContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceConfig, ServiceContext } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
-function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: PreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceDeployers: ServiceDeployers): DeployContext[] {
+function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: PreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): DeployContext[] {
     const dependenciesDeployContexts: DeployContext[] = [];
 
     const serviceToDeployDependencies: string[] | undefined = toDeployServiceContext.params.dependencies;
@@ -35,7 +36,7 @@ function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<Serv
     return dependenciesDeployContexts;
 }
 
-export async function deployServicesInLevel(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployContexts: DeployContexts, deployOrder: DeployOrder, level: number): Promise<DeployContexts> {
+export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployContexts: DeployContexts, deployOrder: DeployOrder, level: number): Promise<DeployContexts> {
     const serviceDeployPromises = [];
     const levelDeployContexts: DeployContexts = {};
 
@@ -46,10 +47,10 @@ export async function deployServicesInLevel(serviceDeployers: ServiceDeployers, 
         const toDeployServiceContext = environmentContext.serviceContexts[toDeployServiceName];
         const toDeployPreDeployContext = preDeployContexts[toDeployServiceName];
 
-        const serviceDeployer = serviceDeployers[toDeployServiceContext.serviceType];
+        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toDeployServiceContext.serviceType);
 
         // Get all the DeployContexts for services that this service being deployed depends on
-        const dependenciesDeployContexts = getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceDeployers);
+        const dependenciesDeployContexts = getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceRegistry);
         winston.debug(`Deploying service ${toDeployServiceName}`);
         if (serviceDeployer.deploy) {
             const serviceDeployPromise = serviceDeployer.deploy(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts)

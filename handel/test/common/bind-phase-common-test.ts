@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as bindPhaseCommon from '../../src/common/bind-phase-common';
 import { AccountConfig, BindContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from "../service-registry/fake-service-registry";
 
 describe('bind phases common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -32,7 +33,7 @@ describe('bind phases common module', () => {
     beforeEach(async () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`)
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', {type: 'mysql'}, retAccountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', {type: 'mysql'}, retAccountConfig, new FakeServiceRegistry());
         accountConfig = retAccountConfig;
     });
 
@@ -47,7 +48,7 @@ describe('bind phases common module', () => {
                 GroupId: 'FakeId'
             });
 
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentOfService', 'ecs', {type: 'ecs'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentOfService', 'ecs', {type: 'ecs'}, accountConfig, new FakeServiceRegistry());
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             dependentOfPreDeployContext.securityGroups.push({
                 GroupId: 'OtherId'

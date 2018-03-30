@@ -14,8 +14,9 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as util from '../common/util';
-import { AccountConfig, EnvironmentsCheckResults, HandelFile, HandelFileParser, ServiceDeployers } from '../datatypes/index';
+import { AccountConfig, EnvironmentsCheckResults, HandelFile, HandelFileParser} from '../datatypes';
 import * as checkPhase from '../phases/check';
 
 // TODO - This is ugly having to inject a fake account config just to run a check. We should refactor not to have to do this.
@@ -37,12 +38,12 @@ const fakeAccountConfig: AccountConfig = {
     redshift_subnet_group: 'fake-subnet-group'
 };
 
-export function check(handelFile: HandelFile, handelFileParser: HandelFileParser, serviceDeployers: ServiceDeployers): EnvironmentsCheckResults {
+export function check(handelFile: HandelFile, handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): EnvironmentsCheckResults {
     const errors: EnvironmentsCheckResults = {};
     for (const environmentToCheck in handelFile.environments) {
         if (handelFile.environments.hasOwnProperty(environmentToCheck)) {
             const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToCheck, fakeAccountConfig); // Use fake account config for now during check
-            errors[environmentToCheck] = checkPhase.checkServices(serviceDeployers, environmentContext);
+            errors[environmentToCheck] = checkPhase.checkServices(serviceRegistry, environmentContext);
         }
     }
     return errors;

@@ -21,6 +21,7 @@ import config from '../../../src/account-config/account-config';
 import { AccountConfig, ServiceContext } from '../../../src/datatypes/index';
 import { S3ServiceConfig } from '../../../src/services/s3/config-types';
 import * as s3Lifecycle from '../../../src/services/s3/lifecycles';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('s3 lifecycle helper', () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,7 +47,7 @@ describe('s3 lifecycle helper', () => {
                 }
             ]
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3', serviceParams, accountConfig, new FakeServiceRegistry());
         sandbox = sinon.sandbox.create();
 
     });

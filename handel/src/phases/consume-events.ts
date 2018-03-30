@@ -14,10 +14,11 @@
  * limitations under the License.
  *
  */
-import * as _ from 'lodash';
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { ConsumeEventsContext, ConsumeEventsContexts, DeployContext, DeployContexts, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer, ServiceDeployers, ServiceEventConsumer } from '../datatypes';
+import { ConsumeEventsContext, ConsumeEventsContexts, DeployContext, DeployContexts, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 interface ConsumeEventAction {
     consumerServiceContext: ServiceContext<ServiceConfig>;
@@ -27,7 +28,7 @@ interface ConsumeEventAction {
     producerDeployContext: DeployContext;
 }
 
-export async function consumeEvents(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
+export async function consumeEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
     winston.info(`Executing consume events phase on services in environment ${environmentContext.environmentName}`);
 
     const consumeEventActions: ConsumeEventAction[] = [];
@@ -43,7 +44,7 @@ export async function consumeEvents(serviceDeployers: ServiceDeployers, environm
                     const consumerServiceName = eventConsumerConfig.service_name;
                     const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
                     const consumerDeployContext = deployContexts[consumerServiceName];
-                    const consumerServiceDeployer = serviceDeployers[consumerServiceContext.serviceType];
+                    const consumerServiceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, consumerServiceContext.serviceType);
 
                     const consumeEventsContextName = util.getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
                     winston.debug(`Consuming events from service ${consumeEventsContextName}`);

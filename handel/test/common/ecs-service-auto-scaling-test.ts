@@ -23,6 +23,7 @@ import * as ecsServiceAutoScaling from '../../src/common/ecs-service-auto-scalin
 import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
 import { AutoScalingPolicyType } from '../../src/common/ecs-shared-config-types';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('ecs service auto scaling common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -61,7 +62,7 @@ describe('ecs service auto scaling common module', () => {
                 }]
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig, {});
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {

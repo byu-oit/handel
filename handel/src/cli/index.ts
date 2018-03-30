@@ -16,6 +16,7 @@
  */
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
+import {ServiceRegistry} from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
@@ -24,12 +25,12 @@ import * as stsCalls from '../aws/sts-calls';
 import {TAG_KEY_PATTERN, TAG_VALUE_MAX_LENGTH} from '../common/tagging-common';
 import * as util from '../common/util';
 import {
-    AccountConfig, EnvironmentResult, HandelFile, HandelFileParser, ServiceDeployers,
-    Tags
+    AccountConfig, EnvironmentResult, HandelFile, HandelFileParser, Tags
 } from '../datatypes';
 import * as checkLifecycle from '../lifecycles/check';
 import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
+import {initServiceRegistry} from '../service-registry';
 
 function configureLogger(argv: any) {
     let level = 'info';
@@ -99,8 +100,8 @@ async function validateCredentials(accountConfig: AccountConfig) {
     }
 }
 
-function validateHandelFile(handelFileParser: HandelFileParser, handelFile: HandelFile, serviceDeployers: ServiceDeployers): void {
-    const errors = handelFileParser.validateHandelFile(handelFile, serviceDeployers);
+async function validateHandelFile(handelFileParser: HandelFileParser, handelFile: HandelFile, serviceRegistry: ServiceRegistry): Promise<void> {
+    const errors = await handelFileParser.validateHandelFile(handelFile, serviceRegistry);
     if (errors.length > 0) {
         winston.error(`The following errors were found in your Handel file:`);
         // tslint:disable-next-line:no-console
@@ -258,21 +259,21 @@ export async function deployAction(handelFile: HandelFile, argv: any): Promise<v
         // Set up AWS SDK with any global options
         util.configureAwsSdk(accountConfig);
 
-        // Load all the currently implemented service deployers from the 'services' directory
-        const serviceDeployers = util.getServiceDeployers();
-
         // Parse command-line tags
         const tags = parseTagsArg(argv.t);
 
         // Load Handel file from path and validate it
         winston.debug('Validating and parsing Handel file');
         const handelFileParser = util.getHandelFileParser(handelFile);
-        validateHandelFile(handelFileParser, handelFile, serviceDeployers);
+
+        const serviceRegistry = await initServiceRegistry();
+
+        await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
 
         // Command-line tags override handelfile tags.
         handelFile.tags = Object.assign({}, handelFile.tags, tags);
 
-        const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceDeployers);
+        const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry);
         logFinalResult('deploy', envDeployResults);
     }
     catch (err) {
@@ -286,18 +287,18 @@ export async function deployAction(handelFile: HandelFile, argv: any): Promise<v
  * Handel CLI. It goes and validates the Handel file so you can see if the file looks
  * correct
  */
-export function checkAction(handelFile: HandelFile, argv: any): void {
+export async function checkAction(handelFile: HandelFile, argv: any): Promise<void> {
     configureLogger(argv); // Don't enable debug on check?
-
-    // Load all the currently implemented service deployers from the 'services' directory
-    const serviceDeployers = util.getServiceDeployers();
 
     // Load Handel file from path and validate it
     winston.debug('Validating and parsing Handel file');
     const handelFileParser = util.getHandelFileParser(handelFile);
-    validateHandelFile(handelFileParser, handelFile, serviceDeployers);
 
-    const errors = checkLifecycle.check(handelFile, handelFileParser, serviceDeployers);
+    const serviceRegistry = await initServiceRegistry();
+
+    await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+
+    const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry);
     let foundErrors = false;
     for (const env in errors) {
         if (errors.hasOwnProperty(env)) {
@@ -333,15 +334,15 @@ export async function deleteAction(handelFile: HandelFile, argv: any): Promise<v
             // Set up AWS SDK with any global options
             util.configureAwsSdk(accountConfig);
 
-            // Load all the currently implemented service deployers from the 'services' directory
-            const serviceDeployers = util.getServiceDeployers();
-
             // Load Handel file from path and validate it
             winston.debug('Validating and parsing Handel file');
             const handelFileParser = util.getHandelFileParser(handelFile);
-            validateHandelFile(handelFileParser, handelFile, serviceDeployers);
 
-            const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceDeployers);
+            const serviceRegistry = await initServiceRegistry();
+
+            await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+
+            const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry);
             logFinalResult('delete', [envDeleteResult]);
         }
         else {

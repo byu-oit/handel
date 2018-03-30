@@ -22,6 +22,7 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, ServiceContext } from '../../../src/datatypes';
 import * as common from '../../../src/services/apigateway/common';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('apigateway common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -33,7 +34,7 @@ describe('apigateway common module', () => {
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', {type: 'FakeType', swagger: 'FakeSwagger'}, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', {type: 'FakeType', swagger: 'FakeSwagger'}, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {

@@ -15,13 +15,12 @@
  *    limitations under the License.
  */
 import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { ExtensionContext, ServiceDeployer } from 'handel-extension-api';
+import { ServiceDeployer } from 'handel-extension-api';
 import 'mocha';
-import * as path from 'path';
 import * as sinon from 'sinon';
 import {SinonStub} from 'sinon';
-import {ExtensionDefinition, ExtensionInstantiator, init} from '../../src/service-registry';
+import { DEFAULT_EXTENSION, initServiceRegistry } from '../../src/service-registry';
+import {ExtensionLoader} from '../../src/service-registry/types';
 
 const sandbox = sinon.createSandbox();
 
@@ -35,17 +34,21 @@ describe('Service Registry', () => {
     });
 
     it('always loads the default prefix', async () => {
-        const registry = await init();
+        const registry = await initServiceRegistry();
 
         expect(registry.validPrefixes()).to.have.keys(['__DEFAULT__']);
     });
 
     it('can get default services', async () => {
-        const instantiator = sandbox.stub().resolves(fakeDeployerMap) as SinonStub & ExtensionInstantiator;
+        const loader = sandbox.stub().resolves({
+            meta: DEFAULT_EXTENSION,
+            extension: {},
+            services: fakeDeployerMap
+        }) as SinonStub & ExtensionLoader;
 
-        const registry = await init([], instantiator);
+        const registry = await initServiceRegistry([], loader);
 
-        const found = await registry.findDeployerFor('__DEFAULT__', 'fake');
+        const found = registry.findDeployerFor('__DEFAULT__', 'fake');
         // noinspection TsLint
         expect(found).to.eql(fakeDeployerMap.get('fake'));
     });

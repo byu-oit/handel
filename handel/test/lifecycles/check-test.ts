@@ -21,6 +21,7 @@ import * as util from '../../src/common/util';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as checkLifecycle from '../../src/lifecycles/check';
 import * as checkPhase from '../../src/phases/check';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('check lifecycle module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,10 +39,10 @@ describe('check lifecycle module', () => {
             const error = 'SomeService - Some error was found';
             const checkServicesStub = sandbox.stub(checkPhase, 'checkServices').returns([error]);
 
-            const serviceDeployers = util.getServiceDeployers();
+            const serviceRegistry = new FakeServiceRegistry();
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             handelFile.environments.dev.B.database_name = null; // Cause error
-            const errors = checkLifecycle.check(handelFile, handelFileParser, serviceDeployers);
+            const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry);
             expect(checkServicesStub.callCount).to.equal(2);
             expect(errors.dev.length).to.equal(1);
             expect(errors.dev[0]).to.equal(error);

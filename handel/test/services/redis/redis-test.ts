@@ -25,6 +25,7 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as redis from '../../../src/services/redis';
 import { RedisServiceConfig } from '../../../src/services/redis/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('redis deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +43,7 @@ describe('redis deployer', () => {
             redis_version: '3.2.4',
             instance_type: 'cache.t2.micro'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'redis', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'redis', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -105,7 +106,7 @@ describe('redis deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOfService', 'ecs', { type: 'ecs' }, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOfService', 'ecs', { type: 'ecs' }, accountConfig, new FakeServiceRegistry());
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
             const bindContext = await redis.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));

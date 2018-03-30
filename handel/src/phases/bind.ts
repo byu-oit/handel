@@ -14,10 +14,12 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
 import * as util from '../common/util';
-import { BindContext, BindContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceConfig, ServiceContext, ServiceDeployers } from '../datatypes';
+import { BindContext, BindContexts, DeployOrder, EnvironmentContext, PreDeployContexts } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 function getDependentServicesForCurrentBindService(environmentContext: EnvironmentContext, toBindServiceName: string): string[] {
     const dependentServices = [];
@@ -33,7 +35,7 @@ function getDependentServicesForCurrentBindService(environmentContext: Environme
     return dependentServices;
 }
 
-export async function bindServicesInLevel(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder, levelToBind: number): Promise<BindContexts> {
+export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder, levelToBind: number): Promise<BindContexts> {
     const bindPromises = [];
     const levelBindContexts: BindContexts = {};
 
@@ -43,7 +45,7 @@ export async function bindServicesInLevel(serviceDeployers: ServiceDeployers, en
         // Get ServiceContext and PreDeployContext for the service to call bind on
         const toBindServiceContext = environmentContext.serviceContexts[toBindServiceName];
         const toBindPreDeployContext = preDeployContexts[toBindServiceName];
-        const serviceDeployer = serviceDeployers[toBindServiceContext.serviceType];
+        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toBindServiceContext.serviceType);
 
         // This service may have multiple services dependening on it, run bind on each of them
         for (const dependentOfServiceName of getDependentServicesForCurrentBindService(environmentContext, toBindServiceName)) {

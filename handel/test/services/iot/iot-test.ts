@@ -23,6 +23,7 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as iot from '../../../src/services/iot';
 import { IotServiceConfig, IotServiceEventConsumer } from '../../../src/services/iot/config-types';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('iot deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +43,7 @@ describe('iot deployer', () => {
                 sql: 'select * from \'something\''
             }]
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'iot', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'iot', serviceParams, accountConfig, new FakeServiceRegistry());
     });
 
     afterEach(() => {
@@ -99,7 +100,7 @@ describe('iot deployer', () => {
         });
 
         it('should create topic rules when lambda is the event consumer', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'lambda', { type: 'lambda' }, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'lambda', { type: 'lambda' }, accountConfig, new FakeServiceRegistry());
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeArn';
 
@@ -118,7 +119,7 @@ describe('iot deployer', () => {
         });
 
         it('should return an error if any other consumer type is specified', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'unknowntype', {type: 'unknowntype'}, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'unknowntype', {type: 'unknowntype'}, accountConfig, new FakeServiceRegistry());
             const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             try {
