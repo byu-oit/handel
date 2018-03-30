@@ -44,7 +44,7 @@ export async function consumeEvents(serviceRegistry: ServiceRegistry, environmen
                     const consumerServiceName = eventConsumerConfig.service_name;
                     const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
                     const consumerDeployContext = deployContexts[consumerServiceName];
-                    const consumerServiceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, consumerServiceContext.serviceType);
+                    const consumerServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, consumerServiceContext.serviceType);
 
                     const consumeEventsContextName = util.getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
                     winston.debug(`Consuming events from service ${consumeEventsContextName}`);

@@ -28,7 +28,7 @@ export default class FakeServiceRegistry implements ServiceRegistry {
 
     }
 
-    public findDeployerFor(prefix: string, name: string): ServiceDeployer {
+    public getService(prefix: string, name: string): ServiceDeployer {
         return this.services[name] as ServiceDeployer;
     }
 
@@ -36,7 +36,7 @@ export default class FakeServiceRegistry implements ServiceRegistry {
         return this.services.hasOwnProperty(name);
     }
 
-    public validPrefixes(): Set<string> {
+    public allPrefixes(): Set<string> {
         return new Set([DEFAULT_EXTENSION_PREFIX]);
     }
 

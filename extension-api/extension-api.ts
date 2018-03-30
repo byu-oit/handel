@@ -79,9 +79,9 @@ export interface AccountConfig {
  ***********************************/
 
 export interface ServiceRegistry {
-    findDeployerFor(prefix: string, name: string): ServiceDeployer;
+    getService(prefix: string, name: string): ServiceDeployer;
     hasService(prefix: string, name: string): boolean;
-    validPrefixes(): Set<string>;
+    allPrefixes(): Set<string>;
 }
 
 export interface ServiceContext<Config extends ServiceConfig> {

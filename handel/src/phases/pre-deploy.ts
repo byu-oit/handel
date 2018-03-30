@@ -29,7 +29,7 @@ export async function preDeployServices(serviceRegistry: ServiceRegistry, enviro
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
             winston.debug(`Executing pre-deploy on service ${serviceContext.serviceName}`);
-            const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
+            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
             if (serviceDeployer.preDeploy) {
                 const preDeployPromise = serviceDeployer.preDeploy(serviceContext)
                     .then(preDeployContext => {

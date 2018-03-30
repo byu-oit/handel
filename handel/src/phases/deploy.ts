@@ -47,7 +47,7 @@ export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, en
         const toDeployServiceContext = environmentContext.serviceContexts[toDeployServiceName];
         const toDeployPreDeployContext = preDeployContexts[toDeployServiceName];
 
-        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toDeployServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toDeployServiceContext.serviceType);
 
         // Get all the DeployContexts for services that this service being deployed depends on
         const dependenciesDeployContexts = getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceRegistry);

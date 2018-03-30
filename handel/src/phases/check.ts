@@ -27,7 +27,7 @@ export function checkServices(serviceRegistry: ServiceRegistry, environmentConte
     const requiredTags = environmentContext.accountConfig.required_tags || [];
     let errors: string[] = [];
     _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>) => {
-        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
         if(serviceDeployer.check) {
             const dependenciesServiceContexts = getDependenciesServiceContexts(serviceContext, environmentContext);
             const checkErrors = serviceDeployer.check(serviceContext, dependenciesServiceContexts);

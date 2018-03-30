@@ -28,7 +28,7 @@ export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, en
     winston.info(`Running UnBind on service dependencies (if any) in level ${level} for services ${currentLevelServicesToUnBind.join(', ')}`);
     for(const toUnBindServiceName of currentLevelServicesToUnBind) {
         const toUnBindServiceContext = environmentContext.serviceContexts[toUnBindServiceName];
-        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toUnBindServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toUnBindServiceContext.serviceType);
 
         winston.debug(`UnBinding service ${toUnBindServiceName}`);
         if (serviceDeployer.unBind) {

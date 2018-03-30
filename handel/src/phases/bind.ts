@@ -45,7 +45,7 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
         // Get ServiceContext and PreDeployContext for the service to call bind on
         const toBindServiceContext = environmentContext.serviceContexts[toBindServiceName];
         const toBindPreDeployContext = preDeployContexts[toBindServiceName];
-        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toBindServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toBindServiceContext.serviceType);
 
         // This service may have multiple services dependening on it, run bind on each of them
         for (const dependentOfServiceName of getDependentServicesForCurrentBindService(environmentContext, toBindServiceName)) {

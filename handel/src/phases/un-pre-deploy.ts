@@ -29,7 +29,7 @@ export async function unPreDeployServices(serviceRegistry: ServiceRegistry, envi
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
             winston.debug(`Executing UnPreDeploy on service ${serviceName}`);
-            const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
+            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
             if (serviceDeployer.unPreDeploy) {
                 const unPreDeployPromise = serviceDeployer.unPreDeploy(serviceContext)
                     .then(unPreDeployContext => {

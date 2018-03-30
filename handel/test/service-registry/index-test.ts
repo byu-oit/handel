@@ -36,7 +36,7 @@ describe('Service Registry', () => {
     it('always loads the default prefix', async () => {
         const registry = await initServiceRegistry();
 
-        expect(registry.validPrefixes()).to.have.keys(['__DEFAULT__']);
+        expect(registry.allPrefixes()).to.have.keys(['__DEFAULT__']);
     });
 
     it('can get default services', async () => {
@@ -48,7 +48,7 @@ describe('Service Registry', () => {
 
         const registry = await initServiceRegistry([], loader);
 
-        const found = registry.findDeployerFor('__DEFAULT__', 'fake');
+        const found = registry.getService('__DEFAULT__', 'fake');
         // noinspection TsLint
         expect(found).to.eql(fakeDeployerMap.get('fake'));
     });

@@ -62,7 +62,7 @@ class ServiceRegistry implements IServiceRegistry {
     constructor(private readonly extensions: Map<string, ExtensionInstance>) {
     }
 
-    public findDeployerFor(prefix: string, name: string): ServiceDeployer {
+    public getService(prefix: string, name: string): ServiceDeployer {
         const extension = this.extensions.get(prefix);
         if (!extension) {
             throw new MissingPrefixError(prefix);
@@ -82,7 +82,7 @@ class ServiceRegistry implements IServiceRegistry {
         return extension.services.has(name);
     }
 
-    public validPrefixes(): Set<string> {
+    public allPrefixes(): Set<string> {
         return new Set(this.extensions.keys());
     }
 }

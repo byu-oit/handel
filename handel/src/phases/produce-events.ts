@@ -51,7 +51,7 @@ export async function produceEvents(serviceRegistry: ServiceRegistry, environmen
             // _.forEach(environmentContext.serviceContexts, function (producerServiceContext, producerServiceName) {
             if (producerServiceContext.params.event_consumers) {
                 // Get deploy info for producer service
-                const producerServiceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, producerServiceContext.serviceType);
+                const producerServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, producerServiceContext.serviceType);
                 const producerDeployContext = deployContexts[producerServiceName];
 
                 // Run produce events for each service this service produces to

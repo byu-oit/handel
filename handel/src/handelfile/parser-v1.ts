@@ -96,8 +96,8 @@ function checkServiceDependencies(handelFile: HandelFile, serviceRegistry: Servi
                                 const dependentServiceDef = environmentDef[dependentServiceName];
 
                                 // Make sure the dependent service produces outputs that the consuming service can consume
-                                const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
-                                const dependentServiceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, dependentServiceDef.type);
+                                const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
+                                const dependentServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, dependentServiceDef.type);
                                 const serviceConsumedOutputs = serviceDeployer.consumedDeployOutputTypes;
                                 const dependentServiceProducedOutputs = dependentServiceDeployer.producedDeployOutputTypes;
                                 const consumeErrMsg = `The '${dependentServiceDef.type}' service type is not consumable by the '${serviceDef.type}' service type`;
@@ -146,7 +146,7 @@ function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceReg
                             }
                             const eventConsumerServiceDef = environmentDef[eventConsumerServiceName];
 
-                            const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
+                            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
                             const supportedConsumerTypes = serviceDeployer.producedEventsSupportedServices;
                             if (!supportedConsumerTypes.includes(eventConsumerServiceDef.type)) {
                                 errors.push(`The '${eventConsumerServiceDef.type}' service type can't consume events from the '${serviceDef.type}' service type`);

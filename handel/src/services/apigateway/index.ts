@@ -39,7 +39,7 @@ function checkCommon(serviceContext: ServiceContext<APIGatewayConfig>, dependenc
 
     if (dependenciesServiceContexts) {
         dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            const deployer = serviceContext.serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, dependencyServiceContext.serviceType);
+            const deployer = serviceContext.serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, dependencyServiceContext.serviceType);
             if (deployer.producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
                 errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
             }

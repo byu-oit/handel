@@ -29,7 +29,7 @@ export async function unDeployServicesInLevel(serviceRegistry: ServiceRegistry, 
     for(const toUnDeployServiceName of currentLevelElements) {
         const toUnDeployServiceContext = environmentContext.serviceContexts[toUnDeployServiceName];
 
-        const serviceDeployer = serviceRegistry.findDeployerFor(DEFAULT_EXTENSION_PREFIX, toUnDeployServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toUnDeployServiceContext.serviceType);
 
         winston.debug(`UnDeploying service ${toUnDeployServiceName}`);
         if (serviceDeployer.unDeploy) {
