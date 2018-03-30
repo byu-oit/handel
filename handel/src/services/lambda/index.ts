@@ -29,6 +29,7 @@ import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import {
+    AccountConfig,
     ConsumeEventsContext,
     DeployContext,
     EnvironmentVariables,
@@ -58,11 +59,11 @@ function getEnvVariablesToInject(serviceContext: ServiceContext<LambdaServiceCon
     return envVarsToInject;
 }
 
-function getCompiledLambdaTemplate(stackName: string, ownServiceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[], s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, securityGroups: string[]): Promise<string> {
+async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[], s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, securityGroups: string[]): Promise<string> {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
-    const policyStatements = getPolicyStatementsForLambdaRole(ownServiceContext, dependenciesDeployContexts);
+    const policyStatements = await getPolicyStatementsForLambdaRole(ownServiceContext, dependenciesDeployContexts, stackName);
 
     const description = serviceParams.description || 'Handel-created function ' + stackName;
     const memorySize = serviceParams.memory || 128;
@@ -133,13 +134,23 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Lambd
     return s3ArtifactInfo;
 }
 
-function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[]): any[] {
-    let ownPolicyStatements;
+// We have this function to pre-construct an ARN before the service is deployed
+// This seems a bit odd, but we need to inject the ARN of the service to be able to invoke itself.
+function getLambdaArn(accountConfig: AccountConfig, stackName: string) {
+    return `arn:aws:lambda:${accountConfig.region}:${accountConfig.account_id}:function:${stackName}`;
+}
+
+async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[], stackName: string): Promise<any[]> {
+    const handlebarsParams = {
+        ownLambdaArn: getLambdaArn(serviceContext.accountConfig, stackName)
+    };
+    let compiledTemplate;
     if (serviceContext.params.vpc) {
-        ownPolicyStatements = JSON.parse(util.readFileSync(`${__dirname}/lambda-role-statements-vpc.json`));
+        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
     } else {
-        ownPolicyStatements = JSON.parse(util.readFileSync(`${__dirname}/lambda-role-statements.json`));
+        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
     }
+    let ownPolicyStatements = JSON.parse(compiledTemplate);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
 
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
