@@ -30,7 +30,7 @@ describe('Default Services Extension', () => {
         await extension.loadHandelExtension(ctx);
 
         expectedServices.forEach(f => {
-            expect(ctx.services).to.haveOwnProperty(path.dirname(f));
+            expect(ctx.services).to.haveOwnProperty(f);
         });
     });
 });
@@ -47,5 +47,7 @@ class FakeExtensionContext implements ExtensionContext {
 function listDefaultServices() {
     const servicePath = path.resolve(__dirname, '../../src/services');
     const files = fs.readdirSync(servicePath);
-    return files.filter(f => fs.statSync(f).isDirectory());
+    return files
+        .filter(f => f !== '.')
+        .filter(f => fs.statSync(path.join(servicePath, f)).isDirectory());
 }
