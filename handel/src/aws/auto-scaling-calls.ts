@@ -43,7 +43,7 @@ async function sleepAwait(ms: number) {
     });
 }
 
-export async function waitForAllInstancesToBeReady(autoScalinGroupName: string, desiredCount: number): Promise<void> {
+export async function waitForAllInstancesToBeReady(autoScalinGroupName: string, desiredCount: number, postWaitSleepTime: number): Promise<void> {
     for (;;) {
         winston.verbose('Checking auto scaling group to see if done rolling');
         const currentGroupState = await getAutoScalingGroup(autoScalinGroupName);
@@ -56,8 +56,8 @@ export async function waitForAllInstancesToBeReady(autoScalinGroupName: string, 
             winston.verbose('Number of instances equals desired count');
             const nonReadyInstances = currentGroupState.Instances.filter(instance => instance.LifecycleState !== 'InService');
             if(nonReadyInstances.length === 0) {
-                winston.verbose('All instances are ready, waiting 60 more seconds to accomodate any draining in ALBs');
-                await sleepAwait(60000); // Wait 60 more seconds for any draining to be accomplished in ALBs
+                winston.verbose(`All instances are ready, waiting ${postWaitSleepTime / 1000} more seconds to accomodate any draining in ALBs`);
+                await sleepAwait(postWaitSleepTime); // This extra wait can be used to wait for things like ALB draining
                 break;
             }
         }

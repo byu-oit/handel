@@ -104,8 +104,6 @@ export async function rollInstances(ownServiceContext: ServiceContext<CodeDeploy
     if(!autoScalingGroup) {
         throw new Error('Could not find needed auto scaling group!');
     }
-    // Keep track of existing old instances
-    const originalInstances = autoScalingGroup.Instances;
 
     // Take the ASG desired instance count and double it (can this be higher than max?)
     const originalDesiredCount = autoScalingGroup.DesiredCapacity;
@@ -120,11 +118,11 @@ export async function rollInstances(ownServiceContext: ServiceContext<CodeDeploy
 
     // Wait for all instances to be ready in the ready state
     winston.debug('Waiting for new instances to launch');
-    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, newDesiredCount);
+    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, newDesiredCount, 0);
 
     // Set the desired and max back to the original value and wait for old instances to be terminated
     winston.debug('New instances launched, setting auto-scaling group back to original desired count');
     await autoScalingCalls.setNewDesiredAndMaxValues(autoScalingGroupName, originalDesiredCount, originalMaxCount);
-    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, originalDesiredCount);
+    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, originalDesiredCount, 60000);
     winston.debug('Old instances have been terminated, auto-scaling group is back at original desired count');
 }

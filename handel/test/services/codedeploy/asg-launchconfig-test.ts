@@ -187,7 +187,24 @@ describe('codedeploy asg-launchconfig config module', () => {
 
     describe('rollInstances', () => {
         it('should safely roll the instances in the autoscaling group', async () => {
-            expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+            const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').resolves('FakeGroupName');
+            const getAsgStub = sandbox.stub(autoScalingCalls, 'getAutoScalingGroup').resolves({
+                DesiredCapacity: 2,
+                MaxSize: 3
+            });
+            const setValuesStub = sandbox.stub(autoScalingCalls, 'setNewDesiredAndMaxValues').resolves();
+            const waitStub = sandbox.stub(autoScalingCalls, 'waitForAllInstancesToBeReady').resolves();
+
+            const stack: AWS.CloudFormation.Stack = {
+                StackName: 'FakeStack',
+                CreationTime: new Date(),
+                StackStatus: 'FakeStatus'
+            };
+            await asgLaunchConfig.rollInstances(serviceContext, stack);
+            expect(getOutputStub.callCount).to.equal(1);
+            expect(getAsgStub.callCount).to.equal(1);
+            expect(setValuesStub.callCount).to.equal(2);
+            expect(waitStub.callCount).to.equal(2);
         });
     });
 });
