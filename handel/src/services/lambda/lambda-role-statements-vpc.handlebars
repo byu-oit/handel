@@ -20,5 +20,15 @@
         "Resource": [
             "*"
         ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "lambda:InvokeAsync",
+            "lambda:InvokeFunction"
+        ],
+        "Resource": [
+            "{{{ownLambdaArn}}}"
+        ]
     }
 ]

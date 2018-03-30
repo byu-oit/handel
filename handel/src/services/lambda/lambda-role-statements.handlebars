@@ -9,5 +9,15 @@
         "Resource": [
             "arn:aws:logs:*:*:*"
         ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "lambda:InvokeAsync",
+            "lambda:InvokeFunction"
+        ],
+        "Resource": [
+            "{{{ownLambdaArn}}}"
+        ]
     }
 ]
