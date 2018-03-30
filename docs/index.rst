@@ -85,3 +85,4 @@ including taking care of all the tricky security bits to make the services be ab
    supported-services/ses
    supported-services/sns
    supported-services/sqs
+   supported-services/stepfunctions

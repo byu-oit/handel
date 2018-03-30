@@ -20,7 +20,7 @@ import * as checkPhase from '../phases/check';
 
 // TODO - This is ugly having to inject a fake account config just to run a check. We should refactor not to have to do this.
 const fakeAccountConfig: AccountConfig = {
-    account_id: 111111111111,
+    account_id: '111111111111',
     region: 'us-west-2',
     vpc: 'vpc-2222222',
     public_subnets: [

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { ServiceEventConsumer } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as snsCalls from '../../aws/sns-calls';
@@ -85,11 +86,11 @@ function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfSt
     return deployContext;
 }
 
-function getPolicyStatementForCloudWatchEventConsumption(topicArn: string): any {
+function getPolicyStatementForEventConsumption(topicArn: string, trustedService: string): any {
     return {
         Effect: 'Allow',
         Principal: {
-            Service: 'events.amazonaws.com'
+            Service: trustedService
         },
         Action: 'sns:Publish',
         Resource: topicArn,
@@ -129,7 +130,7 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function produceEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+export async function produceEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     // Add subscription to sns service
     const topicArn = ownDeployContext.eventOutputs.topicArn;
@@ -162,7 +163,11 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SnsService
     let policyStatement;
     if (producerServiceType === 'cloudwatchevent') {
         producerArn = producerDeployContext.eventOutputs.eventRuleArn;
-        policyStatement = getPolicyStatementForCloudWatchEventConsumption(topicArn);
+        policyStatement = getPolicyStatementForEventConsumption(topicArn, 'events.amazonaws.com');
+    }
+    else if (producerServiceType === 's3') {
+        producerArn = producerDeployContext.eventOutputs.bucketArn;
+        policyStatement = getPolicyStatementForEventConsumption(topicArn, 's3.amazonaws.com');
     }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);

@@ -90,7 +90,7 @@ async function validateCredentials(accountConfig: AccountConfig) {
 
     winston.debug(`Currently logged in under account ${discoveredId}`);
     // tslint:disable-next-line:triple-equals
-    if (deployAccount == parseInt(discoveredId!, 10)) {
+    if (deployAccount == discoveredId) {
         return;
     }
     else {

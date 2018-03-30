@@ -25,7 +25,7 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as dynamodb from '../../../src/services/dynamodb';
-import { DynamoDBConfig, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
+import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
 
 const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
     type: 'dynamodb',
@@ -476,7 +476,11 @@ describe('dynamodb deployer', () => {
     describe('produceEvents', () => {
         it('should return an empty ProduceEventsContext', async () => {
             const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', 'faketype', {type: 'faketype'}, accountConfig);
-            const produceEventsContext = await dynamodb.produceEvents(serviceContext, new DeployContext(serviceContext), consumerServiceContext, new DeployContext(consumerServiceContext));
+            const eventConsumerConfig: DynamoDBServiceEventConsumer = {
+                service_name: 'fakeservice',
+                batch_size: 1
+            };
+            const produceEventsContext = await dynamodb.produceEvents(serviceContext, new DeployContext(serviceContext), eventConsumerConfig, consumerServiceContext, new DeployContext(consumerServiceContext));
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
         });
     });

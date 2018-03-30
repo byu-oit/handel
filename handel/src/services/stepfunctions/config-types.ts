@@ -14,15 +14,14 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceContext, ServiceEventConsumer } from '../datatypes';
+import { ServiceConfig } from '../../datatypes/index';
 
-export function getEventConsumerConfig(serviceContext: ServiceContext<ServiceConfig>, eventConsumerServiceName: string): ServiceEventConsumer | null {
-    if (serviceContext.params.event_consumers) {
-        for (const eventConsumer of serviceContext.params.event_consumers) {
-            if (eventConsumer.service_name === eventConsumerServiceName) {
-                return eventConsumer;
-            }
-        }
-    }
-    return null;
+export interface HandlebarsStepFunctionsTemplate {
+    stateMachineName: string;
+    definitionString: string;
+    policyStatements: any[];
+}
+
+export interface StepFunctionsConfig extends ServiceConfig {
+    definition: string;
 }

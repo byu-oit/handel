@@ -70,8 +70,7 @@ export async function getDefaultAccountConfig(accountConfigParam: any): Promise<
             vpc: defaultVpc.VpcId
         };
 
-        const accountId = await stsCalls.getAccountId();
-        accountConfig.account_id = parseInt(accountId!, 10);
+        accountConfig.account_id = await stsCalls.getAccountId();
 
         const subnets = await getDefaultVpcSubnets(accountConfig.vpc);
         // The default VPC only has three public subnets, so we just have to use those for all the different tiers Handel supports
