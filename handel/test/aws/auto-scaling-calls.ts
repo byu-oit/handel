@@ -31,6 +31,38 @@ describe('autoScalingCalls', () => {
     sandbox.restore();
   });
 
+  describe('setNewDesiredAndMaxValues', () => {
+    it('should set new desired and max values on the ASG', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+  });
+
+  describe('waitForAllInstancesToBeReady', () => {
+    it('should wait until all desired instances in the group are in a ready state', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+  });
+
+  describe('getAutoScalingGroup', () => {
+    it('should return the auto scaling group if it exists', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+
+    it('should return null if the group doesnt exist', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+  });
+
+  describe('getLaunchConfiguration', () => {
+    it('should return the launch configuration if it exists', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+
+    it('should return null if the launch configuration doesnt exist', async () => {
+      expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+    });
+  });
+
   describe('cycleInstances', () => {
     it('should return null on error', async () => {
       const terminateInstanceStub = sandbox.stub(awsWrapper.autoScaling, 'terminateInstanceInAutoScalingGroup').rejects(new Error('someMessage'));

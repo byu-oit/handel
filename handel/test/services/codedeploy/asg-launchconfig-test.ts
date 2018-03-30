@@ -184,4 +184,10 @@ describe('codedeploy asg-launchconfig config module', () => {
             });
         });
     });
+
+    describe('rollInstances', () => {
+        it('should safely roll the instances in the autoscaling group', async () => {
+            expect(true).to.equal(false); // TODO - TO BE IMPLEMENTED
+        });
+    });
 });

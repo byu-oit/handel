@@ -104,10 +104,7 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     // If we need to roll the instances (calculated prior to deploy) do so now
     if(shouldRollInstances) {
         winston.info('Change necessitated new EC2 instances. Rolling auto-scaling group to get new instances...');
-        await asgLaunchConfig.rollInstances(ownServiceContext);
-    }
-    else { // TODO - Remove this later
-        winston.info('Not rolling instances');
+        await asgLaunchConfig.rollInstances(ownServiceContext, deployedStack);
     }
 
     winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);

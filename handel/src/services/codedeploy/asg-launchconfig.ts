@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as winston from 'winston';
 import * as autoScalingCalls from '../../aws/auto-scaling-calls';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
@@ -93,13 +94,37 @@ export async function shouldRollInstances(ownServiceContext: ServiceContext<Code
     return false;
 }
 
-export async function rollInstances(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<void> {
+export async function rollInstances(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, existingStack: AWS.CloudFormation.Stack): Promise<void> {
+    // Get old instances to keep track of
+    const autoScalingGroupName = cloudformationCalls.getOutput('AutoScalingGroupName', existingStack);
+    if(!autoScalingGroupName) {
+        throw new Error('Could not find needed auto scaling group name in CloudFormation template');
+    }
+    const autoScalingGroup = await autoScalingCalls.getAutoScalingGroup(autoScalingGroupName);
+    if(!autoScalingGroup) {
+        throw new Error('Could not find needed auto scaling group!');
+    }
     // Keep track of existing old instances
+    const originalInstances = autoScalingGroup.Instances;
+
     // Take the ASG desired instance count and double it (can this be higher than max?)
-        // Max needs to be saved and set to desired (because desired can't be > max)
-    // Wait for all new instances to be launched
-    // Wait 60 seconds for registration and draining
-    // Set desired and max back to original value
-    // Wait for old instances to be terminated
-    return;
+    const originalDesiredCount = autoScalingGroup.DesiredCapacity;
+    const originalMaxCount = autoScalingGroup.MaxSize;
+    const newDesiredCount = originalDesiredCount * 2;
+    let newMaxCount = originalMaxCount;
+    if(newDesiredCount > originalMaxCount) {
+        newMaxCount = newDesiredCount;
+    }
+    winston.debug('Increasing desired count of auto-scaling group to double in order to launch new instances');
+    await autoScalingCalls.setNewDesiredAndMaxValues(autoScalingGroupName, newDesiredCount, newMaxCount);
+
+    // Wait for all instances to be ready in the ready state
+    winston.debug('Waiting for new instances to launch');
+    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, newDesiredCount);
+
+    // Set the desired and max back to the original value and wait for old instances to be terminated
+    winston.debug('New instances launched, setting auto-scaling group back to original desired count');
+    await autoScalingCalls.setNewDesiredAndMaxValues(autoScalingGroupName, originalDesiredCount, originalMaxCount);
+    await autoScalingCalls.waitForAllInstancesToBeReady(autoScalingGroupName, originalDesiredCount);
+    winston.debug('Old instances have been terminated, auto-scaling group is back at original desired count');
 }

@@ -7,7 +7,7 @@ environments:
     webapp:
       type: codedeploy
       path_to_code: . # Required. appspec.yml must be at the root of the directory provided
-      instance_type: t2.small # Optional. Default: t2.micro
+      instance_type: t2.micro # Optional. Default: t2.micro
       os: linux # Required. Only Linux supported at this time
       key_name: ces-dev # Optional
       # deployment: # Optional

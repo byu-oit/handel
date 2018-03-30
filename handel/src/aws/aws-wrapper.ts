@@ -200,9 +200,17 @@ const awsWrapper = {
             const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
             return autoScaling.describeAutoScalingInstances(params).promise();
         },
+        describeAutoScalingGroups: (params: AWS.AutoScaling.Types.AutoScalingGroupNamesType): Promise<AWS.AutoScaling.AutoScalingGroupsType> => {
+            const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
+            return autoScaling.describeAutoScalingGroups(params).promise();
+        },
         describeLaunchConfigurations: (params: any) => {
             const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
             return autoScaling.describeLaunchConfigurations(params).promise();
+        },
+        updateAutoScalingGroup: (params: AWS.AutoScaling.UpdateAutoScalingGroupType): Promise<{}> => {
+            const autoScaling = new AWS.AutoScaling({ apiVersion: '2011-01-01' });
+            return autoScaling.updateAutoScalingGroup(params).promise();
         }
     },
     ecs: {
