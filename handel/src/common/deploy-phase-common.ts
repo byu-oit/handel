@@ -40,7 +40,7 @@ export function getInjectedEnvVarName(serviceContext: ServiceContext<ServiceConf
 
 export function getInjectedEnvVarsFor(serviceContext: ServiceContext<ServiceConfig>, outputs: any) {
     return Object.keys(outputs).reduce((obj: any, name) => {
-        obj[exports.getInjectedEnvVarName(serviceContext, name)] = outputs[name];
+        obj[getInjectedEnvVarName(serviceContext, name)] = outputs[name];
         return obj;
     }, {});
 }
