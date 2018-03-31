@@ -72,7 +72,7 @@ describe('check', () => {
                 type: serviceTypeA,
                 some: 'param'
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             // Construct ServiceContext B
@@ -82,7 +82,7 @@ describe('check', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
             return environmentContext;
         }

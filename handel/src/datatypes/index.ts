@@ -41,8 +41,13 @@ export class ServiceContext<Config extends ServiceConfig> implements api.Service
                 public serviceType: string,
                 public params: Config,
                 public accountConfig: AccountConfig,
-                public serviceRegistry: api.ServiceRegistry,
-                public tags: Tags = {}) {
+                public tags: Tags = {},
+                public serviceInfo: api.ServiceInfo = {
+                    consumedDeployOutputTypes: [],
+                    producedDeployOutputTypes: [],
+                    producedEventsSupportedServices: []
+                }
+    ) {
     }
 }
 

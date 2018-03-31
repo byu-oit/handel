@@ -31,7 +31,6 @@ import {
 } from '../../../src/datatypes';
 import * as stepfunctions from '../../../src/services/stepfunctions';
 import { StepFunctionsConfig } from '../../../src/services/stepfunctions/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('stepfunctions deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -48,7 +47,7 @@ describe('stepfunctions deployer', () => {
             type: 'stepfunctions',
             definition: ''
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'stepfunctions', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'stepfunctions', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -60,7 +59,7 @@ describe('stepfunctions deployer', () => {
             const params = {
                 type: 'lambda'
             };
-            return [new ServiceContext(appName, envName, 'only-lambda', 'lambda', params, accountConfig, new FakeServiceRegistry())];
+            return [new ServiceContext(appName, envName, 'only-lambda', 'lambda', params, accountConfig)];
         }
 
         function getSimpleMachine(): any {
@@ -160,7 +159,7 @@ describe('stepfunctions deployer', () => {
 
             const dependencies = [['alpha-lambda', alphaLambdaArn], ['beta-lambda', betaLambdaArn]];
             for (const [serviceName, functionArn] of dependencies) {
-                const otherServiceContext = new ServiceContext(appName, envName, serviceName, 'lambda', {type: 'lambda'}, serviceContext.accountConfig, new FakeServiceRegistry());
+                const otherServiceContext = new ServiceContext(appName, envName, serviceName, 'lambda', {type: 'lambda'}, serviceContext.accountConfig);
                 const deployContext = new DeployContext(otherServiceContext);
                 deployContext.eventOutputs.lambdaArn = functionArn;
                 dependenciesDeployContexts.push(deployContext);

@@ -22,7 +22,6 @@ import * as route53Calls from '../../../src/aws/route53-calls';
 import { AccountConfig, ServiceContext } from '../../../src/datatypes';
 import * as alb from '../../../src/services/codedeploy/alb';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('codedeploy alb config module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,7 +45,7 @@ describe('codedeploy alb config module', () => {
                 ]
             }
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 

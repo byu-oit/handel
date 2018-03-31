@@ -33,7 +33,7 @@ describe('Delete phases common module', () => {
     beforeEach(async () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'dynamodb', {type: 'dynamodb'}, retAccountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'dynamodb', {type: 'dynamodb'}, retAccountConfig);
         accountConfig = retAccountConfig;
     });
 

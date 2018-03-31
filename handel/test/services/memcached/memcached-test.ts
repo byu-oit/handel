@@ -25,7 +25,6 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as memcached from '../../../src/services/memcached';
 import { MemcachedServiceConfig } from '../../../src/services/memcached/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('memcached deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -43,7 +42,7 @@ describe('memcached deployer', () => {
             memcached_version: '3.2.4',
             instance_type: 'cache.t2.micro'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'memcached', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'memcached', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -90,7 +89,7 @@ describe('memcached deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOFService', 'ecs', {type: 'ecs'}, accountConfig, new FakeServiceRegistry());
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOFService', 'ecs', {type: 'ecs'}, accountConfig);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
             const bindContext = await memcached.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));

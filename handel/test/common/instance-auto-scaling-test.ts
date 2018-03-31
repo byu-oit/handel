@@ -72,7 +72,7 @@ describe('instance auto scaling common module', () => {
                 ]
             }
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, new FakeServiceRegistry(), {});
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, {});
     });
 
     afterEach(() => {

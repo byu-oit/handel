@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import 'mocha';
-import * as path from 'path';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
@@ -26,7 +25,6 @@ import { AccountConfig, ServiceContext } from '../../../src/datatypes';
 import { BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 import * as ebextensions from '../../../src/services/beanstalk/ebextensions';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('deployable artifact module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +40,7 @@ describe('deployable artifact module', () => {
             path_to_code: '.',
             solution_stack: 'FakeStack'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'beanstalk', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'beanstalk', serviceParams, accountConfig);
     });
 
     afterEach(() => {

@@ -23,7 +23,6 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as route53 from '../../../src/services/route53zone';
 import { Route53ZoneServiceConfig } from '../../../src/services/route53zone/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('route53zone deployer', () => {
     const appName = 'FakeApp';
@@ -40,7 +39,7 @@ describe('route53zone deployer', () => {
             type: 'route53zone',
             name: 'somename.byu.edu'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'route53', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'route53', serviceParams, accountConfig);
     });
 
     afterEach(() => {

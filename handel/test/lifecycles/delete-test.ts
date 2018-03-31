@@ -42,7 +42,7 @@ describe('delete lifecycle module', () => {
 
     describe('delete', () => {
         it('should delete the application environment', async () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
             const unDeployServicesStub = sandbox.stub(unDeployPhase, 'unDeployServicesInLevel').returns({});
             const unBindServicesStub = sandbox.stub(unBindPhase, 'unBindServicesInLevel').returns({});
             const unPreDeployStub = sandbox.stub(unPreDeployPhase, 'unPreDeployServices').resolves({

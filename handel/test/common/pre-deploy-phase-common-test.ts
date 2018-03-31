@@ -32,7 +32,7 @@ describe('PreDeploy Phase Common module', () => {
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {

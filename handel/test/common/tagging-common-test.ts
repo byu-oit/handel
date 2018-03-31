@@ -34,7 +34,7 @@ describe('Tagging common module', () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         accountConfig = retAccountConfig;
-        serviceContext = new ServiceContext(appName, envName, serviceName, 'FakeType', {type: 'FakeType'}, retAccountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, serviceName, 'FakeType', {type: 'FakeType'}, retAccountConfig);
     });
 
     afterEach(() => {

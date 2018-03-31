@@ -30,7 +30,7 @@ describe('lifecycles common module', () => {
     beforeEach(async () => {
         sandbox = sinon.sandbox.create();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {
@@ -48,8 +48,8 @@ describe('lifecycles common module', () => {
         it('should return an empty bind context', async () => {
             const appName = 'FakeApp';
             const envName = 'FakeEnv';
-            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', {type: 'efs'}, accountConfig, new FakeServiceRegistry());
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', {type: 'ecs'}, accountConfig, new FakeServiceRegistry());
+            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', {type: 'efs'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', {type: 'ecs'}, accountConfig);
 
             const bindContext = await lifecyclesCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext);
             expect(bindContext).to.be.instanceof(BindContext);

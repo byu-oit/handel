@@ -26,7 +26,6 @@ import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling'
 import { AccountConfig, DeployContext, InstanceScalingPolicyType, ServiceContext } from '../../../src/datatypes';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('codedeploy asg-launchconfig config module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -62,7 +61,7 @@ describe('codedeploy asg-launchconfig config module', () => {
                 ]
             },
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
@@ -96,7 +95,7 @@ describe('codedeploy asg-launchconfig config module', () => {
     describe('getUserDataScript', () => {
         it('should return the compiled userdata script', async () => {
             const deployContexts: DeployContext[] = [];
-            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependencyService', 'efs', {type: 'efs'}, accountConfig, new FakeServiceRegistry());
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependencyService', 'efs', {type: 'efs'}, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.scripts.push('Some Bash Script');
 

@@ -37,7 +37,7 @@ describe('deploy-order-calc', () => {
             const environmentContext = new EnvironmentContext(doc.name, 'dev', accountConfig);
             for (const serviceName in doc.environments.dev) {
                 if (doc.environments.dev.hasOwnProperty(serviceName)) {
-                    const serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, doc.environments.dev[serviceName].type, doc.environments.dev[serviceName], accountConfig, new FakeServiceRegistry());
+                    const serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, doc.environments.dev[serviceName].type, doc.environments.dev[serviceName], accountConfig);
                     environmentContext.serviceContexts[serviceName] = serviceContext;
                 }
             }

@@ -43,7 +43,7 @@ describe('deploy lifecycle module', () => {
 
     describe('deploy', () => {
         it('should deploy the application environment on success', async () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
             const checkServicesStub = sandbox.stub(checkPhase, 'checkServices').resolves([]);
             const preDeployServicesStub = sandbox.stub(preDeployPhase, 'preDeployServices').resolves({
                 A: new PreDeployContext(serviceContext),

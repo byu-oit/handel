@@ -25,11 +25,14 @@ export interface FakeRegistryInfo {
 export default class FakeServiceRegistry implements ServiceRegistry {
 
     constructor(readonly services: FakeRegistryInfo = {}) {
-
     }
 
     public getService(prefix: string, name: string): ServiceDeployer {
-        return this.services[name] as ServiceDeployer;
+        return this.services[name] as ServiceDeployer || {
+            consumedDeployOutputTypes: [],
+            producedDeployOutputTypes: [],
+            producedEventsSupportedServices: []
+        };
     }
 
     public hasService(prefix: string, name: string): boolean {
@@ -41,4 +44,3 @@ export default class FakeServiceRegistry implements ServiceRegistry {
     }
 
 }
-

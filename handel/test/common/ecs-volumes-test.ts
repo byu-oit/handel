@@ -48,12 +48,12 @@ describe('ecs volumes common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig);
 
         dependenciesDeployContexts = [];
-        const dependencyServiceContext1 = new ServiceContext(appName, envName, 'MyTopic', 'sns', { type: 'sns' }, accountConfig, new FakeServiceRegistry());
+        const dependencyServiceContext1 = new ServiceContext(appName, envName, 'MyTopic', 'sns', {type: 'sns'}, accountConfig);
         const dependencyDeployContext1 = new DeployContext(dependencyServiceContext1);
-        const dependencyServiceContext2 = new ServiceContext(appName, envName, 'MyEfs', 'efs', { type: 'efs' }, accountConfig, new FakeServiceRegistry());
+        const dependencyServiceContext2 = new ServiceContext(appName, envName, 'MyEfs', 'efs', {type: 'efs'}, accountConfig);
         const dependencyDeployContext2 = new DeployContext(dependencyServiceContext2);
         dependencyDeployContext2.environmentVariables.MYEFS_MOUNT_DIR = 'path/to/mount/dir';
         dependenciesDeployContexts.push(dependencyDeployContext1);

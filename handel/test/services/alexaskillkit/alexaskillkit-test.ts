@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext } from '../../../src/datatypes';
 import * as alexaSkillKit from '../../../src/services/alexaskillkit';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('alexaskillkit deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -30,7 +29,7 @@ describe('alexaskillkit deployer', () => {
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('Fakepp', 'FakeEnv', 'FakeService', 'alexaskillkit', {type: 'alexaskillkit'}, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('Fakepp', 'FakeEnv', 'FakeService', 'alexaskillkit', {type: 'alexaskillkit'}, accountConfig);
     });
 
     afterEach(() => {
@@ -55,7 +54,7 @@ describe('alexaskillkit deployer', () => {
     describe('produceEvents', () => {
         it('should return an empty produceEvents context', async () => {
             const ownDeployContext = new DeployContext(serviceContext);
-            const consumerServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'lambda', {type: 'alexaskillkit'}, accountConfig, new FakeServiceRegistry());
+            const consumerServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'lambda', {type: 'alexaskillkit'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             const eventConfigConsumer = {
                 service_name: 'FakeService2'

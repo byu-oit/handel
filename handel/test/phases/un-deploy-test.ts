@@ -48,7 +48,7 @@ describe('unDeploy', () => {
             type: serviceTypeB,
             other: 'param'
         };
-        const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
+        const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
         environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
         // Construct ServiceContext A
@@ -59,7 +59,7 @@ describe('unDeploy', () => {
             some: 'param',
             dependencies: [serviceNameB]
         };
-        const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
+        const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
         environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
         // Set deploy order

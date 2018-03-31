@@ -23,7 +23,6 @@ import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
 import {AccountConfig, DeployContext, PreDeployContext, ServiceContext} from '../../../../src/datatypes';
 import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
-import FakeServiceRegistry from '../../../service-registry/fake-service-registry';
 
 describe('apigateway proxy deploy type', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +41,7 @@ describe('apigateway proxy deploy type', () => {
                 runtime: 'nodejs6.10'
             }
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -84,7 +83,7 @@ describe('apigateway proxy deploy type', () => {
             const dependencyServiceParams = {
                 type: dependencyServiceType
             };
-            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, accountConfig, new FakeServiceRegistry());
+            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependenciesDeployContexts.push(dependencyDeployContext);
             return dependenciesDeployContexts;

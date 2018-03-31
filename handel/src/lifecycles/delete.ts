@@ -71,6 +71,6 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: 
 
 export async function deleteEnv(accountConfig: AccountConfig, handelFile: HandelFile, environmentToDelete: string, handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): Promise<EnvironmentDeleteResult> {
     // Run the delete on the environment specified
-    const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDelete, accountConfig);
+    const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDelete, accountConfig, serviceRegistry);
     return deleteEnvironment(accountConfig, serviceRegistry, environmentContext);
 }

@@ -37,7 +37,7 @@ describe('elasticache deployers common module', () => {
 
     describe('getClusterName', () => {
         it('should return the shortened cluster name from the ServiceContext, removing hyphens in the segments', () => {
-            const serviceContext = new ServiceContext('My-FakeAppWithALongNameWithManyCharacters', 'MyLongEnvName', 'MyLongishServiceName', 'redis', {type: 'redis'}, accountConfig, new FakeServiceRegistry());
+            const serviceContext = new ServiceContext('My-FakeAppWithALongNameWithManyCharacters', 'MyLongEnvName', 'MyLongishServiceName', 'redis', {type: 'redis'}, accountConfig);
             const clusterName = elasticacheDeployersCommon.getClusterName(serviceContext);
             expect(clusterName).to.equal('MyFakeAp-MyL-MyLong');
         });

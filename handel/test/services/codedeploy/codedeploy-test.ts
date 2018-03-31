@@ -23,14 +23,13 @@ import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, InstanceScalingPolicyType, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as codedeploy from '../../../src/services/codedeploy';
 import * as alb from '../../../src/services/codedeploy/alb';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as deployableArtifact from '../../../src/services/codedeploy/deployable-artifact';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('codedeploy deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -48,7 +47,7 @@ describe('codedeploy deployer', () => {
             path_to_code: '.',
             os: 'linux'
         };
-        serviceContext = new ServiceContext(app, env, service, 'codedeploy', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(app, env, service, 'codedeploy', serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 

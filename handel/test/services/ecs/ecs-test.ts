@@ -33,7 +33,6 @@ import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeplo
 import * as ecs from '../../../src/services/ecs';
 import * as asgCycling from '../../../src/services/ecs/asg-cycling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 const VALID_ECS_CONFIG: EcsServiceConfig = {
     type: 'ecs',
@@ -85,7 +84,7 @@ describe('ecs deployer', () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_ECS_CONFIG);
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -174,7 +173,7 @@ describe('ecs deployer', () => {
             const dependency1ServiceName = 'Dependency1Service';
             const dependency1ServiceType = 'dynamodb';
             const dependency1Params = { type: 'dynamodb' };
-            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig, new FakeServiceRegistry()));
+            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig));
             dependenciesDeployContexts.push(dependency1DeployContext);
             const envVarName = 'DYNAMODB_SOME_VAR';
             const envVarValue = 'SomeValue';
@@ -193,7 +192,7 @@ describe('ecs deployer', () => {
             const dependency2ServiceName = 'Dependency2Service';
             const dependency2ServiceType = 'efs';
             const dependency2Params = { type: 'efs' };
-            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig, new FakeServiceRegistry()));
+            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig));
             dependenciesDeployContexts.push(dependency2DeployContext);
             const scriptContents = 'SOME SCRIPT';
             dependency2DeployContext.scripts.push(scriptContents);

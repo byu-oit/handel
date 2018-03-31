@@ -42,7 +42,7 @@ export function check(handelFile: HandelFile, handelFileParser: HandelFileParser
     const errors: EnvironmentsCheckResults = {};
     for (const environmentToCheck in handelFile.environments) {
         if (handelFile.environments.hasOwnProperty(environmentToCheck)) {
-            const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToCheck, fakeAccountConfig); // Use fake account config for now during check
+            const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToCheck, fakeAccountConfig, serviceRegistry); // Use fake account config for now during check
             errors[environmentToCheck] = checkPhase.checkServices(serviceRegistry, environmentContext);
         }
     }

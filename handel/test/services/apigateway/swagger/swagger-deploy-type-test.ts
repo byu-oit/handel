@@ -22,7 +22,6 @@ import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../../src/datatypes';
 import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
 import * as swaggerDeployType from '../../../../src/services/apigateway/swagger/swagger-deploy-type';
-import FakeServiceRegistry from '../../../service-registry/fake-service-registry';
 
 describe('apigateway swagger deploy type', () => {
     let sandbox: sinon.SinonSandbox;
@@ -37,7 +36,7 @@ describe('apigateway swagger deploy type', () => {
             type: 'apigateway',
             swagger: `${__dirname}/test-swagger.json`
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -59,7 +58,7 @@ describe('apigateway swagger deploy type', () => {
             const dependencyServiceParams = {
                 type: 'dynamodb'
             };
-            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, accountConfig, new FakeServiceRegistry());
+            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependenciesDeployContexts.push(dependencyDeployContext);
             return dependenciesDeployContexts;

@@ -64,7 +64,7 @@ describe('ecs containers common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -76,7 +76,7 @@ describe('ecs containers common module', () => {
             const getMountPointsStub = sandbox.stub(ecsVolumes, 'getMountPointsForContainer').returns([]);
             const getRoutingInfoStub = sandbox.stub(ecsRouting, 'getRoutingInformationForContainer').returns([]);
 
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'efs', { type: 'efs' }, accountConfig, new FakeServiceRegistry());
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'efs', {type: 'efs'}, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             const containerConfigs = ecsContainers.getContainersConfig(serviceContext, [dependencyDeployContext], 'FakeClusterName');
 

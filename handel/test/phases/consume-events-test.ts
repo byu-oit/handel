@@ -72,7 +72,7 @@ describe('consumeEvents module', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig, new FakeServiceRegistry());
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             // Construct ServiceContext A (Producing service)
@@ -85,7 +85,7 @@ describe('consumeEvents module', () => {
                     service_name: 'B'
                 }]
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig, new FakeServiceRegistry());
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             // Create deployContexts

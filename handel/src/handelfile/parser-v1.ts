@@ -213,10 +213,15 @@ export function createEnvironmentContext(handelFile: HandelFile, environmentName
 
     _.forEach(environmentSpec, (serviceSpec, serviceName) => {
         const serviceType = serviceSpec.type;
+        const service = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceType);
         environmentContext.serviceContexts[serviceName] = new ServiceContext(
-            handelFile.name, environmentName, serviceName,
-            serviceType, serviceSpec, accountConfig, serviceRegistry, handelFile.tags || {}
-        );
+            handelFile.name, environmentName, serviceName, serviceType, serviceSpec,
+            accountConfig, handelFile.tags || {}, {
+                producedEventsSupportedServices: service.producedEventsSupportedServices,
+                producedDeployOutputTypes: service.producedDeployOutputTypes,
+                consumedDeployOutputTypes: service.consumedDeployOutputTypes,
+            }
+            );
     });
 
     return environmentContext;

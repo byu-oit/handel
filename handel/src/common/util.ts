@@ -17,6 +17,7 @@
 import * as archiver from 'archiver';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
+import { ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
@@ -184,9 +185,9 @@ export function getHandelFileParser(handelFile: HandelFile) {
 /**
  * Gets the App Context from the deploy spec file
  */
-export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig) { // TODO - Add type for HandelFileParser
+export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry) { // TODO - Add type for HandelFileParser
     try {
-        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig);
+        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig, serviceRegistry);
     }
     catch (err) {
         winston.error(`Error while parsing deploy spec: ${err.message}`);

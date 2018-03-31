@@ -43,14 +43,23 @@ export interface ServiceDeployer {
      * If the deployer deploys anything to Cloudformation, it should declare that it supports tagging.
      */
     supportsTagging: boolean;
+
     check?(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[];
+
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
+
     bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext>;
+
     deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext>;
+
     consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext>;
+
     produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext>;
+
     unPreDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnPreDeployContext>;
+
     unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnBindContext>;
+
     unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext>;
 }
 
@@ -70,6 +79,7 @@ export interface AccountConfig {
     redshift_subnet_group: string;
     required_tags?: string[];
     handel_resource_tags?: Tags;
+
     // Allow for account config extensions. Allows future plugins to have their own account-level settings.
     [key: string]: any;
 }
@@ -80,7 +90,9 @@ export interface AccountConfig {
 
 export interface ServiceRegistry {
     getService(prefix: string, name: string): ServiceDeployer;
+
     hasService(prefix: string, name: string): boolean;
+
     allPrefixes(): Set<string>;
 }
 
@@ -91,9 +103,18 @@ export interface ServiceContext<Config extends ServiceConfig> {
     serviceType: string;
     params: Config;
     accountConfig: AccountConfig;
-    serviceRegistry: ServiceRegistry;
+
+    serviceInfo: ServiceInfo;
+
     tags: Tags;
 }
+
+export interface ServiceInfo {
+    producedEventsSupportedServices: string[];
+    producedDeployOutputTypes: string[];
+    consumedDeployOutputTypes: string[];
+}
+
 
 export interface ServiceConfig {
     type: string;

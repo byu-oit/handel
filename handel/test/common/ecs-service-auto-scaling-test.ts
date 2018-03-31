@@ -62,7 +62,7 @@ describe('ecs service auto scaling common module', () => {
                 }]
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig);
     });
 
     afterEach(() => {

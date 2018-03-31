@@ -23,7 +23,6 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as kms from '../../../src/services/kms';
 import { KmsServiceConfig } from '../../../src/services/kms/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('kms deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -39,7 +38,7 @@ describe('kms deployer', () => {
         serviceParams = {
             type: 'kms'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'kms', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'kms', serviceParams, accountConfig);
     });
 
     afterEach(() => {

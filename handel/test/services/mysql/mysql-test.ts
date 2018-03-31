@@ -27,7 +27,6 @@ import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as mysql from '../../../src/services/mysql';
 import { MySQLConfig } from '../../../src/services/mysql/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('mysql deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -45,7 +44,7 @@ describe('mysql deployer', () => {
             mysql_version: '5.6.27',
             database_name: 'mydb'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -93,11 +92,9 @@ describe('mysql deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                'postgresql', serviceParams, accountConfig, new FakeServiceRegistry());
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', 'postgresql', serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                'beanstalk', { type: 'beanstalk' }, accountConfig, new FakeServiceRegistry());
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', 'beanstalk', {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));

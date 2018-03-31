@@ -21,7 +21,6 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
-import { DEFAULT_EXTENSION_PREFIX } from '../../service-registry';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from './swagger/swagger-deploy-type';
@@ -39,8 +38,7 @@ function checkCommon(serviceContext: ServiceContext<APIGatewayConfig>, dependenc
 
     if (dependenciesServiceContexts) {
         dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            const deployer = serviceContext.serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, dependencyServiceContext.serviceType);
-            if (deployer.producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
+            if (dependencyServiceContext.serviceInfo.producedDeployOutputTypes.includes('securityGroups') && !params.vpc) {
                 errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
             }
         });

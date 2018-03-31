@@ -95,7 +95,7 @@ export async function deploy(accountConfig: AccountConfig, handelFile: HandelFil
     // Check current credentials against the accountConfig
     const envDeployPromises: Array<Promise<EnvironmentDeployResult>> = [];
     for (const environmentToDeploy of environmentsToDeploy) {
-        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDeploy, accountConfig);
+        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDeploy, accountConfig, serviceRegistry);
         envDeployPromises.push(deployEnvironment(accountConfig, serviceRegistry, environmentContext));
     }
     return Promise.all(envDeployPromises);

@@ -27,7 +27,6 @@ import { AccountConfig, DeployContext, InstanceScalingPolicyType, PreDeployConte
 import * as  beanstalk from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('beanstalk deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -78,7 +77,7 @@ describe('beanstalk deployer', () => {
             key_name: 'MyKey',
             instance_type: 't2.small'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig);
     });
 
     afterEach(() => {

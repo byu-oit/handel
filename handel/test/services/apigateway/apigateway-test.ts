@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,16 +24,15 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import {
     AccountConfig,
     PreDeployContext,
-    ServiceConfig,
     ServiceContext,
     UnDeployContext,
     UnPreDeployContext
 } from '../../../src/datatypes';
 import * as apigateway from '../../../src/services/apigateway';
-import {APIGatewayConfig} from '../../../src/services/apigateway/config-types';
+import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from '../../../src/services/apigateway/swagger/swagger-deploy-type';
-import FakeServiceRegistry, { FakeRegistryInfo } from '../../service-registry/fake-service-registry';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('apigateway deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -49,7 +48,7 @@ describe('apigateway deployer', () => {
         serviceParams = {
             type: 'apigateway'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -90,7 +89,7 @@ describe('apigateway deployer', () => {
         });
 
         describe('common checks', () => {
-            it('should fail if vpc is false and a dependency producing security groups is declared', async function() {
+            it('should fail if vpc is false and a dependency producing security groups is declared', async function () {
                 this.timeout(10000);
                 serviceContext.params = {
                     type: 'apigateway',
@@ -104,14 +103,14 @@ describe('apigateway deployer', () => {
                     ]
                 };
 
-                serviceContext.serviceRegistry = new FakeServiceRegistry({
-                    mysql: {
-                        producedDeployOutputTypes: ['securityGroups']
-                    }
-                });
-
                 const dependenciesServiceContexts = [
-                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig, new FakeServiceRegistry())
+                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig,
+                        {}, {
+                            producedDeployOutputTypes: ['securityGroups'],
+                            consumedDeployOutputTypes: [],
+                            producedEventsSupportedServices: []
+                        }
+                    )
                 ];
                 const errors = await apigateway.check(serviceContext, dependenciesServiceContexts);
                 expect(errors).to.have.lengthOf(1);

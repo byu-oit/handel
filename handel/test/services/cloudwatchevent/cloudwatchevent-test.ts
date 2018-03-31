@@ -24,7 +24,6 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
 import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from '../../../src/services/cloudwatchevent/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('cloudwatchevent deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -39,7 +38,7 @@ describe('cloudwatchevent deployer', () => {
         serviceParams = {
             type: 'cloudwatchevents'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'cloudwatchevent', serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'cloudwatchevent', serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -95,7 +94,7 @@ describe('cloudwatchevent deployer', () => {
 
         it('should add a target for the lambda service type', async () => {
             const consumerServiceName = 'ConsumerService';
-            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'lambda', {type: 'lambda'}, accountConfig, new FakeServiceRegistry());
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'lambda', {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeLambdaArn';
 
@@ -119,7 +118,7 @@ describe('cloudwatchevent deployer', () => {
 
         it('should add a target for the sns service type', async () => {
             const consumerServiceName = 'ConsumerService';
-            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'sns', {type: 'sns'}, accountConfig, new FakeServiceRegistry());
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'sns', {type: 'sns'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.topicARN = 'FakeTopicArn';
 
@@ -143,7 +142,7 @@ describe('cloudwatchevent deployer', () => {
 
         it('should throw an error for an unsupported consumer service type', async () => {
             const consumerServiceName = 'ConsumerService';
-            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'dynamodb', {type: 'dynamodb'}, accountConfig, new FakeServiceRegistry());
+            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, 'dynamodb', {type: 'dynamodb'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             serviceContext.params = {

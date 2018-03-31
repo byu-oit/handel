@@ -54,7 +54,7 @@ describe('S3 deployers common module', () => {
 
     describe('getLogFilePrefix', () => {
         it('should return the proper s3 prefix', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig, new FakeServiceRegistry());
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
             const prefix = s3DeployersCommon.getLogFilePrefix(serviceContext);
             expect(prefix).to.equal('FakeApp/FakeEnv/FakeService/');
         });

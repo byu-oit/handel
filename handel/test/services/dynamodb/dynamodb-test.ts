@@ -26,7 +26,6 @@ import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
 import * as dynamodb from '../../../src/services/dynamodb';
 import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
     type: 'dynamodb',
@@ -94,7 +93,7 @@ describe('dynamodb deployer', () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_DYNAMODB_CONFIG);
-        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, serviceParams, accountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -476,7 +475,7 @@ describe('dynamodb deployer', () => {
 
     describe('produceEvents', () => {
         it('should return an empty ProduceEventsContext', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', 'faketype', {type: 'faketype'}, accountConfig, new FakeServiceRegistry());
+            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', 'faketype', {type: 'faketype'}, accountConfig);
             const eventConsumerConfig: DynamoDBServiceEventConsumer = {
                 service_name: 'fakeservice',
                 batch_size: 1

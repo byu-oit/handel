@@ -33,7 +33,7 @@ describe('bind phases common module', () => {
     beforeEach(async () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`)
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', {type: 'mysql'}, retAccountConfig, new FakeServiceRegistry());
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', {type: 'mysql'}, retAccountConfig);
         accountConfig = retAccountConfig;
     });
 
@@ -48,7 +48,7 @@ describe('bind phases common module', () => {
                 GroupId: 'FakeId'
             });
 
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentOfService', 'ecs', {type: 'ecs'}, accountConfig, new FakeServiceRegistry());
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentOfService', 'ecs', {type: 'ecs'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             dependentOfPreDeployContext.securityGroups.push({
                 GroupId: 'OtherId'

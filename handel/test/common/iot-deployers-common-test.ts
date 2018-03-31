@@ -30,7 +30,7 @@ describe('iot deployers common module', () => {
     beforeEach(async () => {
         sandbox = sinon.sandbox.create();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
-        producerServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService-Name', 'iot', {type: 'iot'}, accountConfig, new FakeServiceRegistry());
+        producerServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService-Name', 'iot', {type: 'iot'}, accountConfig);
     });
 
     afterEach(() => {
