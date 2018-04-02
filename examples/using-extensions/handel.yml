@@ -1,0 +1,21 @@
+version: 1
+
+name: using-extensions
+
+extensions:
+  random: random-secret-handel-extension@^0.1.0
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+      dependencies:
+      - parameter
+    parameter:
+      type: random::randomsecret
+      length: 128
+      alphabet: abcdefg
+
