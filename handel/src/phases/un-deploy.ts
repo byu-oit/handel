@@ -14,11 +14,13 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployOrder, EnvironmentContext, ServiceDeployers, UnDeployContext, UnDeployContexts} from '../datatypes';
+import { DeployOrder, EnvironmentContext, UnDeployContext, UnDeployContexts} from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
-export async function unDeployServicesInLevel(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnDeployContexts> {
+export async function unDeployServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnDeployContexts> {
     const serviceUnDeployPromises: Array<Promise<void>> = [];
     const levelUnDeployContexts: UnDeployContexts = {};
 
@@ -27,7 +29,7 @@ export async function unDeployServicesInLevel(serviceDeployers: ServiceDeployers
     for(const toUnDeployServiceName of currentLevelElements) {
         const toUnDeployServiceContext = environmentContext.serviceContexts[toUnDeployServiceName];
 
-        const serviceDeployer = serviceDeployers[toUnDeployServiceContext.serviceType];
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toUnDeployServiceContext.serviceType);
 
         winston.debug(`UnDeploying service ${toUnDeployServiceName}`);
         if (serviceDeployer.unDeploy) {

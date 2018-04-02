@@ -141,7 +141,7 @@ describe('sqs deployer', () => {
         });
 
         it('should consume from SNS event services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'sns', { type: 'sns' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'sns', {type: 'sns'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
 
@@ -153,7 +153,7 @@ describe('sqs deployer', () => {
         });
 
         it('should consume from S3 event services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', {type: 's3'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
 
@@ -165,7 +165,7 @@ describe('sqs deployer', () => {
         });
 
         it('should throw an error because SQS cant consume other services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', {type: 'otherService'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.otherArn = 'FakeArn';
 

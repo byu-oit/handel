@@ -14,10 +14,11 @@
  * limitations under the License.
  *
  */
-import * as _ from 'lodash';
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceDeployers, ServiceEventConsumer } from '../datatypes';
+import { DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceEventConsumer } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 interface ProduceEventsAction {
     eventConsumerConfig: ServiceEventConsumer;
@@ -38,7 +39,7 @@ async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig
     return produceEventsContext;
 }
 
-export async function produceEvents(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext, deployContexts: DeployContexts): Promise<ProduceEventsContexts> {
+export async function produceEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts): Promise<ProduceEventsContexts> {
     winston.info(`Executing produce events phase on services in environment ${environmentContext.environmentName}`);
 
     const produceEventActions: ProduceEventsAction[] = [];
@@ -50,7 +51,7 @@ export async function produceEvents(serviceDeployers: ServiceDeployers, environm
             // _.forEach(environmentContext.serviceContexts, function (producerServiceContext, producerServiceName) {
             if (producerServiceContext.params.event_consumers) {
                 // Get deploy info for producer service
-                const producerServiceDeployer = serviceDeployers[producerServiceContext.serviceType];
+                const producerServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, producerServiceContext.serviceType);
                 const producerDeployContext = deployContexts[producerServiceName];
 
                 // Run produce events for each service this service produces to

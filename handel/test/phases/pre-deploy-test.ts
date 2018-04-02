@@ -17,8 +17,9 @@
 import { expect } from 'chai';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, PreDeployContext, ServiceConfig, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, EnvironmentContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
 import * as preDeployPhase from '../../src/phases/pre-deploy';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('preDeploy', () => {
     let accountConfig: AccountConfig;
@@ -61,7 +62,7 @@ describe('preDeploy', () => {
         });
 
         it('should execute predeploy on all services, even across levels', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -89,15 +90,15 @@ describe('preDeploy', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const retPreDeployContexts = await preDeployPhase.preDeployServices(serviceDeployers, environmentContext);
+            const retPreDeployContexts = await preDeployPhase.preDeployServices(serviceRegistry, environmentContext);
             expect(retPreDeployContexts[serviceNameA]).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContexts[serviceNameB]).to.be.instanceof(PreDeployContext);
         });
 
         it('should return empty preDeployContexts for services that dont implement preDeploy', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -123,9 +124,9 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                     // We're pretending here that ECS doesn't implement predeploy for the purposes of this test, even though it really does
                 }
-            };
+            });
 
-            const retPreDeployContexts = await preDeployPhase.preDeployServices(serviceDeployers, environmentContext);
+            const retPreDeployContexts = await preDeployPhase.preDeployServices(serviceRegistry, environmentContext);
             expect(retPreDeployContexts[serviceNameA]).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContexts[serviceNameB]).to.be.instanceof(PreDeployContext);
         });

@@ -92,11 +92,9 @@ describe('mysql deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                'postgresql', serviceParams, accountConfig);
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', 'postgresql', serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService',
-                'beanstalk', { type: 'beanstalk' }, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', 'beanstalk', {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));

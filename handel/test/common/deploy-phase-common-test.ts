@@ -25,6 +25,7 @@ import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as util from '../../src/common/util';
 import {AccountConfig, DeployContext, ServiceConfig, ServiceContext} from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('Deploy phase common module', () => {
     let sandbox: sinon.SinonSandbox;

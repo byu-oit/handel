@@ -14,11 +14,13 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { EnvironmentContext, ServiceDeployers, UnPreDeployContext, UnPreDeployContexts } from '../datatypes';
+import { EnvironmentContext, UnPreDeployContext, UnPreDeployContexts } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
-export async function unPreDeployServices(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext): Promise<UnPreDeployContexts> {
+export async function unPreDeployServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<UnPreDeployContexts> {
     winston.info(`Executing UnPreDeploy on services in environment ${environmentContext.environmentName}`);
     const unPreDeployPromises: Array<Promise<void>> = [];
     const unPreDeployContexts: UnPreDeployContexts = {};
@@ -27,7 +29,7 @@ export async function unPreDeployServices(serviceDeployers: ServiceDeployers, en
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
             winston.debug(`Executing UnPreDeploy on service ${serviceName}`);
-            const serviceDeployer = serviceDeployers[serviceContext.serviceType];
+            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
             if (serviceDeployer.unPreDeploy) {
                 const unPreDeployPromise = serviceDeployer.unPreDeploy(serviceContext)
                     .then(unPreDeployContext => {

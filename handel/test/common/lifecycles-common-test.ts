@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as lifecyclesCommon from '../../src/common/lifecycles-common';
 import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('lifecycles common module', () => {
     let sandbox: sinon.SinonSandbox;

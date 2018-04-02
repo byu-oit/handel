@@ -121,7 +121,7 @@ describe('sns deployer', () => {
             const ownDeployContext = new DeployContext(serviceContext);
             ownDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
 
-            const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', 'lambda', { type: 'lambda' }, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', 'lambda', {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeLambdaArn';
 
@@ -136,7 +136,7 @@ describe('sns deployer', () => {
             const ownDeployContext = new DeployContext(serviceContext);
             ownDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
 
-            const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', 'efs', { type: 'efs' }, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', 'efs', {type: 'efs'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
@@ -161,7 +161,7 @@ describe('sns deployer', () => {
         });
 
         it('should consume cloud watch event service', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'cloudwatchevent', { type: 'cloudwatchevent' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'cloudwatchevent', {type: 'cloudwatchevent'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.eventRuleArn = 'FakeRuleArn';
 
@@ -173,7 +173,7 @@ describe('sns deployer', () => {
         });
 
         it('should consume S3 event services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', { type: 's3' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 's3', {type: 's3'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
 
@@ -185,7 +185,7 @@ describe('sns deployer', () => {
         });
 
         it('should throw an error because SNS cant consume other services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', { type: 'otherService' }, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', 'otherService', {type: 'otherService'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.otherArn = 'FakeArn';
 

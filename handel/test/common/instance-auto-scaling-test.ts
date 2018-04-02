@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as instanceAutoScaling from '../../src/common/instance-auto-scaling';
 import { AccountConfig, DeployContext, InstanceScalingPolicyType, ServiceConfig, ServiceContext } from '../../src/datatypes';
 import { CodeDeployServiceConfig } from '../../src/services/codedeploy/config-types';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('instance auto scaling common module', () => {
     let sandbox: sinon.SinonSandbox;

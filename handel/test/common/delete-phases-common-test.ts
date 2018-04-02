@@ -23,6 +23,7 @@ import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../src/common/delete-phases-common';
 import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('Delete phases common module', () => {
     let sandbox: sinon.SinonSandbox;

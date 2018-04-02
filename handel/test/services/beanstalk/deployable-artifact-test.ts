@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import 'mocha';
-import * as path from 'path';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';

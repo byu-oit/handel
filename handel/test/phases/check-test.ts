@@ -17,8 +17,9 @@
 import { expect } from 'chai';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, EnvironmentContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
 import * as checkPhase from '../../src/phases/check';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('check', () => {
     let accountConfig: AccountConfig;
@@ -28,8 +29,8 @@ describe('check', () => {
     });
 
     describe('checkServices', () => {
-        function getServiceDeployers(): ServiceDeployers {
-            return {
+        function getServiceRegistry(): FakeServiceRegistry {
+            return new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -55,7 +56,7 @@ describe('check', () => {
                     supportsTagging: true,
                 }
                 // We're pretending that EFS doesn't implement check (even though it really does) for the purposes of this test.
-            };
+            });
         }
 
         function getEnvironmentContext() {
@@ -86,28 +87,28 @@ describe('check', () => {
             return environmentContext;
         }
 
-        it('should run check services on all services in the environment that implement check', () => {
-            const serviceDeployers = getServiceDeployers();
+        it('should run check services on all services in the environment that implement check', async () => {
+            const serviceRegistry = getServiceRegistry();
             const environmentContext = getEnvironmentContext();
 
-            const checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
+            const checkResults = await checkPhase.checkServices(serviceRegistry, environmentContext);
             expect(checkResults).to.deep.equal([]);
         });
 
-        it('should return errors when there are errors in one or more services', () => {
-            const serviceDeployers = getServiceDeployers();
+        it('should return errors when there are errors in one or more services', async () => {
+            const serviceRegistry = getServiceRegistry();
             const ecsErrors = ['ECS Error'];
-            serviceDeployers.ecs.check = () => ecsErrors;
+            serviceRegistry.services.ecs.check = () => ecsErrors;
             const environmentContext = getEnvironmentContext();
 
-            const checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
+            const checkResults = await checkPhase.checkServices(serviceRegistry, environmentContext);
             expect(checkResults).to.deep.equal(ecsErrors);
         });
 
-        it('should enforce required tags from the account config file', () => {
+        it('should enforce required tags from the account config file', async () => {
             accountConfig.required_tags = ['app_tag', 'resource_tag'];
 
-            const serviceDeployers = getServiceDeployers();
+            const serviceRegistry = getServiceRegistry();
             const environmentContext = getEnvironmentContext();
 
             const appTags = {app_tag: 'value'};
@@ -119,7 +120,7 @@ describe('check', () => {
             // B forgot the resource tag!
             environmentContext.serviceContexts.B.tags = appTags;
 
-            const checkResults = checkPhase.checkServices(serviceDeployers, environmentContext);
+            const checkResults = await checkPhase.checkServices(serviceRegistry, environmentContext);
             expect(checkResults).to.have.lengthOf(1);
             expect(checkResults[0]).to.include('Missing required tag \'resource_tag\'');
         });

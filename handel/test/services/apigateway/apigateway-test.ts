@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,15 +24,15 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import {
     AccountConfig,
     PreDeployContext,
-    ServiceConfig,
     ServiceContext,
     UnDeployContext,
     UnPreDeployContext
 } from '../../../src/datatypes';
 import * as apigateway from '../../../src/services/apigateway';
-import {APIGatewayConfig} from '../../../src/services/apigateway/config-types';
+import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from '../../../src/services/apigateway/swagger/swagger-deploy-type';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('apigateway deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -57,7 +57,7 @@ describe('apigateway deployer', () => {
 
     describe('check', () => {
         describe('when using proxy passthrough', () => {
-            it('should run check from the proxy passthrough module', () => {
+            it('should run check from the proxy passthrough module', async () => {
                 const checkStub = sandbox.stub(proxyPassthroughDeployType, 'check').returns([]);
                 serviceContext.params = {
                     type: 'apigateway',
@@ -67,14 +67,14 @@ describe('apigateway deployer', () => {
                         runtime: 'nodejs6.10'
                     }
                 };
-                const errors = apigateway.check(serviceContext, []);
+                const errors = await apigateway.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
                 expect(checkStub.callCount).to.equal(1);
             });
         });
 
         describe('when using swagger configuration', () => {
-            it('should run check from the swagger module', () => {
+            it('should run check from the swagger module', async () => {
                 const checkStub = sandbox.stub(swaggerDeployType, 'check').returns([]);
 
                 serviceContext.params = {
@@ -82,14 +82,14 @@ describe('apigateway deployer', () => {
                     swagger: 'fakeswagger.json'
                 };
 
-                const errors = apigateway.check(serviceContext, []);
+                const errors = await apigateway.check(serviceContext, []);
                 expect(checkStub.callCount).to.equal(1);
                 expect(errors.length).to.equal(0);
             });
         });
 
         describe('common checks', () => {
-            it('should fail if vpc is false and a dependency producing security groups is declared', function() {
+            it('should fail if vpc is false and a dependency producing security groups is declared', async function () {
                 this.timeout(10000);
                 serviceContext.params = {
                     type: 'apigateway',
@@ -102,10 +102,17 @@ describe('apigateway deployer', () => {
                         'FakeDependency'
                     ]
                 };
+
                 const dependenciesServiceContexts = [
-                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig)
+                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig,
+                        {}, {
+                            producedDeployOutputTypes: ['securityGroups'],
+                            consumedDeployOutputTypes: [],
+                            producedEventsSupportedServices: []
+                        }
+                    )
                 ];
-                const errors = apigateway.check(serviceContext, dependenciesServiceContexts);
+                const errors = await apigateway.check(serviceContext, dependenciesServiceContexts);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'vpc\' parameter is required and must be true when declaring dependencies of type');
             });
@@ -127,26 +134,26 @@ describe('apigateway deployer', () => {
                         custom_domains: [customDomain]
                     };
                 });
-                it('should fail if missing a dns_name', () => {
+                it('should fail if missing a dns_name', async () => {
                     customDomain.dns_name = null;
 
-                    const errors = apigateway.check(serviceContext, []);
+                    const errors = await apigateway.check(serviceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.contain('\'dns_name\' parameter is required');
                 });
 
-                it('should fail if given an invalid dns_name', () => {
+                it('should fail if given an invalid dns_name', async () => {
                     customDomain.dns_name = 'totally invalid dns name';
 
-                    const errors = apigateway.check(serviceContext, []);
+                    const errors = await apigateway.check(serviceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.contain('\'dns_name\' must be a valid DNS hostname');
                 });
 
-                it('should fail if missing an https_certificate', () => {
+                it('should fail if missing an https_certificate', async () => {
                     customDomain.https_certificate = null;
 
-                    const errors = apigateway.check(serviceContext, []);
+                    const errors = await apigateway.check(serviceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.contain('\'https_certificate\' parameter is required');
                 });

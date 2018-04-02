@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployContext, DeployContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, DeployContext, DeployContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceContext} from '../../src/datatypes';
 import * as deployPhase from '../../src/phases/deploy';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('deploy', () => {
     let sandbox: sinon.SinonSandbox;
@@ -87,7 +88,7 @@ describe('deploy', () => {
         });
 
         it('should deploy the services in the given level', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -115,14 +116,14 @@ describe('deploy', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const retDeployContexts = await deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy);
+            const retDeployContexts = await deployPhase.deployServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy);
             expect(retDeployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
         });
 
         it('should return empty deploy contexts for the phases that dont implement deploy', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 efs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [
@@ -148,9 +149,9 @@ describe('deploy', () => {
                     supportsTagging: true,
                     // Simulating that ECS doesnt implement deploy
                 }
-            };
+            });
 
-            const retDeployContexts = await deployPhase.deployServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy);
+            const retDeployContexts = await deployPhase.deployServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployContexts, deployOrder, levelToDeploy);
             expect(retDeployContexts[serviceNameA]).to.be.instanceOf(DeployContext);
         });
     });

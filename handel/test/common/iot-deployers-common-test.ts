@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as iotDeployersCommon from '../../src/common/iot-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('iot deployers common module', () => {
     let sandbox: sinon.SinonSandbox;

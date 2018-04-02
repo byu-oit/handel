@@ -21,8 +21,9 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsRouting from '../../src/common/ecs-routing';
 import { HandlebarsEcsTemplateContainer, LoadBalancerConfigType } from '../../src/common/ecs-shared-config-types';
-import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, ServiceContext } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('ecs routing common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -55,7 +56,7 @@ describe('ecs routing common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig, {});
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig);
     });
 
     afterEach(() => {

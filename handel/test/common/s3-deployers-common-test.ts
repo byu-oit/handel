@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../src/common/s3-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('S3 deployers common module', () => {
     let sandbox: sinon.SinonSandbox;

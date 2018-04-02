@@ -15,9 +15,11 @@
  *
  */
 import * as Ajv from 'ajv';
+import {ServiceRegistry} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as util from '../common/util';
-import { AccountConfig, EnvironmentContext, HandelFile, ServiceContext, ServiceDeployers } from '../datatypes';
+import { AccountConfig, EnvironmentContext, HandelFile, ServiceContext } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 const APP_ENV_SERVICE_NAME_REGEX = /^[a-zA-Z0-9-]+$/;
 
@@ -46,7 +48,7 @@ function checkSchema(handelFile: HandelFile): string[] {
  * Service-specific parameters are not checked here. Instead, they are checked as one of the phases in
  * the deployer lifecycle, so the deployers themselves implement parameter checking for their service.
  */
-function checkServiceTypes(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[] {
+function checkServiceTypes(handelFile: HandelFile, serviceRegistry: ServiceRegistry): string[] {
     const errors = [];
 
     // Check that each service type is supported by Handel
@@ -57,7 +59,7 @@ function checkServiceTypes(handelFile: HandelFile, serviceDeployers: ServiceDepl
                     const serviceType = handelFile.environments[envName][serviceName].type;
 
                     // Check that specified service type is supported by Handel
-                    if (!serviceDeployers[serviceType]) {
+                    if (!serviceRegistry.hasService(DEFAULT_EXTENSION_PREFIX, serviceType)) {
                         errors.push(`Unsupported service type specified '${serviceType}'`);
                     }
                 }
@@ -71,11 +73,11 @@ function checkServiceTypes(handelFile: HandelFile, serviceDeployers: ServiceDepl
 /**
  * Checks the dependencies of each service to make sure that it is consumable by that service
  *
- * This is accomlished via the "producedDeployOutputTypes" and "consumedDeployOutputTypes" lists from
+ * This is accomplished via the "producedDeployOutputTypes" and "consumedDeployOutputTypes" lists from
  * the deployer contract, where the deployers specify what output types they are able to produce and
  * consume
  */
-function checkServiceDependencies(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[] {
+function checkServiceDependencies(handelFile: HandelFile, serviceRegistry: ServiceRegistry): string[] {
     const errors = [];
 
     for (const envName in handelFile.environments) {
@@ -94,8 +96,8 @@ function checkServiceDependencies(handelFile: HandelFile, serviceDeployers: Serv
                                 const dependentServiceDef = environmentDef[dependentServiceName];
 
                                 // Make sure the dependent service produces outputs that the consuming service can consume
-                                const serviceDeployer = serviceDeployers[serviceDef.type];
-                                const dependentServiceDeployer = serviceDeployers[dependentServiceDef.type];
+                                const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
+                                const dependentServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, dependentServiceDef.type);
                                 const serviceConsumedOutputs = serviceDeployer.consumedDeployOutputTypes;
                                 const dependentServiceProducedOutputs = dependentServiceDeployer.producedDeployOutputTypes;
                                 const consumeErrMsg = `The '${dependentServiceDef.type}' service type is not consumable by the '${serviceDef.type}' service type`;
@@ -125,7 +127,7 @@ function checkServiceDependencies(handelFile: HandelFile, serviceDeployers: Serv
  * deployer contract, where the deployers specify what services (if any) can consume events
  * from that service.
  */
-function checkEventConsumers(handelFile: HandelFile, serviceDeployers: ServiceDeployers) {
+function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceRegistry) {
     const errors = [];
 
     for (const envName in handelFile.environments) {
@@ -144,7 +146,7 @@ function checkEventConsumers(handelFile: HandelFile, serviceDeployers: ServiceDe
                             }
                             const eventConsumerServiceDef = environmentDef[eventConsumerServiceName];
 
-                            const serviceDeployer = serviceDeployers[serviceDef.type];
+                            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
                             const supportedConsumerTypes = serviceDeployer.producedEventsSupportedServices;
                             if (!supportedConsumerTypes.includes(eventConsumerServiceDef.type)) {
                                 errors.push(`The '${eventConsumerServiceDef.type}' service type can't consume events from the '${serviceDef.type}' service type`);
@@ -165,7 +167,7 @@ function checkEventConsumers(handelFile: HandelFile, serviceDeployers: ServiceDe
  * This does not check the individual services in the file, those are handled by the
  * service deployer themselves.
  */
-export function validateHandelFile(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[] {
+export async function validateHandelFile(handelFile: HandelFile, serviceRegistry: ServiceRegistry): Promise<string[]> {
     const schemaErrors = checkSchema(handelFile);
     if (schemaErrors.length > 0) {
         return schemaErrors;
@@ -178,13 +180,13 @@ export function validateHandelFile(handelFile: HandelFile, serviceDeployers: Ser
             errors.push(`You may not use the name 'handel' for your app name`);
         }
 
-        errors = errors.concat(checkServiceTypes(handelFile, serviceDeployers)); // Check that environment and services are valid (not all ones will work);
+        errors = errors.concat(checkServiceTypes(handelFile, serviceRegistry)); // Check that environment and services are valid (not all ones will work);
         if (errors.length > 0) {
             return errors;
         }
         else {
-            errors = errors.concat(checkServiceDependencies(handelFile, serviceDeployers));
-            errors = errors.concat(checkEventConsumers(handelFile, serviceDeployers));
+            errors = errors.concat(checkServiceDependencies(handelFile, serviceRegistry));
+            errors = errors.concat(checkEventConsumers(handelFile, serviceRegistry));
             return errors;
         }
     }
@@ -197,9 +199,11 @@ export function validateHandelFile(handelFile: HandelFile, serviceDeployers: Ser
  *
  * @param {Object} handelFile - The Object representing the provided YAML deploy spec file
  * @param {String} environmentName - The name of the environment in the deploy spec for which we want the EnvironmentContext
+ * @param {AccountConfig} accountConfig - account configuration
+ * @param {ServiceRegistry} serviceRegistry - registry of all loaded services
  * @returns {EnvironmentContext} - The generated EnvironmentContext from the specified environment in the Handel file
  */
-export function createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig): EnvironmentContext {
+export function createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry): EnvironmentContext {
     const environmentSpec = handelFile.environments[environmentName];
     if (!environmentSpec) {
         throw new Error(`Can't find the requested environment in the deploy spec: ${environmentName}`);
@@ -209,9 +213,15 @@ export function createEnvironmentContext(handelFile: HandelFile, environmentName
 
     _.forEach(environmentSpec, (serviceSpec, serviceName) => {
         const serviceType = serviceSpec.type;
-        const serviceContext = new ServiceContext(handelFile.name, environmentName, serviceName,
-            serviceType, serviceSpec, accountConfig, handelFile.tags || {});
-        environmentContext.serviceContexts[serviceName] = serviceContext;
+        const service = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceType);
+        environmentContext.serviceContexts[serviceName] = new ServiceContext(
+            handelFile.name, environmentName, serviceName, serviceType, serviceSpec,
+            accountConfig, handelFile.tags || {}, {
+                producedEventsSupportedServices: service.producedEventsSupportedServices,
+                producedDeployOutputTypes: service.producedDeployOutputTypes,
+                consumedDeployOutputTypes: service.consumedDeployOutputTypes,
+            }
+            );
     });
 
     return environmentContext;

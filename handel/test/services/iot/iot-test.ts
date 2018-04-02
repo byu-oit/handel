@@ -99,7 +99,7 @@ describe('iot deployer', () => {
         });
 
         it('should create topic rules when lambda is the event consumer', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'lambda', { type: 'lambda' }, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'lambda', {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeArn';
 

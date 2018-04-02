@@ -34,28 +34,20 @@ export interface AccountConfig extends api.AccountConfig {
  * Types for the context objects used by service deployers
  ***********************************/
 export class ServiceContext<Config extends ServiceConfig> implements api.ServiceContext<Config> {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-    public params: Config;
-    public accountConfig: AccountConfig;
-    public tags: Tags;
 
-    constructor(appName: string,
-                environmentName: string,
-                serviceName: string,
-                serviceType: string,
-                params: Config,
-                accountConfig: AccountConfig,
-                tags: Tags = {}) {
-            this.appName = appName;
-            this.environmentName = environmentName;
-            this.serviceName = serviceName;
-            this.serviceType = serviceType;
-            this.params = params;
-            this.accountConfig = accountConfig;
-            this.tags = tags;
+    constructor(public appName: string,
+                public environmentName: string,
+                public serviceName: string,
+                public serviceType: string,
+                public params: Config,
+                public accountConfig: AccountConfig,
+                public tags: Tags = {},
+                public serviceInfo: api.ServiceInfo = {
+                    consumedDeployOutputTypes: [],
+                    producedDeployOutputTypes: [],
+                    producedEventsSupportedServices: []
+                }
+    ) {
     }
 }
 
@@ -203,16 +195,13 @@ export class UnPreDeployContext implements api.UnPreDeployContext {
 export interface ServiceDeployer extends api.ServiceDeployer {
 }
 
-export interface ServiceDeployers {
-    [key: string]: ServiceDeployer;
-}
-
 /************************************
  * Types for the HandelFileParser contract
  ************************************/
 export interface HandelFileParser {
-    validateHandelFile(handelFile: HandelFile, serviceDeployers: ServiceDeployers): string[];
-    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig): EnvironmentContext;
+    validateHandelFile(handelFile: HandelFile, serviceRegistry: api.ServiceRegistry): Promise<string[]>;
+
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry): EnvironmentContext;
 }
 
 /***********************************

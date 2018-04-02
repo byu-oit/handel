@@ -21,6 +21,7 @@ import 'mocha';
 import config from '../../src/account-config/account-config';
 import { AccountConfig, EnvironmentContext, ServiceContext } from '../../src/datatypes';
 import * as deployOrderCalc from '../../src/deploy/deploy-order-calc';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('deploy-order-calc', () => {
     let accountConfig: AccountConfig;

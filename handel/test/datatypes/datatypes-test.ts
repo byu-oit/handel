@@ -17,7 +17,8 @@
 import { expect } from 'chai';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { BindContext, ConsumeEventsContext, DeployContext, EnvironmentContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext, AccountConfig } from '../../src/datatypes';
+import { AccountConfig, BindContext, ConsumeEventsContext, DeployContext, EnvironmentContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('Datatypes Module', () => {
     let accountConfig: AccountConfig;

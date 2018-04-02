@@ -18,13 +18,19 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as iamCalls from '../../../src/aws/iam-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, ServiceContext, PreDeployContext, UnDeployContext, ServiceConfig } from '../../../src/datatypes';
+import * as util from '../../../src/common/util';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from '../../../src/datatypes';
 import * as stepfunctions from '../../../src/services/stepfunctions';
 import { StepFunctionsConfig } from '../../../src/services/stepfunctions/config-types';
-import * as util from '../../../src/common/util';
 
 describe('stepfunctions deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -73,7 +79,7 @@ describe('stepfunctions deployer', () => {
             delete serviceContext.params.definition;
             const errors = stepfunctions.check(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain("'definition' parameter is required");
+            expect(errors[0]).to.contain('\'definition\' parameter is required');
         });
 
         it('should require the definition file to be JSON or YAML', () => {
@@ -92,7 +98,7 @@ describe('stepfunctions deployer', () => {
         });
 
         it('should require JSON definition to be valid JSON', () => {
-            serviceContext.params.definition = 'state_machine.json'
+            serviceContext.params.definition = 'state_machine.json';
             sandbox.stub(util, 'readJsonFileSync').returns(null);
             const errors = stepfunctions.check(serviceContext, []);
             expect(errors.length).to.equal(1);
@@ -146,8 +152,8 @@ describe('stepfunctions deployer', () => {
     });
 
     describe('deploy', () => {
-        const alphaLambdaArn = 'arn:aws:lambda:region:account-id:function:alpha-lambda'
-        const betaLambdaArn = 'arn:aws:lambda:region:account-id:function:beta-lambda'
+        const alphaLambdaArn = 'arn:aws:lambda:region:account-id:function:alpha-lambda';
+        const betaLambdaArn = 'arn:aws:lambda:region:account-id:function:beta-lambda';
         function getDependenciesDeployContexts(): DeployContext[] {
             const dependenciesDeployContexts: DeployContext[] = [];
 

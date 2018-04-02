@@ -14,18 +14,20 @@
  * limitations under the License.
  *
  */
+import {ServiceRegistry} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import {getTags} from '../common/tagging-common';
-import {EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer, ServiceDeployers} from '../datatypes';
+import {EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
+import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
-export function checkServices(serviceDeployers: ServiceDeployers, environmentContext: EnvironmentContext): string[] {
+export function checkServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): string[] {
     winston.info(`Checking services in environment ${environmentContext.environmentName}`);
     // Run check on all services in environment to make sure params are valid
     const requiredTags = environmentContext.accountConfig.required_tags || [];
     let errors: string[] = [];
     _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>) => {
-        const serviceDeployer = serviceDeployers[serviceContext.serviceType];
+        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
         if(serviceDeployer.check) {
             const dependenciesServiceContexts = getDependenciesServiceContexts(serviceContext, environmentContext);
             const checkErrors = serviceDeployer.check(serviceContext, dependenciesServiceContexts);

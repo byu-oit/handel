@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ServiceContext } from '../../src/datatypes';
 import * as produceEvents from '../../src/phases/produce-events';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('produceEvents module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -36,7 +37,7 @@ describe('produceEvents module', () => {
 
     describe('produceEvents', () => {
         it('should execute produceEvents on all services that specify themselves as producers for other services', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 lambda: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -57,7 +58,7 @@ describe('produceEvents module', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
             // Create EnvironmentContext
             const appName = 'test';
@@ -92,7 +93,7 @@ describe('produceEvents module', () => {
             deployContexts[serviceNameA] = new DeployContext(serviceContextA);
             deployContexts[serviceNameB] = new DeployContext(serviceContextB);
 
-            const retProduceEventsContext = await produceEvents.produceEvents(serviceDeployers, environmentContext, deployContexts);
+            const retProduceEventsContext = await produceEvents.produceEvents(serviceRegistry, environmentContext, deployContexts);
             expect(retProduceEventsContext['A->B']).to.be.instanceof(ProduceEventsContext);
         });
     });

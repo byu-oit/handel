@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as elasticacheDeployersCommon from '../../src/common/elasticache-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('elasticache deployers common module', () => {
     let sandbox: sinon.SinonSandbox;

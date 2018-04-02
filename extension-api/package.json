@@ -10,11 +10,12 @@
   },
   "author": "David Woodruff",
   "license": "Apache-2.0",
-  "dependencies": {
+  "peerDependencies": {
     "aws-sdk": "^2.188.0"
   },
   "devDependencies": {
     "@types/node": "^9.4.0",
+    "aws-sdk": "^2.188.0",
     "ts-node": "^3.3.0",
     "tslint": "^5.8.0",
     "typescript": "^2.8.1"

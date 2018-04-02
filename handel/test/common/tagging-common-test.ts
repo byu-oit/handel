@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import {getTags} from '../../src/common/tagging-common';
 import {AccountConfig, ServiceConfig, ServiceContext} from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('Tagging common module', () => {
     let sandbox: sinon.SinonSandbox;

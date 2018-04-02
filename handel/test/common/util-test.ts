@@ -20,6 +20,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
 import { EnvironmentContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('util module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -201,7 +202,7 @@ describe('util module', () => {
         const accountConfig = util.readYamlFileSync(`${__dirname}/../test-account-config.yml`);
         const environmentName = 'dev';
 
-        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, accountConfig);
+        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, accountConfig, new FakeServiceRegistry());
         expect(environmentContext).to.be.instanceof(EnvironmentContext);
     });
 });

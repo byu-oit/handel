@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../src/common/rds-deployers-common';
 import { AccountConfig, ServiceConfig, ServiceContext, UnDeployContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('RDS deployers common module', () => {
     let sandbox: sinon.SinonSandbox;

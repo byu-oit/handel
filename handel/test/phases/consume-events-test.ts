@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, ConsumeEventsContext, DeployContext, DeployContexts, EnvironmentContext, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, ConsumeEventsContext, DeployContext, DeployContexts, EnvironmentContext, ServiceContext } from '../../src/datatypes';
 import * as consumeEvents from '../../src/phases/consume-events';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('consumeEvents module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -36,7 +37,7 @@ describe('consumeEvents module', () => {
 
     describe('consumeEvents', () => {
         it('should execute consumeEvents on all services that are specified as consumers by other services', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 lambda: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -57,7 +58,7 @@ describe('consumeEvents module', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
             // Create EnvironmentContext
             const appName = 'test';
@@ -92,7 +93,7 @@ describe('consumeEvents module', () => {
             deployContexts[serviceNameA] = new DeployContext(serviceContextA);
             deployContexts[serviceNameB] = new DeployContext(serviceContextB);
 
-            const consumeEventsContexts = await consumeEvents.consumeEvents(serviceDeployers, environmentContext, deployContexts);
+            const consumeEventsContexts = await consumeEvents.consumeEvents(serviceRegistry, environmentContext, deployContexts);
             expect(consumeEventsContexts['B->A']).to.be.instanceof(ConsumeEventsContext);
         });
     });

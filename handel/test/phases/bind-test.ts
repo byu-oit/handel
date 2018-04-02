@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, BindContext, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceContext, ServiceDeployers } from '../../src/datatypes';
+import { AccountConfig, BindContext, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceContext } from '../../src/datatypes';
 import * as bindPhase from '../../src/phases/bind';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('bind', () => {
     let sandbox: sinon.SinonSandbox;
@@ -86,7 +87,7 @@ describe('bind', () => {
         const levelToBind = 0;
 
         it('should execute bind on all the services in parallel', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -105,15 +106,15 @@ describe('bind', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const bindContexts = await bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, levelToBind);
+            const bindContexts = await bindPhase.bindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, levelToBind);
             expect(bindContexts['A->B']).to.be.instanceof(BindContext);
             expect(bindContexts['C->B']).to.be.instanceof(BindContext);
         });
 
         it('should return empty BindContexts for services that dont implement bind', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -130,9 +131,9 @@ describe('bind', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const bindContexts = await bindPhase.bindServicesInLevel(serviceDeployers, environmentContext, preDeployContexts, deployOrder, levelToBind);
+            const bindContexts = await bindPhase.bindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, levelToBind);
             expect(bindContexts['A->B']).to.be.instanceof(BindContext);
             expect(bindContexts['C->B']).to.be.instanceof(BindContext);
         });

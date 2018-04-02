@@ -21,6 +21,7 @@ import config from '../../src/account-config/account-config';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as bindPhaseCommon from '../../src/common/bind-phase-common';
 import { AccountConfig, BindContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from "../service-registry/fake-service-registry";
 
 describe('bind phases common module', () => {
     let sandbox: sinon.SinonSandbox;

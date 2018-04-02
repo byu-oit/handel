@@ -105,7 +105,7 @@ describe('redis deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOfService', 'ecs', { type: 'ecs' }, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOfService', 'ecs', {type: 'ecs'}, accountConfig);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
             const bindContext = await redis.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));

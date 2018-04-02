@@ -23,7 +23,7 @@ import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, InstanceScalingPolicyType, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
 import * as codedeploy from '../../../src/services/codedeploy';
 import * as alb from '../../../src/services/codedeploy/alb';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';

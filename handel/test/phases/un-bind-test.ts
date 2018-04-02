@@ -18,8 +18,9 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, ServiceDeployers, UnBindContext } from '../../src/datatypes';
+import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, UnBindContext } from '../../src/datatypes';
 import * as unBindPhase from '../../src/phases/un-bind';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('unBind', () => {
     let sandbox: sinon.SinonSandbox;
@@ -75,7 +76,7 @@ describe('unBind', () => {
         });
 
         it('should execute UnBind on all the services in parallel', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -103,14 +104,14 @@ describe('unBind', () => {
                     },
                     supportsTagging: true,
                 }
-            };
+            });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
             expect(unBindContexts.B).to.be.instanceof(UnBindContext);
         });
 
         it('should return emtpy unbind contexts for services that dont implement unbind', async () => {
-            const serviceDeployers: ServiceDeployers = {
+            const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
                     producedEventsSupportedServices: [],
                     producedDeployOutputTypes: [],
@@ -136,9 +137,9 @@ describe('unBind', () => {
                     supportsTagging: true,
                     // Simulating that EFS doesn't implement unbind
                 }
-            };
+            });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceDeployers, environmentContext, deployOrder, levelToUnBind);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
             expect(unBindContexts.B).to.be.instanceof(UnBindContext);
         });
     });

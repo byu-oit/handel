@@ -26,6 +26,7 @@ import * as bindPhase from '../../src/phases/bind';
 import * as checkPhase from '../../src/phases/check';
 import * as deployPhase from '../../src/phases/deploy';
 import * as preDeployPhase from '../../src/phases/pre-deploy';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('deploy lifecycle module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -43,7 +44,7 @@ describe('deploy lifecycle module', () => {
     describe('deploy', () => {
         it('should deploy the application environment on success', async () => {
             const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
-            const checkServicesStub = sandbox.stub(checkPhase, 'checkServices').returns([]);
+            const checkServicesStub = sandbox.stub(checkPhase, 'checkServices').resolves([]);
             const preDeployServicesStub = sandbox.stub(preDeployPhase, 'preDeployServices').resolves({
                 A: new PreDeployContext(serviceContext),
                 B: new PreDeployContext(serviceContext)
@@ -51,8 +52,8 @@ describe('deploy lifecycle module', () => {
             const bindServicesInLevelStub = sandbox.stub(bindPhase, 'bindServicesInLevel').returns({});
             const deployServicesInlevelStub = sandbox.stub(deployPhase, 'deployServicesInLevel').returns({});
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-            const serviceDeployers = util.getServiceDeployers();
-            const results = await deployLifecycle.deploy(accountConfig, handelFile, ['dev', 'prod'], handelFileParser, serviceDeployers);
+            const serviceRegistry = new FakeServiceRegistry({});
+            const results = await deployLifecycle.deploy(accountConfig, handelFile, ['dev', 'prod'], handelFileParser, serviceRegistry);
             expect(checkServicesStub.callCount).to.equal(2);
             expect(preDeployServicesStub.callCount).to.equal(2);
             expect(bindServicesInLevelStub.callCount).to.equal(4);

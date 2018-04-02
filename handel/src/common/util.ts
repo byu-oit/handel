@@ -17,14 +17,14 @@
 import * as archiver from 'archiver';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
+import { ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
 import pascalCase = require('pascal-case');
-import * as path from 'path';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelFile, ServiceDeployers } from '../datatypes';
+import { AccountConfig, HandelFile } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {
@@ -145,24 +145,6 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string) {
 }
 
 /**
- * Reads all the service deployer modules out of the 'services' directory
- */
-export function getServiceDeployers(): ServiceDeployers {
-    const deployers: ServiceDeployers = {};
-
-    const servicesPath = path.join(__dirname, '../services');
-    const serviceTypes = fs.readdirSync(servicesPath);
-    serviceTypes.forEach(serviceType => {
-        const servicePath = `${servicesPath}/${serviceType}`;
-        if (fs.lstatSync(servicePath).isDirectory()) {
-            deployers[serviceType] = require(servicePath);
-        }
-    });
-
-    return deployers;
-}
-
-/**
  * Given two service names, one binding to another, return a string representing the bind.
  */
 export function getBindContextName(bindServiceName: string, dependentServiceName: string): string {
@@ -203,9 +185,9 @@ export function getHandelFileParser(handelFile: HandelFile) {
 /**
  * Gets the App Context from the deploy spec file
  */
-export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig) { // TODO - Add type for HandelFileParser
+export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry) { // TODO - Add type for HandelFileParser
     try {
-        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig);
+        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig, serviceRegistry);
     }
     catch (err) {
         winston.error(`Error while parsing deploy spec: ${err.message}`);
@@ -282,4 +264,8 @@ export function makeTmpDir(): string {
     const tempDirPath = `${os.tmpdir()}/${uuid()}`;
     fs.mkdirSync(tempDirPath);
     return tempDirPath;
+}
+
+export function documentationUrl(path: string) {
+    return `https://handel.readthedocs.io/en/latest/${path}`;
 }

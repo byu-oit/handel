@@ -22,6 +22,7 @@ import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as preDeployPhaseCommon from '../../src/common/pre-deploy-phase-common';
 import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('PreDeploy Phase Common module', () => {
     let sandbox: sinon.SinonSandbox;
