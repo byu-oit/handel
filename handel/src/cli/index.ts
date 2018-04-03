@@ -15,8 +15,9 @@
  *
  */
 import * as AWS from 'aws-sdk';
+import { stripIndent } from 'common-tags';
 import * as fs from 'fs';
-import { ServiceRegistry } from 'handel-extension-api';
+import { ServiceRegistry, Tags } from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
@@ -30,11 +31,11 @@ import {
     CheckOptions,
     DeleteOptions,
     DeployOptions,
-    EnvironmentResult,
+    EnvironmentResult, HandelCoreOptions,
     HandelFile,
     HandelFileParser,
-    Tags
 } from '../datatypes';
+import { resolveExtensions } from '../extensions-support/resolve-extensions';
 import * as checkLifecycle from '../lifecycles/check';
 import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
@@ -146,35 +147,32 @@ export function parseTagsArg(tagsArg: string | undefined): Tags {
 async function confirmDelete(envName: string, forceDelete: boolean): Promise<boolean> {
     if (forceDelete) {
         return true;
-    }
-    else {
-        const warnMsg = `
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-WARNING: YOU ARE ABOUT TO DELETE YOUR HANDEL ENVIRONMENT '${envName}'!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    } else {
+        const warnMsg = stripIndent`
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            WARNING: YOU ARE ABOUT TO DELETE YOUR HANDEL ENVIRONMENT '${envName}'!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-If you choose to delete this environment, you will lose all data stored in the environment!
+            If you choose to delete this environment, you will lose all data stored in the environment!
 
-In particular, you will lose all data in the following:
+            In particular, you will lose all data in the following:
 
-* Databases
-* Caches
-* S3 Buckets
-* EFS Mounts
+            * Databases
+            * Caches
+            * S3 Buckets
+            * EFS Mounts
 
-PLEASE REVIEW this environment thoroughly, as you are responsible for all data loss associated with an accidental deletion.
-PLEASE BACKUP your data sources before deleting this environment just to be safe.
-`;
+            PLEASE REVIEW this environment thoroughly, as you are responsible for all data loss associated with an accidental deletion.
+            PLEASE BACKUP your data sources before deleting this environment just to be safe.
+            `;
         // tslint:disable-next-line:no-console
         console.log(warnMsg);
 
-        const questions = [
-            {
-                type: 'input',
-                name: 'confirmDelete',
-                message: `Enter 'yes' to delete your environment. Handel will refuse to delete the environment with any other answer:`
-            }
-        ];
+        const questions = [{
+            type: 'input',
+            name: 'confirmDelete',
+            message: `Enter 'yes' to delete your environment. Handel will refuse to delete the environment with any other answer:`
+        }];
         const answers = await inquirer.prompt(questions);
         return answers.confirmDelete === 'yes';
     }
@@ -235,13 +233,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         // Set up AWS SDK with any global options
         util.configureAwsSdk(accountConfig);
 
-        // Load Handel file from path and validate it
-        winston.debug('Validating and parsing Handel file');
-        const handelFileParser = util.getHandelFileParser(handelFile);
-
-        const serviceRegistry = await initServiceRegistry();
-
-        await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+        const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
         // Command-line tags override handelfile tags.
         handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
@@ -261,13 +253,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
  * correct
  */
 export async function checkAction(handelFile: HandelFile, options: CheckOptions): Promise<void> {
-    // Load Handel file from path and validate it
-    winston.debug('Validating and parsing Handel file');
-    const handelFileParser = util.getHandelFileParser(handelFile);
-
-    const serviceRegistry = await initServiceRegistry();
-
-    await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+    const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
     const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
     let foundErrors = false;
@@ -301,13 +287,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         // Set up AWS SDK with any global options
         util.configureAwsSdk(accountConfig);
 
-        // Load Handel file from path and validate it
-        winston.debug('Validating and parsing Handel file');
-        const handelFileParser = util.getHandelFileParser(handelFile);
-
-        const serviceRegistry = await initServiceRegistry();
-
-        await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+        const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
         const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
@@ -322,4 +302,26 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         process.exit(1);
     }
 
+}
+
+async function init(handelFile: HandelFile, options: HandelCoreOptions): Promise<HandelInit> {
+    const handelFileParser: HandelFileParser = await util.getHandelFileParser(handelFile);
+
+    const unresolvedExtensions = await handelFileParser.listExtensions(handelFile);
+
+    winston.debug('Resolving Extensions');
+
+    const extensions = await resolveExtensions(unresolvedExtensions, options);
+
+    const serviceRegistry = await initServiceRegistry(extensions);
+
+    winston.debug('Validating and parsing Handel file');
+    await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+
+    return {handelFileParser, serviceRegistry};
+}
+
+interface HandelInit {
+    handelFileParser: HandelFileParser;
+    serviceRegistry: ServiceRegistry;
 }

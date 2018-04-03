@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import {getTags} from '../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
 import {KmsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'KMS';

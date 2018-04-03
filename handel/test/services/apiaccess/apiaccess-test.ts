@@ -15,12 +15,14 @@
  *
  */
 import { expect } from 'chai';
+import { DeployContext, PreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import * as apiaccess from '../../../src/services/apiaccess';
 import { APIAccessConfig } from '../../../src/services/apiaccess/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('apiaccess deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +40,7 @@ describe('apiaccess deployer', () => {
                 'ec2'
             ]
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'apiaccess', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'apiaccess'), serviceParams, accountConfig);
     });
 
     afterEach(() => {

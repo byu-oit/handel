@@ -15,6 +15,14 @@
  *
  */
 import { expect } from 'chai';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -25,16 +33,12 @@ import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-comm
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import {
     AccountConfig,
-    BindContext,
-    DeployContext,
-    PreDeployContext,
     ServiceContext,
-    UnBindContext,
-    UnDeployContext,
-    UnPreDeployContext
+    ServiceType,
 } from '../../../src/datatypes';
 import * as postgresql from '../../../src/services/postgresql';
 import { PostgreSQLConfig } from '../../../src/services/postgresql/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('postgresql deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -52,7 +56,7 @@ describe('postgresql deployer', () => {
             database_name: 'mydb',
             postgres_version: '8.6.2'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'postgresql', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'postgresql'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -100,9 +104,9 @@ describe('postgresql deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', 'postgresql', serviceParams, accountConfig);
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'postgresql'), serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'beanstalk', {type: 'beanstalk'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));

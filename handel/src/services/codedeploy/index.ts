@@ -14,24 +14,18 @@
  * limitations under the License.
  *
  */
-import * as fs from 'fs';
-import * as uuid from 'uuid';
+import { DeployContext, PreDeployContext, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
-import * as route53 from '../../aws/route53-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as instanceAutoScaling from '../../common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as taggingCommon from '../../common/tagging-common';
-import * as util from '../../common/util';
-import { AccountConfig, DeployContext, EnvironmentVariables, PreDeployContext, ServiceConfig, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from '../../datatypes';
 import * as alb from './alb';
 import * as asgLaunchConfig from './asg-launchconfig';
-import { CodeDeployServiceConfig, HandlebarsCodeDeployAutoScalingConfig, HandlebarsCodeDeployRoutingConfig, HandlebarsCodeDeployTemplate } from './config-types';
+import { CodeDeployServiceConfig, HandlebarsCodeDeployTemplate } from './config-types';
 import * as deployableArtifact from './deployable-artifact';
 import * as iamRoles from './iam-roles';
 

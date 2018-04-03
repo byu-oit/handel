@@ -20,8 +20,8 @@ import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../src/common/s3-deployers-common';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('S3 deployers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -54,7 +54,7 @@ describe('S3 deployers common module', () => {
 
     describe('getLogFilePrefix', () => {
         it('should return the proper s3 prefix', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const prefix = s3DeployersCommon.getLogFilePrefix(serviceContext);
             expect(prefix).to.equal('FakeApp/FakeEnv/FakeService/');
         });

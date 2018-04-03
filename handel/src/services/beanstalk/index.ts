@@ -14,6 +14,15 @@
  * limitations under the License.
  *
  */
+import {
+    DeployContext,
+    EnvironmentVariables,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
@@ -24,15 +33,6 @@ import * as instanceAutoScaling from '../../common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import {getTags} from '../../common/tagging-common';
 import * as util from '../../common/util';
-import {
-    DeployContext,
-    EnvironmentVariables,
-    PreDeployContext,
-    ServiceConfig,
-    ServiceContext,
-    UnDeployContext,
-    UnPreDeployContext
-} from '../../datatypes';
 import {
     BeanstalkServiceConfig,
     EbextensionsToInject,

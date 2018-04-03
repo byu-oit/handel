@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, ServiceConfig, Tags } from '../../datatypes/index';
+import { EnvironmentVariables, ServiceConfig, Tags } from 'handel-extension-api';
 
 export interface LambdaServiceConfig extends ServiceConfig {
     path_to_code: string;

@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
+import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { AccountConfig } from '../../datatypes/index';
 
 // Values are specified in MiB
 interface Ec2InstanceMemoryMap {

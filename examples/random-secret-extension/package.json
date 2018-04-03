@@ -2,7 +2,7 @@
   "name": "random-secret-handel-extension",
   "version": "0.1.0",
   "description": "An example extension that generates random secrets and puts them in Parameter Store",
-  "main": "dist/index.js",
+  "main": "dist/extension.js",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,6 @@
   "devDependencies": {
     "@types/randomstring": "^1.1.6",
     "@types/winston": "^2.3.8",
-    "aws-sdk": "^2.218.1",
     "chai": "^4.1.2",
     "sinon": "^4.5.0",
     "sinon-chai": "^3.0.0",
@@ -23,10 +22,8 @@
     "tslint": "^5.9.1",
     "typescript": "^2.8.1"
   },
-  "peerDependencies": {
-    "aws-sdk": "^2.218.1"
-  },
   "dependencies": {
+    "aws-sdk": "^2.218.1",
     "constant-case": "^2.0.0",
     "handel-extension-api": "^0.25.1",
     "randomstring": "^1.1.5",

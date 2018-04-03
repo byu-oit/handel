@@ -14,21 +14,21 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
-import * as cloudformationCalls from '../../aws/cloudformation-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as iotDeployersCommon from '../../common/iot-deployers-common';
-import {getTags} from '../../common/tagging-common';
 import {
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
-    ServiceEventConsumer,
     UnDeployContext
-} from '../../datatypes';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudformationCalls from '../../aws/cloudformation-calls';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as iotDeployersCommon from '../../common/iot-deployers-common';
+import {getTags} from '../../common/tagging-common';
+import { STDLIB_PREFIX } from '../stdlib';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'IOT';
@@ -112,12 +112,12 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
 
     // Create topic rule
-    const consumerServiceType = consumerServiceContext.serviceType;
+    const consumerType = consumerServiceContext.serviceType;
     const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
     const sql = eventConsumerConfig.sql;
     const ruleDisabled = eventConsumerConfig.rule_disabled;
     const actions = [];
-    if (consumerServiceType === 'lambda') {
+    if (consumerType.matches(STDLIB_PREFIX, 'lambda')) {
         actions.push({
             Lambda: {
                 FunctionArn: consumerDeployContext.eventOutputs.lambdaArn
@@ -125,7 +125,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
         });
     }
     else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
+        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
     }
 
     const stackTags = getTags(ownServiceContext);

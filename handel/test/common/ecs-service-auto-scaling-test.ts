@@ -14,16 +14,15 @@
  * limitations under the License.
  *
  */
-import { Route53 } from 'aws-sdk';
 import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsServiceAutoScaling from '../../src/common/ecs-service-auto-scaling';
-import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
-import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
 import { AutoScalingPolicyType } from '../../src/common/ecs-shared-config-types';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('ecs service auto scaling common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -62,7 +61,7 @@ describe('ecs service auto scaling common module', () => {
                 }]
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecsfargate'), serviceParams, accountConfig);
     });
 
     afterEach(() => {

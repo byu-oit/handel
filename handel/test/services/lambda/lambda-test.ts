@@ -15,6 +15,13 @@
  *
  */
 import { expect } from 'chai';
+import {
+    ConsumeEventsContext,
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,10 +31,15 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, ConsumeEventsContext, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as lambda from '../../../src/services/lambda';
 import { LambdaServiceConfig } from '../../../src/services/lambda/config-types';
 import FakeServiceRegistry from '../../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('lambda deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -51,7 +63,7 @@ describe('lambda deployer', () => {
                 MY_FIRST_VAR: 'my_first_value'
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -97,7 +109,7 @@ describe('lambda deployer', () => {
             };
 
             const dependenciesServiceContexts = [];
-            dependenciesServiceContexts.push(new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', serviceParams, accountConfig,
+            dependenciesServiceContexts.push(new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', new ServiceType(STDLIB_PREFIX, 'mysql'), serviceParams, accountConfig,
                         {}, {
                             producedDeployOutputTypes: ['securityGroups'],
                             consumedDeployOutputTypes: [],
@@ -140,7 +152,7 @@ describe('lambda deployer', () => {
         function getDependenciesDeployContexts() {
             const dependenciesDeployContexts: DeployContext[] = [];
 
-            const otherServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'dynamodb', {type: 'dynamodb'}, serviceContext.accountConfig);
+            const otherServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, serviceContext.accountConfig);
             const deployContext = new DeployContext(otherServiceContext);
             deployContext.environmentVariables.INJECTED_VAR = 'injectedValue';
             deployContext.policies.push({});
@@ -189,7 +201,7 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the sns service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'sns', {type: 'sns'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = 'FakePrincipal';
             producerDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
@@ -202,7 +214,7 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the cloudwatchevent service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'cloudwatchevent', {type: 'cloudwatchevent'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'cloudwatchevent'), {type: 'cloudwatchevent'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = 'FakePrincipal';
             producerDeployContext.eventOutputs.eventRuleArn = 'FakeEventRuleArn';
@@ -215,7 +227,7 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the s3 service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 's3', {type: 's3'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 's3'), {type: 's3'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = 'FakePrincipal';
             producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
@@ -229,7 +241,7 @@ describe('lambda deployer', () => {
 
         it('should add permissions for the alexaskillkit service type', async () => {
             const principal = 'alexa-appkit.amazon.com';
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'alexaskillkit', {type: 'alexaskillkit'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'alexaskillkit'), {type: 'alexaskillkit'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
             producerDeployContext.eventOutputs.principal = principal;
@@ -240,7 +252,7 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the iot service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'iot', {type: 'iot'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'iot'), {type: 'iot'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = 'FakePrincipal';
             producerDeployContext.eventOutputs.topicRuleArnPrefix = 'FakeTopicRuleArnPrefix';
@@ -253,7 +265,7 @@ describe('lambda deployer', () => {
         });
 
         it('should add permissions for the dynamodb service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'dynamodb', {type: 'dynamodb'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs.principal = 'FakePrincipal';
             producerDeployContext.eventOutputs.topicRuleArnPrefix = 'FakeTopicRuleArnPrefix';
@@ -274,7 +286,7 @@ describe('lambda deployer', () => {
         });
 
         it('should return an error for any other service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', 'efs', {type: 'efs'}, accountConfig);
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
 
             const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});

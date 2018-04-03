@@ -15,24 +15,19 @@
  *    limitations under the License.
  */
 
-import {SSM} from 'aws-sdk';
+import { SSM } from 'aws-sdk';
 import { DescribeParametersRequest } from 'aws-sdk/clients/ssm';
 import constantCase = require('constant-case');
 import {
     DeployContext,
-    ExtensionContext,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
     ServiceDeployer,
     UnDeployContext
 } from 'handel-extension-api';
-import {generate} from 'randomstring';
+import { generate } from 'randomstring';
 import * as log from 'winston';
-
-export function loadHandelExtension(context: ExtensionContext) {
-    context.service('randomsecret', new RandomSecretService());
-}
 
 const VALID_PARAMETER_NAME = /^([a-zA-Z0-9_.\-\/]+)$/;
 const SERVICE_NAME = 'Random Secret';
@@ -42,7 +37,7 @@ const MAXIMUM_LENGTH = 4096;
 const DEFAULT_CHARSET = 'alphanumeric';
 const DEFAULT_LENGTH = 32;
 
-class RandomSecretService implements ServiceDeployer {
+export class RandomSecretService implements ServiceDeployer {
 
     public readonly consumedDeployOutputTypes = [];
     public readonly producedDeployOutputTypes = ['environmentVariables'];
@@ -88,7 +83,7 @@ class RandomSecretService implements ServiceDeployer {
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<RandomSecretConfig>): Promise<UnDeployContext> {
-        const {params, accountConfig, appName, environmentName, serviceName, serviceType} = ownServiceContext;
+        const {params, accountConfig, appName, environmentName, serviceName} = ownServiceContext;
         const ssm = new SSM({region: accountConfig.region});
 
         const name = params.name || `${appName}.${environmentName}.${serviceName}`;
@@ -96,7 +91,7 @@ class RandomSecretService implements ServiceDeployer {
         if (await parameterExists(ssm, name)) {
             await deleteParameter(ssm, name);
         }
-        return {appName, environmentName, serviceName, serviceType};
+        return new UnDeployContext(ownServiceContext);
     }
 
 }
@@ -116,19 +111,13 @@ async function createParameter(ssm: SSM, name: string, value: string) {
 }
 
 function getDeployContext(context: ServiceContext<ServiceConfig>, name: string): DeployContext {
-    const {appName, environmentName, serviceName, serviceType} = context;
-    return {
-        appName,
-        environmentName,
-        serviceName,
-        serviceType,
-        eventOutputs: {},
-        policies: getIamPoliciesFor(context, name),
-        environmentVariables: {
-            [constantCase(serviceName + '_PARAMETER_NAME')]: name
-        },
-        scripts: []
-    };
+    const result = new DeployContext(context);
+    result.addEnvironmentVariables({
+        [constantCase(context.serviceName + '_parameter_name')]: name
+    });
+    result.policies = getIamPoliciesFor(context, name);
+
+    return result;
 }
 
 function getIamPoliciesFor(context: ServiceContext<ServiceConfig>, name: string): any[] {

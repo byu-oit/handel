@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
+import { Tags } from 'handel-extension-api';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import { normalizeLogicalId } from '../../common/util';
-import { Tags } from '../../datatypes';
 import * as types from './config-types';
 
 /* tslint:disable:max-classes-per-file */

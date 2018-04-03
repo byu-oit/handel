@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
+import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
 import * as uuid from 'uuid';
 import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as deployPhaseCommon from '../common/deploy-phase-common';
-import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../datatypes';
 
 export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
                                  rdsCfStack: any) { // TODO - Better type later

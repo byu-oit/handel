@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-import { Route53 } from 'aws-sdk';
 import { expect } from 'chai';
+import { DeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsVolumes from '../../src/common/ecs-volumes';
-import { AccountConfig, DeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('ecs volumes common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -48,12 +48,12 @@ describe('ecs volumes common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecsfargate', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecsfargate'), serviceParams, accountConfig);
 
         dependenciesDeployContexts = [];
-        const dependencyServiceContext1 = new ServiceContext(appName, envName, 'MyTopic', 'sns', {type: 'sns'}, accountConfig);
+        const dependencyServiceContext1 = new ServiceContext(appName, envName, 'MyTopic', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
         const dependencyDeployContext1 = new DeployContext(dependencyServiceContext1);
-        const dependencyServiceContext2 = new ServiceContext(appName, envName, 'MyEfs', 'efs', {type: 'efs'}, accountConfig);
+        const dependencyServiceContext2 = new ServiceContext(appName, envName, 'MyEfs', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
         const dependencyDeployContext2 = new DeployContext(dependencyServiceContext2);
         dependencyDeployContext2.environmentVariables.MYEFS_MOUNT_DIR = 'path/to/mount/dir';
         dependenciesDeployContexts.push(dependencyDeployContext1);

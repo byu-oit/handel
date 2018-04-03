@@ -14,7 +14,8 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, HandlebarsInstanceScalingPolicy, InstanceAutoScalingConfig, ServiceConfig, Tags } from '../../datatypes/index';
+import { EnvironmentVariables, ServiceConfig, Tags } from 'handel-extension-api';
+import { HandlebarsInstanceScalingPolicy, InstanceAutoScalingConfig } from '../../datatypes';
 
 export interface EbextensionsToInject {
     [ebextensionFileName: string]: string;

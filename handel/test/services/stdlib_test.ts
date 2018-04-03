@@ -20,23 +20,36 @@ import { ExtensionContext, ServiceDeployer } from 'handel-extension-api';
 import 'mocha';
 import * as path from 'path';
 
-import * as extension from '../../src/services/default-services-extension';
+import * as stdlib from '../../src/services/stdlib';
 
-describe('Default Services Extension', () => {
+describe('Standard Library Extension', () => {
+    it('Returns the standard lib extension', async () => {
+        const extension = await stdlib.loadStandardLib();
+
+        expect(extension).to.have.property('prefix', '__STDLIB__');
+        expect(extension).to.have.property('name', 'handel-stdlib');
+        expect(extension).to.have.property('instance');
+
+    });
     it('loads all subdirectories of services/', async () => {
-        const ctx = new FakeExtensionContext();
         const expectedServices = listDefaultServices();
 
-        await extension.loadHandelExtension(ctx);
+        const extension = await stdlib.loadStandardLib();
+
+        const instance = extension.instance;
+
+        const fakeContext = new FakeExtensionContext();
+
+        await instance.loadHandelExtension(fakeContext);
 
         expectedServices.forEach(f => {
-            expect(ctx.services).to.haveOwnProperty(f);
+            expect(fakeContext.services).to.haveOwnProperty(f);
         });
     });
 });
 
 class FakeExtensionContext implements ExtensionContext {
-    public readonly services: {[k: string]: ServiceDeployer} = {};
+    public readonly services: { [k: string]: ServiceDeployer } = {};
 
     public service(name: string, deployer: ServiceDeployer) {
         this.services[name] = deployer;

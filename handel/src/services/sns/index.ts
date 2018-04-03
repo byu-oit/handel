@@ -15,13 +15,6 @@
  *
  */
 import { ServiceEventConsumer } from 'handel-extension-api';
-import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as snsCalls from '../../aws/sns-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import {
     ConsumeEventsContext,
     DeployContext,
@@ -30,7 +23,15 @@ import {
     ServiceConfig,
     ServiceContext,
     UnDeployContext
-} from '../../datatypes';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as snsCalls from '../../aws/sns-calls';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import {getTags} from '../../common/tagging-common';
+import { STDLIB_PREFIX } from '../stdlib';
 import {SnsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SNS';
@@ -137,11 +138,11 @@ export async function produceEvents(ownServiceContext: ServiceContext<SnsService
     const consumerServiceType = consumerServiceContext.serviceType;
     let protocol;
     let endpoint;
-    if (consumerServiceType === 'lambda') {
+    if (consumerServiceType.matches(STDLIB_PREFIX, 'lambda')) {
         protocol = 'lambda';
         endpoint = consumerDeployContext.eventOutputs.lambdaArn;
     }
-    else if (consumerServiceType === 'sqs') {
+    else if (consumerServiceType.matches(STDLIB_PREFIX, 'sqs')) {
         protocol = 'sqs';
         endpoint = consumerDeployContext.eventOutputs.queueArn;
     }
@@ -161,11 +162,11 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SnsService
     const producerServiceType = producerServiceContext.serviceType;
     let producerArn;
     let policyStatement;
-    if (producerServiceType === 'cloudwatchevent') {
+    if (producerServiceType.matches(STDLIB_PREFIX, 'cloudwatchevent')) {
         producerArn = producerDeployContext.eventOutputs.eventRuleArn;
         policyStatement = getPolicyStatementForEventConsumption(topicArn, 'events.amazonaws.com');
     }
-    else if (producerServiceType === 's3') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
         producerArn = producerDeployContext.eventOutputs.bucketArn;
         policyStatement = getPolicyStatementForEventConsumption(topicArn, 's3.amazonaws.com');
     }

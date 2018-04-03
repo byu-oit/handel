@@ -15,15 +15,16 @@
  *
  */
 import { expect } from 'chai';
+import { DeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsContainers from '../../src/common/ecs-containers';
 import * as ecsRouting from '../../src/common/ecs-routing';
 import * as ecsVolumes from '../../src/common/ecs-volumes';
-import { AccountConfig, DeployContext, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('ecs containers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -64,7 +65,7 @@ describe('ecs containers common module', () => {
                 max_tasks: 1
             }
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecs'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -76,7 +77,7 @@ describe('ecs containers common module', () => {
             const getMountPointsStub = sandbox.stub(ecsVolumes, 'getMountPointsForContainer').returns([]);
             const getRoutingInfoStub = sandbox.stub(ecsRouting, 'getRoutingInformationForContainer').returns([]);
 
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', 'efs', {type: 'efs'}, accountConfig);
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             const containerConfigs = ecsContainers.getContainersConfig(serviceContext, [dependencyDeployContext], 'FakeClusterName');
 

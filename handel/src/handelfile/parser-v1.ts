@@ -15,11 +15,19 @@
  *
  */
 import * as Ajv from 'ajv';
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceRegistry } from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as util from '../common/util';
-import { AccountConfig, EnvironmentContext, HandelCoreOptions, HandelFile, ServiceContext } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import {
+    AccountConfig,
+    EnvironmentContext,
+    ExtensionList,
+    HandelCoreOptions,
+    HandelFile,
+    ServiceContext,
+    ServiceType
+} from '../datatypes';
+import { STDLIB_PREFIX } from '../services/stdlib';
 
 const APP_ENV_SERVICE_NAME_REGEX = /^[a-zA-Z0-9-]+$/;
 
@@ -27,7 +35,7 @@ const APP_ENV_SERVICE_NAME_REGEX = /^[a-zA-Z0-9-]+$/;
  * Checks the top-level name field for correctness.
  */
 function checkSchema(handelFile: HandelFile): string[] {
-    const ajv = new Ajv({ allErrors: true, jsonPointers: true });
+    const ajv = new Ajv({allErrors: true, jsonPointers: true});
     require('ajv-errors')(ajv);
     const schema = util.readJsonFileSync(`${__dirname}/v1-schema.json`);
     const valid = ajv.validate(schema, handelFile);
@@ -56,11 +64,11 @@ function checkServiceTypes(handelFile: HandelFile, serviceRegistry: ServiceRegis
         if (handelFile.environments.hasOwnProperty(envName)) {
             for (const serviceName in handelFile.environments[envName]) {
                 if (handelFile.environments[envName].hasOwnProperty(serviceName)) {
-                    const serviceType = handelFile.environments[envName][serviceName].type;
+                    const type = parseServiceType(handelFile.environments[envName][serviceName].type);
 
                     // Check that specified service type is supported by Handel
-                    if (!serviceRegistry.hasService(DEFAULT_EXTENSION_PREFIX, serviceType)) {
-                        errors.push(`Unsupported service type specified '${serviceType}'`);
+                    if (!serviceRegistry.hasService(type)) {
+                        errors.push(`Unsupported service type specified '${type.prefix}::${type.name}'`);
                     }
                 }
             }
@@ -86,6 +94,8 @@ function checkServiceDependencies(handelFile: HandelFile, serviceRegistry: Servi
             for (const serviceName in environmentDef) {
                 if (environmentDef.hasOwnProperty(serviceName)) {
                     const serviceDef = environmentDef[serviceName];
+                    const serviceType = parseServiceType(serviceDef.type);
+
                     if (serviceDef.dependencies) { // Analyze those services that declare dependencies
                         for (const dependentServiceName of serviceDef.dependencies) {
                             // Make sure the dependent service exists in the environment
@@ -95,9 +105,11 @@ function checkServiceDependencies(handelFile: HandelFile, serviceRegistry: Servi
                             else {
                                 const dependentServiceDef = environmentDef[dependentServiceName];
 
+                                const dependentType = parseServiceType(dependentServiceDef.type);
+
                                 // Make sure the dependent service produces outputs that the consuming service can consume
-                                const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
-                                const dependentServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, dependentServiceDef.type);
+                                const serviceDeployer = serviceRegistry.getService(serviceType);
+                                const dependentServiceDeployer = serviceRegistry.getService(dependentType);
                                 const serviceConsumedOutputs = serviceDeployer.consumedDeployOutputTypes;
                                 const dependentServiceProducedOutputs = dependentServiceDeployer.producedDeployOutputTypes;
                                 const consumeErrMsg = `The '${dependentServiceDef.type}' service type is not consumable by the '${serviceDef.type}' service type`;
@@ -136,6 +148,8 @@ function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceReg
             for (const serviceName in environmentDef) {
                 if (environmentDef.hasOwnProperty(serviceName)) {
                     const serviceDef = environmentDef[serviceName];
+                    const serviceType = parseServiceType(serviceDef.type);
+
                     if (serviceDef.event_consumers) {
                         for (const eventConsumerService of serviceDef.event_consumers) {
                             const eventConsumerServiceName = eventConsumerService.service_name;
@@ -146,7 +160,7 @@ function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceReg
                             }
                             const eventConsumerServiceDef = environmentDef[eventConsumerServiceName];
 
-                            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceDef.type);
+                            const serviceDeployer = serviceRegistry.getService(serviceType);
                             const supportedConsumerTypes = serviceDeployer.producedEventsSupportedServices;
                             if (!supportedConsumerTypes.includes(eventConsumerServiceDef.type)) {
                                 errors.push(`The '${eventConsumerServiceDef.type}' service type can't consume events from the '${serviceDef.type}' service type`);
@@ -176,7 +190,7 @@ export async function validateHandelFile(handelFile: HandelFile, serviceRegistry
         let errors: string[] = [];
 
         // The app name 'handel' is not allowed
-        if(handelFile.name === 'handel') {
+        if (handelFile.name === 'handel') {
             errors.push(`You may not use the name 'handel' for your app name`);
         }
 
@@ -213,17 +227,32 @@ export function createEnvironmentContext(handelFile: HandelFile, environmentName
     const environmentContext = new EnvironmentContext(handelFile.name, environmentName, accountConfig, options, handelFile.tags || {});
 
     _.forEach(environmentSpec, (serviceSpec, serviceName) => {
-        const serviceType = serviceSpec.type;
-        const service = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceType);
-        environmentContext.serviceContexts[serviceName] = new ServiceContext(
-            handelFile.name, environmentName, serviceName, serviceType, serviceSpec,
-            accountConfig, handelFile.tags || {}, {
-                producedEventsSupportedServices: service.producedEventsSupportedServices,
-                producedDeployOutputTypes: service.producedDeployOutputTypes,
-                consumedDeployOutputTypes: service.consumedDeployOutputTypes,
-            }
-            );
+        const type = parseServiceType(serviceSpec.type);
+        const service = serviceRegistry.getService(type);
+        environmentContext.serviceContexts[serviceName] = new ServiceContext(handelFile.name, environmentName, serviceName, type, serviceSpec, accountConfig, handelFile.tags || {}, {
+            producedEventsSupportedServices: service.producedEventsSupportedServices,
+            producedDeployOutputTypes: service.producedDeployOutputTypes,
+            consumedDeployOutputTypes: service.consumedDeployOutputTypes,
+        });
     });
 
     return environmentContext;
+}
+
+export async function listExtensions(handelFile: HandelFile): Promise<ExtensionList> {
+    if (!handelFile.extensions) {
+        return [];
+    }
+    return _.entries(handelFile.extensions).map(([prefix, spec]) => {
+        const [name, versionSpec = '*'] = spec.split('@', 2);
+        return {prefix, name, versionSpec};
+    });
+}
+
+function parseServiceType(typeString: string): ServiceType {
+    const [prefix, name] = typeString.split('::', 2);
+    if (!name) {
+        return new ServiceType(STDLIB_PREFIX, prefix);
+    }
+    return new ServiceType(prefix, name);
 }

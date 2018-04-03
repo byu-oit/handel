@@ -14,18 +14,16 @@
  * limitations under the License.
  *
  */
-import * as fs from 'fs';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
 import * as path from 'path';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as iamCalls from '../../aws/iam-calls';
-import {getTags} from '../../common/tagging-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
+import {getTags} from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { HandlebarsStepFunctionsTemplate, StepFunctionsConfig } from './config-types';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
 
 const SERVICE_NAME = 'Step Functions';
 
@@ -58,13 +56,13 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
     if (definition != null) {
         const start: string = definition.StartAt;
         const states: any = definition.States;
-        const startIsString = typeof start == 'string';
+        const startIsString = typeof start === 'string';
         const statesIsObject = states instanceof Object;
         if (statesIsObject) {
             const dependencies: string[] = dependenciesServiceContexts.map(context => context.serviceName);
             for (const key in states) {
-                if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) == -1) {
-                    errors.push(`${SERVICE_NAME} - Service '${states[key].Resource}' not found in dependencies.`)
+                if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) === -1) {
+                    errors.push(`${SERVICE_NAME} - Service '${states[key].Resource}' not found in dependencies.`);
                 }
             }
         } else {
@@ -104,7 +102,7 @@ export const consumedDeployOutputTypes = ['environmentVariables', 'policies'];
 export const supportsTagging = false;
 
 function generateDefinitionString(filename: string, dependenciesDeployContexts: DeployContext[]): string {
-    const readFile = path.extname(filename) == '.json' ? util.readJsonFileSync : util.readYamlFileSync;
+    const readFile = path.extname(filename) === '.json' ? util.readJsonFileSync : util.readYamlFileSync;
     const definitionFile = readFile(filename);
     const dependencyArns: Map<string, string> = new Map();
     // Map service name to ARN
@@ -112,12 +110,9 @@ function generateDefinitionString(filename: string, dependenciesDeployContexts: 
         dependencyArns.set(context.serviceName, context.eventOutputs.lambdaArn);
     }
     // Change 'resource' in each state from service name to ARN
-    for (const state_name in definitionFile.States) {
-        const state = definitionFile.States[state_name];
-        if (definitionFile.States.hasOwnProperty(state_name) && 'Resource' in state) {
-            state.Resource = dependencyArns.get(state.Resource);
-        }
-    }
+    Object.values(definitionFile.States)
+        .filter(state => state.hasOwnProperty('Resource'))
+        .forEach((state: any) => state.Resource = dependencyArns.get(state.Resource));
     return JSON.stringify(definitionFile);
 }
 

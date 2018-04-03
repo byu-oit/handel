@@ -19,9 +19,9 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as instanceAutoScaling from '../../src/common/instance-auto-scaling';
-import { AccountConfig, DeployContext, InstanceScalingPolicyType, ServiceConfig, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, InstanceScalingPolicyType, ServiceContext, ServiceType } from '../../src/datatypes';
 import { CodeDeployServiceConfig } from '../../src/services/codedeploy/config-types';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('instance auto scaling common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -72,7 +72,7 @@ describe('instance auto scaling common module', () => {
                 ]
             }
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig, {});
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'codedeploy'), serviceParams, accountConfig, {});
     });
 
     afterEach(() => {

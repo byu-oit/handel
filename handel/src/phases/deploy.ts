@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { DeployContext, PreDeployContext, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployContext, DeployContexts, DeployOrder, EnvironmentContext, PreDeployContext, PreDeployContexts, ServiceConfig, ServiceContext } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { DeployContexts, DeployOrder, EnvironmentContext, PreDeployContexts, ServiceConfig, ServiceContext } from '../datatypes';
 
 function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: PreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): DeployContext[] {
     const dependenciesDeployContexts: DeployContext[] = [];
@@ -47,7 +46,7 @@ export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, en
         const toDeployServiceContext = environmentContext.serviceContexts[toDeployServiceName];
         const toDeployPreDeployContext = preDeployContexts[toDeployServiceName];
 
-        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toDeployServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(toDeployServiceContext.serviceType);
 
         // Get all the DeployContexts for services that this service being deployed depends on
         const dependenciesDeployContexts = getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceRegistry);

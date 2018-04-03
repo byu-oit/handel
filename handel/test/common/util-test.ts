@@ -190,15 +190,15 @@ describe('util module', () => {
         });
     });
 
-    describe('getHandelFileParser', () => {
+    describe('getHandelFileParser', async () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-        const handelFileParser = util.getHandelFileParser(handelFile);
+        const handelFileParser = await util.getHandelFileParser(handelFile);
         expect(handelFile).to.not.equal(null);
     });
 
-    describe('createEnvironmentContext', () => {
+    describe('createEnvironmentContext', async () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-        const handelFileParser = util.getHandelFileParser(handelFile);
+        const handelFileParser = await util.getHandelFileParser(handelFile);
         const accountConfig = util.readYamlFileSync(`${__dirname}/../test-account-config.yml`);
         const environmentName = 'dev';
 

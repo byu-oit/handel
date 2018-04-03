@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig } from '../../datatypes/index';
+import { ServiceConfig } from 'handel-extension-api';
 
 export interface SqsServiceConfig extends ServiceConfig {
     queue_type?: string;

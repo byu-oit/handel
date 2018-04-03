@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
+import {AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, Tags} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
-import {AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, Tags} from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as handlebarsUtils from './handlebars-utils';
 import {getTags} from './tagging-common';

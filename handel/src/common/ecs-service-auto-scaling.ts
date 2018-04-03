@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceContext } from '../datatypes/index';
+import { ServiceContext } from '../datatypes';
 import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import { AutoScalingAlarmDimensions, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateScalingDimension, HandlebarsEcsTemplateScalingPolicy } from './ecs-shared-config-types';

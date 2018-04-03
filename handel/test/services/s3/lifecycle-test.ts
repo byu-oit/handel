@@ -18,9 +18,10 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import { AccountConfig, ServiceContext } from '../../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import { S3ServiceConfig } from '../../../src/services/s3/config-types';
 import * as s3Lifecycle from '../../../src/services/s3/lifecycles';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('s3 lifecycle helper', () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,7 +47,7 @@ describe('s3 lifecycle helper', () => {
                 }
             ]
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 's3'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
 
     });

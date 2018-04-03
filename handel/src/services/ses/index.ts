@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as sesCalls from '../../aws/ses-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
 import { SesServiceConfig } from './config-types';
 
 const EMAIL_ADDRESS = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;

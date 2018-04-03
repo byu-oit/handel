@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceRegistry, UnBindContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployOrder, EnvironmentContext, UnBindContext, UnBindContexts } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { DeployOrder, EnvironmentContext, UnBindContexts } from '../datatypes';
 
 export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnBindContexts> {
     const unBindPromises: Array<Promise<void>> = [];
@@ -28,7 +27,7 @@ export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, en
     winston.info(`Running UnBind on service dependencies (if any) in level ${level} for services ${currentLevelServicesToUnBind.join(', ')}`);
     for(const toUnBindServiceName of currentLevelServicesToUnBind) {
         const toUnBindServiceContext = environmentContext.serviceContexts[toUnBindServiceName];
-        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toUnBindServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(toUnBindServiceContext.serviceType);
 
         winston.debug(`UnBinding service ${toUnBindServiceName}`);
         if (serviceDeployer.unBind) {

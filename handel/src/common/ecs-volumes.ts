@@ -14,14 +14,15 @@
  * limitations under the License.
  *
  */
-import { DeployContext } from '../datatypes/index';
+import { DeployContext } from 'handel-extension-api';
+import { STDLIB_PREFIX } from '../services/stdlib';
 import * as deployPhaseCommon from './deploy-phase-common';
 import { HandlebarsEcsTemplateMountPoint, HandlebarsEcsTemplateVolume } from './ecs-shared-config-types';
 
 function getDependenciesDeployContextMountPoints(dependenciesDeployContexts: DeployContext[]) {
     const mountPoints = [];
     for (const deployContext of dependenciesDeployContexts) {
-        if (deployContext.serviceType === 'efs') { // Only EFS is supported as an external service mount point for now
+        if (deployContext.serviceType.matches(STDLIB_PREFIX, 'efs')) { // Only EFS is supported as an external service mount point for now
             const envVarKey = deployPhaseCommon.getInjectedEnvVarName(deployContext, 'MOUNT_DIR');
 
             mountPoints.push({

@@ -15,8 +15,8 @@
  *    limitations under the License.
  */
 
-import {ServiceDeployer, ServiceRegistry} from 'handel-extension-api';
-import {DEFAULT_EXTENSION_PREFIX} from '../../src/service-registry';
+import { ServiceDeployer, ServiceRegistry, ServiceType } from 'handel-extension-api';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 export interface FakeRegistryInfo {
     [key: string]: Partial<ServiceDeployer>;
@@ -27,20 +27,44 @@ export default class FakeServiceRegistry implements ServiceRegistry {
     constructor(readonly services: FakeRegistryInfo = {}) {
     }
 
-    public getService(prefix: string, name: string): ServiceDeployer {
-        return this.services[name] as ServiceDeployer || {
+    public getService(prefix: string, name: string): ServiceDeployer;
+    public getService(type: ServiceType): ServiceDeployer;
+    public getService(typeOrPrefix: string | ServiceType, nameArg?: string): ServiceDeployer {
+        const key = keyFor(typeOrPrefix, nameArg);
+        return this.services[key] as ServiceDeployer || {
             consumedDeployOutputTypes: [],
             producedDeployOutputTypes: [],
             producedEventsSupportedServices: []
         };
     }
 
-    public hasService(prefix: string, name: string): boolean {
-        return this.services.hasOwnProperty(name);
+    public hasService(prefix: string, name: string): boolean;
+    public hasService(type: ServiceType): boolean;
+    public hasService(typeOrPrefix: string | ServiceType, nameArg?: string): boolean {
+        const key = keyFor(typeOrPrefix, nameArg);
+        return this.services.hasOwnProperty(key);
     }
 
     public allPrefixes(): Set<string> {
-        return new Set([DEFAULT_EXTENSION_PREFIX]);
+        return new Set([STDLIB_PREFIX]);
     }
 
+}
+
+function keyFor(typeOrPrefix: string | ServiceType, nameArg?: string): string {
+    let prefix: string;
+    let name: string;
+
+    if (typeof typeOrPrefix === 'string') {
+        prefix = typeOrPrefix;
+        name = nameArg as string;
+    } else {
+        prefix = typeOrPrefix.prefix;
+        name = typeOrPrefix.name;
+    }
+    if (prefix === STDLIB_PREFIX) {
+        return name;
+    } else {
+        return prefix + '::' + name;
+    }
 }

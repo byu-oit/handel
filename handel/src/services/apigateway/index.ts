@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../datatypes';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from './swagger/swagger-deploy-type';

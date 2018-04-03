@@ -15,6 +15,12 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,13 +29,18 @@ import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType
+} from '../../../src/datatypes';
 import * as codedeploy from '../../../src/services/codedeploy';
 import * as alb from '../../../src/services/codedeploy/alb';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as deployableArtifact from '../../../src/services/codedeploy/deployable-artifact';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('codedeploy deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -47,7 +58,7 @@ describe('codedeploy deployer', () => {
             path_to_code: '.',
             os: 'linux'
         };
-        serviceContext = new ServiceContext(app, env, service, 'codedeploy', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(app, env, service, new ServiceType(STDLIB_PREFIX, 'codedeploy'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
