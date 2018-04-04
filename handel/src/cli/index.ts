@@ -185,12 +185,7 @@ PLEASE BACKUP your data sources before deleting this environment just to be safe
             }
         ];
         const answers = await inquirer.prompt(questions);
-        if (answers.confirmDelete === 'yes') {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return answers.confirmDelete === 'yes';
     }
 }
 
@@ -200,21 +195,11 @@ export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions):
     const {accountConfig, environments, tags} = opts;
     let errors: string[] = [];
 
-    // Require account config
-    if (!accountConfig) {
-        errors.push('The \'-c\' parameter is required');
-    }
-    else { // Validate that it is either base64 decodable JSON or an account config file
-        errors = errors.concat(validateAccountConfigParam(accountConfig));
-    }
+    // Validate that it is either base64 decodable JSON or an account config file
+    errors = errors.concat(validateAccountConfigParam(accountConfig));
 
-    // Require environments to deploy
-    if (!environments) {
-        errors.push('The \'-e\' parameter is required');
-    }
-    else { // Validate that the environments exist in the Handel file
-        errors = errors.concat(validateEnvsInHandelFile(environments, handelFile));
-    }
+    // Validate that the environments exist in the Handel file
+    errors = errors.concat(validateEnvsInHandelFile(environments, handelFile));
 
     if (tags) {
         for (const [tag, value] of _.entries(tags)) {
@@ -237,21 +222,11 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
     const {accountConfig, environment} = opts;
     let errors: string[] = [];
 
-    // Require account config
-    if (!accountConfig) {
-        errors.push('The \'-c\' parameter is required');
-    }
-    else { // Validate that it is either base64 decodable JSON or an account config file
-        errors = errors.concat(validateAccountConfigParam(accountConfig));
-    }
+    // Validate that it is either base64 decodable JSON or an account config file
+    errors = errors.concat(validateAccountConfigParam(accountConfig));
 
-    // Require environments to deploy
-    if (!environment) {
-        errors.push('The \'-e\' parameter is required');
-    }
-    else { // Validate that the environments exist in the Handel file
-        errors = errors.concat(validateEnvsInHandelFile([environment], handelFile));
-    }
+    // Validate that the environments exist in the Handel file
+    errors = errors.concat(validateEnvsInHandelFile([environment], handelFile));
 
     return errors;
 }

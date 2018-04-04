@@ -34,30 +34,6 @@ describe('cli module', () => {
 
     describe('validateDeployArgs', () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-        it('should fail if the -c param is not provided', () => {
-            const argv = {
-                debug: false,
-                linkExtensions: false,
-                environments: ['dev', 'prod'],
-                tags: {},
-            };
-            const errors = cli.validateDeployArgs(handelFile, argv as DeployOptions);
-            expect(errors).to.have.lengthOf(1);
-            expect(errors[0]).to.contain(`'-c' parameter is required`);
-        });
-
-        it('should fail if the -e parameter is not provided', () => {
-            const argv = {
-                debug: false,
-                linkExtensions: false,
-                accountConfig: `${__dirname}/../test-account-config.yml`,
-                tags: {},
-            };
-            const errors = cli.validateDeployArgs(handelFile, argv as DeployOptions);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'-e' parameter is required`);
-        });
-
         it('should succeed if all params are provided', () => {
             const argv = {
                 debug: false,
@@ -91,30 +67,6 @@ describe('cli module', () => {
 
     describe('validateDeleteArgs', () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-        it('should fail if the -c param is not provided', () => {
-            const argv = {
-                debug: false,
-                linkExtensions: false,
-                environment: 'prod',
-                yes: true
-            };
-            const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'-c' parameter is required`);
-        });
-
-        it('should fail if the -e parameter is not provided', () => {
-            const argv = {
-                debug: false,
-                linkExtensions: false,
-                accountConfig: `${__dirname}/../test-account-config.yml`,
-                yes: true
-            };
-            const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'-e' parameter is required`);
-        });
-
         it('should succeed if all params are provided', () => {
             const argv = {
                 debug: false,
