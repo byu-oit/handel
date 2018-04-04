@@ -403,6 +403,6 @@ export interface DeployOptions extends GlobalOptions {
 
 export interface DeleteOptions extends GlobalOptions {
     accountConfig: string;
-    environments: string[];
+    environment: string;
     yes: boolean;
 }

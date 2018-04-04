@@ -50,10 +50,10 @@ commander.command('deploy')
 commander.command('delete')
     .description('Deletes the given environments from your AWS Account')
     .option('-c, --account-config <config>', 'Required. Path to account config file or Base64-encoded string containing the JSON configuration')
-    .option('-e, --environments <environments>', 'Required. Comma-separated list of environments from your Handel file to delete', list)
+    .option('-e, --environment <environment>', 'Required. Environment from your Handel file to delete')
     .option('-y, --yes', 'Do *not* prompt to confirm deletion of resources')
     .action((command) => {
-        requireOptions(command, ['account-config', 'environments']);
+        requireOptions(command, ['account-config', 'environment']);
         const opts: DeleteOptions = Object.assign({}, commander.opts(), command.opts());
         runCommand(command, opts, cli.deleteAction, cli.validateDeleteArgs);
     });

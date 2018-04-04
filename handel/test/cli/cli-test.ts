@@ -95,7 +95,7 @@ describe('cli module', () => {
             const argv = {
                 debug: false,
                 linkExtensions: false,
-                environments: ['dev', 'prod'],
+                environment: 'prod',
                 yes: true
             };
             const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
@@ -119,7 +119,7 @@ describe('cli module', () => {
             const argv = {
                 debug: false,
                 linkExtensions: false,
-                environments: ['dev', 'prod'],
+                environment: 'prod',
                 accountConfig: `${__dirname}/../test-account-config.yml`,
                 yes: true
             };

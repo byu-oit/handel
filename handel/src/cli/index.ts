@@ -234,7 +234,7 @@ export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions):
 }
 
 export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions): string[] {
-    const {accountConfig, environments} = opts;
+    const {accountConfig, environment} = opts;
     let errors: string[] = [];
 
     // Require account config
@@ -246,11 +246,11 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
     }
 
     // Require environments to deploy
-    if (!environments) {
+    if (!environment) {
         errors.push('The \'-e\' parameter is required');
     }
     else { // Validate that the environments exist in the Handel file
-        errors = errors.concat(validateEnvsInHandelFile(environments, handelFile));
+        errors = errors.concat(validateEnvsInHandelFile([environment], handelFile));
     }
 
     return errors;
@@ -337,26 +337,25 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
-        for (const environmentToDelete of options.environments) {
-            // Set up AWS SDK with any global options
-            util.configureAwsSdk(accountConfig);
+        const environmentToDelete = options.environment;
+        // Set up AWS SDK with any global options
+        util.configureAwsSdk(accountConfig);
 
-            // Load Handel file from path and validate it
-            winston.debug('Validating and parsing Handel file');
-            const handelFileParser = util.getHandelFileParser(handelFile);
+        // Load Handel file from path and validate it
+        winston.debug('Validating and parsing Handel file');
+        const handelFileParser = util.getHandelFileParser(handelFile);
 
-            const serviceRegistry = await initServiceRegistry();
+        const serviceRegistry = await initServiceRegistry();
 
-            await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+        await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
 
-            const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
-            if (deleteEnvConfirmed) {
-                const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
-                logFinalResult('delete', [envDeleteResult]);
-            }
-            else {
-                winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
-            }
+        const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
+        if (deleteEnvConfirmed) {
+            const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
+            logFinalResult('delete', [envDeleteResult]);
+        }
+        else {
+            winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
         }
     } catch (err) {
         logCaughtError('Unexpected error occurred during delete', err);
