@@ -1,8 +1,7 @@
 {
   "extends": "../tsconfig",
   "compilerOptions": {
-    "allowJs": true,
-    "rootDir": "./"
+    "allowJs": true
   },
   "include": [
     "src/**/*"

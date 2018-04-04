@@ -17,7 +17,17 @@
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { AccountConfig, DeployOrder, EnvironmentContext, EnvironmentDeleteResult, HandelFile, HandelFileParser, UnBindContexts, UnDeployContexts } from '../datatypes';
+import {
+    AccountConfig,
+    DeleteOptions,
+    DeployOrder,
+    EnvironmentContext,
+    EnvironmentDeleteResult,
+    HandelFile,
+    HandelFileParser,
+    UnBindContexts,
+    UnDeployContexts
+} from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
 import * as unBindPhase from '../phases/un-bind';
 import * as unDeployPhase from '../phases/un-deploy';
@@ -69,8 +79,8 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: 
     }
 }
 
-export async function deleteEnv(accountConfig: AccountConfig, handelFile: HandelFile, environmentToDelete: string, handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): Promise<EnvironmentDeleteResult> {
+export async function deleteEnv(accountConfig: AccountConfig, handelFile: HandelFile, environmentToDelete: string, handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry, options: DeleteOptions): Promise<EnvironmentDeleteResult> {
     // Run the delete on the environment specified
-    const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDelete, accountConfig, serviceRegistry);
+    const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDelete, accountConfig, serviceRegistry, options);
     return deleteEnvironment(accountConfig, serviceRegistry, environmentContext);
 }

@@ -19,6 +19,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import * as cli from '../../src/cli';
 import * as util from '../../src/common/util';
+import { DeleteOptions, DeployOptions } from '../../src/datatypes';
 
 describe('cli module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -35,43 +36,56 @@ describe('cli module', () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         it('should fail if the -c param is not provided', () => {
             const argv = {
-                e: 'dev,prod'
+                debug: false,
+                linkExtensions: false,
+                environments: ['dev', 'prod'],
+                tags: {},
             };
-            const errors = cli.validateDeployArgs(argv, handelFile);
-            expect(errors.length).to.equal(1);
+            const errors = cli.validateDeployArgs(handelFile, argv as DeployOptions);
+            expect(errors).to.have.lengthOf(1);
             expect(errors[0]).to.contain(`'-c' parameter is required`);
         });
 
         it('should fail if the -e parameter is not provided', () => {
             const argv = {
-                c: `${__dirname}/../test-account-config.yml`
+                debug: false,
+                linkExtensions: false,
+                accountConfig: `${__dirname}/../test-account-config.yml`,
+                tags: {},
             };
-            const errors = cli.validateDeployArgs(argv, handelFile);
+            const errors = cli.validateDeployArgs(handelFile, argv as DeployOptions);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'-e' parameter is required`);
         });
 
         it('should succeed if all params are provided', () => {
             const argv = {
-                e: 'dev,prod',
-                c: `${__dirname}/../test-account-config.yml`,
-                t: 'foo=bar,bar=baz'
+                debug: false,
+                linkExtensions: false,
+                accountConfig: `${__dirname}/../test-account-config.yml`,
+                environments: ['dev', 'prod'],
+                tags: {foo: 'bar', bar: 'baz'},
             };
-            const errors = cli.validateDeployArgs(argv, handelFile);
+            const errors = cli.validateDeployArgs(handelFile, argv);
             expect(errors.length).to.equal(0);
         });
 
         it('should fail if there are invalid tags', () => {
             const argv = {
-                e: 'dev,prod',
-                c: `${__dirname}/../test-account-config.yml`,
-                t: 'foo=bar,bar,baz=,ab{}cd=abc'
+                debug: false,
+                linkExtensions: false,
+                environments: ['dev', 'prod'],
+                accountConfig: `${__dirname}/../test-account-config.yml`,
+                tags: {
+                    foo: 'bar',
+                    'bar': '',
+                    'ab{}cd': 'abc'
+                },
             };
-            const errors = cli.validateDeployArgs(argv, handelFile);
-            expect(errors).to.have.lengthOf(3);
-            expect(errors).to.include(`The value for -t is invalid: 'bar'`);
-            expect(errors).to.include(`The value for -t is invalid: 'baz='`);
-            expect(errors).to.include(`The value for -t is invalid: 'ab{}cd=abc'`);
+            const errors = cli.validateDeployArgs(handelFile, argv);
+            expect(errors).to.have.lengthOf(2);
+            expect(errors).to.include(`The value for tag 'bar' must not be empty`);
+            expect(errors).to.include(`The tag name is invalid: 'ab{}cd'`);
         });
     });
 
@@ -79,28 +93,37 @@ describe('cli module', () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         it('should fail if the -c param is not provided', () => {
             const argv = {
-                e: 'dev,prod'
+                debug: false,
+                linkExtensions: false,
+                environments: ['dev', 'prod'],
+                yes: true
             };
-            const errors = cli.validateDeleteArgs(argv, handelFile);
+            const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'-c' parameter is required`);
         });
 
         it('should fail if the -e parameter is not provided', () => {
             const argv = {
-                c: `${__dirname}/../test-account-config.yml`
+                debug: false,
+                linkExtensions: false,
+                accountConfig: `${__dirname}/../test-account-config.yml`,
+                yes: true
             };
-            const errors = cli.validateDeleteArgs(argv, handelFile);
+            const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'-e' parameter is required`);
         });
 
         it('should succeed if all params are provided', () => {
             const argv = {
-                e: 'dev,prod',
-                c: `${__dirname}/../test-account-config.yml`
+                debug: false,
+                linkExtensions: false,
+                environments: ['dev', 'prod'],
+                accountConfig: `${__dirname}/../test-account-config.yml`,
+                yes: true
             };
-            const errors = cli.validateDeleteArgs(argv, handelFile);
+            const errors = cli.validateDeleteArgs(handelFile, argv as DeleteOptions);
             expect(errors.length).to.equal(0);
         });
     });

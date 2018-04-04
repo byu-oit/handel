@@ -15,6 +15,7 @@
  *
  */
 import { EC2 } from 'aws-sdk';
+import { Tags } from '../handel/src/datatypes';
 
 /***********************************
  * Types for the Extension contract
@@ -200,3 +201,4 @@ export interface UnPreDeployContext {
 export interface Tags {
     [key: string]: string;
 }
+

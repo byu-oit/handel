@@ -19,7 +19,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, HandelFile, ServiceContext, UnPreDeployContext } from '../../src/datatypes';
+import { AccountConfig, DeleteOptions, HandelFile, ServiceContext, UnPreDeployContext } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deleteLifecycle from '../../src/lifecycles/delete';
 import * as unBindPhase from '../../src/phases/un-bind';
@@ -49,8 +49,9 @@ describe('delete lifecycle module', () => {
                 A: new UnPreDeployContext(serviceContext)
             });
             const serviceRegistry = new FakeServiceRegistry();
+            const opts: DeleteOptions = { debug: false, linkExtensions: false, yes: false, environments: ['dev'], accountConfig: '' };
             const handelFile: HandelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
-            const results = await deleteLifecycle.deleteEnv(accountConfig, handelFile, 'dev', handelFileParser, serviceRegistry);
+            const results = await deleteLifecycle.deleteEnv(accountConfig, handelFile, 'dev', handelFileParser, serviceRegistry, opts);
             expect(unPreDeployStub.callCount).to.equal(1);
             expect(unBindServicesStub.callCount).to.equal(2);
             expect(unDeployServicesStub.callCount).to.equal(2);

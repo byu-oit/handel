@@ -17,7 +17,18 @@
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { AccountConfig, BindContexts, DeployContexts, DeployOrder, EnvironmentContext, EnvironmentDeployResult, HandelFile, HandelFileParser, PreDeployContexts} from '../datatypes';
+import {
+    AccountConfig,
+    BindContexts,
+    DeployContexts,
+    DeployOptions,
+    DeployOrder,
+    EnvironmentContext,
+    EnvironmentDeployResult,
+    HandelFile,
+    HandelFileParser,
+    PreDeployContexts
+} from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
 import * as bindPhase from '../phases/bind';
 import * as checkPhase from '../phases/check';
@@ -91,11 +102,11 @@ async function deployEnvironment(accountConfig: AccountConfig, serviceRegistry: 
     }
 }
 
-export async function deploy(accountConfig: AccountConfig, handelFile: HandelFile, environmentsToDeploy: string[], handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry): Promise<EnvironmentDeployResult[]> {
+export async function deploy(accountConfig: AccountConfig, handelFile: HandelFile, environmentsToDeploy: string[], handelFileParser: HandelFileParser, serviceRegistry: ServiceRegistry, options: DeployOptions): Promise<EnvironmentDeployResult[]> {
     // Check current credentials against the accountConfig
     const envDeployPromises: Array<Promise<EnvironmentDeployResult>> = [];
     for (const environmentToDeploy of environmentsToDeploy) {
-        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDeploy, accountConfig, serviceRegistry);
+        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentToDeploy, accountConfig, serviceRegistry, options);
         envDeployPromises.push(deployEnvironment(accountConfig, serviceRegistry, environmentContext));
     }
     return Promise.all(envDeployPromises);

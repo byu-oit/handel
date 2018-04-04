@@ -22,3 +22,7 @@ gulp.task('compile', () => {
     )
     .pipe(gulp.dest('dist'));  
 });
+
+gulp.task('watch', ['build'], () => {
+    gulp.watch('src/**/*.ts', ['compile']);
+});

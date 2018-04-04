@@ -24,7 +24,7 @@ import * as os from 'os';
 import pascalCase = require('pascal-case');
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelFile } from '../datatypes';
+import { AccountConfig, GlobalOptions, HandelFile } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {
@@ -185,9 +185,9 @@ export function getHandelFileParser(handelFile: HandelFile) {
 /**
  * Gets the App Context from the deploy spec file
  */
-export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry) { // TODO - Add type for HandelFileParser
+export function createEnvironmentContext(handelFile: HandelFile, handelFileParser: any, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, options: GlobalOptions) { // TODO - Add type for HandelFileParser
     try {
-        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig, serviceRegistry);
+        return handelFileParser.createEnvironmentContext(handelFile, environmentName, accountConfig, serviceRegistry, options);
     }
     catch (err) {
         winston.error(`Error while parsing deploy spec: ${err.message}`);
