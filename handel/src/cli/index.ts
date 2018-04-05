@@ -31,7 +31,6 @@ import {
     DeleteOptions,
     DeployOptions,
     EnvironmentResult,
-    HandelCoreOptions,
     HandelFile,
     HandelFileParser,
     Tags
@@ -40,15 +39,6 @@ import * as checkLifecycle from '../lifecycles/check';
 import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
 import { initServiceRegistry } from '../service-registry';
-
-function configureLogger(options: HandelCoreOptions) {
-    let level = 'info';
-    if (options.hasOwnProperty('debug')) {
-        level = 'debug';
-    }
-    winston!.level = level;
-    winston.cli();
-}
 
 function logCaughtError(msg: string, err: Error) {
     winston.error(`${msg}: ${err.message}`);
@@ -79,6 +69,7 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
 }
 
 async function validateLoggedIn(): Promise<void> {
+    winston.debug('Checking that the user is logged in');
     AWS.config.update({ // Just use us-east-1 while we check that we are logged in.
         region: 'us-east-1'
     });
@@ -236,8 +227,6 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
  * Handel CLI. It goes and deploys the requested environment(s) to AWS.
  */
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
-    configureLogger(options);
-
     const environmentsToDeploy = options.environments;
     try {
         await validateLoggedIn();
@@ -272,8 +261,6 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
  * correct
  */
 export async function checkAction(handelFile: HandelFile, options: CheckOptions): Promise<void> {
-    configureLogger(options); // Don't enable debug on check?
-
     // Load Handel file from path and validate it
     winston.debug('Validating and parsing Handel file');
     const handelFileParser = util.getHandelFileParser(handelFile);
@@ -306,8 +293,6 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
  * Handel CLI. It asks for a confirmation, then deletes the requested environment.
  */
 export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
-    configureLogger(options);
-
     try {
         await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library

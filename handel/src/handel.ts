@@ -17,19 +17,20 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { version } from 'pjson';
-import * as winston from 'winston';
 import * as cli from './cli';
 import { CheckOptions, DeleteOptions, DeployOptions, HandelFile } from './datatypes';
 
 import * as program from 'caporal';
+import * as _ from 'lodash';
+import * as winston from 'winston';
+import { LoggerInstance } from 'winston';
 
-program.version(version)
-    .logger(winston as any);
+program.version(version);
 
 program.command('check', 'Checks the contents of your Handel file for errors')
     .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
     .action((args, opts, logger) => {
-        return runCommand(opts as CheckOptions, cli.checkAction);
+        return runCommand(logger, opts as CheckOptions, cli.checkAction);
     });
 
 program.command('deploy', 'Deploys the given environments from your Handel file to your AWS account')
@@ -41,17 +42,17 @@ program.command('deploy', 'Deploys the given environments from your Handel file 
     )
     .option('-e, --environments <list>',
         'Comma-separated list of environments from your Handel file to deploy',
-        program.LIST,
+        list,
         null,
         true
     )
     .option('-t, --tags <tags>',
         'Comma-separated list of extra application-level tags to apply to resources. Ex: foo=bar,baz=foo',
-        program.LIST
+        list
     )
     .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
     .action((args, opts, logger) => {
-        return runCommand(opts as DeployOptions, cli.deployAction);
+        return runCommand(logger, opts as DeployOptions, cli.deployAction);
     });
 
 program.command('delete', 'Deletes the given Handel environment from your AWS account')
@@ -69,23 +70,23 @@ program.command('delete', 'Deletes the given Handel environment from your AWS ac
     )
     .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
     .action((args, opts, logger) => {
-        return runCommand(opts as DeleteOptions, cli.deleteAction);
+        return runCommand(logger, opts as DeleteOptions, cli.deleteAction);
     });
+
+function list(value: any): string[] {
+    if (typeof value !== 'string') {
+        throw new Error(`Invalid environment value: '${value}'`);
+    }
+    return value.split(',');
+}
 
 export async function run() {
     return program.parse(process.argv);
 }
 
-function printAndExit(msg: string): never {
-    // tslint:disable-next-line:no-console
-    console.log(msg);
-    return process.exit(1);
-}
-
 function printHelpAndExit(msg: string): never {
     // tslint:disable-next-line:no-console
-    console.log(msg);
-    program.fatalError(new Error());
+    program.fatalError(new Error(msg));
     return process.exit(1);
 }
 
@@ -94,13 +95,13 @@ function loadHandelFile(): HandelFile {
         return yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8')) as HandelFile;
     } catch (e) {
         if (e.code === 'ENOENT') {
-            return printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
+            return printHelpAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
         }
         else if (e.name === 'YAMLException') {
-            return printAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
+            return printHelpAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
         }
         else {
-            return printAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
+            return printHelpAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
         }
     }
 }
@@ -108,8 +109,8 @@ function loadHandelFile(): HandelFile {
 type CommandFunction<Opts> = (handelFile: HandelFile, opts: Opts) => Promise<any>;
 type ValidateFunction<Opts> = (handelFile: HandelFile, opts: Opts) => string[] | Promise<string[]>;
 
-function runCommand<Opts>(options: Opts, commandFunc: CommandFunction<Opts>, validateFunc?: ValidateFunction<Opts>) {
-    console.log('opts', options);
+function runCommand<Opts>(logger: Logger, options: Opts, commandFunc: CommandFunction<Opts>, validateFunc?: ValidateFunction<Opts>) {
+    configureGlobalLogger(logger as any as LoggerInstance);
     const handelFile = loadHandelFile()!; // It wil either come back with a HandelFile object or exit inside the method
     Promise.resolve((async () => {
         if (validateFunc) {
@@ -121,7 +122,21 @@ function runCommand<Opts>(options: Opts, commandFunc: CommandFunction<Opts>, val
         return commandFunc(handelFile, options);
     })()).catch(err => {
         // tslint:disable-next-line:no-console
-        console.error(err);
-        process.exit(2);
+        program.fatalError(err);
     });
+}
+
+function configureGlobalLogger(logger: LoggerInstance) {
+    const transports = _.values(logger.transports);
+
+    const level = transports[0].level;
+
+    // Caporal misses a few steps when configuring a custom logger, so we're gonna copy everything over.
+    // Caporal doesn't set the top-level logging level, just on the individual transports, and we use that top-level version
+    winston.configure({
+        transports: [new (winston.transports.Console)()],
+        level
+    });
+
+    winston.cli();
 }
