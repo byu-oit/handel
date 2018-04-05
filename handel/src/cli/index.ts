@@ -16,30 +16,29 @@
  */
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceRegistry } from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
+import * as _ from 'lodash';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
 import * as stsCalls from '../aws/sts-calls';
-import {TAG_KEY_PATTERN, TAG_VALUE_MAX_LENGTH} from '../common/tagging-common';
+import { TAG_KEY_PATTERN, TAG_KEY_REGEX, TAG_VALUE_MAX_LENGTH } from '../common/tagging-common';
 import * as util from '../common/util';
 import {
-    AccountConfig, EnvironmentResult, HandelFile, HandelFileParser, Tags
+    AccountConfig,
+    CheckOptions,
+    DeleteOptions,
+    DeployOptions,
+    EnvironmentResult,
+    HandelFile,
+    HandelFileParser,
+    Tags
 } from '../datatypes';
 import * as checkLifecycle from '../lifecycles/check';
 import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
-import {initServiceRegistry} from '../service-registry';
-
-function configureLogger(argv: any) {
-    let level = 'info';
-    if (argv.d) {
-        level = 'debug';
-    }
-    winston!.level = level;
-    winston.cli();
-}
+import { initServiceRegistry } from '../service-registry';
 
 function logCaughtError(msg: string, err: Error) {
     winston.error(`${msg}: ${err.message}`);
@@ -70,6 +69,7 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
 }
 
 async function validateLoggedIn(): Promise<void> {
+    winston.debug('Checking that the user is logged in');
     AWS.config.update({ // Just use us-east-1 while we check that we are logged in.
         region: 'us-east-1'
     });
@@ -84,7 +84,7 @@ async function validateCredentials(accountConfig: AccountConfig) {
     const deployAccount = accountConfig.account_id;
     winston.debug(`Checking that current credentials match account ${deployAccount}`);
     const discoveredId = await stsCalls.getAccountId();
-    if(!discoveredId) {
+    if (!discoveredId) {
         winston.error(`You are not logged into an AWS account`);
         process.exit(1);
     }
@@ -123,30 +123,24 @@ function validateAccountConfigParam(accountConfigParam: string): string[] {
     return errors;
 }
 
-function validateEnvsInHandelFile(envsToDeploy: string, handelFile: HandelFile) {
-    const errors = [];
-    const envsArray = envsToDeploy.split(',');
-    for (const env of envsArray) {
-        if (!handelFile.environments || !handelFile.environments[env]) {
-            errors.push(`Environment '${env}' was not found in your Handel file`);
-        }
-    }
-    return errors;
+function validateEnvsInHandelFile(envsToDeploy: string[], handelFile: HandelFile) {
+    return envsToDeploy.filter(env => !handelFile.environments || !handelFile.environments[env])
+        .map(env => `Environment '${env}' was not found in your Handel file`);
 }
 
-function parseTagsArg(tagsArg: string | undefined): Tags {
-   if (!tagsArg) {
-       return {};
-   }
-   return tagsArg.split(',')
-       .reduce((tags: Tags, pair: string) => {
-           const matched = pair.match(TAG_PARAM_PATTERN);
-           if (!matched) {
-               throw new Error('Invalid value for -t');
-           }
-           tags[matched[1]] = matched[2];
-           return tags;
-       }, {});
+export function parseTagsArg(tagsArg: string | undefined): Tags {
+    if (!tagsArg) {
+        return {};
+    }
+    return tagsArg.split(',')
+        .reduce((tags: Tags, pair: string) => {
+            const matched = pair.match(TAG_PARAM_PATTERN);
+            if (!matched) {
+                throw new Error('Invalid tag value');
+            }
+            tags[matched[1]] = matched[2];
+            return tags;
+        }, {});
 }
 
 async function confirmDelete(envName: string, forceDelete: boolean): Promise<boolean> {
@@ -182,64 +176,48 @@ PLEASE BACKUP your data sources before deleting this environment just to be safe
             }
         ];
         const answers = await inquirer.prompt(questions);
-        if (answers.confirmDelete === 'yes') {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return answers.confirmDelete === 'yes';
     }
 }
 
 const TAG_PARAM_PATTERN = RegExp(`^(${TAG_KEY_PATTERN})=(.{1,${TAG_VALUE_MAX_LENGTH}})$`);
 
-export function validateDeployArgs(argv: any, handelFile: HandelFile): string[] {
+export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions): string[] {
+    const {accountConfig, environments, tags} = opts;
     let errors: string[] = [];
 
-    // Require account config
-    if (!argv.c) {
-        errors.push('The \'-c\' parameter is required');
-    }
-    else { // Validate that it is either base64 decodable JSON or an account config file
-        errors = errors.concat(validateAccountConfigParam(argv.c));
-    }
+    // Validate that it is either base64 decodable JSON or an account config file
+    errors = errors.concat(validateAccountConfigParam(accountConfig));
 
-    // Require environments to deploy
-    if (!argv.e) {
-        errors.push('The \'-e\' parameter is required');
-    }
-    else { // Validate that the environments exist in the Handel file
-        errors = errors.concat(validateEnvsInHandelFile(argv.e, handelFile));
-    }
+    // Validate that the environments exist in the Handel file
+    errors = errors.concat(validateEnvsInHandelFile(environments, handelFile));
 
-    if (argv.t) {
-        const tagErrors = argv.t.split(',')
-            .filter((pair: string) => !pair.match(TAG_PARAM_PATTERN))
-            .map((pair: string) => `The value for -t is invalid: '${pair}'`);
-        errors = errors.concat(tagErrors);
+    if (tags) {
+        for (const [tag, value] of _.entries(tags)) {
+            if (!TAG_KEY_REGEX.test(tag)) {
+                errors.push(`The tag name is invalid: '${tag}'`);
+            }
+            if (value.length === 0) {
+                errors.push(`The value for tag '${tag}' must not be empty`);
+            }
+            if (value.length > TAG_VALUE_MAX_LENGTH) {
+                errors.push(`The value for tag '${tag}' must be less than ${TAG_VALUE_MAX_LENGTH} in length.`);
+            }
+        }
     }
 
     return errors;
 }
 
-export function validateDeleteArgs(argv: any, handelFile: HandelFile): string[] {
+export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions): string[] {
+    const {accountConfig, environment} = opts;
     let errors: string[] = [];
 
-    // Require account config
-    if (!argv.c) {
-        errors.push('The \'-c\' parameter is required');
-    }
-    else { // Validate that it is either base64 decodable JSON or an account config file
-        errors = errors.concat(validateAccountConfigParam(argv.c));
-    }
+    // Validate that it is either base64 decodable JSON or an account config file
+    errors = errors.concat(validateAccountConfigParam(accountConfig));
 
-    // Require environments to deploy
-    if (!argv.e) {
-        errors.push('The \'-e\' parameter is required');
-    }
-    else { // Validate that the environments exist in the Handel file
-        errors = errors.concat(validateEnvsInHandelFile(argv.e, handelFile));
-    }
+    // Validate that the environments exist in the Handel file
+    errors = errors.concat(validateEnvsInHandelFile([environment], handelFile));
 
     return errors;
 }
@@ -248,19 +226,14 @@ export function validateDeleteArgs(argv: any, handelFile: HandelFile): string[] 
  * This method is the top-level entry point for the 'deploy' action available in the
  * Handel CLI. It goes and deploys the requested environment(s) to AWS.
  */
-export async function deployAction(handelFile: HandelFile, argv: any): Promise<void> {
-    configureLogger(argv);
-
-    const environmentsToDeploy = argv.e.split(',');
+export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
+    const environmentsToDeploy = options.environments;
     try {
         await validateLoggedIn();
-        const accountConfig = await config(argv.c); // Load account config to be consumed by the library
+        const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
         // Set up AWS SDK with any global options
         util.configureAwsSdk(accountConfig);
-
-        // Parse command-line tags
-        const tags = parseTagsArg(argv.t);
 
         // Load Handel file from path and validate it
         winston.debug('Validating and parsing Handel file');
@@ -271,9 +244,9 @@ export async function deployAction(handelFile: HandelFile, argv: any): Promise<v
         await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
 
         // Command-line tags override handelfile tags.
-        handelFile.tags = Object.assign({}, handelFile.tags, tags);
+        handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
 
-        const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry);
+        const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry, options);
         logFinalResult('deploy', envDeployResults);
     }
     catch (err) {
@@ -287,9 +260,7 @@ export async function deployAction(handelFile: HandelFile, argv: any): Promise<v
  * Handel CLI. It goes and validates the Handel file so you can see if the file looks
  * correct
  */
-export async function checkAction(handelFile: HandelFile, argv: any): Promise<void> {
-    configureLogger(argv); // Don't enable debug on check?
-
+export async function checkAction(handelFile: HandelFile, options: CheckOptions): Promise<void> {
     // Load Handel file from path and validate it
     winston.debug('Validating and parsing Handel file');
     const handelFileParser = util.getHandelFileParser(handelFile);
@@ -298,7 +269,7 @@ export async function checkAction(handelFile: HandelFile, argv: any): Promise<vo
 
     await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
 
-    const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry);
+    const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
     let foundErrors = false;
     for (const env in errors) {
         if (errors.hasOwnProperty(env)) {
@@ -321,35 +292,32 @@ export async function checkAction(handelFile: HandelFile, argv: any): Promise<vo
  * This method is the top-level entry point for the 'delete' action available in the
  * Handel CLI. It asks for a confirmation, then deletes the requested environment.
  */
-export async function deleteAction(handelFile: HandelFile, argv: any): Promise<void> {
-    configureLogger(argv);
-
-    const environmentToDelete = argv.e;
+export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
     try {
         await validateLoggedIn();
-        const accountConfig = await config(argv.c); // Load account config to be consumed by the library
+        const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
-        const deleteEnvConfirmed = await confirmDelete(environmentToDelete, argv.y);
+        const environmentToDelete = options.environment;
+        // Set up AWS SDK with any global options
+        util.configureAwsSdk(accountConfig);
+
+        // Load Handel file from path and validate it
+        winston.debug('Validating and parsing Handel file');
+        const handelFileParser = util.getHandelFileParser(handelFile);
+
+        const serviceRegistry = await initServiceRegistry();
+
+        await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
+
+        const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
-            // Set up AWS SDK with any global options
-            util.configureAwsSdk(accountConfig);
-
-            // Load Handel file from path and validate it
-            winston.debug('Validating and parsing Handel file');
-            const handelFileParser = util.getHandelFileParser(handelFile);
-
-            const serviceRegistry = await initServiceRegistry();
-
-            await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
-
-            const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry);
+            const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
             logFinalResult('delete', [envDeleteResult]);
         }
         else {
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
         }
-    }
-    catch (err) {
+    } catch (err) {
         logCaughtError('Unexpected error occurred during delete', err);
         process.exit(1);
     }

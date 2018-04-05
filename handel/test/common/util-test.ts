@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
-import { EnvironmentContext } from '../../src/datatypes';
+import { EnvironmentContext, HandelCoreOptions } from '../../src/datatypes';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('util module', () => {
@@ -202,7 +202,9 @@ describe('util module', () => {
         const accountConfig = util.readYamlFileSync(`${__dirname}/../test-account-config.yml`);
         const environmentName = 'dev';
 
-        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, accountConfig, new FakeServiceRegistry());
+        const opts: HandelCoreOptions = { linkExtensions: false };
+
+        const environmentContext = util.createEnvironmentContext(handelFile, handelFileParser, environmentName, accountConfig, new FakeServiceRegistry(), opts);
         expect(environmentContext).to.be.instanceof(EnvironmentContext);
     });
 });

@@ -201,7 +201,7 @@ export interface ServiceDeployer extends api.ServiceDeployer {
 export interface HandelFileParser {
     validateHandelFile(handelFile: HandelFile, serviceRegistry: api.ServiceRegistry): Promise<string[]>;
 
-    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry): EnvironmentContext;
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry, options: HandelCoreOptions): EnvironmentContext;
 }
 
 /***********************************
@@ -226,21 +226,14 @@ export interface HandelFileEnvironment {
  * Types for the Environment Deployer framework and lifecycle
  ***********************************/
 export class EnvironmentContext {
-    public appName: string;
-    public environmentName: string;
     public serviceContexts: ServiceContexts;
-    public accountConfig: AccountConfig;
-    public tags: Tags;
 
-    constructor(appName: string,
-                environmentName: string,
-                accountConfig: AccountConfig,
-                tags: Tags = {}) {
-        this.appName = appName;
-        this.environmentName = environmentName;
+    constructor(public appName: string,
+                public environmentName: string,
+                public accountConfig: AccountConfig,
+                public options: HandelCoreOptions = { linkExtensions: false },
+                public tags: Tags = {}) {
         this.serviceContexts = {};
-        this.accountConfig = accountConfig;
-        this.tags = tags;
     }
 }
 
@@ -391,4 +384,24 @@ export interface Tags {
 
 export interface EnvironmentVariables {
     [key: string]: string;
+}
+
+export interface HandelCoreOptions {
+    linkExtensions: boolean;
+}
+
+// tslint:disable-next-line:no-empty-interface
+export interface CheckOptions extends HandelCoreOptions {
+}
+
+export interface DeployOptions extends HandelCoreOptions {
+    accountConfig: string;
+    environments: string[];
+    tags?: Tags;
+}
+
+export interface DeleteOptions extends HandelCoreOptions {
+    accountConfig: string;
+    environment: string;
+    yes: boolean;
 }

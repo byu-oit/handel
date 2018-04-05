@@ -18,7 +18,7 @@ import * as Ajv from 'ajv';
 import {ServiceRegistry} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as util from '../common/util';
-import { AccountConfig, EnvironmentContext, HandelFile, ServiceContext } from '../datatypes';
+import { AccountConfig, EnvironmentContext, HandelCoreOptions, HandelFile, ServiceContext } from '../datatypes';
 import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 const APP_ENV_SERVICE_NAME_REGEX = /^[a-zA-Z0-9-]+$/;
@@ -201,15 +201,16 @@ export async function validateHandelFile(handelFile: HandelFile, serviceRegistry
  * @param {String} environmentName - The name of the environment in the deploy spec for which we want the EnvironmentContext
  * @param {AccountConfig} accountConfig - account configuration
  * @param {ServiceRegistry} serviceRegistry - registry of all loaded services
+ * @param {HandelCoreOptions} options
  * @returns {EnvironmentContext} - The generated EnvironmentContext from the specified environment in the Handel file
  */
-export function createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry): EnvironmentContext {
+export function createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, options: HandelCoreOptions): EnvironmentContext {
     const environmentSpec = handelFile.environments[environmentName];
     if (!environmentSpec) {
         throw new Error(`Can't find the requested environment in the deploy spec: ${environmentName}`);
     }
 
-    const environmentContext = new EnvironmentContext(handelFile.name, environmentName, accountConfig, handelFile.tags || {});
+    const environmentContext = new EnvironmentContext(handelFile.name, environmentName, accountConfig, options, handelFile.tags || {});
 
     _.forEach(environmentSpec, (serviceSpec, serviceName) => {
         const serviceType = serviceSpec.type;

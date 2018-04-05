@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import {ServiceRegistry} from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, HandelFile } from '../../src/datatypes';
+import { AccountConfig, HandelCoreOptions, HandelFile } from '../../src/datatypes';
 import * as parserV1 from '../../src/handelfile/parser-v1';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
@@ -270,10 +270,14 @@ describe('parser-v1', () => {
                     }
                 }
             };
-            const environmentContext = parserV1.createEnvironmentContext(handelFile, 'dev', accountConfig, new FakeServiceRegistry());
+
+            const opts: HandelCoreOptions = { linkExtensions: false };
+
+            const environmentContext = parserV1.createEnvironmentContext(handelFile, 'dev', accountConfig, new FakeServiceRegistry(), opts);
             expect(environmentContext.appName).to.equal('test');
             expect(environmentContext.environmentName).to.equal('dev');
             expect(environmentContext.serviceContexts.A.serviceType).to.equal('dynamodb');
+            expect(environmentContext.options).to.deep.equal(opts);
         });
     });
 });

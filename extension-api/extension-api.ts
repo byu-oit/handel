@@ -115,7 +115,6 @@ export interface ServiceInfo {
     consumedDeployOutputTypes: string[];
 }
 
-
 export interface ServiceConfig {
     type: string;
     tags?: Tags;

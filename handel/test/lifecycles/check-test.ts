@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as util from '../../src/common/util';
+import { CheckOptions } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as checkLifecycle from '../../src/lifecycles/check';
 import * as checkPhase from '../../src/phases/check';
@@ -42,7 +43,10 @@ describe('check lifecycle module', () => {
             const serviceRegistry = new FakeServiceRegistry();
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             handelFile.environments.dev.B.database_name = null; // Cause error
-            const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry);
+
+            const options: CheckOptions = { linkExtensions: false };
+
+            const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
             expect(checkServicesStub.callCount).to.equal(2);
             expect(errors.dev.length).to.equal(1);
             expect(errors.dev[0]).to.equal(error);

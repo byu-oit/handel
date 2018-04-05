@@ -19,7 +19,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, PreDeployContext, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, DeployOptions, PreDeployContext, ServiceContext } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deployLifecycle from '../../src/lifecycles/deploy';
 import * as bindPhase from '../../src/phases/bind';
@@ -53,7 +53,8 @@ describe('deploy lifecycle module', () => {
             const deployServicesInlevelStub = sandbox.stub(deployPhase, 'deployServicesInLevel').returns({});
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             const serviceRegistry = new FakeServiceRegistry({});
-            const results = await deployLifecycle.deploy(accountConfig, handelFile, ['dev', 'prod'], handelFileParser, serviceRegistry);
+            const opts: DeployOptions = { linkExtensions: false, accountConfig: '', environments: ['dev, prod'], tags: {} };
+            const results = await deployLifecycle.deploy(accountConfig, handelFile, ['dev', 'prod'], handelFileParser, serviceRegistry, opts);
             expect(checkServicesStub.callCount).to.equal(2);
             expect(preDeployServicesStub.callCount).to.equal(2);
             expect(bindServicesInLevelStub.callCount).to.equal(4);
