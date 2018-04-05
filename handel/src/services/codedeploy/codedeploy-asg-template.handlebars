@@ -322,14 +322,16 @@ Resources:
             DNSName: !GetAtt Alb.DNSName
             HostedZoneId: !GetAtt Alb.CanonicalHostedZoneID
   {{/each}}
+  {{/if}}
 Outputs:
+  {{#if routing}}
   ALBDnsName:
     Description: The DNS Name of the ALB
     Value: !GetAtt Alb.DNSName
+  {{/if}}
   AutoScalingGroupName:
     Description: The name of the auto-scaling group
     Value: !Ref AutoScalingGroup
   LaunchConfigName:
     Description: The name of the launch configuration
     Value: !Ref LaunchConfiguration
-  {{/if}}
