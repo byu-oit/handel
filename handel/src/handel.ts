@@ -14,63 +14,66 @@
  * limitations under the License.
  *
  */
-import {camelCase} from 'change-case';
-import * as commander from 'commander';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { version } from 'pjson';
+import * as winston from 'winston';
 import * as cli from './cli';
 import { CheckOptions, DeleteOptions, DeployOptions, HandelFile } from './datatypes';
 
-commander
-    .usage('<command> [options]')
-    .option('--link-extensions', '!!For Extension Developers Only!! Uses npm links to install local extensions.')
-    .option('-d, --debug', 'Enable verbose debug logging')
-    .version(version, '-v, --version');
+import * as program from 'caporal';
 
-commander.command('check')
-    .description('Checks the contents of your Handel file for errors')
-    .action((command) => {
-        const opts: CheckOptions = Object.assign({}, commander.opts(), command.opts());
-        runCommand(command, opts, cli.checkAction);
+program.version(version)
+    .logger(winston as any);
+
+program.command('check', 'Checks the contents of your Handel file for errors')
+    .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
+    .action((args, opts, logger) => {
+        return runCommand(opts as CheckOptions, cli.checkAction);
     });
 
-commander.command('deploy')
-    .description('Deploys the given environments from your Handel file to your AWS account')
-    .option('-c, --account-config <config>', 'Required. Path to account config file or Base64-encoded string containing the JSON configuration')
-    .option('-e, --environments <list>', 'Required. Comma-separated list of environments from your Handel file to deploy', list)
-    .option('-t, --tags <tags>', 'Comma-separated list of extra application-level tags to apply to resources. Ex: foo=bar,baz=foo', cli.parseTagsArg)
-    .option('-d, --debug', 'Enable verbose debug logging')
-    .action((command, ...args) => {
-        requireOptions(command, ['account-config', 'environments']);
-        const opts: DeployOptions = Object.assign({}, commander.opts(), command.opts());
-        runCommand(command, opts, cli.deployAction, cli.validateDeployArgs);
+program.command('deploy', 'Deploys the given environments from your Handel file to your AWS account')
+    .option('-c, --account-config <config>',
+        'Path to account config file or Base64-encoded string containing the JSON configuration',
+        program.STRING, // TODO: Move validation into caporal validation
+        null,
+        true
+    )
+    .option('-e, --environments <list>',
+        'Comma-separated list of environments from your Handel file to deploy',
+        program.LIST,
+        null,
+        true
+    )
+    .option('-t, --tags <tags>',
+        'Comma-separated list of extra application-level tags to apply to resources. Ex: foo=bar,baz=foo',
+        program.LIST
+    )
+    .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
+    .action((args, opts, logger) => {
+        return runCommand(opts as DeployOptions, cli.deployAction);
     });
 
-commander.command('delete')
-    .description('Deletes the given environments from your AWS Account')
-    .option('-c, --account-config <config>', 'Required. Path to account config file or Base64-encoded string containing the JSON configuration')
-    .option('-e, --environment <environment>', 'Required. Environment from your Handel file to delete')
-    .option('-y, --yes', 'Do *not* prompt to confirm deletion of resources')
-    .action((command) => {
-        requireOptions(command, ['account-config', 'environment']);
-        const opts: DeleteOptions = Object.assign({}, commander.opts(), command.opts());
-        runCommand(command, opts, cli.deleteAction, cli.validateDeleteArgs);
+program.command('delete', 'Deletes the given Handel environment from your AWS account')
+    .option('-c, --account-config <config>',
+        'Path to account config file or Base64-encoded string containing the JSON configuration',
+        program.STRING, // TODO: Move validation into caporal validation
+        undefined,
+        true
+    )
+    .option('-e, --environment <name>',
+        'Environments from your Handel file to delete',
+        program.STRING,
+        undefined,
+        true
+    )
+    .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
+    .action((args, opts, logger) => {
+        return runCommand(opts as DeleteOptions, cli.deleteAction);
     });
-
-function list(value: string) {
-    return value.split(',');
-}
 
 export async function run() {
-    commander.parse(process.argv);
-}
-
-function requireOptions(cmd: commander.Command, requiredOptions: string[]) {
-    const omitted = requiredOptions.filter(name => !cmd[camelCase(name)]);
-    if (omitted.length !== 0) {
-        printHelpAndExit(cmd, `The following required parameters were omitted: ${omitted.join(', ')}`);
-    }
+    return program.parse(process.argv);
 }
 
 function printAndExit(msg: string): never {
@@ -79,25 +82,25 @@ function printAndExit(msg: string): never {
     return process.exit(1);
 }
 
-function printHelpAndExit(command: commander.Command, msg: string): never {
+function printHelpAndExit(msg: string): never {
     // tslint:disable-next-line:no-console
     console.log(msg);
-    command.outputHelp();
+    program.fatalError(new Error());
     return process.exit(1);
 }
 
-function loadHandelFile(): HandelFile | undefined {
+function loadHandelFile(): HandelFile {
     try {
         return yaml.safeLoad(fs.readFileSync('./handel.yml', 'utf8')) as HandelFile;
     } catch (e) {
         if (e.code === 'ENOENT') {
-            printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
+            return printAndExit(`No 'handel.yml' file found in this directory. You must run Handel in the directory containing the Handel file.`);
         }
         else if (e.name === 'YAMLException') {
-            printAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
+            return printAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
         }
         else {
-            printAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
+            return printAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
         }
     }
 }
@@ -105,13 +108,14 @@ function loadHandelFile(): HandelFile | undefined {
 type CommandFunction<Opts> = (handelFile: HandelFile, opts: Opts) => Promise<any>;
 type ValidateFunction<Opts> = (handelFile: HandelFile, opts: Opts) => string[] | Promise<string[]>;
 
-function runCommand<Opts>(command: commander.Command, options: Opts, commandFunc: CommandFunction<Opts>, validateFunc?: ValidateFunction<Opts>) {
+function runCommand<Opts>(options: Opts, commandFunc: CommandFunction<Opts>, validateFunc?: ValidateFunction<Opts>) {
+    console.log('opts', options);
     const handelFile = loadHandelFile()!; // It wil either come back with a HandelFile object or exit inside the method
     Promise.resolve((async () => {
         if (validateFunc) {
             const errors = await validateFunc(handelFile, options);
             if (errors.length > 0) {
-                printHelpAndExit(command, errors.join('\n'));
+                printHelpAndExit(errors.join('\n'));
             }
         }
         return commandFunc(handelFile, options);

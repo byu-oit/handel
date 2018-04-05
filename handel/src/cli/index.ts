@@ -31,7 +31,7 @@ import {
     DeleteOptions,
     DeployOptions,
     EnvironmentResult,
-    GlobalOptions,
+    HandelCoreOptions,
     HandelFile,
     HandelFileParser,
     Tags
@@ -41,9 +41,9 @@ import * as deleteLifecycle from '../lifecycles/delete';
 import * as deployLifecycle from '../lifecycles/deploy';
 import { initServiceRegistry } from '../service-registry';
 
-function configureLogger(options: GlobalOptions) {
+function configureLogger(options: HandelCoreOptions) {
     let level = 'info';
-    if (options.debug) {
+    if (options.hasOwnProperty('debug')) {
         level = 'debug';
     }
     winston!.level = level;

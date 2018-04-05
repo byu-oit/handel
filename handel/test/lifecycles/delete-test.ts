@@ -49,7 +49,7 @@ describe('delete lifecycle module', () => {
                 A: new UnPreDeployContext(serviceContext)
             });
             const serviceRegistry = new FakeServiceRegistry();
-            const opts: DeleteOptions = { debug: false, linkExtensions: false, yes: false, environments: ['dev'], accountConfig: '' };
+            const opts: DeleteOptions = { linkExtensions: false, yes: false, environment: 'dev', accountConfig: '' };
             const handelFile: HandelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             const results = await deleteLifecycle.deleteEnv(accountConfig, handelFile, 'dev', handelFileParser, serviceRegistry, opts);
             expect(unPreDeployStub.callCount).to.equal(1);

@@ -53,7 +53,7 @@ describe('deploy lifecycle module', () => {
             const deployServicesInlevelStub = sandbox.stub(deployPhase, 'deployServicesInLevel').returns({});
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             const serviceRegistry = new FakeServiceRegistry({});
-            const opts: DeployOptions = { debug: false, linkExtensions: false, accountConfig: '', environments: ['dev, prod'], tags: {} };
+            const opts: DeployOptions = { linkExtensions: false, accountConfig: '', environments: ['dev, prod'], tags: {} };
             const results = await deployLifecycle.deploy(accountConfig, handelFile, ['dev', 'prod'], handelFileParser, serviceRegistry, opts);
             expect(checkServicesStub.callCount).to.equal(2);
             expect(preDeployServicesStub.callCount).to.equal(2);

@@ -44,7 +44,7 @@ describe('check lifecycle module', () => {
             const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
             handelFile.environments.dev.B.database_name = null; // Cause error
 
-            const options: CheckOptions = { debug: false, linkExtensions: false };
+            const options: CheckOptions = { linkExtensions: false };
 
             const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
             expect(checkServicesStub.callCount).to.equal(2);

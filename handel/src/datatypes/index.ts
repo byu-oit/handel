@@ -201,7 +201,7 @@ export interface ServiceDeployer extends api.ServiceDeployer {
 export interface HandelFileParser {
     validateHandelFile(handelFile: HandelFile, serviceRegistry: api.ServiceRegistry): Promise<string[]>;
 
-    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry, options: GlobalOptions): EnvironmentContext;
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry, options: HandelCoreOptions): EnvironmentContext;
 }
 
 /***********************************
@@ -231,7 +231,7 @@ export class EnvironmentContext {
     constructor(public appName: string,
                 public environmentName: string,
                 public accountConfig: AccountConfig,
-                public options: GlobalOptions = {debug: false, linkExtensions: false},
+                public options: HandelCoreOptions = { linkExtensions: false },
                 public tags: Tags = {}) {
         this.serviceContexts = {};
     }
@@ -386,22 +386,21 @@ export interface EnvironmentVariables {
     [key: string]: string;
 }
 
-export interface GlobalOptions {
-    debug: boolean;
+export interface HandelCoreOptions {
     linkExtensions: boolean;
 }
 
 // tslint:disable-next-line:no-empty-interface
-export interface CheckOptions extends GlobalOptions {
+export interface CheckOptions extends HandelCoreOptions {
 }
 
-export interface DeployOptions extends GlobalOptions {
+export interface DeployOptions extends HandelCoreOptions {
     accountConfig: string;
     environments: string[];
     tags?: Tags;
 }
 
-export interface DeleteOptions extends GlobalOptions {
+export interface DeleteOptions extends HandelCoreOptions {
     accountConfig: string;
     environment: string;
     yes: boolean;
