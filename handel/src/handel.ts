@@ -48,7 +48,7 @@ program.command('deploy', 'Deploys the given environments from your Handel file 
     )
     .option('-t, --tags <tags>',
         'Comma-separated list of extra application-level tags to apply to resources. Ex: foo=bar,baz=foo',
-        list
+        cli.parseTagsArg
     )
     .option('--link-extensions', '!!For Extension Developers Only!! Use NPM links to resolve extensions')
     .action((args, opts, logger) => {
