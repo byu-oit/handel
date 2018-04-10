@@ -110,7 +110,8 @@ function generateDefinitionString(filename: string, dependenciesDeployContexts: 
         dependencyArns.set(context.serviceName, context.eventOutputs.lambdaArn);
     }
     // Change 'resource' in each state from service name to ARN
-    Object.values(definitionFile.States)
+    Object.keys(definitionFile.States)
+        .map(stateName => definitionFile.States[stateName])
         .filter(state => state.hasOwnProperty('Resource'))
         .forEach((state: any) => state.Resource = dependencyArns.get(state.Resource));
     return JSON.stringify(definitionFile);
