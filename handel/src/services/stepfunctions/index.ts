@@ -15,13 +15,14 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import * as _ from 'lodash';
 import * as path from 'path';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
+import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { HandlebarsStepFunctionsTemplate, StepFunctionsConfig } from './config-types';
 
@@ -110,8 +111,7 @@ function generateDefinitionString(filename: string, dependenciesDeployContexts: 
         dependencyArns.set(context.serviceName, context.eventOutputs.lambdaArn);
     }
     // Change 'resource' in each state from service name to ARN
-    Object.keys(definitionFile.States)
-        .map(stateName => definitionFile.States[stateName])
+    _.values(definitionFile.States)
         .filter(state => state.hasOwnProperty('Resource'))
         .forEach((state: any) => state.Resource = dependencyArns.get(state.Resource));
     return JSON.stringify(definitionFile);
