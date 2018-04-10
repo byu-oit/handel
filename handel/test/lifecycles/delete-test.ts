@@ -15,17 +15,19 @@
  *
  */
 import { expect } from 'chai';
+import { UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, DeleteOptions, HandelFile, ServiceContext, UnPreDeployContext } from '../../src/datatypes';
+import { AccountConfig, DeleteOptions, HandelFile, ServiceContext, ServiceType } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deleteLifecycle from '../../src/lifecycles/delete';
 import * as unBindPhase from '../../src/phases/un-bind';
 import * as unDeployPhase from '../../src/phases/un-deploy';
 import * as unPreDeployPhase from '../../src/phases/un-pre-deploy';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('delete lifecycle module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +44,7 @@ describe('delete lifecycle module', () => {
 
     describe('delete', () => {
         it('should delete the application environment', async () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const unDeployServicesStub = sandbox.stub(unDeployPhase, 'unDeployServicesInLevel').returns({});
             const unBindServicesStub = sandbox.stub(unBindPhase, 'unBindServicesInLevel').returns({});
             const unPreDeployStub = sandbox.stub(unPreDeployPhase, 'unPreDeployServices').resolves({

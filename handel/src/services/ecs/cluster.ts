@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
+import { AccountConfig, DeployContext } from 'handel-extension-api';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
-import { AccountConfig, DeployContext } from '../../datatypes/index';
 
 /**
  * This function calculates the user data script to be run on the cluster EC2 instances when launching.

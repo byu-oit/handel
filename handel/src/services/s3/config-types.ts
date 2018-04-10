@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceEventConsumer, Tags } from '../../datatypes/index';
+import { ServiceConfig, ServiceEventConsumer, Tags } from 'handel-extension-api';
 
 export interface S3ServiceConfig extends ServiceConfig {
     bucket_name?: string;

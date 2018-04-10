@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import { APIAccessConfig } from './config-types';
 
 const SERVICE_NAME = 'API Access';

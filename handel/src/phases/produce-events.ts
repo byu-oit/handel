@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { DeployContext, ProduceEventsContext, ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { DeployContext, DeployContexts, EnvironmentContext, ProduceEventsContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceEventConsumer } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { DeployContexts, EnvironmentContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceEventConsumer } from '../datatypes';
 
 interface ProduceEventsAction {
     eventConsumerConfig: ServiceEventConsumer;
@@ -51,7 +50,7 @@ export async function produceEvents(serviceRegistry: ServiceRegistry, environmen
             // _.forEach(environmentContext.serviceContexts, function (producerServiceContext, producerServiceName) {
             if (producerServiceContext.params.event_consumers) {
                 // Get deploy info for producer service
-                const producerServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, producerServiceContext.serviceType);
+                const producerServiceDeployer = serviceRegistry.getService(producerServiceContext.serviceType);
                 const producerDeployContext = deployContexts[producerServiceName];
 
                 // Run produce events for each service this service produces to

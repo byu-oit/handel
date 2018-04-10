@@ -38,6 +38,22 @@
                 "additionalProperties": "Tag names may contain a maximum of 127 characters, consisting of numbers, letters, and some special characters (+-\\-=._:@/)"
             }
         },
+        "extensions": {
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z0-9][a-zA-Z0-9\\-_]{0,62}[a-zA-Z0-9]$": {
+                    "type": "string",
+                    "errorMessage": {
+                        "type": "Each extension value must be a string"
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "errorMessage": {
+                "type": "The 'extensions' field must be a key-value map",
+                "additionalProperties": "Extension prefixes must be between 1 and 64 characters long, consisting of letters, numbers, dashes (-) or underscores (_)"
+            }
+        },
         "environments": {
             "type": "object",
             "patternProperties": {

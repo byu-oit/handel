@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
@@ -26,7 +27,6 @@ import * as volumesSection from '../../common/ecs-volumes';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import {getTags} from '../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../datatypes';
 import * as asgCycling from './asg-cycling';
 import * as cluster from './cluster';
 import * as clusterAutoScalingSection from './cluster-auto-scaling';

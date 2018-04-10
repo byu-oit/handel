@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
-import { BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../datatypes';
 
 export async function preDeployNotRequired(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext> {
     winston.debug(`${serviceContext.serviceType} - PreDeploy is not required for this service, skipping it`);

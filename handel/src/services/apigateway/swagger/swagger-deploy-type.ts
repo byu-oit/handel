@@ -15,6 +15,7 @@
  *
  */
 import * as fs from 'fs';
+import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as tmp from 'tmp';
 import * as uuid from 'uuid';
@@ -23,7 +24,6 @@ import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../../common/handlebars-utils';
 import {getTags} from '../../../common/tagging-common';
 import * as util from '../../../common/util';
-import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags} from '../../../datatypes';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
 

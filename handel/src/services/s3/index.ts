@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as s3Calls from '../../aws/s3-calls';
@@ -22,7 +23,7 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
 import { getTags } from '../../common/tagging-common';
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from '../../datatypes';
+import { STDLIB_PREFIX } from '../stdlib';
 import { HandlebarsS3Template, S3ServiceConfig, S3ServiceEventConsumer, S3ServiceEventFilterList } from './config-types';
 import * as lifecycleSection from './lifecycles';
 
@@ -169,13 +170,13 @@ export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceC
     const bucketName = ownDeployContext.eventOutputs.bucketName;
     const consumerServiceType = consumerServiceContext.serviceType;
     let consumerArn;
-    if (consumerServiceType === 'lambda') {
+    if (consumerServiceType.matches(STDLIB_PREFIX, 'lambda')) {
         consumerArn = consumerDeployContext.eventOutputs.lambdaArn;
     }
-    else if(consumerServiceType === 'sns') {
+    else if(consumerServiceType.matches(STDLIB_PREFIX, 'sns')) {
         consumerArn = consumerDeployContext.eventOutputs.topicArn;
     }
-    else if(consumerServiceType === 'sqs') {
+    else if(consumerServiceType.matches(STDLIB_PREFIX, 'sqs')) {
         consumerArn = consumerDeployContext.eventOutputs.queueArn;
     }
     else {
@@ -183,7 +184,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceC
     }
     const filters = getS3EventFilters(eventConsumerConfig.filters);
 
-    const result = await s3Calls.configureBucketNotifications(bucketName, consumerServiceType, consumerArn, eventConsumerConfig.bucket_events, filters);
+    const result = await s3Calls.configureBucketNotifications(bucketName, consumerServiceType.name, consumerArn, eventConsumerConfig.bucket_events, filters);
     winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }

@@ -16,12 +16,25 @@
  */
 
 import * as fs from 'fs-extra';
-import {ExtensionContext} from 'handel-extension-api';
+import { Extension, ExtensionContext } from 'handel-extension-api';
 import * as path from 'path';
+import { LoadedExtension } from '../datatypes';
 
-export async function loadHandelExtension(context: ExtensionContext) {
-    for (const service of await listDefaultServices()) {
-        context.service(service.name, await import(service.path));
+export const STDLIB_PREFIX = '__STDLIB__';
+
+export async function loadStandardLib(): Promise<LoadedExtension> {
+    return {
+        name: 'handel-stdlib',
+        prefix: STDLIB_PREFIX,
+        instance: new StandardLibExtension()
+    };
+}
+
+export class StandardLibExtension implements Extension {
+    public async loadHandelExtension(context: ExtensionContext) {
+        for (const service of await listDefaultServices()) {
+            context.service(service.name, await import(service.path));
+        }
     }
 }
 

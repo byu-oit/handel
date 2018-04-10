@@ -15,10 +15,12 @@
  *
  */
 
+import { codeBlock, source, stripIndent } from 'common-tags';
 import * as api from 'handel-extension-api';
+import { documentationUrl } from '../common/util';
 
 /*******************************************************************************************************************
- * A number of these types are just aliases or extensions of the types in the extension API. This allows us to keep
+ * A number of these types are just aliases or extensions of the types in the instance API. This allows us to keep
  * our types compatible while adding any internal extras we may need.
  ******************************************************************************************************************/
 
@@ -38,16 +40,27 @@ export class ServiceContext<Config extends ServiceConfig> implements api.Service
     constructor(public appName: string,
                 public environmentName: string,
                 public serviceName: string,
-                public serviceType: string,
+                public serviceType: api.ServiceType,
                 public params: Config,
                 public accountConfig: AccountConfig,
-                public tags: Tags = {},
+                public tags: api.Tags = {},
                 public serviceInfo: api.ServiceInfo = {
                     consumedDeployOutputTypes: [],
                     producedDeployOutputTypes: [],
                     producedEventsSupportedServices: []
-                }
-    ) {
+                }) {
+    }
+}
+
+export class ServiceType implements api.ServiceType {
+    constructor(public prefix: string, public name: string) {}
+
+    public matches(prefix: string, name: string): boolean {
+        return this.prefix === prefix && this.name === name;
+    }
+
+    public toString(): string {
+        return this.prefix + '::' + this.name;
     }
 }
 
@@ -55,138 +68,6 @@ export interface ServiceConfig extends api.ServiceConfig {
 }
 
 export interface ServiceEventConsumer extends api.ServiceEventConsumer {
-}
-
-export class BindContext implements api.BindContext {
-    public dependencyServiceContext: ServiceContext<ServiceConfig>;
-    public dependentOfServiceContext: ServiceContext<ServiceConfig>;
-
-    constructor(dependencyServiceContext: ServiceContext<ServiceConfig>,
-                dependentOfServiceContext: ServiceContext<ServiceConfig>) {
-        this.dependencyServiceContext = dependencyServiceContext;
-        this.dependentOfServiceContext = dependentOfServiceContext;
-        // Should anything else go here?
-    }
-}
-
-export class ConsumeEventsContext implements api.ConsumeEventsContext {
-    public consumingServiceContext: ServiceContext<ServiceConfig>;
-    public producingServiceContext: ServiceContext<ServiceConfig>;
-
-    constructor(consumingServiceContext: ServiceContext<ServiceConfig>,
-                producingServiceContext: ServiceContext<ServiceConfig>) {
-        this.consumingServiceContext = consumingServiceContext;
-        this.producingServiceContext = producingServiceContext;
-        // TODO - Does anything else go here?
-    }
-}
-
-export class DeployContext implements api.DeployContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-    // Any outputs needed for producing/consuming events for this service
-    public eventOutputs: DeployContextEventOutputs;
-    // Policies the consuming service can use when creating service roles in order to talk to this service
-    public policies: any[]; // There doesn't seem to be a great AWS-provided IAM type for Policy Documents
-    // Items intended to be injected as environment variables into the consuming service
-    public environmentVariables: DeployContextEnvironmentVariables;
-    // Scripts intended to be run on startup by the consuming resource.
-    public scripts: string[];
-
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
-        this.eventOutputs = {};
-        this.policies = [];
-        this.environmentVariables = {};
-        this.scripts = [];
-    }
-
-    public addEnvironmentVariables(vars: object) {
-        Object.assign(this.environmentVariables, vars);
-    }
-}
-
-export interface DeployContextEnvironmentVariables {
-    [key: string]: string;
-}
-
-export interface DeployContextEventOutputs {
-    [key: string]: any;
-}
-
-export class PreDeployContext implements api.PreDeployContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-    public securityGroups: AWS.EC2.SecurityGroup[];
-
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
-        this.securityGroups = []; // Empty until service deployer fills it
-    }
-}
-
-export class ProduceEventsContext implements api.ProduceEventsContext {
-    public producingServiceContext: ServiceContext<ServiceConfig>;
-    public consumingServiceContext: ServiceContext<ServiceConfig>;
-
-    constructor(producingServiceContext: ServiceContext<ServiceConfig>,
-                consumingServiceContext: ServiceContext<ServiceConfig>) {
-        this.producingServiceContext = producingServiceContext;
-        this.consumingServiceContext = consumingServiceContext;
-        // Does anything else go here?
-    }
-}
-
-export class UnDeployContext implements api.UnDeployContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
-    }
-}
-
-export class UnBindContext implements api.UnBindContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
-    }
-}
-
-export class UnPreDeployContext implements api.UnPreDeployContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: string;
-
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
-    }
 }
 
 /***********************************
@@ -201,6 +82,8 @@ export interface ServiceDeployer extends api.ServiceDeployer {
 export interface HandelFileParser {
     validateHandelFile(handelFile: HandelFile, serviceRegistry: api.ServiceRegistry): Promise<string[]>;
 
+    listExtensions(handelFile: HandelFile): Promise<ExtensionList>;
+
     createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry, options: HandelCoreOptions): EnvironmentContext;
 }
 
@@ -210,7 +93,8 @@ export interface HandelFileParser {
 export interface HandelFile {
     version: number;
     name: string;
-    tags?: Tags;
+    tags?: api.Tags;
+    extensions?: HandelFileExtensions;
     environments: HandelFileEnvironments;
 }
 
@@ -222,6 +106,12 @@ export interface HandelFileEnvironment {
     [serviceName: string]: ServiceConfig;
 }
 
+export interface HandelFileExtensions {
+    [extensionPrefix: string]: HandelFileExtension;
+}
+
+export type HandelFileExtension = string;
+
 /***********************************
  * Types for the Environment Deployer framework and lifecycle
  ***********************************/
@@ -232,7 +122,7 @@ export class EnvironmentContext {
                 public environmentName: string,
                 public accountConfig: AccountConfig,
                 public options: HandelCoreOptions = { linkExtensions: false },
-                public tags: Tags = {}) {
+                public tags: api.Tags = {}) {
         this.serviceContexts = {};
     }
 }
@@ -280,35 +170,35 @@ export interface ServiceContexts {
 }
 
 export interface PreDeployContexts {
-    [serviceName: string]: PreDeployContext;
+    [serviceName: string]: api.PreDeployContext;
 }
 
 export interface BindContexts {
-    [bindContextName: string]: BindContext;
+    [bindContextName: string]: api.BindContext;
 }
 
 export interface DeployContexts {
-    [serviceName: string]: DeployContext;
+    [serviceName: string]: api.DeployContext;
 }
 
 export interface ConsumeEventsContexts {
-    [serviceName: string]: ConsumeEventsContext;
+    [serviceName: string]: api.ConsumeEventsContext;
 }
 
 export interface ProduceEventsContexts {
-    [serviceName: string]: ProduceEventsContext;
+    [serviceName: string]: api.ProduceEventsContext;
 }
 
 export interface UnBindContexts {
-    [serviceName: string]: UnBindContext;
+    [serviceName: string]: api.UnBindContext;
 }
 
 export interface UnDeployContexts {
-    [serviceName: string]: UnDeployContext;
+    [serviceName: string]: api.UnDeployContext;
 }
 
 export interface UnPreDeployContexts {
-    [serviceName: string]: UnPreDeployContext;
+    [serviceName: string]: api.UnPreDeployContext;
 }
 
 export type DeployOrder = string[][];
@@ -376,16 +266,90 @@ export interface HandlebarsInstanceScalingDimension {
 }
 
 /***********************************
+ * Extension-related Types
+ ***********************************/
+
+export interface LoadedExtension {
+    prefix: string;
+    name: string;
+    instance: api.Extension;
+}
+
+export interface ExtensionDefinition {
+    name: string;
+    prefix: string;
+    versionSpec: string;
+}
+
+export class ExtensionLoadingError extends Error {
+    constructor(public readonly name: string, cause: Error) {
+        super(stripIndent`
+        Error loading extension ${name}: ${cause.message}
+
+        !!! THIS IS MOST LIKELY A PROBLEM WITH THE EXTENSION, NOT WITH HANDEL !!!
+
+        Please check that the extension name and version are correct in your handel.yml.
+        If problems perist, contact the maintainer of the extension.
+
+        To help debug, here's the full stack trace of the error:
+        ` + '\n' + cause.stack);
+    }
+}
+
+export type ExtensionList = ExtensionDefinition[];
+
+export class MissingPrefixError extends Error {
+    constructor(public readonly prefix: string) {
+        super(stripIndent`
+        Unregistered Prefix: '${prefix}'.
+
+        Make sure you have an extension registered with this prefix in your handel.yml:
+
+          extensions:
+            ${prefix}: {handel extension package name}
+
+        For more info, visit ${documentationUrl('handel-basics/extensions.html')}
+        `);
+    }
+}
+
+export class MissingDeployerError extends Error {
+    constructor(
+        public readonly name: string,
+        public readonly extension: string) {
+        super(stripIndent`
+            Missing Service: '${name}' in extension '${extension}'
+
+            Check your handel.yml to make sure that you haven't misspelled the service name.
+            Check the documentation for ${extension} to ensure it supports the service you are trying to use.
+        `);
+    }
+}
+
+export class ExtensionInstallationError extends Error {
+    constructor(
+        public readonly extensions: ExtensionList,
+        public readonly output: string
+    ) {
+        super(stripIndent`
+            Error installing Handel extensions
+
+            The following extensions were requested to be installed:
+             - ${extensions.map(e => e.name + ' @ ' + e.versionSpec).join('\n - ')}
+
+            Check your handel.yml to make sure that you haven't misspelled the extension name and that
+            the version range (if specified) is valid (https://docs.npmjs.com/misc/semver#ranges).
+
+            To help debug, here's the error output from the installation:
+
+            ---------------
+        ` + '\n\n' +  output + '\n\n---------------');
+    }
+}
+
+/***********************************
  * Other Types
  ***********************************/
-export interface Tags {
-    [key: string]: string;
-}
-
-export interface EnvironmentVariables {
-    [key: string]: string;
-}
-
 export interface HandelCoreOptions {
     linkExtensions: boolean;
 }
@@ -397,7 +361,7 @@ export interface CheckOptions extends HandelCoreOptions {
 export interface DeployOptions extends HandelCoreOptions {
     accountConfig: string;
     environments: string[];
-    tags?: Tags;
+    tags?: api.Tags;
 }
 
 export interface DeleteOptions extends HandelCoreOptions {

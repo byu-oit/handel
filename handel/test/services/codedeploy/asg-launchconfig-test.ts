@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import { DeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,9 +24,15 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
-import { AccountConfig, DeployContext, InstanceScalingPolicyType, ServiceContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    InstanceScalingPolicyType,
+    ServiceContext,
+    ServiceType
+} from '../../../src/datatypes';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('codedeploy asg-launchconfig config module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -61,7 +68,7 @@ describe('codedeploy asg-launchconfig config module', () => {
                 ]
             },
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'codedeploy'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
@@ -95,7 +102,7 @@ describe('codedeploy asg-launchconfig config module', () => {
     describe('getUserDataScript', () => {
         it('should return the compiled userdata script', async () => {
             const deployContexts: DeployContext[] = [];
-            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependencyService', 'efs', {type: 'efs'}, accountConfig);
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependencyService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.scripts.push('Some Bash Script');
 

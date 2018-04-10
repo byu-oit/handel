@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceEventConsumer } from '../../datatypes/index';
+import { ServiceConfig, ServiceEventConsumer } from 'handel-extension-api';
 
 export interface IotServiceConfig extends ServiceConfig {
     description?: string;

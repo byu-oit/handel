@@ -14,16 +14,17 @@
  * limitations under the License.
  *
  */
+import {S3} from 'aws-sdk';
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from 'handel-extension-api';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../../common/handlebars-utils';
 import {getTags} from '../../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from '../../../datatypes';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
 
-async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGatewayConfig>, serviceName: string): Promise<AWS.S3.ManagedUpload.SendData> {
+async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGatewayConfig>, serviceName: string): Promise<S3.ManagedUpload.SendData> {
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = getParam(serviceContext.params, 'path_to_code', 'path_to_code', undefined);

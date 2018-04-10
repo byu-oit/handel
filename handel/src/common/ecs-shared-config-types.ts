@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables } from '../datatypes/index';
+import { EnvironmentVariables } from 'handel-extension-api';
 
 export interface ContainerConfig {
     name: string;

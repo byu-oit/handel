@@ -15,6 +15,14 @@
  *
  */
 import { expect } from 'chai';
+import {
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,9 +32,14 @@ import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
-import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as mysql from '../../../src/services/mysql';
 import { MySQLConfig } from '../../../src/services/mysql/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('mysql deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -44,7 +57,7 @@ describe('mysql deployer', () => {
             mysql_version: '5.6.27',
             database_name: 'mydb'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'mysql', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'mysql'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -92,9 +105,9 @@ describe('mysql deployer', () => {
 
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', 'postgresql', serviceParams, accountConfig);
+            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'postgresql'), serviceParams, accountConfig);
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', 'beanstalk', {type: 'beanstalk'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));

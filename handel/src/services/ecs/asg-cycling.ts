@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
+import { ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as autoScalingCalls from '../../aws/auto-scaling-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
-import { ServiceContext } from '../../datatypes/index';
 import { EcsServiceConfig } from './config-types';
 
 export async function getInstancesToCycle(ownServiceContext: ServiceContext<EcsServiceConfig>, defaultInstanceType: string): Promise<AWS.ECS.ContainerInstance[] | null> {

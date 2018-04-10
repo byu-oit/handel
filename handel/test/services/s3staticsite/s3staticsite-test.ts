@@ -15,6 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,9 +29,14 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as s3StaticSite from '../../../src/services/s3staticsite';
 import { S3StaticSiteServiceConfig } from '../../../src/services/s3staticsite/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('s3staticsite deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -40,7 +50,7 @@ describe('s3staticsite deployer', () => {
             type: 's3staticsite',
             path_to_code: '.',
         };
-        ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 's3staticsite', serviceParams, accountConfig);
+        ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 's3staticsite'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 

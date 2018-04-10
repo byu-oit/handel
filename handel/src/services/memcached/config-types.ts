@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, Tags } from '../../datatypes/index';
+import { ServiceConfig, Tags } from 'handel-extension-api';
 
 export interface MemcachedServiceConfig extends ServiceConfig {
     instance_type: string;

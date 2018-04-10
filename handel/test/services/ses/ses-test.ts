@@ -15,13 +15,15 @@
  *
  */
 import { expect } from 'chai';
+import { DeployContext, PreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sesCalls from '../../../src/aws/ses-calls';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext } from '../../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import * as ses from '../../../src/services/ses';
 import { SesServiceConfig } from '../../../src/services/ses/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('ses deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +40,7 @@ describe('ses deployer', () => {
             type: 'ses',
             address: 'user@example.com'
         };
-        serviceContext = new ServiceContext(app, env, service, 'ses', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(app, env, service, new ServiceType(STDLIB_PREFIX, 'ses'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 

@@ -15,15 +15,26 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('s3 deployer', () => {
     const appName = 'FakeApp';
@@ -38,7 +49,7 @@ describe('s3 deployer', () => {
         serviceParams = {
             type: 's3'
         };
-        ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 's3', serviceParams, accountConfig);
+        ownServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 's3'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 
@@ -151,7 +162,7 @@ describe('s3 deployer', () => {
             ];
             servicesToTest.forEach(serviceToTest => {
                 it(`should produce events to the ${serviceToTest} service type`, async () => {
-                    const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', serviceToTest.serviceType, {type: serviceToTest.serviceType}, accountConfig);
+                    const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', new ServiceType(STDLIB_PREFIX, serviceToTest.serviceType), {type: serviceToTest.serviceType}, accountConfig);
                     const consumerDeployContext = new DeployContext(consumerServiceContext);
                     consumerDeployContext.eventOutputs[serviceToTest.arnPropertyName] = serviceToTest.arnPropertyValue;
 
@@ -171,7 +182,7 @@ describe('s3 deployer', () => {
             });
 
             it('should throw an error on all other service types', async () => {
-                const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', 'someother', {type: 'someother'}, accountConfig);
+                const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', new ServiceType(STDLIB_PREFIX, 'someother'), {type: 'someother'}, accountConfig);
                 const consumerDeployContext = new DeployContext(consumerServiceContext);
 
                 try {

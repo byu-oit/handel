@@ -14,12 +14,6 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import {
     AccountConfig,
     DeployContext,
@@ -28,7 +22,13 @@ import {
     ServiceConfig,
     ServiceContext,
     ServiceEventConsumer
-} from '../../datatypes';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import {getTags} from '../../common/tagging-common';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
 

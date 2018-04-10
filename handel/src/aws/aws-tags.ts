@@ -1,4 +1,4 @@
-import {Tags} from '../datatypes';
+import {Tags} from 'handel-extension-api';
 
 export interface GenericAWSTag {
     Key: string;

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, ServiceConfig } from '../../datatypes';
+import { EnvironmentVariables, ServiceConfig } from 'handel-extension-api';
 
 export interface APIGatewayConfig extends ServiceConfig {
     proxy?: ProxyPassthroughConfig;

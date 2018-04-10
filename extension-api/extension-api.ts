@@ -90,17 +90,26 @@ export interface AccountConfig {
 
 export interface ServiceRegistry {
     getService(prefix: string, name: string): ServiceDeployer;
+    getService(type: ServiceType): ServiceDeployer;
 
     hasService(prefix: string, name: string): boolean;
+    hasService(type: ServiceType): boolean;
 
     allPrefixes(): Set<string>;
+}
+
+export interface ServiceType {
+    prefix: string;
+    name: string;
+
+    matches(prefix: string, name: string): boolean;
 }
 
 export interface ServiceContext<Config extends ServiceConfig> {
     appName: string;
     environmentName: string;
     serviceName: string;
-    serviceType: string;
+    serviceType: ServiceType;
     params: Config;
     accountConfig: AccountConfig;
 
@@ -126,21 +135,21 @@ export interface ServiceEventConsumer {
     service_name: string;
 }
 
-export interface BindContext {
+export interface IBindContext {
     dependencyServiceContext: ServiceContext<ServiceConfig>;
     dependentOfServiceContext: ServiceContext<ServiceConfig>;
 }
 
-export interface ConsumeEventsContext {
+export interface IConsumeEventsContext {
     consumingServiceContext: ServiceContext<ServiceConfig>;
     producingServiceContext: ServiceContext<ServiceConfig>;
 }
 
-export interface DeployContext {
+export interface IDeployContext {
     appName: string;
     environmentName: string;
     serviceName: string;
-    serviceType: string;
+    serviceType: ServiceType;
     // Any outputs needed for producing/consuming events for this service
     eventOutputs: DeployContextEventOutputs;
     // Policies the consuming service can use when creating service roles in order to talk to this service
@@ -151,6 +160,94 @@ export interface DeployContext {
     scripts: string[];
 }
 
+export interface IPreDeployContext {
+    appName: string;
+    environmentName: string;
+    serviceName: string;
+    serviceType: ServiceType;
+    securityGroups: EC2.SecurityGroup[];
+}
+
+export interface IProduceEventsContext {
+    producingServiceContext: ServiceContext<ServiceConfig>;
+    consumingServiceContext: ServiceContext<ServiceConfig>;
+}
+
+export interface IUnDeployContext {
+    appName: string;
+    environmentName: string;
+    serviceName: string;
+    serviceType: ServiceType;
+}
+
+export interface IUnBindContext {
+    appName: string;
+    environmentName: string;
+    serviceName: string;
+    serviceType: ServiceType;
+}
+
+export interface IUnPreDeployContext {
+    appName: string;
+    environmentName: string;
+    serviceName: string;
+    serviceType: ServiceType;
+}
+
+export class BindContext implements IBindContext {
+    public dependencyServiceContext: ServiceContext<ServiceConfig>;
+    public dependentOfServiceContext: ServiceContext<ServiceConfig>;
+
+    constructor(dependencyServiceContext: ServiceContext<ServiceConfig>,
+                dependentOfServiceContext: ServiceContext<ServiceConfig>) {
+        this.dependencyServiceContext = dependencyServiceContext;
+        this.dependentOfServiceContext = dependentOfServiceContext;
+        // Should anything else go here?
+    }
+}
+
+export class ConsumeEventsContext implements IConsumeEventsContext {
+    public consumingServiceContext: ServiceContext<ServiceConfig>;
+    public producingServiceContext: ServiceContext<ServiceConfig>;
+
+    constructor(consumingServiceContext: ServiceContext<ServiceConfig>,
+                producingServiceContext: ServiceContext<ServiceConfig>) {
+        this.consumingServiceContext = consumingServiceContext;
+        this.producingServiceContext = producingServiceContext;
+        // TODO - Does anything else go here?
+    }
+}
+
+export class DeployContext implements IDeployContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: ServiceType;
+    // Any outputs needed for producing/consuming events for this service
+    public eventOutputs: DeployContextEventOutputs;
+    // Policies the consuming service can use when creating service roles in order to talk to this service
+    public policies: any[]; // There doesn't seem to be a great AWS-provided IAM type for Policy Documents
+    // Items intended to be injected as environment variables into the consuming service
+    public environmentVariables: DeployContextEnvironmentVariables;
+    // Scripts intended to be run on startup by the consuming resource.
+    public scripts: string[];
+
+    constructor(serviceContext: ServiceContext<ServiceConfig>) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+        this.eventOutputs = {};
+        this.policies = [];
+        this.environmentVariables = {};
+        this.scripts = [];
+    }
+
+    public addEnvironmentVariables(vars: object) {
+        Object.assign(this.environmentVariables, vars);
+    }
+}
+
 export interface DeployContextEnvironmentVariables {
     [key: string]: string;
 }
@@ -159,43 +256,83 @@ export interface DeployContextEventOutputs {
     [key: string]: any;
 }
 
-export interface PreDeployContext {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: string;
-    securityGroups: EC2.SecurityGroup[];
+export class PreDeployContext implements IPreDeployContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: ServiceType;
+    public securityGroups: EC2.SecurityGroup[];
+
+    constructor(serviceContext: ServiceContext<ServiceConfig>) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+        this.securityGroups = []; // Empty until service deployer fills it
+    }
 }
 
-export interface ProduceEventsContext {
-    producingServiceContext: ServiceContext<ServiceConfig>;
-    consumingServiceContext: ServiceContext<ServiceConfig>;
+export class ProduceEventsContext implements IProduceEventsContext {
+    public producingServiceContext: ServiceContext<ServiceConfig>;
+    public consumingServiceContext: ServiceContext<ServiceConfig>;
+
+    constructor(producingServiceContext: ServiceContext<ServiceConfig>,
+                consumingServiceContext: ServiceContext<ServiceConfig>) {
+        this.producingServiceContext = producingServiceContext;
+        this.consumingServiceContext = consumingServiceContext;
+        // Does anything else go here?
+    }
 }
 
-export interface UnDeployContext {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: string;
+export class UnDeployContext implements IUnDeployContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: ServiceType;
+
+    constructor(serviceContext: ServiceContext<ServiceConfig>) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+    }
 }
 
-export interface UnBindContext {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: string;
+export class UnBindContext implements IUnBindContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: ServiceType;
+
+    constructor(serviceContext: ServiceContext<ServiceConfig>) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+    }
 }
 
-export interface UnPreDeployContext {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: string;
+export class UnPreDeployContext implements IUnPreDeployContext {
+    public appName: string;
+    public environmentName: string;
+    public serviceName: string;
+    public serviceType: ServiceType;
+
+    constructor(serviceContext: ServiceContext<ServiceConfig>) {
+        this.appName = serviceContext.appName;
+        this.environmentName = serviceContext.environmentName;
+        this.serviceName = serviceContext.serviceName;
+        this.serviceType = serviceContext.serviceType;
+    }
 }
 
 /***********************************
  * Other Types
  ***********************************/
 export interface Tags {
+    [key: string]: string;
+}
+
+export interface EnvironmentVariables {
     [key: string]: string;
 }

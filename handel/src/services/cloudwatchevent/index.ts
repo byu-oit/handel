@@ -14,6 +14,14 @@
  * limitations under the License.
  *
  */
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
@@ -22,15 +30,7 @@ import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import {getTags} from '../../common/tagging-common';
-import {
-    DeployContext,
-    PreDeployContext,
-    ProduceEventsContext,
-    ServiceConfig,
-    ServiceContext,
-    ServiceEventConsumer,
-    UnDeployContext
-} from '../../datatypes';
+import { STDLIB_PREFIX } from '../stdlib';
 import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'CloudWatch Events';
@@ -103,20 +103,20 @@ export async function produceEvents(ownServiceContext: ServiceContext<CloudWatch
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
 
     const ruleName = deployPhaseCommon.getResourceName(ownServiceContext);
-    const consumerServiceType = consumerServiceContext.serviceType;
+    const consumerType = consumerServiceContext.serviceType;
     const targetId = deployPhaseCommon.getResourceName(consumerServiceContext);
     let targetArn;
     let input;
-    if (consumerServiceType === 'lambda') {
+    if (consumerType.matches(STDLIB_PREFIX, 'lambda')) {
         targetArn = consumerDeployContext.eventOutputs.lambdaArn;
         input = eventConsumerConfig.event_input;
     }
-    else if (consumerServiceType === 'sns') {
+    else if (consumerType.matches(STDLIB_PREFIX, 'sns')) {
         targetArn = consumerDeployContext.eventOutputs.topicArn;
         input = eventConsumerConfig.event_input;
     }
     else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
+        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
     }
 
     const retTargetId = await cloudWatchEventsCalls.addTarget(ruleName, targetArn, targetId, input);

@@ -14,15 +14,6 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import {getTags} from '../../common/tagging-common';
 import {
     BindContext,
     DeployContext,
@@ -32,8 +23,17 @@ import {
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
-} from '../../datatypes';
-import {HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType} from './config-types';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as bindPhaseCommon from '../../common/bind-phase-common';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import * as rdsDeployersCommon from '../../common/rds-deployers-common';
+import { getTags } from '../../common/tagging-common';
+import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
 
 const SERVICE_NAME = 'PostgreSQL';
 const POSTGRES_PORT = 5432;

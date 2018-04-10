@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceContext, ServiceEventConsumer, Tags } from '../../datatypes';
+import { ServiceConfig, ServiceContext, ServiceEventConsumer, Tags } from 'handel-extension-api';
 
 export type DynamoDBContext = ServiceContext<DynamoDBConfig>;
 

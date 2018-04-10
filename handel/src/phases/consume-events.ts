@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
+import { ConsumeEventsContext, DeployContext } from 'handel-extension-api';
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { ConsumeEventsContext, ConsumeEventsContexts, DeployContext, DeployContexts, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { ConsumeEventsContexts, DeployContexts, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
 
 interface ConsumeEventAction {
     consumerServiceContext: ServiceContext<ServiceConfig>;
@@ -44,7 +44,7 @@ export async function consumeEvents(serviceRegistry: ServiceRegistry, environmen
                     const consumerServiceName = eventConsumerConfig.service_name;
                     const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
                     const consumerDeployContext = deployContexts[consumerServiceName];
-                    const consumerServiceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, consumerServiceContext.serviceType);
+                    const consumerServiceDeployer = serviceRegistry.getService(consumerServiceContext.serviceType);
 
                     const consumeEventsContextName = util.getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
                     winston.debug(`Consuming events from service ${consumeEventsContextName}`);

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
 import * as _ from 'lodash';
-import { DeployContext, EnvironmentVariables, ServiceContext } from '../datatypes/index';
 import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import * as deployPhaseCommon from './deploy-phase-common';

@@ -15,10 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, BindContext, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, BindContext, ConsumeEventsContext, DeployContext, EnvironmentContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Datatypes Module', () => {
     let accountConfig: AccountConfig;
@@ -29,8 +30,8 @@ describe('Datatypes Module', () => {
 
     describe('BindContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
-            const dependentOfServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', {type: 'FakeType2'}, accountConfig);
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', new ServiceType(STDLIB_PREFIX, 'FakeType2'), {type: 'FakeType2'}, accountConfig);
             const bindContext = new BindContext(dependencyServiceContext, dependentOfServiceContext);
             expect(bindContext.dependencyServiceContext.appName).to.equal(dependencyServiceContext.appName);
             expect(bindContext.dependencyServiceContext.environmentName).to.equal(dependencyServiceContext.environmentName);
@@ -45,8 +46,8 @@ describe('Datatypes Module', () => {
 
     describe('ConsumeEventsContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const consumingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
-            const producingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', {type: 'FakeType2'}, accountConfig);
+            const consumingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
+            const producingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', new ServiceType(STDLIB_PREFIX, 'FakeType2'), {type: 'FakeType2'}, accountConfig);
             const consumeContext = new ConsumeEventsContext(consumingServiceContext, producingServiceContext);
             expect(consumeContext.consumingServiceContext.appName).to.equal(consumingServiceContext.appName);
             expect(consumeContext.consumingServiceContext.environmentName).to.equal(consumingServiceContext.environmentName);
@@ -61,7 +62,7 @@ describe('Datatypes Module', () => {
 
     describe('DeployContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const serviceContext = new ServiceContext('appName', 'environmentName', 'serviceName', 'serviceType', {type: 'serviceType'}, accountConfig);
+            const serviceContext = new ServiceContext('appName', 'environmentName', 'serviceName', new ServiceType(STDLIB_PREFIX, 'serviceType'), {type: 'serviceType'}, accountConfig);
             const deployContext = new DeployContext(serviceContext);
             expect(deployContext.appName).to.equal(serviceContext.appName);
             expect(deployContext.environmentName).to.equal(serviceContext.environmentName);
@@ -88,7 +89,7 @@ describe('Datatypes Module', () => {
 
     describe('PreDeployContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const serviceContext = new ServiceContext('appName', 'environmentName', 'serviceName', 'serviceType', {type: 'serviceType'}, accountConfig);
+            const serviceContext = new ServiceContext('appName', 'environmentName', 'serviceName', new ServiceType(STDLIB_PREFIX, 'serviceType'), {type: 'serviceType'}, accountConfig);
             const preDeployContext = new PreDeployContext(serviceContext);
             expect(preDeployContext.appName).to.equal(serviceContext.appName);
             expect(preDeployContext.environmentName).to.equal(serviceContext.environmentName);
@@ -100,8 +101,8 @@ describe('Datatypes Module', () => {
 
     describe('ProduceEventsContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const producingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', 'FakeType2', {type: 'FakeType2'}, accountConfig);
-            const consumingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const producingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', new ServiceType(STDLIB_PREFIX, 'FakeType2'), {type: 'FakeType2'}, accountConfig);
+            const consumingServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const consumeContext = new ProduceEventsContext(producingServiceContext, consumingServiceContext);
             expect(consumeContext.producingServiceContext.appName).to.equal(producingServiceContext.appName);
             expect(consumeContext.producingServiceContext.environmentName).to.equal(producingServiceContext.environmentName);
@@ -119,22 +120,22 @@ describe('Datatypes Module', () => {
             const appName = 'FakeApp';
             const environmentName = 'FakeEnv';
             const serviceName = 'FakeService';
-            const serviceType = 'FakeType';
+            const serviceType = new ServiceType(STDLIB_PREFIX, 'FakeType');
             const params = {
-                type: serviceType
+                type: serviceType.prefix + '::' + serviceType.name
             };
             const serviceContext = new ServiceContext(appName, environmentName, serviceName, serviceType, params, accountConfig);
             expect(serviceContext.appName).to.equal(appName);
             expect(serviceContext.environmentName).to.equal(environmentName);
             expect(serviceContext.serviceName).to.equal(serviceName);
-            expect(serviceContext.serviceType).to.equal(serviceType);
+            expect(serviceContext.serviceType).to.deep.equal(serviceType);
             expect(serviceContext.params).to.deep.equal(params);
         });
     });
 
     describe('UnBindContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const unBindContext = new UnBindContext(serviceContext);
             expect(unBindContext.appName).to.equal(serviceContext.appName);
             expect(unBindContext.environmentName).to.equal(serviceContext.environmentName);
@@ -145,7 +146,7 @@ describe('Datatypes Module', () => {
 
     describe('UnDeployContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const unDeployContext = new UnDeployContext(serviceContext);
             expect(unDeployContext.appName).to.equal(serviceContext.appName);
             expect(unDeployContext.environmentName).to.equal(serviceContext.environmentName);
@@ -156,7 +157,7 @@ describe('Datatypes Module', () => {
 
     describe('UnPreDeployContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const unPreDeployContext = new UnPreDeployContext(serviceContext);
             expect(unPreDeployContext.appName).to.equal(serviceContext.appName);
             expect(unPreDeployContext.environmentName).to.equal(serviceContext.environmentName);

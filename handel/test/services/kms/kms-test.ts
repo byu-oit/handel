@@ -15,14 +15,24 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as kms from '../../../src/services/kms';
 import { KmsServiceConfig } from '../../../src/services/kms/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('kms deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +48,7 @@ describe('kms deployer', () => {
         serviceParams = {
             type: 'kms'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'kms', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'kms'), serviceParams, accountConfig);
     });
 
     afterEach(() => {

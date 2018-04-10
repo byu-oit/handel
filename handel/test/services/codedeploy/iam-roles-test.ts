@@ -20,9 +20,10 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
-import { AccountConfig, ServiceContext } from '../../../src/datatypes';
+import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('codedeploy asg-launchconfig config module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -37,7 +38,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             path_to_code: '.',
             os: 'linux'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'codedeploy', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'codedeploy'), serviceParams, accountConfig);
         sandbox = sinon.sandbox.create();
     });
 

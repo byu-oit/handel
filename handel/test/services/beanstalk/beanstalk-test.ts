@@ -15,6 +15,12 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,10 +29,16 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, InstanceScalingPolicyType, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    InstanceScalingPolicyType,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('beanstalk deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -77,7 +89,7 @@ describe('beanstalk deployer', () => {
             key_name: 'MyKey',
             instance_type: 't2.small'
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), serviceParams, accountConfig);
     });
 
     afterEach(() => {

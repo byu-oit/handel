@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as route53Calls from '../../aws/route53-calls';
@@ -23,7 +24,6 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
 import {getTags} from '../../common/tagging-common';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from '../../datatypes';
 import {
     CloudFrontConfig,
     HandlebarsCloudFrontParams,

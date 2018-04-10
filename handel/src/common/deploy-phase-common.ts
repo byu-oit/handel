@@ -15,20 +15,19 @@
  *
  */
 import * as fs from 'fs';
-import * as os from 'os';
-import * as winston from 'winston';
-import * as cloudformationCalls from '../aws/cloudformation-calls';
-import * as iamCalls from '../aws/iam-calls';
-import * as s3Calls from '../aws/s3-calls';
-import * as util from '../common/util';
 import {
     AccountConfig,
     DeployContext,
     EnvironmentVariables,
     ServiceConfig,
     ServiceContext,
-    Tags
-} from '../datatypes';
+    Tags } from 'handel-extension-api';
+import * as os from 'os';
+import * as winston from 'winston';
+import * as cloudformationCalls from '../aws/cloudformation-calls';
+import * as iamCalls from '../aws/iam-calls';
+import * as s3Calls from '../aws/s3-calls';
+import * as util from '../common/util';
 
 /**
  * Given a ServiceContext and suffix, return the env var name used for environment variables naming
@@ -40,7 +39,7 @@ export function getInjectedEnvVarName(serviceContext: ServiceContext<ServiceConf
 
 export function getInjectedEnvVarsFor(serviceContext: ServiceContext<ServiceConfig>, outputs: any) {
     return Object.keys(outputs).reduce((obj: any, name) => {
-        obj[exports.getInjectedEnvVarName(serviceContext, name)] = outputs[name];
+        obj[getInjectedEnvVarName(serviceContext, name)] = outputs[name];
         return obj;
     }, {});
 }
@@ -200,5 +199,5 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
 }
 
 export function getResourceName(serviceContext: ServiceContext<ServiceConfig>) {
-    return `${serviceContext.appName}-${serviceContext.environmentName}-${serviceContext.serviceName}-${serviceContext.serviceType}`;
+    return `${serviceContext.appName}-${serviceContext.environmentName}-${serviceContext.serviceName}-${serviceContext.serviceType.name}`;
 }

@@ -14,15 +14,6 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
 import {
     BindContext,
     DeployContext,
@@ -32,7 +23,16 @@ import {
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
-} from '../../datatypes';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as bindPhaseCommon from '../../common/bind-phase-common';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
+import {getTags} from '../../common/tagging-common';
 import {HandlebarsMemcachedTemplate, MemcachedServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'Memcached';

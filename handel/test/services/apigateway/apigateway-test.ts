@@ -15,6 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import {
+    PreDeployContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,16 +28,14 @@ import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import {
     AccountConfig,
-    PreDeployContext,
     ServiceContext,
-    UnDeployContext,
-    UnPreDeployContext
+    ServiceType
 } from '../../../src/datatypes';
 import * as apigateway from '../../../src/services/apigateway';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from '../../../src/services/apigateway/swagger/swagger-deploy-type';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('apigateway deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -48,7 +51,7 @@ describe('apigateway deployer', () => {
         serviceParams = {
             type: 'apigateway'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'FakeType', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -104,7 +107,7 @@ describe('apigateway deployer', () => {
                 };
 
                 const dependenciesServiceContexts = [
-                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', 'mysql', {type: 'mysql'}, accountConfig,
+                    new ServiceContext('FakeApp', 'FakeEnv', 'FakeDependency', new ServiceType(STDLIB_PREFIX, 'mysql'), {type: 'mysql'}, accountConfig,
                         {}, {
                             producedDeployOutputTypes: ['securityGroups'],
                             consumedDeployOutputTypes: [],

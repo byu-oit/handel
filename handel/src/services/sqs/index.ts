@@ -14,13 +14,6 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as sqsCalls from '../../aws/sqs-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import {
     ConsumeEventsContext,
     DeployContext,
@@ -28,7 +21,15 @@ import {
     ServiceConfig,
     ServiceContext,
     UnDeployContext
-} from '../../datatypes';
+} from 'handel-extension-api';
+import * as winston from 'winston';
+import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as sqsCalls from '../../aws/sqs-calls';
+import * as deletePhasesCommon from '../../common/delete-phases-common';
+import * as deployPhaseCommon from '../../common/deploy-phase-common';
+import * as handlebarsUtils from '../../common/handlebars-utils';
+import {getTags} from '../../common/tagging-common';
+import { STDLIB_PREFIX } from '../stdlib';
 import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SQS';
@@ -211,10 +212,10 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SqsService
     const queueArn = ownDeployContext.eventOutputs.queueArn;
     const producerServiceType = producerServiceContext.serviceType;
     let producerArn;
-    if (producerServiceType === 'sns') {
+    if (producerServiceType.matches(STDLIB_PREFIX, 'sns')) {
         producerArn = producerDeployContext.eventOutputs.topicArn;
     }
-    else if (producerServiceType === 's3') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
         producerArn = producerDeployContext.eventOutputs.bucketArn;
     }
     else {

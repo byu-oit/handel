@@ -24,7 +24,7 @@ import * as os from 'os';
 import pascalCase = require('pascal-case');
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelCoreOptions, HandelFile } from '../datatypes';
+import { AccountConfig, HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {

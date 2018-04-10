@@ -15,18 +15,11 @@
  *    limitations under the License.
  */
 
-import { Extension } from 'handel-extension-api';
-import {ServiceDeployer} from '../datatypes';
+import {
+    ExtensionContext,
+} from 'handel-extension-api';
+import { RandomSecretService } from './service';
 
-export type ExtensionLoader = (definition: ExtensionDefinition) => Promise<LoadedExtension>;
-
-export interface LoadedExtension {
-    extension: Extension;
-    services: Map<string, ServiceDeployer>;
-}
-
-export interface ExtensionDefinition {
-    name: string;
-    prefix: string;
-    path: string;
+export function loadHandelExtension(context: ExtensionContext) {
+    context.service('randomsecret', new RandomSecretService());
 }

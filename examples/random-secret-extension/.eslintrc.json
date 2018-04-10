@@ -1,0 +1,45 @@
+{
+    "env": {
+        "es6": true,
+        "node": true,
+        "mocha": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "mocha"
+    ],
+    "rules": {
+        "no-cond-assign": "warn",
+        "no-constant-condition": "warn",
+        "no-const-assign": "warn",
+        "no-dupe-args": "error",
+        "no-dupe-keys": "error",
+        "no-duplicate-case": "error",
+        "no-empty": "warn",
+        "no-extra-parens": "warn",
+        "no-extra-semi": "warn",
+        "no-func-assign": "error",
+        "no-sparse-arrays": "warn",
+        "no-unreachable": "error",
+        "no-unexpected-multiline": "warn",
+        "no-this-before-super": "warn",
+        "no-undef": "error",
+        "use-isnan": "warn",
+        "valid-typeof": "warn",
+        "no-unused-vars": "warn",
+        "constructor-super": "warn",
+        "curly": "error",
+        "eqeqeq": "warn",
+        "no-fallthrough": "warn",
+        "no-self-assign": "error",
+        "no-delete-var": "error",
+        "no-new-require": "warn",
+        "mocha/handle-done-callback": "error",
+        "mocha/no-global-tests": "warn",
+        "mocha/no-identical-title": "error",
+        "mocha/no-mocha-arrows": "warn"
+    }
+}

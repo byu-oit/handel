@@ -15,13 +15,14 @@
  *
  */
 import { expect } from 'chai';
+import { UnDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../src/common/rds-deployers-common';
-import { AccountConfig, ServiceConfig, ServiceContext, UnDeployContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('RDS deployers common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -38,7 +39,7 @@ describe('RDS deployers common module', () => {
 
     describe('getDeployContext', () => {
         it('should return the RDS deploy context from the service context and deployed stack', () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const dbAddress = 'FakeAddress';
             const dbPort = 55555;
             const dbUsername = 'FakeUsername';
@@ -72,7 +73,7 @@ describe('RDS deployers common module', () => {
         it('should store the database password to the parameter store', async () => {
             const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
 
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const deployedStack = await rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword', {});
             expect(deployedStack).to.deep.equal({});
             expect(storeParamStub.callCount).to.equal(2);
@@ -83,7 +84,7 @@ describe('RDS deployers common module', () => {
         it('should delete the RDS parameters from the parameter store', async () => {
             const deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves(true);
 
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const unDeployContext = new UnDeployContext(serviceContext);
             const retUnDeployContext = await rdsDeployersCommon.deleteParametersFromParameterStore(serviceContext, unDeployContext);
             expect(retUnDeployContext).to.deep.equal(unDeployContext);

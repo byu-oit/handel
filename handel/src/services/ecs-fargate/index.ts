@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
@@ -27,7 +28,6 @@ import * as volumesSection from '../../common/ecs-volumes';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import { getTags } from '../../common/tagging-common';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../datatypes';
 import { FargateServiceConfig, HandlebarsFargateTemplateConfig } from './config-types';
 
 const SERVICE_NAME = 'ECS Fargate';
