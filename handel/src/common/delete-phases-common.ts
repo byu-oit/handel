@@ -14,11 +14,12 @@
  * limitations under the License.
  *
  */
+import { UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as s3Calls from '../aws/s3-calls';
-import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../datatypes';
+import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 
 async function unBindAllOnSg(stackName: string, accountConfig: AccountConfig) {

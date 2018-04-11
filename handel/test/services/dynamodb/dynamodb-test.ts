@@ -16,6 +16,12 @@
  */
 import { expect } from 'chai';
 import * as clone from 'clone';
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,9 +29,14 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
-import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType
+} from '../../../src/datatypes';
 import * as dynamodb from '../../../src/services/dynamodb';
 import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
     type: 'dynamodb',
@@ -93,7 +104,7 @@ describe('dynamodb deployer', () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_DYNAMODB_CONFIG);
-        serviceContext = new ServiceContext(appName, envName, serviceName, serviceType, serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, serviceType), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -475,7 +486,7 @@ describe('dynamodb deployer', () => {
 
     describe('produceEvents', () => {
         it('should return an empty ProduceEventsContext', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', 'faketype', {type: 'faketype'}, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', new ServiceType(STDLIB_PREFIX, 'faketype'), {type: 'faketype'}, accountConfig);
             const eventConsumerConfig: DynamoDBServiceEventConsumer = {
                 service_name: 'fakeservice',
                 batch_size: 1

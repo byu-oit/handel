@@ -19,9 +19,9 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
 import * as deployOrderCalc from '../../src/deploy/deploy-order-calc';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('deploy-order-calc', () => {
     let accountConfig: AccountConfig;
@@ -37,7 +37,7 @@ describe('deploy-order-calc', () => {
             const environmentContext = new EnvironmentContext(doc.name, 'dev', accountConfig);
             for (const serviceName in doc.environments.dev) {
                 if (doc.environments.dev.hasOwnProperty(serviceName)) {
-                    const serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, doc.environments.dev[serviceName].type, doc.environments.dev[serviceName], accountConfig);
+                    const serviceContext = new ServiceContext(environmentContext.appName, environmentContext.environmentName, serviceName, new ServiceType(STDLIB_PREFIX, doc.environments.dev[serviceName].type), doc.environments.dev[serviceName], accountConfig);
                     environmentContext.serviceContexts[serviceName] = serviceContext;
                 }
             }

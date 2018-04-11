@@ -9,7 +9,7 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "lib": [
-            "es7"
+            "es7", "es2017.object"
         ]
     },
     "compileOnSave": false

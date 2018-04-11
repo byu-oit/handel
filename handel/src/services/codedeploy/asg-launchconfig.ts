@@ -14,14 +14,13 @@
  * limitations under the License.
  *
  */
+import { DeployContext, ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as autoScalingCalls from '../../aws/auto-scaling-calls';
 import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as instanceAutoScaling from '../../common/instance-auto-scaling';
-import { DeployContext, EnvironmentVariables, ServiceContext } from '../../datatypes';
 import { CodeDeployServiceConfig, HandlebarsCodeDeployAutoScalingConfig } from './config-types';
 
 export async function getCodeDeployAmi(): Promise<AWS.EC2.Image> {

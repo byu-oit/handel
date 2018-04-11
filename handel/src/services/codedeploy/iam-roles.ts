@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
+import { DeployContext, ServiceContext } from 'handel-extension-api';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as util from '../../common/util';
-import { DeployContext, ServiceContext } from '../../datatypes';
 import { CodeDeployServiceConfig } from './config-types';
 
 export async function getStatementsForInstanceRole(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<any[]> {

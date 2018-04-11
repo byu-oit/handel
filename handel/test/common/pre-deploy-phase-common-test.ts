@@ -15,14 +15,15 @@
  *
  */
 import { expect } from 'chai';
+import { PreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as preDeployPhaseCommon from '../../src/common/pre-deploy-phase-common';
-import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('PreDeploy Phase Common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -32,7 +33,7 @@ describe('PreDeploy Phase Common module', () => {
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {

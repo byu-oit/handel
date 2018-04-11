@@ -15,6 +15,7 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceConfig, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -22,8 +23,8 @@ import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../src/common/delete-phases-common';
-import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Delete phases common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -33,7 +34,8 @@ describe('Delete phases common module', () => {
     beforeEach(async () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'dynamodb', {type: 'dynamodb'}, retAccountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService',
+            new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, retAccountConfig);
         accountConfig = retAccountConfig;
     });
 

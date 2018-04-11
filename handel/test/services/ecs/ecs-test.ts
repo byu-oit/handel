@@ -16,6 +16,12 @@
  */
 import { expect } from 'chai';
 import * as clone from 'clone';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -29,10 +35,15 @@ import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext, UnPreDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as ecs from '../../../src/services/ecs';
 import * as asgCycling from '../../../src/services/ecs/asg-cycling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 const VALID_ECS_CONFIG: EcsServiceConfig = {
     type: 'ecs',
@@ -84,7 +95,7 @@ describe('ecs deployer', () => {
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_ECS_CONFIG);
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'ecs', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecs'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -173,7 +184,7 @@ describe('ecs deployer', () => {
             const dependency1ServiceName = 'Dependency1Service';
             const dependency1ServiceType = 'dynamodb';
             const dependency1Params = { type: 'dynamodb' };
-            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, dependency1ServiceType, dependency1Params, accountConfig));
+            const dependency1DeployContext = new DeployContext(new ServiceContext(app, env, dependency1ServiceName, new ServiceType(STDLIB_PREFIX, dependency1ServiceType), dependency1Params, accountConfig));
             dependenciesDeployContexts.push(dependency1DeployContext);
             const envVarName = 'DYNAMODB_SOME_VAR';
             const envVarValue = 'SomeValue';
@@ -192,7 +203,7 @@ describe('ecs deployer', () => {
             const dependency2ServiceName = 'Dependency2Service';
             const dependency2ServiceType = 'efs';
             const dependency2Params = { type: 'efs' };
-            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, dependency2ServiceType, dependency2Params, accountConfig));
+            const dependency2DeployContext = new DeployContext(new ServiceContext(app, env, dependency2ServiceName, new ServiceType(STDLIB_PREFIX, dependency2ServiceType), dependency2Params, accountConfig));
             dependenciesDeployContexts.push(dependency2DeployContext);
             const scriptContents = 'SOME SCRIPT';
             dependency2DeployContext.scripts.push(scriptContents);

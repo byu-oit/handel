@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
+import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as util from '../../common/util';
-import { DeployContext, EnvironmentVariables, ServiceContext } from '../../datatypes';
 import { CodeDeployServiceConfig } from './config-types';
 
 function getEnvVariablesToInject(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {

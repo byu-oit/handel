@@ -14,15 +14,17 @@
  * limitations under the License.
  *
  */
+import { BindContext, PreDeployContext, } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as ec2Calls from '../aws/ec2-calls';
-import { BindContext, PreDeployContext, ServiceConfig, ServiceContext } from '../datatypes';
+import { ServiceConfig, ServiceContext } from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 
-export async function bindDependentSecurityGroupToSelf(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext,
+export async function bindDependentSecurityGroupToSelf(
+    ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext,
     dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext, protocol: string,
-    port: number, serviceName: string) {
-
+    port: number, serviceName: string
+) {
     const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
     winston.info(`${serviceName} - Binding security group from '${dependentOfServiceContext.serviceName}' to '${ownServiceContext.serviceName}'`);
     const ownSg = ownPreDeployContext.securityGroups[0];

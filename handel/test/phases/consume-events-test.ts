@@ -15,11 +15,13 @@
  *
  */
 import { expect } from 'chai';
+import { ConsumeEventsContext, DeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, ConsumeEventsContext, DeployContext, DeployContexts, EnvironmentContext, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, DeployContexts, EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
 import * as consumeEvents from '../../src/phases/consume-events';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('consumeEvents module', () => {
@@ -72,7 +74,7 @@ describe('consumeEvents module', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, new ServiceType(STDLIB_PREFIX, serviceTypeB), paramsB, accountConfig);
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             // Construct ServiceContext A (Producing service)
@@ -85,7 +87,7 @@ describe('consumeEvents module', () => {
                     service_name: 'B'
                 }]
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, new ServiceType(STDLIB_PREFIX, serviceTypeA), paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             // Create deployContexts

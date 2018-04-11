@@ -15,8 +15,15 @@
  *    limitations under the License.
  */
 
-import {ExtensionContext} from 'handel-extension-api';
+import {Extension, ExtensionContext, ServiceDeployer} from 'handel-extension-api';
+import * as _ from 'lodash';
 
-export async function loadHandelExtension(context: ExtensionContext) {
-    return;
+export class FakeExtension implements Extension {
+    constructor(public readonly deployers: { [key: string]: ServiceDeployer }) {
+    }
+
+    public loadHandelExtension(context: ExtensionContext) {
+        _.entries(this.deployers)
+            .forEach(([key, value]) => context.service(key, value));
+    }
 }

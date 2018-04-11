@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, Tags } from '../../datatypes/index';
+import { ServiceConfig, Tags } from 'handel-extension-api';
 
 export interface S3StaticSiteServiceConfig extends ServiceConfig {
     path_to_code: string;

@@ -15,13 +15,22 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from '../../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType
+} from '../../../../src/datatypes';
 import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
 import * as swaggerDeployType from '../../../../src/services/apigateway/swagger/swagger-deploy-type';
+import { STDLIB_PREFIX } from '../../../../src/services/stdlib';
 
 describe('apigateway swagger deploy type', () => {
     let sandbox: sinon.SinonSandbox;
@@ -36,7 +45,7 @@ describe('apigateway swagger deploy type', () => {
             type: 'apigateway',
             swagger: `${__dirname}/test-swagger.json`
         };
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', serviceParams, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -58,7 +67,7 @@ describe('apigateway swagger deploy type', () => {
             const dependencyServiceParams = {
                 type: 'dynamodb'
             };
-            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, dependencyServiceType, dependencyServiceParams, accountConfig);
+            const dependencyServiceContext = new ServiceContext(appName, envName, dependencyServiceName, new ServiceType(STDLIB_PREFIX, dependencyServiceType), dependencyServiceParams, accountConfig);
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependenciesDeployContexts.push(dependencyDeployContext);
             return dependenciesDeployContexts;

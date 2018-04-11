@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "dist",
+    "removeComments": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "moduleResolution": "node",
+    "lib": [
+      "es7"
+    ]
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "compileOnSave": false
+}

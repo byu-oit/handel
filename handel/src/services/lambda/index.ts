@@ -14,6 +14,19 @@
  * limitations under the License.
  *
  */
+import {ServiceType} from 'handel-extension-api';
+import {
+    AccountConfig,
+    ConsumeEventsContext,
+    DeployContext,
+    EnvironmentVariables,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
@@ -28,19 +41,7 @@ import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
-import {
-    AccountConfig,
-    ConsumeEventsContext,
-    DeployContext,
-    EnvironmentVariables,
-    PreDeployContext,
-    ProduceEventsContext,
-    ServiceConfig,
-    ServiceContext,
-    UnDeployContext,
-    UnPreDeployContext
-} from '../../datatypes';
-import { DEFAULT_EXTENSION_PREFIX } from '../../service-registry';
+import { STDLIB_PREFIX } from '../stdlib';
 import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
 
 const SERVICE_NAME = 'Lambda';
@@ -185,26 +186,26 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
     throw Error('Consumer serviceName not found in dynamodb event_consumers.');
 }
 
-async function addOtherPermissions(producerServiceType: string, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
+async function addOtherPermissions(producerServiceType: ServiceType, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
     const functionName = ownDeployContext.eventOutputs.lambdaName;
     let principal;
     let sourceArn;
-    if (producerServiceType === 'sns') {
+    if (producerServiceType.matches(STDLIB_PREFIX, 'sns')) {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = producerDeployContext.eventOutputs.topicArn;
     }
-    else if (producerServiceType === 'cloudwatchevent') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 'cloudwatchevent')) {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = producerDeployContext.eventOutputs.eventRuleArn;
     }
-    else if (producerServiceType === 'alexaskillkit') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 'alexaskillkit')) {
         principal = producerDeployContext.eventOutputs.principal;
     }
-    else if (producerServiceType === 'iot') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 'iot')) {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.topicRuleArnPrefix, ownServiceContext.serviceName);
     }
-    else if (producerServiceType === 's3') {
+    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
         principal = producerDeployContext.eventOutputs.principal;
         sourceArn = producerDeployContext.eventOutputs.bucketArn;
     }
@@ -274,11 +275,11 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
 
 export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    const producerServiceType = producerServiceContext.serviceType;
-    if (producerServiceType === 'dynamodb') {
+    const producerType = producerServiceContext.serviceType;
+    if (producerType.matches(STDLIB_PREFIX, 'dynamodb')) {
         return addDynamoDBPermissions(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext);
     } else {
-        return addOtherPermissions(producerServiceType, producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
+        return addOtherPermissions(producerType, producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
     }
 }
 

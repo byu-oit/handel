@@ -15,21 +15,8 @@
  *    limitations under the License.
  */
 
-import {expect} from 'chai';
-import 'mocha';
-import {
-    DEFAULT_EXTENSION,
-} from '../../src/service-registry';
-import loadExtension from '../../src/service-registry/default-extension-loader';
-import {listDefaultServices} from '../../src/services/default-services-extension';
+import { ExtensionDefinition, HandelCoreOptions, LoadedExtension } from '../datatypes';
 
-describe('Default Extension Loader', () => {
-    it('can load the default extension', async function() {
-        this.timeout(10000);
-        const extension = await loadExtension(DEFAULT_EXTENSION);
-
-        for (const svc of await listDefaultServices()) {
-            expect([...extension.services.keys()]).to.include(svc.name);
-        }
-    });
-});
+export interface ExtensionLoader {
+    loadExtensions(definitions: ExtensionDefinition[], options: HandelCoreOptions, directory?: string): Promise<LoadedExtension[]>;
+}

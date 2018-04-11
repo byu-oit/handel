@@ -15,12 +15,13 @@
  *
  */
 import { expect } from 'chai';
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceRegistry } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, HandelCoreOptions, HandelFile } from '../../src/datatypes';
+import { AccountConfig, HandelCoreOptions, HandelFile, ServiceType } from '../../src/datatypes';
 import * as parserV1 from '../../src/handelfile/parser-v1';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('parser-v1', () => {
     let serviceRegistry: ServiceRegistry;
@@ -137,7 +138,7 @@ describe('parser-v1', () => {
 
         it('should complain about a tag key that is too long', async () => {
             const tooLongName = 'a'.repeat(200);
-            validHandelFile.tags = { [tooLongName] : 'foo'};
+            validHandelFile.tags = {[tooLongName]: 'foo'};
 
             const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
@@ -145,7 +146,7 @@ describe('parser-v1', () => {
         });
 
         it('should complain about a tag key that has invalid characters', async () => {
-            validHandelFile.tags = { 'aa{}' : 'foo'};
+            validHandelFile.tags = {'aa{}': 'foo'};
 
             const errors = await parserV1.validateHandelFile(validHandelFile, serviceRegistry);
             expect(errors.length).to.equal(1);
@@ -271,13 +272,62 @@ describe('parser-v1', () => {
                 }
             };
 
-            const opts: HandelCoreOptions = { linkExtensions: false };
+            const opts: HandelCoreOptions = {linkExtensions: false};
 
             const environmentContext = parserV1.createEnvironmentContext(handelFile, 'dev', accountConfig, new FakeServiceRegistry(), opts);
             expect(environmentContext.appName).to.equal('test');
             expect(environmentContext.environmentName).to.equal('dev');
-            expect(environmentContext.serviceContexts.A.serviceType).to.equal('dynamodb');
+            expect(environmentContext.serviceContexts.A.serviceType).to.deep.equal(new ServiceType(STDLIB_PREFIX, 'dynamodb'));
             expect(environmentContext.options).to.deep.equal(opts);
+        });
+    });
+
+    describe('listExtensions', () => {
+        let validHandelFile: HandelFile;
+
+        beforeEach(() => {
+            validHandelFile = {
+                version: 1,
+                name: 'my-app-name',
+                tags: {
+                    tag: 'value',
+                    another_tag: 'another value'
+                },
+                extensions: {
+                    foo: 'foo-extension@^1.0.0',
+                },
+                environments: {
+                    dev: {
+                        webapp: {
+                            type: 'apigateway'
+                        },
+                        table: {
+                            type: 'dynamodb'
+                        }
+                    }
+                }
+            };
+        });
+
+        it('Lists all extensions in a handel file', async () => {
+            const extensions = await parserV1.listExtensions(validHandelFile);
+            expect(extensions).to.have.lengthOf(1);
+            expect(extensions).to.deep.include({
+                prefix: 'foo',
+                name: 'foo-extension',
+                versionSpec: '^1.0.0'
+            });
+        });
+        it('Handles extensions without a version', async () => {
+            validHandelFile.extensions = {foo: 'foo-extension'};
+
+            const extensions = await parserV1.listExtensions(validHandelFile);
+            expect(extensions).to.have.lengthOf(1);
+            expect(extensions).to.deep.include({
+                prefix: 'foo',
+                name: 'foo-extension',
+                versionSpec: '*'
+            });
         });
     });
 });

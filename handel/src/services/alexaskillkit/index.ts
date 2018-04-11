@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer } from 'handel-extension-api';
 import * as winston from 'winston';
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer } from '../../datatypes';
 
 const SERVICE_NAME = 'Alexa Skill Kit';
 

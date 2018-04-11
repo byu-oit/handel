@@ -15,12 +15,13 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, BindContext, DeployContext, PreDeployContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as lifecyclesCommon from '../../src/common/lifecycles-common';
-import { AccountConfig, BindContext, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('lifecycles common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -30,7 +31,7 @@ describe('lifecycles common module', () => {
     beforeEach(async () => {
         sandbox = sinon.sandbox.create();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {
@@ -48,8 +49,8 @@ describe('lifecycles common module', () => {
         it('should return an empty bind context', async () => {
             const appName = 'FakeApp';
             const envName = 'FakeEnv';
-            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', 'efs', {type: 'efs'}, accountConfig);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', 'ecs', {type: 'ecs'}, accountConfig);
+            const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
 
             const bindContext = await lifecyclesCommon.bindNotRequired(ownServiceContext, dependentOfServiceContext);
             expect(bindContext).to.be.instanceof(BindContext);

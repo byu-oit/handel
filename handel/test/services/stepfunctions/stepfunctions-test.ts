@@ -15,6 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -23,12 +28,11 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
 import {
     AccountConfig,
-    DeployContext,
-    PreDeployContext,
     ServiceConfig,
     ServiceContext,
-    UnDeployContext
+    ServiceType
 } from '../../../src/datatypes';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 import * as stepfunctions from '../../../src/services/stepfunctions';
 import { StepFunctionsConfig } from '../../../src/services/stepfunctions/config-types';
 
@@ -47,7 +51,7 @@ describe('stepfunctions deployer', () => {
             type: 'stepfunctions',
             definition: ''
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'stepfunctions', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'stepfunctions'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -59,7 +63,7 @@ describe('stepfunctions deployer', () => {
             const params = {
                 type: 'lambda'
             };
-            return [new ServiceContext(appName, envName, 'only-lambda', 'lambda', params, accountConfig)];
+            return [new ServiceContext(appName, envName, 'only-lambda', new ServiceType(STDLIB_PREFIX, 'lambda'), params, accountConfig)];
         }
 
         function getSimpleMachine(): any {
@@ -159,7 +163,7 @@ describe('stepfunctions deployer', () => {
 
             const dependencies = [['alpha-lambda', alphaLambdaArn], ['beta-lambda', betaLambdaArn]];
             for (const [serviceName, functionArn] of dependencies) {
-                const otherServiceContext = new ServiceContext(appName, envName, serviceName, 'lambda', {type: 'lambda'}, serviceContext.accountConfig);
+                const otherServiceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, serviceContext.accountConfig);
                 const deployContext = new DeployContext(otherServiceContext);
                 deployContext.eventOutputs.lambdaArn = functionArn;
                 dependenciesDeployContexts.push(deployContext);

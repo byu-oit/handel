@@ -15,14 +15,24 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as route53 from '../../../src/services/route53zone';
 import { Route53ZoneServiceConfig } from '../../../src/services/route53zone/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('route53zone deployer', () => {
     const appName = 'FakeApp';
@@ -39,7 +49,7 @@ describe('route53zone deployer', () => {
             type: 'route53zone',
             name: 'somename.byu.edu'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'route53', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'route53'), serviceParams, accountConfig);
     });
 
     afterEach(() => {

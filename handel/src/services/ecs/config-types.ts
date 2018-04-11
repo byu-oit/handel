@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { ServiceConfig, Tags } from 'handel-extension-api';
 import { AutoScalingConfig,
          ContainerConfig,
          HandlebarsEcsTemplateAutoScaling,
@@ -21,7 +22,6 @@ import { AutoScalingConfig,
          HandlebarsEcsTemplateLoadBalancer,
          HandlebarsEcsTemplateVolume,
          LoadBalancerConfig } from '../../common/ecs-shared-config-types';
-import { EnvironmentVariables, ServiceConfig, Tags } from '../../datatypes/index';
 
 export interface EcsServiceConfig extends ServiceConfig {
     containers: ContainerConfig[];

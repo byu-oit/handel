@@ -15,8 +15,8 @@
  *
  */
 import * as AWS from 'aws-sdk';
+import {Tags} from 'handel-extension-api';
 import * as winston from 'winston';
-import {Tags} from '../datatypes';
 import {toAWSTagStyle} from './aws-tags';
 import awsWrapper from './aws-wrapper';
 

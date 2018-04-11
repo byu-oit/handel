@@ -15,14 +15,25 @@
  *
  */
 import { expect } from 'chai';
+import {
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, DeployContext, PreDeployContext, ProduceEventsContext, ServiceContext, UnDeployContext } from '../../../src/datatypes';
+import {
+    AccountConfig,
+    ServiceContext,
+    ServiceType,
+} from '../../../src/datatypes';
 import * as iot from '../../../src/services/iot';
 import { IotServiceConfig, IotServiceEventConsumer } from '../../../src/services/iot/config-types';
+import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('iot deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +53,7 @@ describe('iot deployer', () => {
                 sql: 'select * from \'something\''
             }]
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', 'iot', serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'iot'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -99,7 +110,7 @@ describe('iot deployer', () => {
         });
 
         it('should create topic rules when lambda is the event consumer', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'lambda', {type: 'lambda'}, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeArn';
 
@@ -118,7 +129,7 @@ describe('iot deployer', () => {
         });
 
         it('should return an error if any other consumer type is specified', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', 'unknowntype', {type: 'unknowntype'}, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', new ServiceType(STDLIB_PREFIX, 'unknowntype'), {type: 'unknowntype'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
 
             try {

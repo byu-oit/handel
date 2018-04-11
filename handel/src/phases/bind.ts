@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
+import { BindContext } from 'handel-extension-api';
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
 import * as util from '../common/util';
-import { BindContext, BindContexts, DeployOrder, EnvironmentContext, PreDeployContexts } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { BindContexts, DeployOrder, EnvironmentContext, PreDeployContexts } from '../datatypes';
 
 function getDependentServicesForCurrentBindService(environmentContext: EnvironmentContext, toBindServiceName: string): string[] {
     const dependentServices = [];
@@ -45,7 +45,7 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
         // Get ServiceContext and PreDeployContext for the service to call bind on
         const toBindServiceContext = environmentContext.serviceContexts[toBindServiceName];
         const toBindPreDeployContext = preDeployContexts[toBindServiceName];
-        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, toBindServiceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(toBindServiceContext.serviceType);
 
         // This service may have multiple services dependening on it, run bind on each of them
         for (const dependentOfServiceName of getDependentServicesForCurrentBindService(environmentContext, toBindServiceName)) {

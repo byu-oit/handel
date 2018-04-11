@@ -15,11 +15,13 @@
  *
  */
 import { expect } from 'chai';
+import { UnBindContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, UnBindContext } from '../../src/datatypes';
+import { AccountConfig, DeployOrder, EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
 import * as unBindPhase from '../../src/phases/un-bind';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('unBind', () => {
@@ -53,7 +55,7 @@ describe('unBind', () => {
                 type: serviceTypeB,
                 other: 'param'
             };
-            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, serviceTypeB, paramsB, accountConfig);
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, new ServiceType(STDLIB_PREFIX, serviceTypeB), paramsB, accountConfig);
             environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
             // Construct ServiceContext A
@@ -64,7 +66,7 @@ describe('unBind', () => {
                 some: 'param',
                 dependencies: [serviceNameB]
             };
-            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, serviceTypeA, paramsA, accountConfig);
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, new ServiceType(STDLIB_PREFIX, serviceTypeA), paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
             // Set deploy order

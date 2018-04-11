@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { PreDeployContext, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { EnvironmentContext, PreDeployContext, PreDeployContexts } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
+import { EnvironmentContext, PreDeployContexts } from '../datatypes';
 
 export async function preDeployServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<PreDeployContexts> {
     winston.info(`Executing pre-deploy phase on services in environment ${environmentContext.environmentName}`);
@@ -29,7 +28,7 @@ export async function preDeployServices(serviceRegistry: ServiceRegistry, enviro
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
             winston.debug(`Executing pre-deploy on service ${serviceContext.serviceName}`);
-            const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
+            const serviceDeployer = serviceRegistry.getService(serviceContext.serviceType);
             if (serviceDeployer.preDeploy) {
                 const preDeployPromise = serviceDeployer.preDeploy(serviceContext)
                     .then(preDeployContext => {

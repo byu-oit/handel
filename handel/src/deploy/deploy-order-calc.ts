@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  */
+import { ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as winston from 'winston';
-import { DeployOrder, EnvironmentContext, ServiceContext, ServiceConfig } from '../datatypes/index';
+import { DeployOrder, EnvironmentContext } from '../datatypes';
 import topologicalSort, { SortNodes } from './topological-sort';
 
 function elementInLevels(element: string, levels: DeployOrder): boolean {

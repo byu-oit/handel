@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceContext } from '../../datatypes/index';
+import { ServiceContext } from 'handel-extension-api';
 import { HandlebarsS3LifecycleConfig, HandlebarsS3LifecycleTransition, HandlebarsS3LifecycleTransitionExpiration, S3LifecycleTransition, S3ServiceConfig } from './config-types';
 
 function getExpiration(transitions: S3LifecycleTransition[]): HandlebarsS3LifecycleTransitionExpiration {

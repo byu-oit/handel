@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, Tags } from '../../datatypes/index';
+import { ServiceConfig, Tags } from 'handel-extension-api';
 
 export interface Route53ZoneServiceConfig extends ServiceConfig {
     name: string;

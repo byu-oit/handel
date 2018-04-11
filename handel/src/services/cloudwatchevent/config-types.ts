@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceEventConsumer } from '../../datatypes/index';
+import { ServiceConfig, ServiceEventConsumer } from '../../datatypes';
 
 export interface CloudWatchEventsConfig extends ServiceConfig {
     description?: string;

@@ -19,7 +19,6 @@ import * as _ from 'lodash';
 import * as winston from 'winston';
 import {getTags} from '../common/tagging-common';
 import {EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
-import {DEFAULT_EXTENSION_PREFIX} from '../service-registry';
 
 export function checkServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): string[] {
     winston.info(`Checking services in environment ${environmentContext.environmentName}`);
@@ -27,7 +26,7 @@ export function checkServices(serviceRegistry: ServiceRegistry, environmentConte
     const requiredTags = environmentContext.accountConfig.required_tags || [];
     let errors: string[] = [];
     _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>) => {
-        const serviceDeployer = serviceRegistry.getService(DEFAULT_EXTENSION_PREFIX, serviceContext.serviceType);
+        const serviceDeployer = serviceRegistry.getService(serviceContext.serviceType);
         if(serviceDeployer.check) {
             const dependenciesServiceContexts = getDependenciesServiceContexts(serviceContext, environmentContext);
             const checkErrors = serviceDeployer.check(serviceContext, dependenciesServiceContexts);

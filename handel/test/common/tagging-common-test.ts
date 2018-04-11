@@ -19,8 +19,8 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import {getTags} from '../../src/common/tagging-common';
-import {AccountConfig, ServiceConfig, ServiceContext} from '../../src/datatypes';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Tagging common module', () => {
     let sandbox: sinon.SinonSandbox;
@@ -34,7 +34,7 @@ describe('Tagging common module', () => {
         const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         accountConfig = retAccountConfig;
-        serviceContext = new ServiceContext(appName, envName, serviceName, 'FakeType', {type: 'FakeType'}, retAccountConfig);
+        serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, retAccountConfig);
     });
 
     afterEach(() => {

@@ -15,17 +15,19 @@
  *
  */
 import { expect } from 'chai';
+import { PreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, DeployOptions, PreDeployContext, ServiceContext } from '../../src/datatypes';
+import { AccountConfig, DeployOptions, ServiceContext, ServiceType } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deployLifecycle from '../../src/lifecycles/deploy';
 import * as bindPhase from '../../src/phases/bind';
 import * as checkPhase from '../../src/phases/check';
 import * as deployPhase from '../../src/phases/deploy';
 import * as preDeployPhase from '../../src/phases/pre-deploy';
+import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('deploy lifecycle module', () => {
@@ -43,7 +45,7 @@ describe('deploy lifecycle module', () => {
 
     describe('deploy', () => {
         it('should deploy the application environment on success', async () => {
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', 'FakeType', {type: 'FakeType'}, accountConfig);
+            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
             const checkServicesStub = sandbox.stub(checkPhase, 'checkServices').resolves([]);
             const preDeployServicesStub = sandbox.stub(preDeployPhase, 'preDeployServices').resolves({
                 A: new PreDeployContext(serviceContext),

@@ -16,8 +16,8 @@
  */
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import { Tags } from 'handel-extension-api';
 import * as winston from 'winston';
-import { AccountConfig, Tags } from '../datatypes';
 import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 

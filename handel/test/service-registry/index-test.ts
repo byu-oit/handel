@@ -14,42 +14,90 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-import { expect } from 'chai';
-import { ServiceDeployer } from 'handel-extension-api';
+import { expect, use as extendChai } from 'chai';
+import * as chaiPromised from 'chai-as-promised';
+import { Extension, ServiceDeployer } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import {SinonStub} from 'sinon';
-import { DEFAULT_EXTENSION, initServiceRegistry } from '../../src/service-registry';
-import {ExtensionLoader} from '../../src/service-registry/types';
+import { ExtensionLoadingError, MissingDeployerError, MissingPrefixError } from '../../src/datatypes';
+import { initServiceRegistry } from '../../src/service-registry';
+import {FakeExtension} from './fake-extension';
+
+extendChai(chaiPromised);
 
 const sandbox = sinon.createSandbox();
 
 describe('Service Registry', () => {
 
-    const fakeDeployerMap = new Map<string, ServiceDeployer>()
-        .set('fake', {} as ServiceDeployer);
+    const fakeDeployers = {
+        foo: {} as ServiceDeployer,
+        bar: {} as ServiceDeployer,
+    };
 
     afterEach(() => {
         sandbox.restore();
     });
 
-    it('always loads the default prefix', async () => {
-        const registry = await initServiceRegistry();
+    describe('initServiceRegistry', () => {
+        it('Returns an initialized registry', async () => {
+            const fakeExtensions = [{
+                prefix: 'fake',
+                name: 'fake-extension',
+                instance: new FakeExtension(fakeDeployers)
+            }];
 
-        expect(registry.allPrefixes()).to.have.keys(['__DEFAULT__']);
+            const registry = await initServiceRegistry(fakeExtensions);
+            // tslint:disable-next-line:no-unused-expression
+            expect(registry).to.not.be.null;
+
+            expect(registry).to.have.property('getService')
+                .which.is.a('function');
+            expect(registry).to.have.property('hasService')
+                .which.is.a('function');
+            expect(registry).to.have.property('allPrefixes')
+                .which.is.a('function');
+        });
+        it('throws an ExtensionLoadingError if anything goes wrong', async () => {
+            const extension: Extension = {
+                loadHandelExtension: sinon.stub()
+                    .rejects()
+            };
+            const loaded = [{
+                prefix: 'fake',
+                name: 'fake-extension',
+                instance: extension,
+            }];
+
+            await expect(initServiceRegistry(loaded))
+                .to.be.rejectedWith(ExtensionLoadingError);
+        });
     });
+    describe('service registry instance', () => {
+        const fakeExtensions = [{
+            prefix: 'fake',
+            name: 'fake-extension',
+            instance: new FakeExtension(fakeDeployers)
+        }];
 
-    it('can get default services', async () => {
-        const loader = sandbox.stub().resolves({
-            meta: DEFAULT_EXTENSION,
-            extension: {},
-            services: fakeDeployerMap
-        }) as SinonStub & ExtensionLoader;
+        describe('getService', () => {
+            it('Gets a service from a prefix and a name', async () => {
+                const registry = await initServiceRegistry(fakeExtensions);
 
-        const registry = await initServiceRegistry([], loader);
+                const svc = registry.getService('fake', 'foo');
+                expect(svc).to.equal(fakeDeployers.foo);
+            });
+            it('Errors if given a bad prefix', async () => {
+                const registry = await initServiceRegistry(fakeExtensions);
 
-        const found = registry.getService('__DEFAULT__', 'fake');
-        // noinspection TsLint
-        expect(found).to.eql(fakeDeployerMap.get('fake'));
+                expect(() => registry.getService('invalid', 'foo'))
+                    .to.throw(MissingPrefixError);
+            });
+            it('Errors if given a good prefix but a bad service name', async () => {
+                const registry = await initServiceRegistry(fakeExtensions);
+
+                expect(() => registry.getService('fake', 'invalid'))
+                    .to.throw(MissingDeployerError);
+            });
+        });
     });
 });
