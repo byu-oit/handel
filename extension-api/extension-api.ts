@@ -86,7 +86,7 @@ export interface AccountConfig {
 
 export function isAccountConfig(obj: any): obj is AccountConfig {
     return !!obj
-        && isString(obj.account_id)
+        && (isString(obj.account_id) || isNumber(obj.account_id)) // We allow string or number here because Handel used to treat account_id as a number, but now treats it as a string
         && isString(obj.region)
         && isString(obj.vpc);
     // TODO: We could expand this more, but I'm not sure it's a good idea, since there may be a lot of variation between account config files.
@@ -182,7 +182,6 @@ export interface IBindContext {
 }
 
 export function isBindContext(obj: any | IBindContext): obj is IBindContext {
-    console.log('isBindContext', obj);
     return !!obj
         && isServiceContext(obj.dependencyServiceContext)
         && isServiceContext(obj.dependentOfServiceContext);
@@ -468,4 +467,8 @@ function isArray(value: any, itemType?: (obj: any) => boolean) {
 
 function isString(value: any) {
     return typeof value === 'string';
+}
+
+function isNumber(value: any) {
+    return typeof value === 'number';
 }
