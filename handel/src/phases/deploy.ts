@@ -14,13 +14,21 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceRegistry } from 'handel-extension-api';
+import { IDeployContext, IPreDeployContext, isDeployContext, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployContexts, DeployOrder, EnvironmentContext, PreDeployContexts, ServiceConfig, ServiceContext } from '../datatypes';
+import {
+    DeployContexts,
+    DeployOrder,
+    DontBlameHandelError,
+    EnvironmentContext,
+    PreDeployContexts,
+    ServiceConfig,
+    ServiceContext
+} from '../datatypes';
 
-function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: PreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): DeployContext[] {
-    const dependenciesDeployContexts: DeployContext[] = [];
+function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: IPreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): IDeployContext[] {
+    const dependenciesDeployContexts: IDeployContext[] = [];
 
     const serviceToDeployDependencies: string[] | undefined = toDeployServiceContext.params.dependencies;
     if (serviceToDeployDependencies && serviceToDeployDependencies.length > 0) {
@@ -54,8 +62,8 @@ export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, en
         if (serviceDeployer.deploy) {
             const serviceDeployPromise = serviceDeployer.deploy(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {
-                    if (!(deployContext instanceof DeployContext)) {
-                        throw new Error('Expected DeployContext as result from \'deploy\' phase');
+                    if (!isDeployContext(deployContext)) {
+                        throw new DontBlameHandelError('Expected DeployContext as result from \'deploy\' phase', toDeployServiceContext.serviceType);
                     }
                     levelDeployContexts[toDeployServiceName] = deployContext;
                 });

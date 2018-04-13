@@ -19,7 +19,14 @@ import { BindContext, PreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, PreDeployContexts, ServiceContext, ServiceType } from '../../src/datatypes';
+import {
+    AccountConfig,
+    DeployOrder,
+    EnvironmentContext,
+    PreDeployContexts,
+    ServiceContext,
+    ServiceType
+} from '../../src/datatypes';
 import * as bindPhase from '../../src/phases/bind';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
@@ -38,55 +45,63 @@ describe('bind', () => {
     });
 
     describe('bindServicesInLevel', () => {
-        // Construct EnvironmentContext
-        const appName = 'FakeApp';
-        const environmentName = 'dev';
-        const environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
+        // environmentContext, preDeployContexts, deployOrder, levelToBind
+        let environmentContext: EnvironmentContext;
+        let preDeployContexts: PreDeployContexts;
+        let deployOrder: DeployOrder;
+        let levelToBind: number;
 
-        // Construct ServiceContext B
-        const serviceNameB = 'B';
-        const serviceTypeB = 'efs';
-        const paramsB = {
-            type: serviceTypeB,
-            other: 'param'
-        };
-        const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, new ServiceType(STDLIB_PREFIX, serviceTypeB), paramsB, accountConfig);
-        environmentContext.serviceContexts[serviceNameB] = serviceContextB;
+        beforeEach(() => {
+            // Construct EnvironmentContext
+            const appName = 'FakeApp';
+            const environmentName = 'dev';
+            environmentContext = new EnvironmentContext(appName, environmentName, accountConfig);
 
-        // Construct ServiceContext A
-        const serviceNameA = 'A';
-        const serviceTypeA = 'ecs';
-        const paramsA = {
-            type: serviceTypeA,
-            some: 'param',
-            dependencies: [serviceNameB]
-        };
-        const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, new ServiceType(STDLIB_PREFIX, serviceTypeA), paramsA, accountConfig);
-        environmentContext.serviceContexts[serviceNameA] = serviceContextA;
+            // Construct ServiceContext B
+            const serviceNameB = 'B';
+            const serviceTypeB = 'efs';
+            const paramsB = {
+                type: serviceTypeB,
+                other: 'param'
+            };
+            const serviceContextB = new ServiceContext(appName, environmentName, serviceNameB, new ServiceType(STDLIB_PREFIX, serviceTypeB), paramsB, accountConfig);
+            environmentContext.serviceContexts[serviceNameB] = serviceContextB;
 
-        // Construct ServiceContext C
-        const serviceNameC = 'C';
-        const serviceTypeC = 'ecs';
-        const paramsC = {
-            type: serviceTypeC,
-            some: 'param',
-            dependencies: [serviceNameB]
-        };
-        const serviceContextC = new ServiceContext(appName, environmentName, serviceNameC, new ServiceType(STDLIB_PREFIX, serviceTypeC), paramsC, accountConfig);
-        environmentContext.serviceContexts[serviceNameC] = serviceContextC;
+            // Construct ServiceContext A
+            const serviceNameA = 'A';
+            const serviceTypeA = 'ecs';
+            const paramsA = {
+                type: serviceTypeA,
+                some: 'param',
+                dependencies: [serviceNameB]
+            };
+            const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, new ServiceType(STDLIB_PREFIX, serviceTypeA), paramsA, accountConfig);
+            environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
-        // Construct PreDeployContexts
-        const preDeployContexts: PreDeployContexts = {};
-        preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
-        preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
-        preDeployContexts[serviceNameC] = new PreDeployContext(serviceContextC);
+            // Construct ServiceContext C
+            const serviceNameC = 'C';
+            const serviceTypeC = 'ecs';
+            const paramsC = {
+                type: serviceTypeC,
+                some: 'param',
+                dependencies: [serviceNameB]
+            };
+            const serviceContextC = new ServiceContext(appName, environmentName, serviceNameC, new ServiceType(STDLIB_PREFIX, serviceTypeC), paramsC, accountConfig);
+            environmentContext.serviceContexts[serviceNameC] = serviceContextC;
 
-        // Set deploy order
-        const deployOrder = [
-            [serviceNameB],
-            [serviceNameA, serviceNameC]
-        ];
-        const levelToBind = 0;
+            // Construct PreDeployContexts
+            preDeployContexts = {};
+            preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
+            preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
+            preDeployContexts[serviceNameC] = new PreDeployContext(serviceContextC);
+
+            // Set deploy order
+            deployOrder = [
+                [serviceNameB],
+                [serviceNameA, serviceNameC]
+            ];
+            levelToBind = 0;
+        });
 
         it('should execute bind on all the services in parallel', async () => {
             const serviceRegistry = new FakeServiceRegistry({

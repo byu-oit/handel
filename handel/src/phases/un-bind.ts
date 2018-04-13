@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-import { ServiceRegistry, UnBindContext } from 'handel-extension-api';
+import { isUnBindContext, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployOrder, EnvironmentContext, UnBindContexts } from '../datatypes';
+import { DeployOrder, DontBlameHandelError, EnvironmentContext, UnBindContexts } from '../datatypes';
 
 export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnBindContexts> {
     const unBindPromises: Array<Promise<void>> = [];
@@ -33,8 +33,8 @@ export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, en
         if (serviceDeployer.unBind) {
             const unBindPromise = serviceDeployer.unBind(toUnBindServiceContext)
                 .then(unBindContext => {
-                    if (!(unBindContext instanceof UnBindContext)) {
-                        throw new Error(`Expected UnBindContext back from 'unBind' phase of service deployer`);
+                    if (!isUnBindContext(unBindContext)) {
+                        throw new DontBlameHandelError(`Expected UnBindContext back from 'unBind' phase of service deployer`, toUnBindServiceContext.serviceType);
                     }
                     unBindContexts[toUnBindServiceName] = unBindContext;
                 });

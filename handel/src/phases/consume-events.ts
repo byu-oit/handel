@@ -14,18 +14,26 @@
  * limitations under the License.
  *
  */
-import { ConsumeEventsContext, DeployContext } from 'handel-extension-api';
+import { IDeployContext, isConsumeEventsContext } from 'handel-extension-api';
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { ConsumeEventsContexts, DeployContexts, EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
+import {
+    ConsumeEventsContexts,
+    DeployContexts,
+    DontBlameHandelError,
+    EnvironmentContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceDeployer
+} from '../datatypes';
 
 interface ConsumeEventAction {
     consumerServiceContext: ServiceContext<ServiceConfig>;
-    consumerDeployContext: DeployContext;
+    consumerDeployContext: IDeployContext;
     consumerServiceDeployer: ServiceDeployer;
     producerServiceContext: ServiceContext<ServiceConfig>;
-    producerDeployContext: DeployContext;
+    producerDeployContext: IDeployContext;
 }
 
 export async function consumeEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
@@ -53,8 +61,8 @@ export async function consumeEvents(serviceRegistry: ServiceRegistry, environmen
                     }
 
                     const consumeEventsContext = await consumerServiceDeployer.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext);
-                    if (!(consumeEventsContext instanceof ConsumeEventsContext)) {
-                        throw new Error('Expected ConsumeEventsContext back from \'consumeEvents\' phase of service deployer');
+                    if (!isConsumeEventsContext(consumeEventsContext)) {
+                        throw new DontBlameHandelError('Expected ConsumeEventsContext back from \'consumeEvents\' phase of service deployer', consumerServiceContext.serviceType);
                     }
 
                     consumeEventsContexts[consumeEventsContextName] = consumeEventsContext;
