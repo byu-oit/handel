@@ -14,26 +14,35 @@
  * limitations under the License.
  *
  */
-import { DeployContext, ProduceEventsContext, ServiceRegistry} from 'handel-extension-api';
+import { IDeployContext, isProduceEventsContext, ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
-import { DeployContexts, EnvironmentContext, ProduceEventsContexts, ServiceConfig, ServiceContext, ServiceDeployer, ServiceEventConsumer } from '../datatypes';
+import {
+    DeployContexts,
+    DontBlameHandelError,
+    EnvironmentContext,
+    ProduceEventsContexts,
+    ServiceConfig,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceEventConsumer
+} from '../datatypes';
 
 interface ProduceEventsAction {
     eventConsumerConfig: ServiceEventConsumer;
     producerServiceContext: ServiceContext<ServiceConfig>;
-    producerDeployContext: DeployContext;
+    producerDeployContext: IDeployContext;
     producerServiceDeployer: ServiceDeployer;
 }
 
-async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: ServiceEventConsumer, consumerDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, producerServiceDeployer: ServiceDeployer) {
+async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: ServiceEventConsumer, consumerDeployContext: IDeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: IDeployContext, producerServiceDeployer: ServiceDeployer) {
     if (!producerServiceDeployer.produceEvents) {
         throw new Error(`Tried to execute 'produceEvents' phase in '${producerServiceContext.serviceType}', which doesn't implement that phase`);
     }
     winston.debug(`Producing events from ${producerServiceContext.serviceName} for service ${consumerServiceContext.serviceName}`);
     const produceEventsContext = await producerServiceDeployer.produceEvents(producerServiceContext, producerDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
-    if (!(produceEventsContext instanceof ProduceEventsContext)) {
-        throw new Error(`Expected ProduceEventsContext back from 'produceEvents' phase of service deployer`);
+    if (!isProduceEventsContext(produceEventsContext)) {
+        throw new DontBlameHandelError(`Expected ProduceEventsContext back from 'produceEvents' phase of service deployer`, consumerServiceContext.serviceType);
     }
     return produceEventsContext;
 }

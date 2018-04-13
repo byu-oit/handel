@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-import { BindContext, PreDeployContext, } from 'handel-extension-api';
+import { BindContext, IPreDeployContext, } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as ec2Calls from '../aws/ec2-calls';
 import { ServiceConfig, ServiceContext } from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 
 export async function bindDependentSecurityGroupToSelf(
-    ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext,
-    dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext, protocol: string,
+    ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext,
+    dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext, protocol: string,
     port: number, serviceName: string
 ) {
     const stackName = deployPhaseCommon.getResourceName(ownServiceContext);

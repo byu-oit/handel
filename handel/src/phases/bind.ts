@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-import { BindContext } from 'handel-extension-api';
+import { isBindContext } from 'handel-extension-api';
 import {ServiceRegistry} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
 import * as util from '../common/util';
-import { BindContexts, DeployOrder, EnvironmentContext, PreDeployContexts } from '../datatypes';
+import { BindContexts, DeployOrder, DontBlameHandelError, EnvironmentContext, PreDeployContexts } from '../datatypes';
 
 function getDependentServicesForCurrentBindService(environmentContext: EnvironmentContext, toBindServiceName: string): string[] {
     const dependentServices = [];
@@ -60,8 +60,8 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
             if (serviceDeployer.bind) {
                 const bindPromise = serviceDeployer.bind(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                     .then(bindContext => {
-                        if (!(bindContext instanceof BindContext)) {
-                            throw new Error('Expected BindContext back from \'bind\' phase of service deployer');
+                        if (!isBindContext(bindContext)) {
+                            throw new DontBlameHandelError('Expected valid BindContext back from \'bind\' phase of service deployer', toBindServiceContext.serviceType);
                         }
                         levelBindContexts[bindContextName] = bindContext;
                     });

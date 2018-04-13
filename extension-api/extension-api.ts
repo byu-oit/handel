@@ -48,19 +48,19 @@ export interface ServiceDeployer {
 
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
 
-    bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext>;
+    bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IBindContext>;
 
-    deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext>;
+    deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
 
-    consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext>;
+    consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: IDeployContext): Promise<IConsumeEventsContext>;
 
-    produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext>;
+    produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: IDeployContext): Promise<IProduceEventsContext>;
 
-    unPreDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnPreDeployContext>;
+    unPreDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnPreDeployContext>;
 
-    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnBindContext>;
+    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
 
-    unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext>;
+    unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnDeployContext>;
 }
 
 /***********************************
@@ -84,15 +84,25 @@ export interface AccountConfig {
     [key: string]: any;
 }
 
+export function isAccountConfig(obj: any): obj is AccountConfig {
+    return !!obj
+        && isString(obj.account_id)
+        && isString(obj.region)
+        && isString(obj.vpc);
+    // TODO: We could expand this more, but I'm not sure it's a good idea, since there may be a lot of variation between account config files.
+}
+
 /***********************************
  * Types for the context objects used by service deployers
  ***********************************/
 
 export interface ServiceRegistry {
     getService(prefix: string, name: string): ServiceDeployer;
+
     getService(type: ServiceType): ServiceDeployer;
 
     hasService(prefix: string, name: string): boolean;
+
     hasService(type: ServiceType): boolean;
 
     allPrefixes(): Set<string>;
@@ -105,7 +115,13 @@ export interface ServiceType {
     matches(prefix: string, name: string): boolean;
 }
 
-export interface ServiceContext<Config extends ServiceConfig> {
+export function isServiceType(obj: any | ServiceType): obj is ServiceType {
+    return !!obj
+        && isString(obj.prefix)
+        && isString(obj.name);
+}
+
+export interface ServiceContext<Config extends ServiceConfig> extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
@@ -118,10 +134,27 @@ export interface ServiceContext<Config extends ServiceConfig> {
     tags: Tags;
 }
 
+export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig> {
+    return !!obj
+        && isServiceConfig(obj.params)
+        && isAccountConfig(obj.accountConfig)
+        && isTags(obj.tags)
+        && hasAppServiceInfo(obj)
+        ;
+}
+
 export interface ServiceInfo {
     producedEventsSupportedServices: string[];
     producedDeployOutputTypes: string[];
     consumedDeployOutputTypes: string[];
+}
+
+export function isServiceInfo(obj: any): obj is ServiceInfo {
+    return !!obj
+        && isArray(obj.producedEventsSupportedServices, isString)
+        && isArray(obj.producedDeployOutputTypes, isString)
+        && isArray(obj.consumedDeployOutputTypes, isString)
+        ;
 }
 
 export interface ServiceConfig {
@@ -129,6 +162,14 @@ export interface ServiceConfig {
     tags?: Tags;
     event_consumers?: ServiceEventConsumer[];
     dependencies?: string[];
+}
+
+export function isServiceConfig(obj: any): obj is ServiceConfig {
+    return !!obj
+        && isString(obj.type)
+        && (!obj.tags || isTags(obj.tags))
+        && (!obj.dependencies || isArray(obj.dependencies, isString))
+        ;
 }
 
 export interface ServiceEventConsumer {
@@ -140,12 +181,26 @@ export interface IBindContext {
     dependentOfServiceContext: ServiceContext<ServiceConfig>;
 }
 
+export function isBindContext(obj: any | IBindContext): obj is IBindContext {
+    console.log('isBindContext', obj);
+    return !!obj
+        && isServiceContext(obj.dependencyServiceContext)
+        && isServiceContext(obj.dependentOfServiceContext);
+}
+
 export interface IConsumeEventsContext {
     consumingServiceContext: ServiceContext<ServiceConfig>;
     producingServiceContext: ServiceContext<ServiceConfig>;
 }
 
-export interface IDeployContext {
+export function isConsumeEventsContext(obj: any | IConsumeEventsContext): obj is IConsumeEventsContext {
+    return !!obj
+        && isServiceContext(obj.consumingServiceContext)
+        && isServiceContext(obj.producingServiceContext)
+        ;
+}
+
+export interface IDeployContext extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
@@ -160,7 +215,33 @@ export interface IDeployContext {
     scripts: string[];
 }
 
-export interface IPreDeployContext {
+export function isDeployContext(obj: any | IDeployContext): obj is IDeployContext {
+    return !!obj
+        && isDeployContextEventOutputs(obj.eventOutputs)
+        && isArray(obj.policies)
+        && isDeployContextEnvironmentVariables(obj.environmentVariables)
+        && isArray(obj.scripts, isString)
+        && hasAppServiceInfo(obj)
+        ;
+}
+
+export interface DeployContextEnvironmentVariables {
+    [key: string]: string;
+}
+
+export function isDeployContextEnvironmentVariables(obj: any | DeployContextEnvironmentVariables): obj is DeployContextEnvironmentVariables {
+    return isHash(obj);
+}
+
+export interface DeployContextEventOutputs {
+    [key: string]: any;
+}
+
+export function isDeployContextEventOutputs(obj: any | DeployContextEventOutputs): obj is DeployContextEventOutputs {
+    return isHash(obj);
+}
+
+export interface IPreDeployContext extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
@@ -168,23 +249,44 @@ export interface IPreDeployContext {
     securityGroups: EC2.SecurityGroup[];
 }
 
+export function isPreDeployContext(obj: any | IPreDeployContext): obj is PreDeployContext {
+    return !!obj
+        && isArray(obj.securityGroups)
+        && hasAppServiceInfo(obj)
+        ;
+}
+
 export interface IProduceEventsContext {
     producingServiceContext: ServiceContext<ServiceConfig>;
     consumingServiceContext: ServiceContext<ServiceConfig>;
 }
 
-export interface IUnDeployContext {
+export function isProduceEventsContext(obj: any | IProduceEventsContext): obj is IProduceEventsContext {
+    return !!obj
+        && isServiceContext(obj.producingServiceContext)
+        && isServiceContext(obj.consumingServiceContext);
+}
+
+export interface IUnDeployContext extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
     serviceType: ServiceType;
 }
 
-export interface IUnBindContext {
+export function isUnDeployContext(obj: any | IUnDeployContext): obj is IUnDeployContext {
+    return !!obj && hasAppServiceInfo(obj);
+}
+
+export interface IUnBindContext extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
     serviceType: ServiceType;
+}
+
+export function isUnBindContext(obj: any | IUnBindContext): obj is IUnBindContext {
+    return !!obj && hasAppServiceInfo(obj);
 }
 
 export interface IUnPreDeployContext {
@@ -192,6 +294,25 @@ export interface IUnPreDeployContext {
     environmentName: string;
     serviceName: string;
     serviceType: ServiceType;
+}
+
+export function isUnPreDeployContext(obj: any | IUnBindContext): obj is IUnPreDeployContext {
+    return !!obj && hasAppServiceInfo(obj);
+}
+
+export interface HasAppServiceInfo {
+    appName: string;
+    environmentName: string;
+    serviceName: string;
+    serviceType: ServiceType;
+}
+
+export function hasAppServiceInfo(obj: any | HasAppServiceInfo): obj is HasAppServiceInfo {
+    return !!obj
+        && isString(obj.appName)
+        && isString(obj.environmentName)
+        && isString(obj.serviceName)
+        && isServiceType(obj.serviceType);
 }
 
 export class BindContext implements IBindContext {
@@ -246,14 +367,6 @@ export class DeployContext implements IDeployContext {
     public addEnvironmentVariables(vars: object) {
         Object.assign(this.environmentVariables, vars);
     }
-}
-
-export interface DeployContextEnvironmentVariables {
-    [key: string]: string;
-}
-
-export interface DeployContextEventOutputs {
-    [key: string]: any;
 }
 
 export class PreDeployContext implements IPreDeployContext {
@@ -333,6 +446,26 @@ export interface Tags {
     [key: string]: string;
 }
 
+export function isTags(obj: any): obj is Tags {
+    return isHash(obj);
+}
+
 export interface EnvironmentVariables {
     [key: string]: string;
+}
+
+export function isEnvironmentVariables(obj: any): obj is EnvironmentVariables {
+    return isHash(obj);
+}
+
+export function isHash(obj: any): boolean {
+    return !!obj && typeof obj === 'object';
+}
+
+function isArray(value: any, itemType?: (obj: any) => boolean) {
+    return Array.isArray(value) && (!itemType || value.every(itemType));
+}
+
+function isString(value: any) {
+    return typeof value === 'string';
 }

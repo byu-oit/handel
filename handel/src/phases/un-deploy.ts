@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-import { ServiceRegistry, UnDeployContext } from 'handel-extension-api';
+import { isUnDeployContext, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
-import { DeployOrder, EnvironmentContext, UnDeployContexts} from '../datatypes';
+import { DeployOrder, DontBlameHandelError, EnvironmentContext, UnDeployContexts } from '../datatypes';
 
 export async function unDeployServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder, level: number): Promise<UnDeployContexts> {
     const serviceUnDeployPromises: Array<Promise<void>> = [];
@@ -34,8 +34,8 @@ export async function unDeployServicesInLevel(serviceRegistry: ServiceRegistry, 
         if (serviceDeployer.unDeploy) {
             const serviceUndeployPromise = serviceDeployer.unDeploy(toUnDeployServiceContext)
                 .then(unDeployContext => {
-                    if (!(unDeployContext instanceof UnDeployContext)) {
-                        throw new Error(`Expected UnDeployContext as result from 'unDeploy' phase`);
+                    if (!isUnDeployContext(unDeployContext)) {
+                        throw new DontBlameHandelError(`Expected UnDeployContext as result from 'unDeploy' phase`, toUnDeployServiceContext.serviceType);
                     }
                     levelUnDeployContexts[toUnDeployServiceName] = unDeployContext;
                 });

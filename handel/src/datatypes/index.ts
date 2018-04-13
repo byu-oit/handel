@@ -15,7 +15,7 @@
  *
  */
 
-import { codeBlock, source, stripIndent } from 'common-tags';
+import { stripIndent } from 'common-tags';
 import * as api from 'handel-extension-api';
 import { documentationUrl } from '../common/util';
 
@@ -53,7 +53,8 @@ export class ServiceContext<Config extends ServiceConfig> implements api.Service
 }
 
 export class ServiceType implements api.ServiceType {
-    constructor(public prefix: string, public name: string) {}
+    constructor(public prefix: string, public name: string) {
+    }
 
     public matches(prefix: string, name: string): boolean {
         return this.prefix === prefix && this.name === name;
@@ -121,7 +122,7 @@ export class EnvironmentContext {
     constructor(public appName: string,
                 public environmentName: string,
                 public accountConfig: AccountConfig,
-                public options: HandelCoreOptions = { linkExtensions: false },
+                public options: HandelCoreOptions = {linkExtensions: false},
                 public tags: api.Tags = {}) {
         this.serviceContexts = {};
     }
@@ -170,35 +171,35 @@ export interface ServiceContexts {
 }
 
 export interface PreDeployContexts {
-    [serviceName: string]: api.PreDeployContext;
+    [serviceName: string]: api.IPreDeployContext;
 }
 
 export interface BindContexts {
-    [bindContextName: string]: api.BindContext;
+    [bindContextName: string]: api.IBindContext;
 }
 
 export interface DeployContexts {
-    [serviceName: string]: api.DeployContext;
+    [serviceName: string]: api.IDeployContext;
 }
 
 export interface ConsumeEventsContexts {
-    [serviceName: string]: api.ConsumeEventsContext;
+    [serviceName: string]: api.IConsumeEventsContext;
 }
 
 export interface ProduceEventsContexts {
-    [serviceName: string]: api.ProduceEventsContext;
+    [serviceName: string]: api.IProduceEventsContext;
 }
 
 export interface UnBindContexts {
-    [serviceName: string]: api.UnBindContext;
+    [serviceName: string]: api.IUnBindContext;
 }
 
 export interface UnDeployContexts {
-    [serviceName: string]: api.UnDeployContext;
+    [serviceName: string]: api.IUnDeployContext;
 }
 
 export interface UnPreDeployContexts {
-    [serviceName: string]: api.UnPreDeployContext;
+    [serviceName: string]: api.IUnPreDeployContext;
 }
 
 export type DeployOrder = string[][];
@@ -296,6 +297,17 @@ export class ExtensionLoadingError extends Error {
     }
 }
 
+export class DontBlameHandelError extends Error {
+    constructor(message: string, serviceType?: api.ServiceType) {
+        super(stripIndent`
+        ${message}
+
+        !!! THIS IS MOST LIKELY A PROBLEM AN EXTENSION, NOT WITH HANDEL !!!
+        ${!serviceType ? '' : `The error was caused by the '${serviceType.name}' service in extension '${serviceType.prefix}'`}
+        `);
+    }
+}
+
 export type ExtensionList = ExtensionDefinition[];
 
 export class MissingPrefixError extends Error {
@@ -343,7 +355,7 @@ export class ExtensionInstallationError extends Error {
             To help debug, here's the error output from the installation:
 
             ---------------
-        ` + '\n\n' +  output + '\n\n---------------');
+        ` + '\n\n' + output + '\n\n---------------');
     }
 }
 
