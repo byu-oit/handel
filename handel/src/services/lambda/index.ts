@@ -171,7 +171,7 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
     policyStatementsToConsume[0].Resource = [];
     const tableStreamGeneralArn = tableStreamArn.substring(0, tableStreamArn.lastIndexOf('/') + 1).concat('*');
     policyStatementsToConsume[0].Resource.push(tableStreamGeneralArn);
-    await iamCalls.attachStreamPolicy(deployPhaseCommon.getResourceName(ownServiceContext), policyStatementsToConsume, ownServiceContext.accountConfig);
+    await iamCalls.attachStreamPolicy(ownServiceContext.getResourceName(), policyStatementsToConsume, ownServiceContext.accountConfig);
     winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
 
     // Add the event source mapping to the Lambda
@@ -257,7 +257,7 @@ export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConf
 }
 
 export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const securityGroups: string[] = [];
     if (ownPreDeployContext.securityGroups) {
@@ -292,7 +292,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServic
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
-    await iamCalls.detachPoliciesFromRole(deployPhaseCommon.getResourceName(ownServiceContext));
+    await iamCalls.detachPoliciesFromRole(ownServiceContext.getResourceName());
     return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 

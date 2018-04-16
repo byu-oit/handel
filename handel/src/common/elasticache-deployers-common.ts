@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceContext } from '../datatypes';
+import { ServiceConfig, ServiceContext } from 'handel-extension-api';
 
 /**
  * Given the stack name, returns the name of the Elasticache cluster

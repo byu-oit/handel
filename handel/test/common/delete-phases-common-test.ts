@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceConfig, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -23,7 +23,6 @@ import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../src/common/delete-phases-common';
-import { ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Delete phases common module', () => {

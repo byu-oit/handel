@@ -15,19 +15,19 @@
  *
  */
 import { expect } from 'chai';
-import { UnPreDeployContext } from 'handel-extension-api';
+import { AccountConfig, ServiceContext, ServiceType, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, DeleteOptions, HandelFile, ServiceContext, ServiceType } from '../../src/datatypes';
+import { DeleteOptions, HandelFile } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deleteLifecycle from '../../src/lifecycles/delete';
 import * as unBindPhase from '../../src/phases/un-bind';
 import * as unDeployPhase from '../../src/phases/un-deploy';
 import * as unPreDeployPhase from '../../src/phases/un-pre-deploy';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('delete lifecycle module', () => {
     let sandbox: sinon.SinonSandbox;

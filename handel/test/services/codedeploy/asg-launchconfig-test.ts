@@ -15,7 +15,12 @@
  *
  */
 import { expect } from 'chai';
-import { DeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -24,12 +29,7 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
-import {
-    AccountConfig,
-    InstanceScalingPolicyType,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
+import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

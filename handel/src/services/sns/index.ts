@@ -121,7 +121,7 @@ export function check(serviceContext: ServiceContext<SnsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying topic '${stackName}'`);
 
     const compiledSnsTemplate = await getCompiledSnsTemplate(stackName, ownServiceContext);

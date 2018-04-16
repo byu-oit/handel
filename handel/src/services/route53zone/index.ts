@@ -87,7 +87,7 @@ export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, 
 }
 
 export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
 
     const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);

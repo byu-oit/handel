@@ -47,7 +47,7 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
 }
 
 export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
-    const sgName = deployPhaseCommon.getResourceName(serviceContext);
+    const sgName = serviceContext.getResourceName();
     winston.info(`${serviceName} - Creating security group '${sgName}'`);
 
     const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig, getTags(serviceContext));

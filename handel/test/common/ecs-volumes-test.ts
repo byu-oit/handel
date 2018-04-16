@@ -15,12 +15,11 @@
  *
  */
 import { expect } from 'chai';
-import { DeployContext } from 'handel-extension-api';
+import { AccountConfig, DeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsVolumes from '../../src/common/ecs-volumes';
-import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 

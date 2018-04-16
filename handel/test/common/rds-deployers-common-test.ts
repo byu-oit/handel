@@ -15,13 +15,12 @@
  *
  */
 import { expect } from 'chai';
-import { UnDeployContext } from 'handel-extension-api';
+import { AccountConfig, ServiceContext, ServiceType, UnDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../src/common/rds-deployers-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('RDS deployers common module', () => {

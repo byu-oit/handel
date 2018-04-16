@@ -102,7 +102,7 @@ export function check(serviceContext: ServiceContext<KmsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);

@@ -16,7 +16,10 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -26,11 +29,6 @@ import config from '../../../src/account-config/account-config';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as apigateway from '../../../src/services/apigateway';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
@@ -92,7 +90,7 @@ describe('apigateway deployer', () => {
         });
 
         describe('common checks', () => {
-            it('should fail if vpc is false and a dependency producing security groups is declared', async function () {
+            it('should fail if vpc is false and a dependency producing security groups is declared', async function() {
                 this.timeout(10000);
                 serviceContext.params = {
                     type: 'apigateway',

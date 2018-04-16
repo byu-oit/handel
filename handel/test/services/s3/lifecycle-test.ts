@@ -15,10 +15,10 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import { S3ServiceConfig } from '../../../src/services/s3/config-types';
 import * as s3Lifecycle from '../../../src/services/s3/lifecycles';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

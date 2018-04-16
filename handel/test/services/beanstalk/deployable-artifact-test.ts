@@ -16,12 +16,12 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import { BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 import * as ebextensions from '../../../src/services/beanstalk/ebextensions';

@@ -17,8 +17,11 @@
 import { expect } from 'chai';
 import * as clone from 'clone';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -35,11 +38,6 @@ import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as ecsFargate from '../../../src/services/ecs-fargate';
 import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

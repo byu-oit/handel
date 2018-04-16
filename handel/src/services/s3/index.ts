@@ -149,7 +149,7 @@ export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenc
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying bucket '${stackName}'`);
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);

@@ -17,7 +17,7 @@
 import * as AWS from 'aws-sdk';
 import { stripIndent } from 'common-tags';
 import * as fs from 'fs';
-import { ServiceRegistry, Tags } from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry, Tags } from 'handel-extension-api';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
@@ -27,7 +27,6 @@ import * as stsCalls from '../aws/sts-calls';
 import { TAG_KEY_PATTERN, TAG_KEY_REGEX, TAG_VALUE_MAX_LENGTH } from '../common/tagging-common';
 import * as util from '../common/util';
 import {
-    AccountConfig,
     CheckOptions,
     DeleteOptions,
     DeployOptions,

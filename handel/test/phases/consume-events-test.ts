@@ -15,11 +15,17 @@
  *
  */
 import { expect } from 'chai';
-import { ConsumeEventsContext, DeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    ConsumeEventsContext,
+    DeployContext,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, DeployContexts, EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
+import { DeployContexts, EnvironmentContext } from '../../src/datatypes';
 import * as consumeEvents from '../../src/phases/consume-events';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';

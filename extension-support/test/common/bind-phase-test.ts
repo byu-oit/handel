@@ -15,27 +15,22 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, BindContext, PreDeployContext, ServiceConfig } from 'handel-extension-api';
+import { AccountConfig, BindContext, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import config from '../../src/account-config/account-config';
 import * as ec2Calls from '../../src/aws/ec2-calls';
-import * as bindPhaseCommon from '../../src/common/bind-phase-common';
-import { ServiceContext, ServiceType } from '../../src/datatypes';
-import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import * as bindPhase from '../../src/common/bind-phase';
+import accountConfig from '../fake-account-config';
 
 describe('bind phases common module', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
-    let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
 
     beforeEach(async () => {
-        const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'mysql'), {type: 'mysql'}, retAccountConfig);
-        accountConfig = retAccountConfig;
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType('extensionPrefix', 'mysql'), {type: 'mysql'}, accountConfig);
     });
 
     afterEach(() => {
@@ -50,7 +45,7 @@ describe('bind phases common module', () => {
             });
 
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentOfService',
-                new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
+                new ServiceType('extensionPrefix', 'ecs'), {type: 'ecs'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             dependentOfPreDeployContext.securityGroups.push({
                 GroupId: 'OtherId'
@@ -58,7 +53,7 @@ describe('bind phases common module', () => {
 
             const addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
-            const bindContext = await bindPhaseCommon.bindDependentSecurityGroupToSelf(serviceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22, 'FakeService');
+            const bindContext = await bindPhase.bindDependentSecurityGroup(serviceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22, 'FakeService');
             expect(bindContext).to.be.instanceof(BindContext);
             expect(addIngressRuleToSgIfNotExistsStub.callCount).to.equal(1);
         });

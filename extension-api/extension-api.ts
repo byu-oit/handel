@@ -108,7 +108,7 @@ export interface ServiceRegistry {
     allPrefixes(): Set<string>;
 }
 
-export interface ServiceType {
+export interface IServiceType {
     prefix: string;
     name: string;
 
@@ -121,7 +121,7 @@ export function isServiceType(obj: any | ServiceType): obj is ServiceType {
         && isString(obj.name);
 }
 
-export interface ServiceContext<Config extends ServiceConfig> extends HasAppServiceInfo {
+export interface IServiceContext<Config extends ServiceConfig> extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
@@ -132,6 +132,8 @@ export interface ServiceContext<Config extends ServiceConfig> extends HasAppServ
     serviceInfo: ServiceInfo;
 
     tags: Tags;
+
+    getResourceName(): string;
 }
 
 export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig> {
@@ -312,6 +314,39 @@ export function hasAppServiceInfo(obj: any | HasAppServiceInfo): obj is HasAppSe
         && isString(obj.environmentName)
         && isString(obj.serviceName)
         && isServiceType(obj.serviceType);
+}
+
+export class ServiceContext<Config extends ServiceConfig> implements IServiceContext<Config> {
+    constructor(public appName: string,
+                public environmentName: string,
+                public serviceName: string,
+                public serviceType: ServiceType,
+                public params: Config,
+                public accountConfig: AccountConfig,
+                public tags: Tags = {},
+                public serviceInfo: ServiceInfo = {
+                    consumedDeployOutputTypes: [],
+                    producedDeployOutputTypes: [],
+                    producedEventsSupportedServices: []
+                }) {
+    }
+
+    public getResourceName(): string {
+        return `${this.appName}-${this.environmentName}-${this.serviceName}-${this.serviceType.name}`;
+    }
+}
+
+export class ServiceType implements IServiceType {
+    constructor(public prefix: string, public name: string) {
+    }
+
+    public matches(prefix: string, name: string): boolean {
+        return this.prefix === prefix && this.name === name;
+    }
+
+    public toString(): string {
+        return this.prefix + '::' + this.name;
+    }
 }
 
 export class BindContext implements IBindContext {

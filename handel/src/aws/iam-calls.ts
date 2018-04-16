@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
-import { AccountConfig } from '../datatypes';
 import awsWrapper from './aws-wrapper';
 
 /**

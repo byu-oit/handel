@@ -16,25 +16,23 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     BindContext,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { bindPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as memcached from '../../../src/services/memcached';
 import { MemcachedServiceConfig } from '../../../src/services/memcached/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -103,7 +101,7 @@ describe('memcached deployer', () => {
     describe('bind', () => {
         it('should add the source sg to its own sg as an ingress rule', async () => {
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOFService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
-            const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf').resolves(new BindContext(serviceContext, dependentOfServiceContext));
+            const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
             const bindContext = await memcached.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
             expect(bindContext).to.be.instanceof(BindContext);

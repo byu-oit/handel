@@ -16,9 +16,12 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
 import 'mocha';
@@ -27,9 +30,7 @@ import config from '../../../src/account-config/account-config';
 import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
+
 } from '../../../src/datatypes';
 import * as iot from '../../../src/services/iot';
 import { IotServiceConfig, IotServiceEventConsumer } from '../../../src/services/iot/config-types';

@@ -15,13 +15,13 @@
  *
  */
 import * as fs from 'fs';
+import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../../datatypes';
 import { BeanstalkServiceConfig, EbextensionsToInject } from './config-types';
 import * as ebextensions from './ebextensions';
 

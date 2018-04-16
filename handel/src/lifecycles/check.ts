@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as util from '../common/util';
-import { AccountConfig, CheckOptions, EnvironmentsCheckResults, HandelFile, HandelFileParser } from '../datatypes';
+import { CheckOptions, EnvironmentsCheckResults, HandelFile, HandelFileParser } from '../datatypes';
 import * as checkPhase from '../phases/check';
 
 // TODO - This is ugly having to inject a fake account config just to run a check. We should refactor not to have to do this.

@@ -76,25 +76,6 @@ export async function getSecurityGroupById(groupId: string, vpcId: string): Prom
 }
 
 /**
- * Given a security group, determines whether the given combination of protocol, start port,
- * end port, and source already exists as an ingress rule on the security group
- */
-export function ingressRuleExists(securityGroup: AWS.EC2.SecurityGroup, startPort: number, endPort: number, protocol: string, sourceSg: AWS.EC2.SecurityGroup): boolean {
-    let exists = false;
-    for (const ingressRule of securityGroup.IpPermissions!) {
-        if (ingressRule.FromPort === startPort && ingressRule.ToPort === endPort && ingressRule.IpProtocol === protocol) {
-            for (const ingressRuleSource of ingressRule.UserIdGroupPairs!) {
-                if (ingressRuleSource.GroupId === sourceSg.GroupId) {
-                    exists = true;
-                    break;
-                }
-            }
-        }
-    }
-    return exists;
-}
-
-/**
  * Removes all ingress rules from the given security group. It really does remove
  * ALL of them, so be careful where you use this!
  */
@@ -121,56 +102,6 @@ export async function removeAllIngressFromSg(sgName: string, vpcId: string): Pro
     else {
         return true; // Sg has already been deleted
     }
-}
-
-/**
- * Given a security group, adds an ingress rule from the given source security group
- * if that ingress rule doesn't already exist
- */
-export async function addIngressRuleToSgIfNotExists(sourceSg: AWS.EC2.SecurityGroup, destSg: AWS.EC2.SecurityGroup,
-    protocol: string, startPort: number,
-    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup | null> {
-    const securityGroup = await getSecurityGroup(destSg.GroupName!, destSg.VpcId!);
-    if (securityGroup) {
-        if (!ingressRuleExists(securityGroup, startPort, endPort, protocol, sourceSg)) {
-            return addIngressRuleToSecurityGroup(sourceSg, destSg, protocol, startPort, endPort, vpcId);
-        }
-        else {
-            return destSg;
-        }
-    }
-    else {
-        throw new Error('addIngressRuleToSgIfNotExists - missing security group');
-    }
-}
-
-/**
- * Adds an ingress rule from the given source security group to the given
- * destination security group
- */
-export async function addIngressRuleToSecurityGroup(sourceSg: AWS.EC2.SecurityGroup, destSg: AWS.EC2.SecurityGroup,
-    protocol: string, startPort: number,
-    endPort: number, vpcId: string): Promise<AWS.EC2.SecurityGroup | null> {
-    const addIngressParams: AWS.EC2.AuthorizeSecurityGroupIngressRequest = {
-        GroupId: destSg.GroupId,
-        IpPermissions: [
-            {
-                IpProtocol: protocol,
-                FromPort: startPort,
-                ToPort: endPort,
-                UserIdGroupPairs: [
-                    {
-                        GroupId: sourceSg.GroupId,
-                        VpcId: vpcId
-                    }
-                ]
-            }
-        ]
-    };
-    winston.verbose(`Adding ingress rule to security group ${destSg.GroupId} from group ${sourceSg.GroupId}`);
-    const authorizeResult = await awsWrapper.ec2.authorizeSecurityGroupIngress(addIngressParams);
-    winston.verbose(`Added ingress rule to security group ${destSg.GroupId} from group ${sourceSg.GroupId}`);
-    return getSecurityGroup(destSg.GroupName!, vpcId);
 }
 
 /**

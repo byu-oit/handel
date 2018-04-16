@@ -81,7 +81,7 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
     const stackTags = getTags(ownServiceContext);

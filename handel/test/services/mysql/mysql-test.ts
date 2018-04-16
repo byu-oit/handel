@@ -16,27 +16,25 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     BindContext,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { bindPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
 import * as ssmCalls from '../../../src/aws/ssm-calls';
-import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as mysql from '../../../src/services/mysql';
 import { MySQLConfig } from '../../../src/services/mysql/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -109,7 +107,7 @@ describe('mysql deployer', () => {
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
-            const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
+            const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
             const bindContext = await mysql.bind(dependencyServiceContext, dependencyPreDeployContext,

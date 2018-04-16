@@ -15,14 +15,13 @@
  *
  */
 import { expect } from 'chai';
-import { PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as preDeployPhaseCommon from '../../src/common/pre-deploy-phase-common';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('PreDeploy Phase Common module', () => {

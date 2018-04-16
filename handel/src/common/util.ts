@@ -17,14 +17,14 @@
 import * as archiver from 'archiver';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
-import { ServiceRegistry } from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
 import pascalCase = require('pascal-case');
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
+import { HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {

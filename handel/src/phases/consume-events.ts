@@ -15,17 +15,19 @@
  *
  */
 import { IDeployContext, isConsumeEventsContext } from 'handel-extension-api';
-import {ServiceRegistry} from 'handel-extension-api';
+import {
+    ServiceConfig,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceRegistry
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
 import {
     ConsumeEventsContexts,
     DeployContexts,
     DontBlameHandelError,
-    EnvironmentContext,
-    ServiceConfig,
-    ServiceContext,
-    ServiceDeployer
+    EnvironmentContext
 } from '../datatypes';
 
 interface ConsumeEventAction {

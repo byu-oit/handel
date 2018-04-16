@@ -315,7 +315,7 @@ export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenci
 }
 
 export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
 
     const stackTags = getTags(ownServiceContext);

@@ -15,11 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import * as common from '../../../src/services/apigateway/common';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

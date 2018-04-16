@@ -104,7 +104,7 @@ export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Pro
 }
 
 export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
     if(ownServiceContext.params.swagger) {
         return swaggerDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);

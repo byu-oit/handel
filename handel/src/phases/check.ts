@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceConfig, ServiceContext, ServiceDeployer, ServiceRegistry} from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import {getTags} from '../common/tagging-common';
-import {EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
+import { EnvironmentContext } from '../datatypes';
 
 export function checkServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): string[] {
     winston.info(`Checking services in environment ${environmentContext.environmentName}`);

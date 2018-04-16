@@ -15,12 +15,12 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as ecsServiceAutoScaling from '../../src/common/ecs-service-auto-scaling';
 import { AutoScalingPolicyType } from '../../src/common/ecs-shared-config-types';
-import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { FargateServiceConfig } from '../../src/services/ecs-fargate/config-types';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 

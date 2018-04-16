@@ -136,7 +136,7 @@ export async function preDeploy(serviceContext: ServiceContext<FargateServiceCon
 }
 
 export async function deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying ECS Fargate Service '${stackName}'`);
 
     await ecsCalls.createDefaultClusterIfNotExists();

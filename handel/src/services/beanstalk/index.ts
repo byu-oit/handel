@@ -291,7 +291,7 @@ export async function preDeploy(serviceContext: ServiceContext<BeanstalkServiceC
 }
 
 export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying Beanstalk application '${stackName}'`);
 
     const serviceRole = await deployPhaseCommon.createCustomRole('elasticbeanstalk.amazonaws.com', 'HandelBeanstalkServiceRole', getPolicyStatementsForServiceRole(), ownServiceContext.accountConfig);

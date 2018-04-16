@@ -16,9 +16,12 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
 import 'mocha';
@@ -27,11 +30,6 @@ import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

@@ -197,7 +197,3 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
         }
     ];
 }
-
-export function getResourceName(serviceContext: ServiceContext<ServiceConfig>) {
-    return `${serviceContext.appName}-${serviceContext.environmentName}-${serviceContext.serviceName}-${serviceContext.serviceType.name}`;
-}

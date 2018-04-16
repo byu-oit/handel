@@ -196,7 +196,7 @@ export function check(serviceContext: ServiceContext<SqsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);

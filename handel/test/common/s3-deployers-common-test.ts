@@ -15,12 +15,12 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../src/common/s3-deployers-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('S3 deployers common module', () => {

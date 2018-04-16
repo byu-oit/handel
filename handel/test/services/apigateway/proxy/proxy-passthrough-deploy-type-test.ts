@@ -15,13 +15,12 @@
  *
  */
 import {expect} from 'chai';
-import { DeployContext, PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as route53 from '../../../../src/aws/route53-calls';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../../src/datatypes';
 import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';

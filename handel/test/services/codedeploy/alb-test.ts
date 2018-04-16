@@ -15,11 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53Calls from '../../../src/aws/route53-calls';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import * as alb from '../../../src/services/codedeploy/alb';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

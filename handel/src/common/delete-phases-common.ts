@@ -14,12 +14,11 @@
  * limitations under the License.
  *
  */
-import { UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as s3Calls from '../aws/s3-calls';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 
 async function unBindAllOnSg(stackName: string, accountConfig: AccountConfig) {
@@ -41,7 +40,7 @@ async function deleteSecurityGroupForService(stackName: string) {
 
 export async function unDeployService(serviceContext: ServiceContext<ServiceConfig>, serviceType: string) {
     const accountConfig = serviceContext.accountConfig;
-    const stackName = deployPhaseCommon.getResourceName(serviceContext);
+    const stackName = serviceContext.getResourceName();
     winston.info(`${serviceType} - Undeploying service '${stackName}'`);
 
     // Delete stack if needed
@@ -66,7 +65,7 @@ export async function unDeployService(serviceContext: ServiceContext<ServiceConf
 }
 
 export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
-    const sgName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const sgName = ownServiceContext.getResourceName();
     winston.info(`${serviceName} - Deleting security group '${sgName}'`);
 
     const success = await deleteSecurityGroupForService(sgName);
@@ -75,7 +74,7 @@ export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext
 }
 
 export async function unBindSecurityGroups(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
-    const sgName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const sgName = ownServiceContext.getResourceName();
     winston.info(`${serviceName} - Unbinding security group '${sgName}'`);
 
     const success = await unBindAllOnSg(sgName, ownServiceContext.accountConfig);

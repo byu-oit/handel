@@ -14,7 +14,15 @@
  * limitations under the License.
  *
  */
-import { IDeployContext, isProduceEventsContext, ServiceRegistry} from 'handel-extension-api';
+import {
+    IDeployContext,
+    isProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceEventConsumer,
+    ServiceRegistry
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
 import {
@@ -22,10 +30,7 @@ import {
     DontBlameHandelError,
     EnvironmentContext,
     ProduceEventsContexts,
-    ServiceConfig,
-    ServiceContext,
-    ServiceDeployer,
-    ServiceEventConsumer
+
 } from '../datatypes';
 
 interface ProduceEventsAction {

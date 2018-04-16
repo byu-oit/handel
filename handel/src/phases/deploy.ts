@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
-import { IDeployContext, IPreDeployContext, isDeployContext, ServiceRegistry } from 'handel-extension-api';
+import {
+    IDeployContext,
+    IPreDeployContext,
+    isDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceRegistry
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
 import {
@@ -23,8 +30,7 @@ import {
     DontBlameHandelError,
     EnvironmentContext,
     PreDeployContexts,
-    ServiceConfig,
-    ServiceContext
+
 } from '../datatypes';
 
 function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: IPreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): IDeployContext[] {

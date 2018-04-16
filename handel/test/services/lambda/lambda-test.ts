@@ -16,9 +16,12 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     ConsumeEventsContext,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -32,14 +35,11 @@ import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
 } from '../../../src/datatypes';
 import * as lambda from '../../../src/services/lambda';
 import { LambdaServiceConfig } from '../../../src/services/lambda/config-types';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
+import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('lambda deployer', () => {
     let sandbox: sinon.SinonSandbox;

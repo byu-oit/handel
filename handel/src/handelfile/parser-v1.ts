@@ -15,17 +15,14 @@
  *
  */
 import * as Ajv from 'ajv';
-import { ServiceRegistry } from 'handel-extension-api';
+import { AccountConfig, ServiceContext, ServiceRegistry, ServiceType } from 'handel-extension-api';
 import * as _ from 'lodash';
 import * as util from '../common/util';
 import {
-    AccountConfig,
     EnvironmentContext,
     ExtensionList,
     HandelCoreOptions,
     HandelFile,
-    ServiceContext,
-    ServiceType
 } from '../datatypes';
 import { STDLIB_PREFIX } from '../services/stdlib';
 

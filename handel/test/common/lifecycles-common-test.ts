@@ -15,12 +15,22 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, BindContext, DeployContext, PreDeployContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    BindContext,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as lifecyclesCommon from '../../src/common/lifecycles-common';
-import { ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('lifecycles common module', () => {

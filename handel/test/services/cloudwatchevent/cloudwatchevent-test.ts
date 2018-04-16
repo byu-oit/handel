@@ -16,9 +16,12 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
 import 'mocha';
@@ -27,11 +30,6 @@ import config from '../../../src/account-config/account-config';
 import * as cloudWatchEventsCalls from '../../../src/aws/cloudwatch-events-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
 import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from '../../../src/services/cloudwatchevent/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

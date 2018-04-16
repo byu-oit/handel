@@ -17,9 +17,12 @@
 import { expect } from 'chai';
 import * as clone from 'clone';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
 import 'mocha';
@@ -29,11 +32,6 @@ import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as handlebarsUtils from '../../../src/common/handlebars-utils';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as dynamodb from '../../../src/services/dynamodb';
 import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

@@ -17,10 +17,13 @@
 import { expect } from 'chai';
 import * as clone from 'clone';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
-    UnPreDeployContext
+    UnPreDeployContext,
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
@@ -35,11 +38,6 @@ import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as ecs from '../../../src/services/ecs';
 import * as asgCycling from '../../../src/services/ecs/asg-cycling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';

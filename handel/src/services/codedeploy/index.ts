@@ -82,7 +82,7 @@ export async function preDeploy(serviceContext: ServiceContext<CodeDeployService
 }
 
 export async function deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
 
     const stackTags = taggingCommon.getTags(ownServiceContext);

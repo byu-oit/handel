@@ -2,7 +2,8 @@
   "lerna": "2.8.0",
   "packages": [
     "handel",
-    "extension-api"
+    "extension-api",
+    "extension-support"
   ],
   "version": "0.26.2"
 }

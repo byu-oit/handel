@@ -24,9 +24,9 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { bindPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
 import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as handlebarsUtils from '../../common/handlebars-utils';
@@ -119,7 +119,7 @@ export function bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
                      ownPreDeployContext: PreDeployContext,
                      dependentOfServiceContext: ServiceContext<ServiceConfig>,
                      dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext,
+    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
         ownPreDeployContext,
         dependentOfServiceContext,
         dependentOfPreDeployContext,
@@ -131,7 +131,7 @@ export function bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
 export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>,
                              ownPreDeployContext: PreDeployContext,
                              dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
 
     const stack = await cloudFormationCalls.getStack(stackName);

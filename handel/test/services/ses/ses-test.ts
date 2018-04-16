@@ -15,12 +15,17 @@
  *
  */
 import { expect } from 'chai';
-import { DeployContext, PreDeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sesCalls from '../../../src/aws/ses-calls';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import * as ses from '../../../src/services/ses';
 import { SesServiceConfig } from '../../../src/services/ses/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

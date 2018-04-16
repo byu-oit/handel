@@ -16,8 +16,11 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -29,12 +32,7 @@ import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    InstanceScalingPolicyType,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
+import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';

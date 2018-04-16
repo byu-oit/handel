@@ -16,7 +16,13 @@
  */
 import {expect} from 'chai';
 import * as fs from 'fs';
-import { DeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -26,10 +32,7 @@ import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as util from '../../src/common/util';
 import {
-    AccountConfig,
-    ServiceConfig,
-    ServiceContext,
-    ServiceType,
+
 } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
@@ -268,13 +271,6 @@ describe('Deploy phase common module', () => {
             expect(policyStatements.length).to.equal(2);
             expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
             expect(policyStatements[1].Resource[1]).to.contain(`parameter/handel.global*`);
-        });
-    });
-
-    describe('getResourceName', () => {
-        it('should return a consistent name for Handel-created resources from the service context', () => {
-            const resourceName = deployPhaseCommon.getResourceName(serviceContext);
-            expect(resourceName).to.equal('FakeApp-FakeEnv-FakeService-FakeType');
         });
     });
 

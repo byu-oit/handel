@@ -16,8 +16,11 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
 import 'mocha';
@@ -25,11 +28,6 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as kms from '../../../src/services/kms';
 import { KmsServiceConfig } from '../../../src/services/kms/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

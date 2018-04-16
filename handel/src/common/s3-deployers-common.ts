@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as cloudFormationCalls from '../aws/cloudformation-calls';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
 import * as deployPhaseCommon from './deploy-phase-common';
 import * as handlebarsUtils from './handlebars-utils';
 

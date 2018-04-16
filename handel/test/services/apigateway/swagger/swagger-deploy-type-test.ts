@@ -16,18 +16,16 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../../src/datatypes';
 import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
 import * as swaggerDeployType from '../../../../src/services/apigateway/swagger/swagger-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';

@@ -15,12 +15,12 @@
  *
  */
 import { expect } from 'chai';
-import { PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, PreDeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as util from '../../src/common/util';
-import { AccountConfig, DeployOptions, ServiceContext, ServiceType } from '../../src/datatypes';
+import { DeployOptions } from '../../src/datatypes';
 import * as handelFileParser from '../../src/handelfile/parser-v1';
 import * as deployLifecycle from '../../src/lifecycles/deploy';
 import * as bindPhase from '../../src/phases/bind';

@@ -15,10 +15,10 @@
  *
  */
 import * as fs from 'fs';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
 import { APIAccessConfig } from './config-types';
 
 const SERVICE_NAME = 'API Access';
@@ -65,7 +65,7 @@ export function check(serviceContext: ServiceContext<APIAccessConfig>, dependenc
 }
 
 export async function deploy(ownServiceContext: ServiceContext<APIAccessConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying ${SERVICE_NAME} '${stackName}'`);
     return getDeployContext(ownServiceContext);
 }
