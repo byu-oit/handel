@@ -196,8 +196,8 @@ export function createEnvironmentContext(handelFile: HandelFile, handelFileParse
 }
 
 export function configureAwsSdk(accountConfig: AccountConfig): void {
+    process.env.AWS_REGION = accountConfig.region;
     AWS.config.update({
-        region: accountConfig.region,
         maxRetries: 10
     });
 }
