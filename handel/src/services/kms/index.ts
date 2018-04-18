@@ -15,21 +15,18 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import {KmsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'KMS';
 
 function getDeployContext(serviceContext: ServiceContext<KmsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const keyId = cloudFormationCalls.getOutput('KeyId', cfStack);
-    const keyArn = cloudFormationCalls.getOutput('KeyArn', cfStack);
-    const aliasName = cloudFormationCalls.getOutput('AliasName', cfStack);
-    const aliasArn = cloudFormationCalls.getOutput('AliasArn', cfStack);
+    const keyId = extensionSupport.awsCalls.cloudFormation.getOutput('KeyId', cfStack);
+    const keyArn = extensionSupport.awsCalls.cloudFormation.getOutput('KeyArn', cfStack);
+    const aliasName = extensionSupport.awsCalls.cloudFormation.getOutput('AliasName', cfStack);
+    const aliasArn = extensionSupport.awsCalls.cloudFormation.getOutput('AliasArn', cfStack);
 
     const deployContext = new DeployContext(serviceContext);
 
@@ -70,7 +67,7 @@ async function getCompiledTemplate(ownServiceContext: ServiceContext<KmsServiceC
         alias: serviceParams.alias || getDefaultAlias(ownServiceContext)
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/kms-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/kms-template.yml`, handlebarsParams);
 }
 
 function getDefaultAlias(serviceContext: ServiceContext<KmsServiceConfig>): string {
@@ -106,14 +103,14 @@ export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<KmsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

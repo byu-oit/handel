@@ -22,14 +22,11 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as cloudWatchEventsCalls from '../../aws/cloudwatch-events-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
 
@@ -39,7 +36,7 @@ function getDeployContext(serviceContext: ServiceContext<CloudWatchEventsConfig>
     const deployContext = new DeployContext(serviceContext);
 
     // Event outputs for consumers of CloudWatch events
-    const eventRuleArn = cloudFormationCalls.getOutput('EventRuleArn', deployedStack);
+    const eventRuleArn = extensionSupport.awsCalls.cloudFormation.getOutput('EventRuleArn', deployedStack);
     deployContext.eventOutputs.eventRuleArn = eventRuleArn;
     deployContext.eventOutputs.principal = 'events.amazonaws.com';
 
@@ -58,7 +55,7 @@ async function getCompiledEventRuleTemplate(stackName: string, serviceContext: S
     if (serviceParams.schedule) {
         handlebarsParams.scheduleExpression = serviceParams.schedule;
     }
-    const template = await handlebarsUtils.compileTemplate(`${__dirname}/event-rule-template.yml`, handlebarsParams);
+    const template = await extensionSupport.handlebars.compileTemplate(`${__dirname}/event-rule-template.yml`, handlebarsParams);
     // NOTE: This is a bit odd, but the syntax of event patterns is complex enough that it's easiest to just provide
     //  a pass-through to the AWS event rule syntax for anyone wanting to specify an event pattern.
     const templateObj = yaml.safeLoad(template) as any;
@@ -93,7 +90,7 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
     winston.info(`${SERVICE_NAME} - Deploying event rule ${stackName}`);
 
     const eventRuleTemplate = await getCompiledEventRuleTemplate(stackName, ownServiceContext);
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, eventRuleTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying event rule ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -137,7 +134,7 @@ export async function unDeploy(ownServiceContext: ServiceContext<CloudWatchEvent
     else {
         winston.info(`${SERVICE_NAME} - Rule '${stackName}' has already been deleted`);
     }
-    await deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    await extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
     return new UnDeployContext(ownServiceContext);
 }
 

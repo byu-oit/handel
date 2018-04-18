@@ -17,8 +17,8 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import { Tags } from 'handel-extension-api';
+import { awsCalls } from 'handel-extension-support';
 import * as winston from 'winston';
-import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
 function getObjectsToDelete(objects: AWS.S3.Object[]) {
@@ -214,7 +214,7 @@ export async function createBucket(bucketName: string, region: string, tags?: Ta
         await awsWrapper.s3.putBucketTagging({
             Bucket: bucketName,
             Tagging: {
-                TagSet: toAWSTagStyle(tags)
+                TagSet: awsCalls.tags.toAWSTagStyle(tags)
             }
         });
     }

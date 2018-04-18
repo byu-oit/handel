@@ -22,9 +22,9 @@ import {
     ServiceConfig,
     ServiceContext,
     Tags } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as os from 'os';
 import * as winston from 'winston';
-import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../common/util';
@@ -121,15 +121,15 @@ export function getAllPolicyStatementsForServiceRole(ownServicePolicyStatements:
 }
 
 export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
-    const stack = await cloudformationCalls.getStack(stackName);
+    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         winston.info(`${serviceType} - Creating stack '${stackName}'`);
-        return cloudformationCalls.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
+        return extensionSupport.awsCalls.cloudFormation.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
     }
     else {
         if (updatesSupported) {
             winston.info(`${serviceType} - Updating stack '${stackName}'`);
-            return cloudformationCalls.updateStack(stackName, cfTemplate, cfParameters, stackTags);
+            return extensionSupport.awsCalls.cloudFormation.updateStack(stackName, cfTemplate, cfParameters, stackTags);
         }
         else {
             winston.info(`${serviceType} - Updates not supported for this service type`);

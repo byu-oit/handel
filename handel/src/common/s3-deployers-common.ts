@@ -15,9 +15,8 @@
  *
  */
 import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
-import * as cloudFormationCalls from '../aws/cloudformation-calls';
+import * as extensionSupport from 'handel-extension-support';
 import * as deployPhaseCommon from './deploy-phase-common';
-import * as handlebarsUtils from './handlebars-utils';
 
 export async function createLoggingBucketIfNotExists(accountConfig: AccountConfig) {
     const stackName = 'HandelS3LoggingBucket';
@@ -26,9 +25,9 @@ export async function createLoggingBucketIfNotExists(accountConfig: AccountConfi
         bucketName
     };
 
-    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
+    const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', 30, accountConfig.handel_resource_tags || {});
-    return cloudFormationCalls.getOutput('BucketName', deployedStack);
+    return extensionSupport.awsCalls.cloudFormation.getOutput('BucketName', deployedStack);
 }
 
 export function getLogFilePrefix(serviceContext: ServiceContext<ServiceConfig>) {

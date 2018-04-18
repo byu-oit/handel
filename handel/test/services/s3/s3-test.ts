@@ -24,11 +24,11 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
@@ -201,7 +201,7 @@ describe('s3 deployer', () => {
                     bucket_name: bucketName
                 };
 
-                const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
+                const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
 
                 const unDeployContext = await s3.unDeploy(ownServiceContext);
                 expect(unDeployContext).to.be.instanceof(UnDeployContext);

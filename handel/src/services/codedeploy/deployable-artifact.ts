@@ -15,10 +15,10 @@
  *
  */
 import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
 
@@ -48,7 +48,7 @@ async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: Service
                         originalScriptLocation: eventMapping.location,
                         envVarsToInject: getEnvVariablesToInject(serviceContext, dependenciesDeployContexts)
                     };
-                    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
+                    const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
                     const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;
                     util.writeFileSync(`${dirPath}/${wrapperScriptLocation}`, compiledTemplate);
 

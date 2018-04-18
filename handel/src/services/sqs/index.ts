@@ -22,13 +22,10 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as sqsCalls from '../../aws/sqs-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
 
@@ -109,16 +106,16 @@ function getCompiledSqsTemplate(stackName: string, serviceContext: ServiceContex
         }
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const queueName = cloudFormationCalls.getOutput('QueueName', cfStack);
-    const queueArn = cloudFormationCalls.getOutput('QueueArn', cfStack);
-    const queueUrl = cloudFormationCalls.getOutput('QueueUrl', cfStack);
-    const deadLetterQueueName = cloudFormationCalls.getOutput('DeadLetterQueueName', cfStack);
-    const deadLetterQueueArn = cloudFormationCalls.getOutput('DeadLetterQueueArn', cfStack);
-    const deadLetterQueueUrl = cloudFormationCalls.getOutput('DeadLetterQueueUrl', cfStack);
+    const queueName = extensionSupport.awsCalls.cloudFormation.getOutput('QueueName', cfStack);
+    const queueArn = extensionSupport.awsCalls.cloudFormation.getOutput('QueueArn', cfStack);
+    const queueUrl = extensionSupport.awsCalls.cloudFormation.getOutput('QueueUrl', cfStack);
+    const deadLetterQueueName = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueName', cfStack);
+    const deadLetterQueueArn = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueArn', cfStack);
+    const deadLetterQueueUrl = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueUrl', cfStack);
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
@@ -200,7 +197,7 @@ export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -231,7 +228,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SqsService
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

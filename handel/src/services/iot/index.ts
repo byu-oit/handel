@@ -22,12 +22,10 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
-import {getTags} from '../../common/tagging-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
 
@@ -57,7 +55,7 @@ function getCompiledTopicRuleTemplate(description: string, ruleName: string, sql
         actions
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/iot-topic-rule-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/iot-topic-rule-template.yml`, handlebarsParams);
 }
 
 function getStackNameFromRuleName(ruleName: string) {
@@ -68,10 +66,10 @@ async function deleteTopicRule(ruleName: string) {
     winston.info(`${SERVICE_NAME} - Executing UnDeploy on topic rule '${ruleName}'`);
 
     const stackName = getStackNameFromRuleName(ruleName);
-    const stack = await cloudformationCalls.getStack(stackName);
+    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (stack) {
         winston.info(`${SERVICE_NAME} - Deleting stack '${stackName}'`);
-        return cloudformationCalls.deleteStack(stackName);
+        return extensionSupport.awsCalls.cloudFormation.deleteStack(stackName);
     }
     else {
         winston.info(`${SERVICE_NAME} - Stack '${stackName}' has already been deleted`);
@@ -128,7 +126,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
         throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
     }
 
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const serviceParams = ownServiceContext.params;
     const stackName = getStackNameFromRuleName(ruleName);
     const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;

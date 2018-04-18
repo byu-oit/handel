@@ -21,7 +21,6 @@ import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
-import pascalCase = require('pascal-case');
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import { HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
@@ -249,15 +248,6 @@ export function deleteFolderRecursive(dirPath: string) {
         });
         fs.rmdirSync(dirPath);
     }
-}
-
-/**
- * Turns a string into a valid CloudFormation Logical ID
- * @param id
- * @returns {string}
- */
-export function normalizeLogicalId(id: string) {
-    return pascalCase(id, undefined, true);
 }
 
 export function makeTmpDir(): string {

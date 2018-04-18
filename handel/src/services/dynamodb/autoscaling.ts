@@ -15,10 +15,8 @@
  *
  */
 import { Tags } from 'handel-extension-api';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
+import * as extensionSupport from 'handel-extension-support';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import { normalizeLogicalId } from '../../common/util';
 import * as types from './config-types';
 
 /* tslint:disable:max-classes-per-file */
@@ -70,9 +68,9 @@ export function deployAutoscaling(mainStackName: string,
 
 export async function undeployAutoscaling(ownServiceContext: types.DynamoDBContext) {
     const stackName = getAutoscalingStackName(ownServiceContext);
-    const stack = await cloudFormationCalls.getStack(stackName);
+    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (stack) {
-        return cloudFormationCalls.deleteStack(stackName);
+        return extensionSupport.awsCalls.cloudFormation.deleteStack(stackName);
     }
 }
 
@@ -158,7 +156,7 @@ function getCompiledAutoscalingTemplate(tableName: string, ownServiceContext: ty
         targets: getScalingTargets(serviceParams, tableName)
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
 }
 
 function getScalingTargets(serviceParams: types.DynamoDBConfig, tableName: string) {
@@ -176,7 +174,7 @@ function getScalingTargets(serviceParams: types.DynamoDBConfig, tableName: strin
                 return extractScalingTargets(
                     throughput,
                     ScalingTargetTypes.INDEX,
-                    'Index' + normalizeLogicalId(idxName),
+                    'Index' + extensionSupport.util.normalizeLogicalId(idxName),
                     'table/' + tableName + '/index/' + idxName
                 );
             }).reduce((acc, cur) => {

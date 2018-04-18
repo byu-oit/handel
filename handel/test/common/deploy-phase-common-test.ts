@@ -23,10 +23,10 @@ import {
     ServiceContext,
     ServiceType
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as iamCalls from '../../src/aws/iam-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
@@ -176,8 +176,8 @@ describe('Deploy phase common module', () => {
 
     describe('deployCloudFormationStack', () => {
         it('should create the stack if it doesnt exist yet', async () => {
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
-            const createStackStub = sandbox.stub(cloudformationCalls, 'createStack').returns(Promise.resolve({}));
+            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve(null));
+            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').returns(Promise.resolve({}));
             const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
@@ -185,8 +185,8 @@ describe('Deploy phase common module', () => {
         });
 
         it('should update the stack if it exists and updates are supported', async () => {
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
-            const updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve({}));
+            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
+            const updateStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'updateStack').returns(Promise.resolve({}));
             const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
@@ -194,8 +194,8 @@ describe('Deploy phase common module', () => {
         });
 
         it('should just return the stack if it exists and updates are not supported', async () => {
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
-            const updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').returns(Promise.resolve(null));
+            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
+            const updateStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'updateStack').returns(Promise.resolve(null));
             const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], false, 'FakeService', 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);

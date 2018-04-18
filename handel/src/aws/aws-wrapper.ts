@@ -25,32 +25,6 @@
 import * as AWS from 'aws-sdk';
 
 const awsWrapper = {
-    cloudFormation: {
-        describeStacks: (params: AWS.CloudFormation.DescribeStacksInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.describeStacks(params).promise();
-        },
-        waitFor: (stackState: any, params: AWS.CloudFormation.DescribeStacksInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.waitFor(stackState, params).promise();
-        },
-        createStack: (params: AWS.CloudFormation.CreateStackInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.createStack(params).promise();
-        },
-        deleteStack: (params: AWS.CloudFormation.DeleteStackInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.deleteStack(params).promise();
-        },
-        describeStackEvents: (params: AWS.CloudFormation.DescribeStackEventsInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.describeStackEvents(params).promise();
-        },
-        updateStack: (params: AWS.CloudFormation.UpdateStackInput) => {
-            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-            return cloudformation.updateStack(params).promise();
-        }
-    },
     iam: {
         createRole: (params: AWS.IAM.CreateRoleRequest): Promise<AWS.IAM.CreateRoleResponse> => {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });

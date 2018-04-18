@@ -27,12 +27,11 @@ import {
     UnPreDeployContext
 } from 'handel-extension-api';
 import { bindPhase } from 'handel-extension-support';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import {
 
 } from '../../../src/datatypes';
@@ -107,7 +106,7 @@ describe('redis deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const preDeployCreateSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await redis.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -163,7 +162,7 @@ describe('redis deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await redis.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -173,7 +172,7 @@ describe('redis deployer', () => {
 
     describe('unBind', () => {
         it('should unbind the security group', async () => {
-            const unBindStub = sandbox.stub(deletePhasesCommon, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
+            const unBindStub = sandbox.stub(extensionSupport.deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
             const unBindContext = await redis.unBind(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
@@ -183,7 +182,7 @@ describe('redis deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await redis.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

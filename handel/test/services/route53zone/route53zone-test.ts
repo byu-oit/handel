@@ -23,10 +23,10 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as route53 from '../../../src/services/route53zone';
 import { Route53ZoneServiceConfig } from '../../../src/services/route53zone/config-types';
@@ -157,7 +157,7 @@ describe('route53zone deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             const unDeployContext = await route53.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

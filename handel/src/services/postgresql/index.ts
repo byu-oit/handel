@@ -24,15 +24,10 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { bindPhase } from 'handel-extension-support';
+import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { getTags } from '../../common/tagging-common';
 import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
 
 const SERVICE_NAME = 'PostgreSQL';
@@ -74,7 +69,7 @@ async function getCompiledPostgresTemplate(stackName: string,
         storageType: serviceParams.storage_type || PostgreSQLStorageType.STANDARD,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(postgresVersion),
-        tags: getTags(ownServiceContext)
+        tags: extensionSupport.tagging.getTags(ownServiceContext)
     };
 
     // Add parameters to parameter group if specified
@@ -87,7 +82,7 @@ async function getCompiledPostgresTemplate(stackName: string,
         handlebarsParams.multi_az = true;
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/postgresql-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/postgresql-template.yml`, handlebarsParams);
 }
 
 /**
@@ -112,14 +107,14 @@ export function check(serviceContext: ServiceContext<PostgreSQLConfig>,
 }
 
 export function preDeploy(serviceContext: ServiceContext<PostgreSQLConfig>): Promise<PreDeployContext> {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, POSTGRES_PORT, SERVICE_NAME);
+    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, POSTGRES_PORT, SERVICE_NAME);
 }
 
 export function bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
                      ownPreDeployContext: PreDeployContext,
                      dependentOfServiceContext: ServiceContext<ServiceConfig>,
                      dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+    return extensionSupport.bindPhase.bindDependentSecurityGroup(ownServiceContext,
         ownPreDeployContext,
         dependentOfServiceContext,
         dependentOfPreDeployContext,
@@ -134,20 +129,20 @@ export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>
     const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
 
-    const stack = await cloudFormationCalls.getStack(stackName);
+    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         const dbUsername = rdsDeployersCommon.getNewDbUsername();
         const dbPassword = rdsDeployersCommon.getNewDbPassword();
         const compiledTemplate = await getCompiledPostgresTemplate(stackName,
                                                                    ownServiceContext,
                                                                    ownPreDeployContext);
-        const cfParameters = cloudFormationCalls.getCfStyleStackParameters({
+        const cfParameters = extensionSupport.awsCalls.cloudFormation.getCfStyleStackParameters({
             DBUsername: dbUsername,
             DBPassword: dbPassword
         });
-        const stackTags = getTags(ownServiceContext);
+        const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
         winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await cloudFormationCalls.createStack(stackName,
+        const deployedStack = await extensionSupport.awsCalls.cloudFormation.createStack(stackName,
                                                                     compiledTemplate,
                                                                     cfParameters,
                                                                     30,
@@ -167,15 +162,15 @@ export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>
 }
 
 export function unPreDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnPreDeployContext> {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export function unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnBindContext> {
-    return deletePhasesCommon.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnDeployContext> {
-    const unDeployContext = await deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    const unDeployContext = await extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
     return rdsDeployersCommon.deleteParametersFromParameterStore(ownServiceContext, unDeployContext);
 }
 

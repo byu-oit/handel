@@ -16,11 +16,11 @@
  */
 import { expect } from 'chai';
 import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as util from '../../../src/common/util';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as deployableArtifact from '../../../src/services/codedeploy/deployable-artifact';
@@ -61,7 +61,7 @@ describe('codedeploy asg-launchconfig config module', () => {
                     }]
                 }
             });
-            const compileTemplateStub = sandbox.stub(handlebarsUtils, 'compileTemplate').resolves('Fake Compiled Template');
+            const compileTemplateStub = sandbox.stub(extensionSupport.handlebars, 'compileTemplate').resolves('Fake Compiled Template');
             const writeFileStub = sandbox.stub(util, 'writeFileSync').returns('');
             const uploadArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: 'FakeBucket',

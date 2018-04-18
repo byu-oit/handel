@@ -24,10 +24,10 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -216,7 +216,7 @@ describe('stepfunctions deployer', () => {
 
     describe('unDeploy', () => {
         it('should delete the stack', async () => {
-            const unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStack = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await stepfunctions.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

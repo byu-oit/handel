@@ -43,6 +43,61 @@ export async function getSecurityGroup(groupName: string, vpcId: string): Promis
 }
 
 /**
+ * Given the ID of a security group and VPC, returns the information about that
+ * security group, or null if it doesn't exist.
+ */
+export async function getSecurityGroupById(groupId: string, vpcId: string): Promise<AWS.EC2.SecurityGroup | null> {
+    const describeSgParams = {
+        Filters: [
+            {
+                Name: 'vpc-id',
+                Values: [vpcId]
+            },
+            {
+                Name: 'group-id',
+                Values: [groupId]
+            }
+        ]
+    };
+    const describeResults = await awsWrapper.ec2.describeSecurityGroups(describeSgParams);
+    if (describeResults.SecurityGroups && describeResults.SecurityGroups.length > 0) {
+        return describeResults.SecurityGroups[0];
+    }
+    else {
+        return null;
+    }
+}
+
+/**
+ * Removes all ingress rules from the given security group. It really does remove
+ * ALL of them, so be careful where you use this!
+ */
+export async function removeAllIngressFromSg(sgName: string, vpcId: string): Promise<boolean> {
+    const securityGroup = await getSecurityGroup(sgName, vpcId);
+    if (securityGroup) {
+        const ipPermissionsToRevoke = [];
+        for (const ipPermission of securityGroup.IpPermissions!) {
+            ipPermissionsToRevoke.push({
+                IpProtocol: ipPermission.IpProtocol,
+                FromPort: ipPermission.FromPort,
+                ToPort: ipPermission.ToPort,
+                UserIdGroupPairs: ipPermission.UserIdGroupPairs
+            });
+        }
+
+        const revokeParam = {
+            GroupId: securityGroup.GroupId,
+            IpPermissions: ipPermissionsToRevoke
+        };
+        await awsWrapper.ec2.revokeSecurityGroupIngress(revokeParam);
+        return true;
+    }
+    else {
+        return true; // Sg has already been deleted
+    }
+}
+
+/**
  * Given a security group, determines whether the given combination of protocol, start port,
  * end port, and source already exists as an ingress rule on the security group
  */

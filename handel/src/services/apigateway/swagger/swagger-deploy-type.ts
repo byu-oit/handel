@@ -16,13 +16,12 @@
  */
 import * as fs from 'fs';
 import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags} from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as tmp from 'tmp';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../../common/handlebars-utils';
-import {getTags} from '../../../common/tagging-common';
 import * as util from '../../../common/util';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
@@ -125,7 +124,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, params.custom_domains);
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/apigateway-swagger-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/apigateway-swagger-template.yml`, handlebarsParams);
 }
 
 function getHttpPassthroughPathParamsMapping(pathParams: any) {
@@ -249,7 +248,7 @@ export function check(ownServiceContext: ServiceContext<APIGatewayConfig>, depen
 export async function deploy(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], serviceName: string) {
     const swagger = loadSwaggerFile(ownServiceContext);
     let lambdasToCreate = getLambdasToCreate(stackName, swagger, ownServiceContext, dependenciesDeployContexts);
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const enrichedSwagger = enrichSwagger(stackName, swagger, ownServiceContext.accountConfig);
 
     lambdasToCreate = await uploadDeployableArtifactsToS3(ownServiceContext, lambdasToCreate, serviceName, enrichedSwagger);

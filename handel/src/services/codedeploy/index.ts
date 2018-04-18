@@ -15,14 +15,10 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import * as taggingCommon from '../../common/tagging-common';
 import * as alb from './alb';
 import * as asgLaunchConfig from './asg-launchconfig';
 import { CodeDeployServiceConfig, HandlebarsCodeDeployTemplate } from './config-types';
@@ -61,7 +57,7 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         handlebarsParams.sshKeyName = params.key_name;
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
 }
 
 /**
@@ -78,16 +74,16 @@ export function check(serviceContext: ServiceContext<CodeDeployServiceConfig>): 
 }
 
 export async function preDeploy(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const stackName = ownServiceContext.getResourceName();
     winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
 
-    const stackTags = taggingCommon.getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const serviceRole = await iamRoles.createCodeDeployServiceRoleIfNotExists(ownServiceContext);
-    const existingStack = await cloudformationCalls.getStack(stackName);
+    const existingStack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
     const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
@@ -106,11 +102,11 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 exports.producedEventsSupportedServices = [];

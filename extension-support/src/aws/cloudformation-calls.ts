@@ -16,7 +16,6 @@
  */
 import * as AWS from 'aws-sdk';
 import {Tags} from 'handel-extension-api';
-import * as winston from 'winston';
 import {toAWSTagStyle} from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
@@ -51,15 +50,12 @@ export async function getStack(stackName: string): Promise<AWS.CloudFormation.St
     const params = {
         StackName: stackName
     };
-    winston.verbose(`Looking for CloudFormation stack '${stackName}`);
     try {
         const describeResult = await awsWrapper.cloudFormation.describeStacks(params);
-        winston.verbose(`Found CloudFormation stack '${stackName}'`);
         return describeResult.Stacks![0];
     }
     catch (err) {
         if (err.code === 'ValidationError') { // Stack does not exist
-            winston.verbose(`CloudFormation stack '${stackName}' does not exist`);
             return null;
         }
         throw err;
@@ -70,12 +66,10 @@ export async function getStack(stackName: string): Promise<AWS.CloudFormation.St
  * Waits for the given stack to be in the given state
  */
 export async function waitForStack(stackName: string, stackState: string): Promise<AWS.CloudFormation.Stack> {
-    winston.verbose(`Waiting for stack '${stackName}' to be in ${stackState}`);
     const waitParams: AWS.CloudFormation.DescribeStacksInput = {
         StackName: stackName
     };
     const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
-    winston.verbose(`Stack '${stackName}' is in ${stackState}`);
     return waitResponse.Stacks![0];
 }
 
@@ -100,10 +94,8 @@ export async function createStack(stackName: string, templateBody: AWS.CloudForm
         params.Tags = toAWSTagStyle(tags);
     }
 
-    winston.verbose(`Creating CloudFormation stack '${stackName}'`);
     const createResult = await awsWrapper.cloudFormation.createStack(params);
     const stackId = createResult.StackId;
-    winston.verbose(`Created CloudFormation stack '${stackName}'`);
     try {
         const createdStack = await waitForStack(stackName, 'stackCreateComplete');
         return createdStack;
@@ -133,11 +125,9 @@ export async function updateStack(stackName: string, templateBody: AWS.CloudForm
         params.Tags = toAWSTagStyle(tags);
     }
 
-    winston.verbose(`Updating CloudFormation stack '${stackName}'`);
     try {
         const createResult = await awsWrapper.cloudFormation.updateStack(params);
         const stackId = createResult.StackId;
-        winston.verbose(`Updated CloudFormation stack '${stackName}'`);
         try {
             const updatedStack = await waitForStack(stackName, 'stackUpdateComplete');
             return updatedStack;
@@ -149,7 +139,6 @@ export async function updateStack(stackName: string, templateBody: AWS.CloudForm
     }
     catch (err) {
         if (err.message.includes('No updates are to be performed')) {
-            winston.verbose(`No stack updates were required for stack '${stackName}'`);
             return exports.getStack(stackName);
         }
         throw err;
@@ -166,13 +155,11 @@ export async function deleteStack(stackName: string): Promise<boolean> {
     const deleteParams: AWS.CloudFormation.DeleteStackInput = {
         StackName: stackName
     };
-    winston.verbose(`Deleting CloudFormation stack '${stackName}'`);
     const deleteResult = await awsWrapper.cloudFormation.deleteStack(deleteParams);
     const waitParams: AWS.CloudFormation.DescribeStacksInput = {
         StackName: stackName
     };
     const waitResponse = await awsWrapper.cloudFormation.waitFor('stackDeleteComplete', waitParams);
-    winston.verbose(`Deleted CloudFormation stack '${stackName}'`);
     return true;
 }
 

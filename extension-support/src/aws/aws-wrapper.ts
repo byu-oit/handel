@@ -25,6 +25,32 @@
 import * as AWS from 'aws-sdk';
 
 const awsWrapper = {
+    cloudFormation: {
+        describeStacks: (params: AWS.CloudFormation.DescribeStacksInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.describeStacks(params).promise();
+        },
+        waitFor: (stackState: any, params: AWS.CloudFormation.DescribeStacksInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.waitFor(stackState, params).promise();
+        },
+        createStack: (params: AWS.CloudFormation.CreateStackInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.createStack(params).promise();
+        },
+        deleteStack: (params: AWS.CloudFormation.DeleteStackInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.deleteStack(params).promise();
+        },
+        describeStackEvents: (params: AWS.CloudFormation.DescribeStackEventsInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.describeStackEvents(params).promise();
+        },
+        updateStack: (params: AWS.CloudFormation.UpdateStackInput) => {
+            const cloudformation = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
+            return cloudformation.updateStack(params).promise();
+        }
+    },
     ec2: {
         describeSecurityGroups: (params: AWS.EC2.DescribeSecurityGroupsRequest) => {
             const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
@@ -38,7 +64,17 @@ const awsWrapper = {
             const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
             return ec2.authorizeSecurityGroupIngress(params).promise();
         }
-    }
+    },
+    s3: {
+        listObjectsV2: (params: AWS.S3.ListObjectsV2Request) => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.listObjectsV2(params).promise();
+        },
+        deleteObjects: (params: AWS.S3.DeleteObjectsRequest) => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.deleteObjects(params).promise();
+        }
+    },
 };
 
 export default awsWrapper;

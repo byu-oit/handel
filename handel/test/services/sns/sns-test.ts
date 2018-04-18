@@ -26,11 +26,11 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as snsCalls from '../../../src/aws/sns-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as sns from '../../../src/services/sns';
 import { SnsServiceConfig } from '../../../src/services/sns/config-types';
@@ -212,7 +212,7 @@ describe('sns deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await sns.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

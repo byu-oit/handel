@@ -59,38 +59,6 @@ describe('ec2-calls', () => {
         });
     });
 
-    describe('removeAllIngressFromSg', () => {
-        it('should revoke all ingreess on the security group', async () => {
-            const describeSecurityGroupsStub = sandbox.stub(awsWrapper.ec2, 'describeSecurityGroups').resolves({
-                SecurityGroups: [{
-                    GroupId: 'FakeId',
-                    IpPermissions: [{
-                        IpProtocol: 'tcp',
-                        FromPort: 0,
-                        ToPort: 1024,
-                        UserIdGroupPairs: []
-                    }]
-                }]
-            });
-            const revokeIngressStub = sandbox.stub(awsWrapper.ec2, 'revokeSecurityGroupIngress').resolves({});
-
-            const success = await ec2Calls.removeAllIngressFromSg('FakeGroup', 'FakeVpcId');
-            expect(success).to.equal(true);
-            expect(describeSecurityGroupsStub.callCount).to.equal(1);
-            expect(revokeIngressStub.callCount).to.equal(1);
-        });
-
-        it('should return true if the security group has already been deleted', async () => {
-            const describeSecurityGroupsStub = sandbox.stub(awsWrapper.ec2, 'describeSecurityGroups').resolves({
-                SecurityGroups: []
-            });
-
-            const success = await ec2Calls.removeAllIngressFromSg('FakeGroup', 'FakeVpc');
-            expect(success).to.equal(true);
-            expect(describeSecurityGroupsStub.callCount).to.equal(1);
-        });
-    });
-
     describe('getLatestAmiByName', () => {
         it('should return the latest AMI from a list of AMIs with the given name substring', async () => {
             const latestCreationDate = '2017-01-27T19:23:17.000Z';

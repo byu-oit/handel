@@ -15,8 +15,8 @@
  *
  */
 import { AccountConfig, DeployContext } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 
 /**
  * This function calculates the user data script to be run on the cluster EC2 instances when launching.
@@ -35,7 +35,7 @@ export async function getUserDataScript(clusterName: string, dependenciesDeployC
         }
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/ecs-cluster-userdata-template.sh`, variables);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/ecs-cluster-userdata-template.sh`, variables);
 }
 
 /**

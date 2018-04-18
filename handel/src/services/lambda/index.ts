@@ -27,19 +27,15 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as lambdaCalls from '../../aws/lambda-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { STDLIB_PREFIX } from '../stdlib';
 import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
@@ -80,7 +76,7 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         memorySize: memorySize,
         timeout: timeout,
         policyStatements,
-        tags: getTags(ownServiceContext)
+        tags: extensionSupport.tagging.getTags(ownServiceContext)
     };
 
     // Inject environment variables (if any)
@@ -94,13 +90,13 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         handlebarsParams.vpcSecurityGroupIds = securityGroups;
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
     }
-    return handlebarsUtils.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
+    return extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const lambdaArn = cloudFormationCalls.getOutput('FunctionArn', cfStack);
-    const lambdaName = cloudFormationCalls.getOutput('FunctionName', cfStack);
+    const lambdaArn = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionArn', cfStack);
+    const lambdaName = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionName', cfStack);
 
     // Output policy for consuming this Lambda
     deployContext.policies.push({
@@ -148,9 +144,9 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     };
     let compiledTemplate;
     if (serviceContext.params.vpc) {
-        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
+        compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
     } else {
-        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
+        compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
     }
     let ownPolicyStatements = JSON.parse(compiledTemplate);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
@@ -250,7 +246,7 @@ export function check(serviceContext: ServiceContext<LambdaServiceConfig>, depen
 
 export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
     if (serviceContext.params.vpc) {
-        return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
         return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
@@ -267,7 +263,7 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     }
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -285,7 +281,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServ
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
     if (ownServiceContext.params.vpc) {
-        return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
         return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
@@ -293,7 +289,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServic
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
     await iamCalls.detachPoliciesFromRole(ownServiceContext.getResourceName());
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

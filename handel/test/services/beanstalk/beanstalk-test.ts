@@ -24,14 +24,13 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53 from '../../../src/aws/route53-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
@@ -119,7 +118,7 @@ describe('beanstalk deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const preDeployCreateSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await beanstalk.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -202,7 +201,7 @@ describe('beanstalk deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await beanstalk.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -212,7 +211,7 @@ describe('beanstalk deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await beanstalk.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

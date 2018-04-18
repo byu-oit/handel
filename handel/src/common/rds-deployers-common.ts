@@ -15,8 +15,8 @@
  *
  */
 import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as uuid from 'uuid';
-import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as deployPhaseCommon from '../common/deploy-phase-common';
 
@@ -25,9 +25,9 @@ export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
     const deployContext = new DeployContext(serviceContext);
 
     // Inject ENV variables to talk to this database
-    const address = cloudFormationCalls.getOutput('DatabaseAddress', rdsCfStack);
-    const port = cloudFormationCalls.getOutput('DatabasePort', rdsCfStack);
-    const dbName = cloudFormationCalls.getOutput('DatabaseName', rdsCfStack);
+    const address = extensionSupport.awsCalls.cloudFormation.getOutput('DatabaseAddress', rdsCfStack);
+    const port = extensionSupport.awsCalls.cloudFormation.getOutput('DatabasePort', rdsCfStack);
+    const dbName = extensionSupport.awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
 
     deployContext.addEnvironmentVariables(
         deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {

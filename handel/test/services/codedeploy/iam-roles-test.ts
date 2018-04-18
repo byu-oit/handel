@@ -16,11 +16,11 @@
  */
 import { expect } from 'chai';
 import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -48,7 +48,7 @@ describe('codedeploy asg-launchconfig config module', () => {
 
     describe('getStatementsForInstanceRole', () => {
         it('should return the list of IAM statements needed for the instance role', async () => {
-            const compileTemplateStub = sandbox.stub(handlebarsUtils, 'compileTemplate').resolves('[]');
+            const compileTemplateStub = sandbox.stub(extensionSupport.handlebars, 'compileTemplate').resolves('[]');
             const getAppSecretsStatementStub = sandbox.stub(deployPhaseCommon, 'getAppSecretsAccessPolicyStatements').resolves([]);
             const getAllStatementsStub = sandbox.stub(deployPhaseCommon, 'getAllPolicyStatementsForServiceRole').resolves([]);
 

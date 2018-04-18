@@ -15,10 +15,10 @@
  *
  */
 import { expect } from 'chai';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as defaultAccountConfig from '../../src/account-config/default-account-config';
-import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as stsCalls from '../../src/aws/sts-calls';
 
@@ -62,8 +62,8 @@ describe('default account config module', () => {
                     SubnetId: subnetIds[1]
                 }
             ]);
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves(null);
-            const createStackStub = sandbox.stub(cloudformationCalls, 'createStack').resolves({
+            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
+            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'RdsSubnetGroupName',

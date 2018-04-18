@@ -18,13 +18,13 @@ import * as AWS from 'aws-sdk';
 import { stripIndent } from 'common-tags';
 import * as fs from 'fs';
 import { AccountConfig, ServiceRegistry, Tags } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
 import * as stsCalls from '../aws/sts-calls';
-import { TAG_KEY_PATTERN, TAG_KEY_REGEX, TAG_VALUE_MAX_LENGTH } from '../common/tagging-common';
 import * as util from '../common/util';
 import {
     CheckOptions,
@@ -177,7 +177,7 @@ async function confirmDelete(envName: string, forceDelete: boolean): Promise<boo
     }
 }
 
-const TAG_PARAM_PATTERN = RegExp(`^(${TAG_KEY_PATTERN})=(.{1,${TAG_VALUE_MAX_LENGTH}})$`);
+const TAG_PARAM_PATTERN = RegExp(`^(${extensionSupport.tagging.TAG_KEY_PATTERN})=(.{1,${extensionSupport.tagging.TAG_VALUE_MAX_LENGTH}})$`);
 
 export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions): string[] {
     const {accountConfig, environments, tags} = opts;
@@ -191,14 +191,14 @@ export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions):
 
     if (tags) {
         for (const [tag, value] of _.entries(tags)) {
-            if (!TAG_KEY_REGEX.test(tag)) {
+            if (!extensionSupport.tagging.TAG_KEY_REGEX.test(tag)) {
                 errors.push(`The tag name is invalid: '${tag}'`);
             }
             if (value.length === 0) {
                 errors.push(`The value for tag '${tag}' must not be empty`);
             }
-            if (value.length > TAG_VALUE_MAX_LENGTH) {
-                errors.push(`The value for tag '${tag}' must be less than ${TAG_VALUE_MAX_LENGTH} in length.`);
+            if (value.length > extensionSupport.tagging.TAG_VALUE_MAX_LENGTH) {
+                errors.push(`The value for tag '${tag}' must be less than ${extensionSupport.tagging.TAG_VALUE_MAX_LENGTH} in length.`);
             }
         }
     }

@@ -25,15 +25,14 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as iamCalls from '../../../src/aws/iam-calls';
 import * as lambdaCalls from '../../../src/aws/lambda-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import {
 } from '../../../src/datatypes';
 import * as lambda from '../../../src/services/lambda';
@@ -130,7 +129,7 @@ describe('lambda deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: 'FakeSecurityGroup'
             });
-            const preDeployCreateSecurityGroup = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSecurityGroup = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await lambda.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -313,7 +312,7 @@ describe('lambda deployer', () => {
 
         it('should delete the security groups if vpc is true and return the unPreDeploy context', async () => {
             serviceContext.params.vpc = true;
-            const unPreDeploySecurityGroup = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeploySecurityGroup = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
             const unPreDeployContext = await lambda.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeploySecurityGroup.callCount).to.equal(1);
@@ -323,7 +322,7 @@ describe('lambda deployer', () => {
     describe('unDeploy', () => {
         it('should delete the stack', async () => {
             const detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').resolves();
-            const unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStack = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await lambda.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

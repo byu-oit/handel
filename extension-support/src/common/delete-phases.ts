@@ -15,11 +15,9 @@
  *
  */
 import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
-import * as winston from 'winston';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as s3Calls from '../aws/s3-calls';
-import * as deployPhaseCommon from './deploy-phase-common';
 
 async function unBindAllOnSg(stackName: string, accountConfig: AccountConfig) {
     const sgName = `${stackName}-sg`;
@@ -41,16 +39,11 @@ async function deleteSecurityGroupForService(stackName: string) {
 export async function unDeployService(serviceContext: ServiceContext<ServiceConfig>, serviceType: string) {
     const accountConfig = serviceContext.accountConfig;
     const stackName = serviceContext.getResourceName();
-    winston.info(`${serviceType} - Undeploying service '${stackName}'`);
 
     // Delete stack if needed
     const stack = await cloudformationCalls.getStack(stackName);
     if (stack) {
-        winston.debug(`${serviceType} - Deleting stack '${stackName}'`);
         await cloudformationCalls.deleteStack(stackName);
-    }
-    else {
-        winston.debug(`${serviceType} - Stack '${stackName}' has already been deleted`);
     }
 
     // Cleanup uploaded S3 files for service
@@ -60,24 +53,19 @@ export async function unDeployService(serviceContext: ServiceContext<ServiceConf
     };
     await s3Calls.deleteMatchingPrefix(name.bucket, name.prefix);
 
-    winston.info(`${serviceType} -- Finished undeploying service '${stackName}'`);
     return new UnDeployContext(serviceContext);
 }
 
 export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
     const sgName = ownServiceContext.getResourceName();
-    winston.info(`${serviceName} - Deleting security group '${sgName}'`);
 
     const success = await deleteSecurityGroupForService(sgName);
-    winston.info(`${serviceName} - Finished deleting security group '${sgName}'`);
     return new UnPreDeployContext(ownServiceContext);
 }
 
 export async function unBindSecurityGroups(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
     const sgName = ownServiceContext.getResourceName();
-    winston.info(`${serviceName} - Unbinding security group '${sgName}'`);
 
     const success = await unBindAllOnSg(sgName, ownServiceContext.accountConfig);
-    winston.info(`${serviceName} - Finished unbinding security group '${sgName}'`);
     return new UnBindContext(ownServiceContext);
 }

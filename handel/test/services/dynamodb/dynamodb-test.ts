@@ -25,13 +25,11 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as dynamodb from '../../../src/services/dynamodb';
 import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -319,7 +317,7 @@ describe('dynamodb deployer', () => {
             const fullTableName = 'FakeApp-FakeEnv-FakeService-dynamodb';
 
             beforeEach(() => {
-                templateSpy = sandbox.spy(handlebarsUtils, 'compileTemplate');
+                templateSpy = sandbox.spy(extensionSupport.handlebars, 'compileTemplate');
 
                 ownPreDeployContext = new PreDeployContext(serviceContext);
                 dependenciesDeployContexts = [];
@@ -496,8 +494,8 @@ describe('dynamodb deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve(null));
+            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             const unDeployContext = await dynamodb.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

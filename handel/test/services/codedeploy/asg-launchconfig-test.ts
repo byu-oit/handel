@@ -21,13 +21,12 @@ import {
     ServiceContext,
     ServiceType
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as autoScalingCalls from '../../../src/aws/auto-scaling-calls';
-import * as cloudformationCalls from '../../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
-import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
@@ -106,7 +105,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.scripts.push('Some Bash Script');
 
-            const compileTemplateStub = sandbox.stub(handlebarsUtils, 'compileTemplate').resolves('CompiledScript');
+            const compileTemplateStub = sandbox.stub(extensionSupport.handlebars, 'compileTemplate').resolves('CompiledScript');
 
             const userDataScript = await asgLaunchConfig.getUserDataScript(serviceContext, deployContexts);
             expect(userDataScript).to.equal('CompiledScript');
@@ -175,7 +174,7 @@ describe('codedeploy asg-launchconfig config module', () => {
         ];
         shouldRollTestParams.forEach(testParams => {
             it(`should return ${testParams.returnValue} if ${testParams.changedField} has changed`, async () => {
-                const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').returns('FakeLaunchConfig');
+                const getOutputStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getOutput').returns('FakeLaunchConfig');
                 const getLaunchConfigStub = sandbox.stub(autoScalingCalls, 'getLaunchConfiguration').resolves(testParams.launchConfig);
 
                 const existingStack: AWS.CloudFormation.Stack = {
@@ -194,7 +193,7 @@ describe('codedeploy asg-launchconfig config module', () => {
 
     describe('rollInstances', () => {
         it('should safely roll the instances in the autoscaling group', async () => {
-            const getOutputStub = sandbox.stub(cloudformationCalls, 'getOutput').resolves('FakeGroupName');
+            const getOutputStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getOutput').resolves('FakeGroupName');
             const getAsgStub = sandbox.stub(autoScalingCalls, 'getAutoScalingGroup').resolves({
                 DesiredCapacity: 2,
                 MaxSize: 3

@@ -24,9 +24,8 @@
     "child-process-es6-promise": "^1.2.0",
     "common-tags": "^1.7.2",
     "fs-extra": "^5.0.0",
-    "handel-extension-api": "^0.26.2",
+    "handel-extension-api": "^0.26.2",  
     "handel-extension-support": "^0.26.2",
-    "handlebars": "^4.0.6",
     "inquirer": "^3.3.0",
     "js-yaml": "3.7.0",
     "lodash": "^4.17.4",
@@ -34,8 +33,7 @@
     "pascal-case": "^2.0.1",
     "pjson": "^1.0.9",
     "tmp": "0.0.33",
-    "uuid": "^3.0.1",
-    "winston": "^2.3.1"
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/archiver": "^2.0.1",
@@ -44,7 +42,6 @@
     "@types/clone": "^0.1.30",
     "@types/common-tags": "^1.4.0",
     "@types/fs-extra": "^5.0.0",
-    "@types/handlebars": "^4.0.36",
     "@types/inquirer": "0.0.36",
     "@types/js-yaml": "^3.10.1",
     "@types/lodash": "^4.14.80",
@@ -56,7 +53,6 @@
     "@types/sinon-chai": "^2.7.29",
     "@types/tmp": "0.0.33",
     "@types/uuid": "^3.4.3",
-    "@types/winston": "^2.3.7",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "clone": "^2.1.1",
