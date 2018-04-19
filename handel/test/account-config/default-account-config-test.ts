@@ -77,7 +77,7 @@ describe('default account config module', () => {
             });
 
             // Invoke and return expectations
-            const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(`default-${region}`);
+            const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
             expect(getRegionsStub.callCount).to.equal(1);
             expect(getDefaultVpcStub.callCount).to.equal(1);
             expect(getAccountIdStub.callCount).to.equal(1);
@@ -102,7 +102,7 @@ describe('default account config module', () => {
             ]));
 
             try {
-                const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(`default-${region}`);
+                const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
                 expect(true).to.equal(false); // Should not get here
             }
             catch (err) {

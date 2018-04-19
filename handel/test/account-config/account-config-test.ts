@@ -43,20 +43,6 @@ describe('account config module', () => {
             expect(accountConfig).to.deep.equal({});
         });
 
-        it('should throw an error when default account config fails', async () => {
-            const errMessage = 'FakeMessage';
-            const getDefaultAccountConfigStub = sandbox.stub(defaultAccountConfig, 'getDefaultAccountConfig').rejects(new Error(errMessage));
-
-            try {
-                const accountConfig = await config(`default-us-east-1`);
-                expect(true).to.equal(false);
-            }
-            catch (err) {
-                expect(getDefaultAccountConfigStub.callCount).to.equal(1);
-                expect(err.message).to.deep.equal(errMessage);
-            }
-        });
-
         it('should obtain account config from the given file', async () => {
             const existsStub = sandbox.stub(fs, 'existsSync').returns(true);
             const resolveStub = sandbox.stub(path, 'resolve').returns('FakeAbsolutePath');

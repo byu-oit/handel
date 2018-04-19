@@ -49,25 +49,40 @@ async function getSubnetGroups(vpcId: string, subnetIds: string[]): Promise<AWS.
     }
 }
 
+async function isValidRegion(region: string) {
+    try {
+        const regions = await ec2Calls.getRegions();
+        return regions.includes(region);
+    }
+    catch (err) {
+        return false;
+    }
+}
+
 export async function getDefaultAccountConfig(region: string): Promise<AccountConfig> {
     // Set region so we can make calls to get the account VPC config (this will be set again later)
-    process.env.AWS_REGION = region; // This will be set later on also
-    const defaultVpc = await ec2Calls.getDefaultVpc();
-    const accountConfig: any = {
-        region,
-        vpc: defaultVpc.VpcId
-    };
+    const validRegion = await isValidRegion(region);
+    if(validRegion) {
+        const defaultVpc = await ec2Calls.getDefaultVpc();
+        const accountConfig: any = {
+            region,
+            vpc: defaultVpc.VpcId
+        };
 
-    accountConfig.account_id = await stsCalls.getAccountId();
+        accountConfig.account_id = await stsCalls.getAccountId();
 
-    const subnets = await getDefaultVpcSubnets(accountConfig.vpc);
-    // The default VPC only has three public subnets, so we just have to use those for all the different tiers Handel supports
-    accountConfig.public_subnets = subnets;
-    accountConfig.private_subnets = subnets;
-    accountConfig.data_subnets = subnets;
+        const subnets = await getDefaultVpcSubnets(accountConfig.vpc);
+        // The default VPC only has three public subnets, so we just have to use those for all the different tiers Handel supports
+        accountConfig.public_subnets = subnets;
+        accountConfig.private_subnets = subnets;
+        accountConfig.data_subnets = subnets;
 
-    const cfStack = await getSubnetGroups(accountConfig.vpc, accountConfig.data_subnets);
-    accountConfig.rds_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('RdsSubnetGroupName', cfStack);
-    accountConfig.elasticache_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('ElastiCacheSubnetGroupName', cfStack);
-    return accountConfig as AccountConfig;
+        const cfStack = await getSubnetGroups(accountConfig.vpc, accountConfig.data_subnets);
+        accountConfig.rds_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('RdsSubnetGroupName', cfStack);
+        accountConfig.elasticache_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('ElastiCacheSubnetGroupName', cfStack);
+        return accountConfig as AccountConfig;
+    }
+    else {
+        throw new Error(`Invalid region: ${region}`);
+    }
 }

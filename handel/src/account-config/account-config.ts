@@ -65,23 +65,6 @@ function configureAwsSdk(region: string): void {
     });
 }
 
-async function isValidRegion(region: string) {
-    try {
-        const regions = await ec2Calls.getRegions();
-        return regions.includes(region);
-    }
-    catch (err) {
-        return false;
-    }
-}
-
-async function validateRegion(region: string) {
-    const valid = await isValidRegion(region);
-    if (!valid) {
-        throw new Error(`Invalid region: '${region}'`);
-    }
-}
-
 /**
  * Given an account config file path or base64 encoded string, loads the account config
  */
@@ -90,20 +73,17 @@ export default async function(accountConfigParam: string): Promise<AccountConfig
     if (accountConfigParam.startsWith('default')) {
         const region = accountConfigParam.substring(accountConfigParam.indexOf('-') + 1);
         configureAwsSdk(region); // Set up AWS to use our chosen region
-        await validateRegion(region);
         accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
     }
     else if (fs.existsSync(accountConfigParam)) {
         const absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
         accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
         configureAwsSdk(accountConfig.region); // Set up AWS to use our chosen region
-        await validateRegion(accountConfig.region);
         validateAccountConfig(accountConfig);
     }
     else {
         accountConfig = yaml.safeLoad(new Buffer(accountConfigParam, 'base64').toString()) as AccountConfig;
         configureAwsSdk(accountConfig.region); // Set up AWS to use our chosen region
-        await validateRegion(accountConfig.region);
         validateAccountConfig(accountConfig);
     }
     return accountConfig;
