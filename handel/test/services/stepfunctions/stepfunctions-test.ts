@@ -173,7 +173,7 @@ describe('stepfunctions deployer', () => {
         it('should deploy the state machine', async () => {
             const stateMachineArn = 'StateMachineArn';
             const stateMachineName = 'StateMachineName';
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'StateMachineArn',

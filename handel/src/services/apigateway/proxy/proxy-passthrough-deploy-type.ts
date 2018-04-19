@@ -19,7 +19,6 @@ import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from 'ha
 import * as extensionSupport from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
 
@@ -27,7 +26,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGa
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = getParam(serviceContext.params, 'path_to_code', 'path_to_code', undefined);
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
 }
@@ -119,7 +118,7 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     const s3ObjectInfo = await uploadDeployableArtifactToS3(ownServiceContext, serviceName);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ObjectInfo, ownPreDeployContext);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);

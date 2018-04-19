@@ -299,7 +299,7 @@ export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceC
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
     const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, serviceRole, s3ArtifactInfo);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

@@ -100,7 +100,7 @@ describe('kms deployer', () => {
             };
             const preDeployContext = new PreDeployContext(serviceContext);
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'KeyId',
                     OutputValue: keyId
@@ -129,7 +129,7 @@ describe('kms deployer', () => {
         it('should create a default alias if none is specified', async () => {
             const aliasToUse = `alias/${appName}/${envName}/FakeService`;
             const aliasArn = 'arn:aws:kms:us-west-2:000000000:' + aliasToUse;
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'KeyId',
                     OutputValue: keyId
@@ -161,7 +161,7 @@ describe('kms deployer', () => {
         it('should set auto_rotate to true if not specified', async () => {
             const aliasToUse = `alias/${appName}/${envName}/FakeService`;
             const aliasArn = 'arn:aws:kms:us-west-2:000000000:' + aliasToUse;
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'KeyId',
                     OutputValue: keyId

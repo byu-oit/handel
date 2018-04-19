@@ -26,7 +26,6 @@ import * as extensionSupport from 'handel-extension-support';
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
 import * as cloudWatchEventsCalls from '../../aws/cloudwatch-events-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
 
@@ -91,7 +90,7 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
 
     const eventRuleTemplate = await getCompiledEventRuleTemplate(stackName, ownServiceContext);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, eventRuleTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, eventRuleTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying event rule ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

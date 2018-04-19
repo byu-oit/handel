@@ -146,7 +146,7 @@ describe('beanstalk deployer', () => {
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
 
             const sgGroupId = 'FakeSgId';
             const ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
@@ -168,7 +168,7 @@ describe('beanstalk deployer', () => {
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
 
             sandbox.stub(route53, 'listHostedZones').resolves([{
                 Id: '1',

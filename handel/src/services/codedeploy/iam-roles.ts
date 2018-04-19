@@ -25,7 +25,7 @@ export async function getStatementsForInstanceRole(ownServiceContext: ServiceCon
     const ownPolicyStatementsTemplate = `${__dirname}/codedeploy-instance-role-statements.handlebars`;
     const handlebarsParams = {
         region: accountConfig.region,
-        handelBucketName: deployPhaseCommon.getHandelUploadsBucketName(accountConfig)
+        handelBucketName: extensionSupport.deployPhase.getHandelUploadsBucketName(accountConfig)
     };
     const compiledPolicyStatements = await extensionSupport.handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
     let ownPolicyStatements = JSON.parse(compiledPolicyStatements);

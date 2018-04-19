@@ -139,7 +139,7 @@ describe('redis deployer', () => {
             const cachePort = 6379;
             const envPrefix = 'FAKESERVICE';
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'CacheAddress',

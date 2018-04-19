@@ -63,7 +63,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             });
             const compileTemplateStub = sandbox.stub(extensionSupport.handlebars, 'compileTemplate').resolves('Fake Compiled Template');
             const writeFileStub = sandbox.stub(util, 'writeFileSync').returns('');
-            const uploadArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadArtifactStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });

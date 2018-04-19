@@ -80,7 +80,7 @@ describe('cloudwatchevent deployer', () => {
             const preDeployContext = new PreDeployContext(serviceContext);
             const eventRuleArn = 'FakeEventRuleArn';
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn

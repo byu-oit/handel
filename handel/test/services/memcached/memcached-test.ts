@@ -125,7 +125,7 @@ describe('memcached deployer', () => {
         });
 
         it('should deploy the cluster', async () => {
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'CacheAddress',

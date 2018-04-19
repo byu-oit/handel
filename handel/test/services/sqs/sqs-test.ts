@@ -88,7 +88,7 @@ describe('sqs deployer', () => {
         it('should deploy the queue', async () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'QueueName',

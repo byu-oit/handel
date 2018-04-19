@@ -160,13 +160,13 @@ describe('lambda deployer', () => {
         }
 
         it('should deploy the lambda', async () => {
-            const uploadArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadArtifactStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Key: 'FakeKey',
                 Bucket: 'FakeBucket'
             });
             const functionArn = 'FakeFunctionArn';
             const functionName = 'FakeFunction';
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'FunctionArn',

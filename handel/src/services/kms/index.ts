@@ -104,7 +104,7 @@ export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

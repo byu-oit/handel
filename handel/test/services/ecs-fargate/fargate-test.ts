@@ -181,7 +181,7 @@ describe('fargate deployer', () => {
                 Id: '2',
                 Name: 'myapp.internal.'
             }]);
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
 
             // Run the test
             const deployContext = await ecsFargate.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);

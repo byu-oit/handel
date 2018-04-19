@@ -77,7 +77,7 @@ export async function prepareAndUploadDeployableArtifactToS3(serviceContext: Ser
 
     const s3FileName = `codedeploy-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
+    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
 
     util.deleteFolderRecursive(tempDirPath); // Delete the whole temp folder now that we're done with it

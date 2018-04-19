@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -57,8 +58,8 @@ describe('deployable artifact module', () => {
 
             const lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: () => true });
             const addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
-            const zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').resolves(true);
-            const uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').resolves({
+            const zipDirStub = sandbox.stub(extensionSupport.util, 'zipDirectoryToFile').resolves(true);
+            const uploadFileStub = sandbox.stub(extensionSupport.deployPhase, 'uploadFileToHandelBucket').resolves({
                 Bucket: bucket,
                 Key: key
             });

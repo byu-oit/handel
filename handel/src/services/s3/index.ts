@@ -152,7 +152,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>,
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

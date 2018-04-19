@@ -4,6 +4,7 @@ import * as ec2Calls from './aws/ec2-calls';
 import * as s3Calls from './aws/s3-calls';
 import * as bindPhaseModule from './common/bind-phase';
 import * as deletePhasesModule from './common/delete-phases';
+import * as deployPhaseModule from './common/deploy-phase';
 import * as preDeployPhaseModule from './common/pre-deploy-phase';
 import * as taggingModule from './common/tagging';
 import * as handlebarsUtils from './util/handlebars-utils';
@@ -11,6 +12,7 @@ import * as utilModule from './util/util';
 
 export const bindPhase = bindPhaseModule;
 export const deletePhases = deletePhasesModule;
+export const deployPhase = deployPhaseModule;
 export const preDeployPhase = preDeployPhaseModule;
 export const tagging = taggingModule;
 

@@ -22,6 +22,7 @@ import {
     ServiceContext,
     ServiceType,
 } from 'handel-extension-api';
+import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
@@ -77,11 +78,11 @@ describe('apigateway swagger deploy type', () => {
             const dependenciesDeployContexts = getDependencyDeployContexts('FakeApp', 'FakeEnv');
 
             // Stub out dependent services
-            const uploadDeployableArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadDeployableArtifactStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'

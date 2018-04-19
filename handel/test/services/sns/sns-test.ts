@@ -94,7 +94,7 @@ describe('sns deployer', () => {
 
         it('should deploy the topic', async () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicName',

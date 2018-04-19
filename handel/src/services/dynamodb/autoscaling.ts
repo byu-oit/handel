@@ -16,7 +16,6 @@
  */
 import { Tags } from 'handel-extension-api';
 import * as extensionSupport from 'handel-extension-support';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as types from './config-types';
 
 /* tslint:disable:max-classes-per-file */
@@ -60,7 +59,7 @@ export function deployAutoscaling(mainStackName: string,
     return getCompiledAutoscalingTemplate(mainStackName, ownServiceContext)
         .then((compiledTemplate: string) => {
             const stackName = getAutoscalingStackName(ownServiceContext);
-            return deployPhaseCommon.deployCloudFormationStack(
+            return extensionSupport.deployPhase.deployCloudFormationStack(
                 stackName, compiledTemplate, [], true, serviceName, 30, stackTags
             );
         });

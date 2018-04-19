@@ -17,7 +17,6 @@
 import { AccountConfig } from 'handel-extension-api';
 import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
 
 // Values are specified in MiB
@@ -104,7 +103,7 @@ export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountC
     const stackName = 'HandelEcsAutoScalingLambda';
     const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
-        const s3ObjectInfo = await deployPhaseCommon.uploadDirectoryToHandelBucket(`${__dirname}/cluster-scaling-lambda/`, 'handel/ecs-cluster-auto-scaling-lambda', 'lambda-code', accountConfig);
+        const s3ObjectInfo = await extensionSupport.deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-scaling-lambda/`, 'handel/ecs-cluster-auto-scaling-lambda', 'lambda-code', accountConfig);
         const handlebarsParams = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key
@@ -129,7 +128,7 @@ export async function createDrainingLambdaIfNotExists(accountConfig: AccountConf
     const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         // Stack doesn't exist, create it
-        const s3ObjectInfo = await deployPhaseCommon.uploadDirectoryToHandelBucket(`${__dirname}/cluster-draining-lambda/`, 'handel/ecs-cluster-draining-lambda', 'lambda-code', accountConfig);
+        const s3ObjectInfo = await extensionSupport.deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-draining-lambda/`, 'handel/ecs-cluster-draining-lambda', 'lambda-code', accountConfig);
         const handlebarsParams = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key

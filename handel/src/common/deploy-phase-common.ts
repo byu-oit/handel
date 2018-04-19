@@ -120,59 +120,6 @@ export function getAllPolicyStatementsForServiceRole(ownServicePolicyStatements:
     return policyStatementsToConsume;
 }
 
-export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
-    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
-    if (!stack) {
-        winston.info(`${serviceType} - Creating stack '${stackName}'`);
-        return extensionSupport.awsCalls.cloudFormation.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
-    }
-    else {
-        if (updatesSupported) {
-            winston.info(`${serviceType} - Updating stack '${stackName}'`);
-            return extensionSupport.awsCalls.cloudFormation.updateStack(stackName, cfTemplate, cfParameters, stackTags);
-        }
-        else {
-            winston.info(`${serviceType} - Updates not supported for this service type`);
-            return stack;
-        }
-    }
-}
-
-export function getHandelUploadsBucketName(accountConfig: AccountConfig) {
-    return `handel-${accountConfig.region}-${accountConfig.account_id}`;
-}
-
-export async function uploadFileToHandelBucket(diskFilePath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig) {
-    const bucketName = getHandelUploadsBucketName(accountConfig);
-
-    const artifactKey = `${artifactPrefix}/${s3FileName}`;
-    const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region
-    const s3ObjectInfo = await s3Calls.uploadFile(bucketName, artifactKey, diskFilePath);
-    await s3Calls.cleanupOldVersionsOfFiles(bucketName, artifactPrefix);
-    return s3ObjectInfo;
-}
-
-export async function uploadDirectoryToHandelBucket(directoryPath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig) {
-    const zippedPath = `${os.tmpdir()}/${s3FileName}.zip`;
-    await util.zipDirectoryToFile(directoryPath, zippedPath);
-    const s3ObjectInfo = await uploadFileToHandelBucket(zippedPath, artifactPrefix, s3FileName, accountConfig);
-    // Delete temporary file
-    fs.unlinkSync(zippedPath);
-    return s3ObjectInfo;
-}
-
-export async function uploadDeployableArtifactToHandelBucket(serviceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, s3FileName: string) {
-    const accountConfig = serviceContext.accountConfig;
-    const fileStats = fs.lstatSync(pathToArtifact);
-    const artifactPrefix = `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
-    if (fileStats.isDirectory()) { // Zip up artifact and upload it
-        return uploadDirectoryToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
-    }
-    else { // Is file (i.e. WAR file or some other already-compiled archive), just upload directly
-        return uploadFileToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
-    }
-}
-
 export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceContext<ServiceConfig>) {
     const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
     return [

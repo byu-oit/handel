@@ -127,7 +127,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Lambd
     const s3FileName = `lambda-deployable-${uuid()}.zip`;
     winston.info(`${SERVICE_NAME} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = serviceContext.params.path_to_code;
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${SERVICE_NAME} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
 }
@@ -264,7 +264,7 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

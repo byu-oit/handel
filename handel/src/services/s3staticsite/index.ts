@@ -19,7 +19,6 @@ import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53Calls from '../../aws/route53-calls';
 import * as s3Calls from '../../aws/s3-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
 import {
     CloudFrontConfig,
@@ -210,7 +209,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
     const bucketName = extensionSupport.awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
     // Upload files from path_to_website to S3
     winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);

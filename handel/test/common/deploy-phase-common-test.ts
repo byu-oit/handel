@@ -31,9 +31,6 @@ import * as iamCalls from '../../src/aws/iam-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as util from '../../src/common/util';
-import {
-
-} from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Deploy phase common module', () => {
@@ -171,97 +168,6 @@ describe('Deploy phase common module', () => {
 
             const policyStatements = deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownServicePolicyStatements, dependenciesDeployContexts);
             expect(policyStatements.length).to.equal(2);
-        });
-    });
-
-    describe('deployCloudFormationStack', () => {
-        it('should create the stack if it doesnt exist yet', async () => {
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve(null));
-            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
-            expect(deployedStack).to.deep.equal({});
-            expect(getStackStub.callCount).to.equal(1);
-            expect(createStackStub.callCount).to.equal(1);
-        });
-
-        it('should update the stack if it exists and updates are supported', async () => {
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
-            const updateStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'updateStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
-            expect(deployedStack).to.deep.equal({});
-            expect(getStackStub.callCount).to.equal(1);
-            expect(updateStackStub.callCount).to.equal(1);
-        });
-
-        it('should just return the stack if it exists and updates are not supported', async () => {
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
-            const updateStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'updateStack').returns(Promise.resolve(null));
-            const deployedStack = await deployPhaseCommon.deployCloudFormationStack('FakeStack', '', [], false, 'FakeService', 30, {});
-            expect(deployedStack).to.deep.equal({});
-            expect(getStackStub.callCount).to.equal(1);
-            expect(updateStackStub.callCount).to.equal(0);
-        });
-    });
-
-    describe('getHandelUploadsBucketName', () => {
-        it('should return the name of the bucket used by Handel for application uploads', () => {
-            const bucketName = deployPhaseCommon.getHandelUploadsBucketName(accountConfig);
-            expect(bucketName).to.equal('handel-us-west-2-123456789012');
-        });
-    });
-
-    describe('uploadFileToHandelBucket', () => {
-        it('should upload the given file to the bucket', async () => {
-            const diskFilePath = 'FakePath';
-            const artifactPrefix = 'FakePrefix';
-            const s3FileName = 'SomeFileName';
-
-            // Stub out dependent services
-            const createBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').returns(Promise.resolve({}));
-            const uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').returns({});
-            const cleanupOldVersionsStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').returns(Promise.resolve(null));
-
-            const s3ObjectInfo = await deployPhaseCommon.uploadFileToHandelBucket(diskFilePath, artifactPrefix, s3FileName, serviceContext.accountConfig);
-            expect(createBucketStub.callCount).to.equal(1);
-            expect(uploadFileStub.callCount).to.equal(1);
-            expect(cleanupOldVersionsStub.callCount).to.equal(1);
-            expect(s3ObjectInfo).to.deep.equal({});
-        });
-    });
-
-    describe('uploadDeployableArtifactToHandelBucket', () => {
-        it('should upload a file to the given s3 location', async () => {
-            const pathToArtifact = `${__dirname}/mytestartifact.war`;
-            const s3FileName = 'FakeS3Filename';
-
-            const createBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').resolves({});
-            const uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').resolves({});
-            const cleanupFilesStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').resolves({});
-
-            const s3ObjectInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
-            expect(createBucketStub.callCount).to.equal(1);
-            expect(uploadFileStub.callCount).to.equal(1);
-            expect(cleanupFilesStub.callCount).to.equal(1);
-            expect(s3ObjectInfo).to.deep.equal({});
-        });
-
-        it('should zip and upload a directory to the given s3 location', async () => {
-            const pathToArtifact = __dirname;
-            const s3FileName = 'FakeS3Filename';
-
-            const zipDirectoryToFileStub = sandbox.stub(util, 'zipDirectoryToFile').returns(Promise.resolve({}));
-            const createBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').resolves({});
-            const uploadFileStub = sandbox.stub(s3Calls, 'uploadFile').resolves({});
-            const cleanupFilesStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').resolves({});
-            const unlinkSyncStub = sandbox.stub(fs, 'unlinkSync').returns(null);
-
-            const s3ObjectInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
-            expect(zipDirectoryToFileStub.callCount).to.equal(1);
-            expect(createBucketStub.callCount).to.equal(1);
-            expect(uploadFileStub.callCount).to.equal(1);
-            expect(cleanupFilesStub.callCount).to.equal(1);
-            expect(unlinkSyncStub.callCount).to.equal(1);
-            expect(s3ObjectInfo).to.deep.equal({});
         });
     });
 

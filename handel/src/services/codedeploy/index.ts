@@ -18,7 +18,6 @@ import { DeployContext, PreDeployContext, ServiceContext, Tags, UnDeployContext,
 import * as extensionSupport from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as alb from './alb';
 import * as asgLaunchConfig from './asg-launchconfig';
 import { CodeDeployServiceConfig, HandlebarsCodeDeployTemplate } from './config-types';
@@ -89,7 +88,7 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo, amiToDeploy);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
 
     // If we need to roll the instances (calculated prior to deploy) do so now
     if(shouldRollInstances) {

@@ -21,7 +21,6 @@ import * as _ from 'lodash';
 import * as tmp from 'tmp';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../../common/deploy-phase-common';
 import * as util from '../../../common/util';
 import * as apigatewayCommon from '../common';
 import {APIGatewayConfig} from '../config-types';
@@ -211,7 +210,7 @@ async function uploadSwaggerToS3(ownServiceContext: ServiceContext<APIGatewayCon
     const swaggerFilePath = `${tmpDir.name}/swagger.json`;
     fs.writeFileSync(swaggerFilePath, JSON.stringify(enrichedSwagger), 'utf-8');
     const s3FileName = `apigateway-deployable-swagger-${uuid()}.zip`;
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(ownServiceContext, swaggerFilePath, s3FileName);
+    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(ownServiceContext, swaggerFilePath, s3FileName);
     tmpDir.removeCallback();
     return s3ArtifactInfo;
 }
@@ -223,7 +222,7 @@ function uploadDeployableArtifactsToS3(ownServiceContext: ServiceContext<APIGate
         const s3FileName = `apigateway-deployable-${lambdaConfig.name}-${uuid()}.json`;
         winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
         const pathToArtifact = lambdaConfig.pathToArtifact;
-        const uploadPromise = deployPhaseCommon.uploadDeployableArtifactToHandelBucket(ownServiceContext, pathToArtifact, s3FileName)
+        const uploadPromise = extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(ownServiceContext, pathToArtifact, s3FileName)
             .then(s3ArtifactInfo => {
                 winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
                 lambdaConfig.s3ArtifactInfo = s3ArtifactInfo;
@@ -254,7 +253,7 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     lambdasToCreate = await uploadDeployableArtifactsToS3(ownServiceContext, lambdasToCreate, serviceName, enrichedSwagger);
     const swaggerS3ArtifactInfo = await uploadSwaggerToS3(ownServiceContext, enrichedSwagger);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, lambdasToCreate, swaggerS3ArtifactInfo, stackTags);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);

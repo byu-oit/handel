@@ -177,7 +177,7 @@ describe('s3staticsite deployer', () => {
 
         it('should deploy the static site bucket', async () => {
             const createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack');
             deployStackStub.onCall(0).resolves({
                 Outputs: [{
                     OutputKey: 'BucketName',
@@ -215,7 +215,7 @@ describe('s3staticsite deployer', () => {
 
                 createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
 
-                deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
+                deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack');
                 deployStackStub.onCall(0).resolves({
                     Outputs: [{
                         OutputKey: 'BucketName',

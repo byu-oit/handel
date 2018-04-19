@@ -222,10 +222,10 @@ describe('ecs deployer', () => {
                 Name: 'myapp.internal.'
             }]);
             const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
-            const uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').resolves({});
+            const uploadDirStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
             const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({});
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
@@ -269,10 +269,10 @@ describe('ecs deployer', () => {
                 Name: 'myapp.internal.'
             }]);
             const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
-            const uploadDirStub = sandbox.stub(deployPhaseCommon, 'uploadDirectoryToHandelBucket').resolves({});
+            const uploadDirStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
             const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({});
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});

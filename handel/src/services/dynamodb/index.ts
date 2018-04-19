@@ -318,7 +318,7 @@ export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, 
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
 
     const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
     await autoscaling.deployAutoscaling(stackName, ownServiceContext, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);

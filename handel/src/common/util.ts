@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import * as archiver from 'archiver';
 import * as fs from 'fs';
 import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
@@ -116,30 +115,6 @@ export function replaceTagInFile(listTag: any, filePath: string, fileName: strin
         readData = readData.replace(tag.regex, tag.value);
     }
     return writeFileSync(`${filePath}/${fileName}`, readData);
-}
-
-/**
- * Takes the given directory path and zips it up and stores it
- *   in the given file path
- */
-export function zipDirectoryToFile(directoryPath: string, filePath: string) {
-    return new Promise((resolve, reject) => {
-        if (!fs.existsSync(directoryPath)) {
-            throw new Error(`Directory path to be zipped does not exist: ${directoryPath}`);
-        }
-
-        const archive = archiver.create('zip', {});
-        const output = fs.createWriteStream(filePath);
-        archive.pipe(output);
-        archive.directory(directoryPath, ''); // The 2nd param makes all the files just be included at the root with no directory
-        archive.finalize();
-        output.on('close', () => {
-            resolve();
-        });
-        output.on('error', (err) => {
-            reject(err);
-        });
-    });
 }
 
 /**

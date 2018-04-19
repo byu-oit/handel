@@ -110,7 +110,7 @@ describe('codedeploy deployer', () => {
             const getInstanceRoleStatementsStub = sandbox.stub(iamRoles, 'getStatementsForInstanceRole').resolves([]);
             const getRoutingStub = sandbox.stub(alb, 'getRoutingConfig').resolves({});
             const assignPublicIpStub = sandbox.stub(ec2Calls, 'shouldAssignPublicIp').resolves(true);
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
             const rollInstancesStub = sandbox.stub(asgLaunchConfig, 'rollInstances').resolves();
 
             const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);

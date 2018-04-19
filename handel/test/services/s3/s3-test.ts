@@ -107,7 +107,7 @@ describe('s3 deployer', () => {
                 };
                 const preDeployContext = new PreDeployContext(ownServiceContext);
 
-                const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'BucketName',
                         OutputValue: bucketName

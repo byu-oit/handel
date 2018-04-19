@@ -66,6 +66,18 @@ const awsWrapper = {
         }
     },
     s3: {
+        upload: (params: AWS.S3.PutObjectRequest) => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return  s3.upload(params).promise();
+        },
+        listBuckets: () => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.listBuckets().promise();
+        },
+        createBucket: (params: AWS.S3.CreateBucketRequest): Promise<AWS.S3.CreateBucketOutput> => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.createBucket(params).promise();
+        },
         listObjectsV2: (params: AWS.S3.ListObjectsV2Request) => {
             const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             return s3.listObjectsV2(params).promise();
@@ -73,6 +85,10 @@ const awsWrapper = {
         deleteObjects: (params: AWS.S3.DeleteObjectsRequest) => {
             const s3 = new AWS.S3({apiVersion: '2006-03-01'});
             return s3.deleteObjects(params).promise();
+        },
+        putBucketTagging: (params: AWS.S3.PutBucketTaggingRequest) => {
+            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            return s3.putBucketTagging(params).promise();
         }
     },
 };

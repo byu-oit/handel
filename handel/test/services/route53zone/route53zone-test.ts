@@ -105,7 +105,7 @@ describe('route53zone deployer', () => {
         });
 
         it('should deploy the hosted zone', async () => {
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName
@@ -128,7 +128,7 @@ describe('route53zone deployer', () => {
         });
 
         it('can deploy private zones', async () => {
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName

@@ -138,7 +138,7 @@ export async function deploy(ownServiceContext: ServiceContext<EfsServiceConfig>
 
     const compiledTemplate = await getCompiledEfsTemplate(stackName, ownServiceContext, ownPreDeployContext);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying EFS mount '${stackName}'`);
     const fileSystemId = getFileSystemIdFromStack(deployedStack);
     return getDeployContext(ownServiceContext, fileSystemId, accountConfig.region, stackName);

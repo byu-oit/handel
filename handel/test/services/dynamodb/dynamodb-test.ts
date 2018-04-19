@@ -272,7 +272,7 @@ describe('dynamodb deployer', () => {
             const tableName = 'FakeTable';
             const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
                     OutputValue: tableName
@@ -295,7 +295,7 @@ describe('dynamodb deployer', () => {
 
             serviceParams.table_name = tableName;
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
                     OutputValue: tableName
@@ -325,7 +325,7 @@ describe('dynamodb deployer', () => {
                 const tableName = 'FakeTable';
                 const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
-                deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'TableName',
                         OutputValue: tableName
