@@ -52,6 +52,10 @@ async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig
     return produceEventsContext;
 }
 
+function getProduceEventsContextName(producerServiceName: string, consumerServiceName: string): string {
+    return `${producerServiceName}->${consumerServiceName}`;
+}
+
 export async function produceEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts): Promise<ProduceEventsContexts> {
     winston.info(`Executing produce events phase on services in environment ${environmentContext.environmentName}`);
 
@@ -70,7 +74,7 @@ export async function produceEvents(serviceRegistry: ServiceRegistry, environmen
                 // Run produce events for each service this service produces to
                 for(const eventConsumerConfig of producerServiceContext.params.event_consumers) {
                     const consumerServiceName = eventConsumerConfig.service_name;
-                    const produceEventsContextName = util.getProduceEventsContextName(producerServiceContext.serviceName, consumerServiceName);
+                    const produceEventsContextName = getProduceEventsContextName(producerServiceContext.serviceName, consumerServiceName);
 
                     const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
                     const consumerDeployContext = deployContexts[consumerServiceName];

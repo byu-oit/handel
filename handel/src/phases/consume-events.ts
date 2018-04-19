@@ -38,6 +38,10 @@ interface ConsumeEventAction {
     producerDeployContext: IDeployContext;
 }
 
+function getConsumeEventsContextName(consumerServiceName: string, producerServiceName: string): string {
+    return `${consumerServiceName}->${producerServiceName}`;
+}
+
 export async function consumeEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
     winston.info(`Executing consume events phase on services in environment ${environmentContext.environmentName}`);
 
@@ -56,7 +60,7 @@ export async function consumeEvents(serviceRegistry: ServiceRegistry, environmen
                     const consumerDeployContext = deployContexts[consumerServiceName];
                     const consumerServiceDeployer = serviceRegistry.getService(consumerServiceContext.serviceType);
 
-                    const consumeEventsContextName = util.getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
+                    const consumeEventsContextName = getConsumeEventsContextName(consumerServiceContext.serviceName, producerServiceContext.serviceName);
                     winston.debug(`Consuming events from service ${consumeEventsContextName}`);
                     if (!consumerServiceDeployer.consumeEvents) {
                         throw new Error(`Tried to invoke the 'consumeEvents' phase on the '${consumerServiceContext.serviceType}' service, but it does not implement it`);

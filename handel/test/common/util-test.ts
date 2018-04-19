@@ -169,27 +169,6 @@ describe('util module', () => {
         });
     });
 
-    describe('getBindContextName', () => {
-        it('should return a string containing both services in the binding', () => {
-            const name = util.getBindContextName('A', 'B');
-            expect(name).to.equal('B->A');
-        });
-    });
-
-    describe('getConsumeEventsContextName', () => {
-        it('should return a string containing both the consumer and producer', () => {
-            const name = util.getConsumeEventsContextName('A', 'B');
-            expect(name).to.equal('A->B');
-        });
-    });
-
-    describe('getProduceEventsContextName', () => {
-        it('should return a string containing both the producer and consumer', () => {
-            const name = util.getProduceEventsContextName('B', 'A');
-            expect(name).to.equal('B->A');
-        });
-    });
-
     describe('getHandelFileParser', async () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         const handelFileParser = await util.getHandelFileParser(handelFile);

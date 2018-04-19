@@ -35,6 +35,10 @@ function getDependentServicesForCurrentBindService(environmentContext: Environme
     return dependentServices;
 }
 
+function getBindContextName(bindServiceName: string, dependentServiceName: string): string {
+    return `${dependentServiceName}->${bindServiceName}`;
+}
+
 export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder, levelToBind: number): Promise<BindContexts> {
     const bindPromises = [];
     const levelBindContexts: BindContexts = {};
@@ -54,7 +58,7 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
             const dependentOfPreDeployContext = preDeployContexts[dependentOfServiceName];
 
             // Run bind on the service combination
-            const bindContextName = util.getBindContextName(toBindServiceName, dependentOfServiceName);
+            const bindContextName = getBindContextName(toBindServiceName, dependentOfServiceName);
             winston.debug(`Binding service ${bindContextName}`);
 
             if (serviceDeployer.bind) {

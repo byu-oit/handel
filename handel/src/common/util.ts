@@ -143,27 +143,6 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string) {
 }
 
 /**
- * Given two service names, one binding to another, return a string representing the bind.
- */
-export function getBindContextName(bindServiceName: string, dependentServiceName: string): string {
-    return `${dependentServiceName}->${bindServiceName}`;
-}
-
-/**
- * Given two service names, one consuming events from another, return a string representing the consumption.
- */
-export function getConsumeEventsContextName(consumerServiceName: string, producerServiceName: string): string {
-    return `${consumerServiceName}->${producerServiceName}`;
-}
-
-/**
- * Given two service names, one producing events for another, return a string representing the production.
- */
-export function getProduceEventsContextName(producerServiceName: string, consumerServiceName: string): string {
-    return `${producerServiceName}->${consumerServiceName}`;
-}
-
-/**
  * Given a Handel file object, returns the parser object for that Handel file version
  */
 export function getHandelFileParser(handelFile: HandelFile) {
