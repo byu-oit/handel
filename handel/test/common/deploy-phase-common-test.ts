@@ -268,7 +268,7 @@ describe('Deploy phase common module', () => {
     describe('getAppSecretsAccessPolicyStatements', () => {
         it('should return an array of two permissions allowing it to access secrets in its namespace', () => {
             const policyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
-            expect(policyStatements.length).to.equal(2);
+            expect(policyStatements.length).to.equal(3);
             expect(policyStatements[1].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
             expect(policyStatements[1].Resource[1]).to.contain(`parameter/handel.global*`);
         });
