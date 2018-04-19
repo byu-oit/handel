@@ -194,6 +194,17 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
                 `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`,
                 `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
             ]
+        },
+        {
+            Effect: 'Allow',
+            Action: [
+                'ssm:PutParameter',
+                'ssm:DeleteParameter',
+                'ssm:DeleteParameters'
+            ],
+            Resource: [
+                `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`
+            ]
         }
     ];
 }
