@@ -174,6 +174,7 @@ export async function uploadDeployableArtifactToHandelBucket(serviceContext: Ser
 }
 
 export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceContext<ServiceConfig>) {
+    const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
     return [
         {
             Effect: 'Allow',
@@ -191,8 +192,19 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
                 'ssm:GetParameter'
             ],
             Resource: [
-                `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`,
+                applicationParameters,
                 `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
+            ]
+        },
+        {
+            Effect: 'Allow',
+            Action: [
+                'ssm:PutParameter',
+                'ssm:DeleteParameter',
+                'ssm:DeleteParameters'
+            ],
+            Resource: [
+                applicationParameters
             ]
         }
     ];
