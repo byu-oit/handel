@@ -14,11 +14,13 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { AccountConfig } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 import * as winston from 'winston';
+import * as ec2Calls from '../aws/ec2-calls';
 import * as util from '../common/util';
 import * as defaultAccountConfig from './default-account-config';
 
@@ -56,36 +58,53 @@ function getAbsoluteConfigFilePath(filePath: string): string {
     return absolutePath;
 }
 
+function configureAwsSdk(region: string): void {
+    process.env.AWS_REGION = region;
+    AWS.config.update({
+        maxRetries: 10
+    });
+}
+
+async function isValidRegion(region: string) {
+    try {
+        const regions = await ec2Calls.getRegions();
+        return regions.includes(region);
+    }
+    catch (err) {
+        return false;
+    }
+}
+
+async function validateRegion(region: string) {
+    const valid = await isValidRegion(region);
+    if (!valid) {
+        throw new Error(`Invalid region: '${region}'`);
+    }
+}
+
 /**
  * Given an account config file path or base64 encoded string, loads the account config
  */
-export default function(accountConfigParam: any): Promise<AccountConfig> {
-    return new Promise((resolve, reject) => {
-        try {
-            let accountConfig;
-            if (accountConfigParam.startsWith('default')) {
-                return defaultAccountConfig.getDefaultAccountConfig(accountConfigParam)
-                    .then(retAccountConfig => {
-                        return resolve(retAccountConfig);
-                    })
-                    .catch(err => {
-                        return reject(err);
-                    });
-            }
-            else if (fs.existsSync(accountConfigParam)) {
-                const absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
-                accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
-                validateAccountConfig(accountConfig);
-                return resolve(accountConfig);
-            }
-            else {
-                accountConfig = yaml.safeLoad(new Buffer(accountConfigParam, 'base64').toString()) as AccountConfig;
-                validateAccountConfig(accountConfig);
-                return resolve(accountConfig);
-            }
-        }
-        catch (err) {
-            return reject(err);
-        }
-    });
+export default async function(accountConfigParam: string): Promise<AccountConfig> {
+    let accountConfig;
+    if (accountConfigParam.startsWith('default')) {
+        const region = accountConfigParam.substring(accountConfigParam.indexOf('-') + 1);
+        configureAwsSdk(region); // Set up AWS to use our chosen region
+        await validateRegion(region);
+        accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
+    }
+    else if (fs.existsSync(accountConfigParam)) {
+        const absoluteConfigFilePath = getAbsoluteConfigFilePath(accountConfigParam);
+        accountConfig = util.readYamlFileSync(absoluteConfigFilePath);
+        configureAwsSdk(accountConfig.region); // Set up AWS to use our chosen region
+        await validateRegion(accountConfig.region);
+        validateAccountConfig(accountConfig);
+    }
+    else {
+        accountConfig = yaml.safeLoad(new Buffer(accountConfigParam, 'base64').toString()) as AccountConfig;
+        configureAwsSdk(accountConfig.region); // Set up AWS to use our chosen region
+        await validateRegion(accountConfig.region);
+        validateAccountConfig(accountConfig);
+    }
+    return accountConfig;
 }

@@ -70,9 +70,6 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
 
 async function validateLoggedIn(): Promise<void> {
     winston.debug('Checking that the user is logged in');
-    AWS.config.update({ // Just use us-east-1 while we check that we are logged in.
-        region: 'us-east-1'
-    });
     const accountId = await stsCalls.getAccountId();
     if (!accountId) {
         winston.error(`You are not logged into an AWS account`);
@@ -226,12 +223,9 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
     const environmentsToDeploy = options.environments;
     try {
-        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
-        // Set up AWS SDK with any global options
-        util.configureAwsSdk(accountConfig);
-
+        await validateLoggedIn();
         const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
         // Command-line tags override handelfile tags.
@@ -241,7 +235,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         logFinalResult('deploy', envDeployResults);
     }
     catch (err) {
-        logCaughtError('Unexpected error occurred during deploy', err);
+        logCaughtError('Error occurred during deploy', err);
         process.exit(1);
     }
 }
@@ -279,12 +273,10 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
  */
 export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
     try {
-        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
+        await validateLoggedIn();
         await validateCredentials(accountConfig);
         const environmentToDelete = options.environment;
-        // Set up AWS SDK with any global options
-        util.configureAwsSdk(accountConfig);
 
         const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
@@ -297,7 +289,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
         }
     } catch (err) {
-        logCaughtError('Unexpected error occurred during delete', err);
+        logCaughtError('Error occurred during delete', err);
         process.exit(1);
     }
 

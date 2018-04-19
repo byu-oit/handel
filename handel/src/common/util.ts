@@ -15,7 +15,6 @@
  *
  */
 import * as archiver from 'archiver';
-import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
@@ -192,13 +191,6 @@ export function createEnvironmentContext(handelFile: HandelFile, handelFileParse
         winston.error(`Error while parsing deploy spec: ${err.message}`);
         return null;
     }
-}
-
-export function configureAwsSdk(accountConfig: AccountConfig): void {
-    process.env.AWS_REGION = accountConfig.region;
-    AWS.config.update({
-        maxRetries: 10
-    });
 }
 
 /**
