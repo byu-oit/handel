@@ -73,14 +73,14 @@ Resources:
       Handler: {{handler}}
       Role: !GetAtt LambdaRole.Arn
       Timeout: {{timeout}}
-      {{#if vpc}}
+      {{#if ../vpc}}
       VpcConfig:
         SecurityGroupIds: 
-        {{#each vpcSecurityGroupIds}}
+        {{#each ../vpcSecurityGroupIds}}
         - {{this}}
         {{/each}}
         SubnetIds: 
-        {{#each vpcSubnetIds}}
+        {{#each ../vpcSubnetIds}}
         - {{this}}
         {{/each}}
       {{/if}}
