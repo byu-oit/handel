@@ -44,7 +44,7 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
     const levelBindContexts: BindContexts = {};
 
     const currentLevelServicesToBind = deployOrder[levelToBind];
-    winston.info(`Executing bind (if any) on service dependencies on level ${levelToBind} for services ${currentLevelServicesToBind.join(', ')}`);
+    winston.info(`Executing Bind phase on service dependencies on level ${levelToBind} of environment '${environmentContext.environmentName}' for services ${currentLevelServicesToBind.join(', ')}`);
     for(const toBindServiceName of currentLevelServicesToBind) {
         // Get ServiceContext and PreDeployContext for the service to call bind on
         const toBindServiceContext = environmentContext.serviceContexts[toBindServiceName];

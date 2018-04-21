@@ -43,7 +43,7 @@ function getConsumeEventsContextName(consumerServiceName: string, producerServic
 }
 
 export async function consumeEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts) {
-    winston.info(`Executing consume events phase on services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing ConsumeEvents phase in environment '${environmentContext.environmentName}'`);
 
     const consumeEventActions: ConsumeEventAction[] = [];
     const consumeEventsContexts: ConsumeEventsContexts = {};

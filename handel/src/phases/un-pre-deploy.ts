@@ -20,16 +20,17 @@ import * as lifecyclesCommon from '../common/lifecycles-common';
 import { DontBlameHandelError, EnvironmentContext, UnPreDeployContexts } from '../datatypes';
 
 export async function unPreDeployServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<UnPreDeployContexts> {
-    winston.info(`Executing UnPreDeploy on services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing UnPreDeploy phase in environment '${environmentContext.environmentName}'`);
     const unPreDeployPromises: Array<Promise<void>> = [];
     const unPreDeployContexts: UnPreDeployContexts = {};
 
     for (const serviceName in environmentContext.serviceContexts) {
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
-            winston.debug(`Executing UnPreDeploy on service ${serviceName}`);
+
             const serviceDeployer = serviceRegistry.getService(serviceContext.serviceType);
             if (serviceDeployer.unPreDeploy) {
+                winston.info(`UnPreDeploying service ${serviceName}`);
                 const unPreDeployPromise = serviceDeployer.unPreDeploy(serviceContext)
                     .then(unPreDeployContext => {
                         if (!isUnPreDeployContext(unPreDeployContext)) {

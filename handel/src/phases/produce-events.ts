@@ -57,7 +57,7 @@ function getProduceEventsContextName(producerServiceName: string, consumerServic
 }
 
 export async function produceEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts): Promise<ProduceEventsContexts> {
-    winston.info(`Executing produce events phase on services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing ProduceEvents phase in environment '${environmentContext.environmentName}'`);
 
     const produceEventActions: ProduceEventsAction[] = [];
     const produceEventsContexts: ProduceEventsContexts = {};

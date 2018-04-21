@@ -21,7 +21,7 @@ import * as winston from 'winston';
 import { EnvironmentContext } from '../datatypes';
 
 export function checkServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): string[] {
-    winston.info(`Checking services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing Check phase in environment '${environmentContext.environmentName}'`);
     // Run check on all services in environment to make sure params are valid
     const requiredTags = environmentContext.accountConfig.required_tags || [];
     let errors: string[] = [];
