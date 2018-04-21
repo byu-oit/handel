@@ -27,15 +27,18 @@ function getDeployContext(serviceContext: ServiceContext<KmsServiceConfig>, cfSt
     const keyArn = extensionSupport.awsCalls.cloudFormation.getOutput('KeyArn', cfStack);
     const aliasName = extensionSupport.awsCalls.cloudFormation.getOutput('AliasName', cfStack);
     const aliasArn = extensionSupport.awsCalls.cloudFormation.getOutput('AliasArn', cfStack);
+    if(!keyId || !keyArn || !aliasName || !aliasArn) {
+        throw new Error('Expected to receive key ID, key ARN, alias name, and alias ARN from KMS service');
+    }
 
     const deployContext = new DeployContext(serviceContext);
 
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         'KEY_ID': keyId,
         'KEY_ARN': keyArn,
         'ALIAS_NAME': aliasName,
         'ALIAS_ARN': aliasArn
-    }));
+    });
 
     // Set up key use policies
     deployContext.policies.push({
@@ -99,7 +102,7 @@ export function check(serviceContext: ServiceContext<KmsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);

@@ -144,7 +144,7 @@ function tableOrIndexesHaveAutoscaling(ownServiceContext: types.DynamoDBContext)
 }
 
 function getAutoscalingStackName(ownServiceContext: types.DynamoDBContext) {
-    return ownServiceContext.getResourceName() + '-autoscaling';
+    return ownServiceContext.stackName() + '-autoscaling';
 }
 
 function getCompiledAutoscalingTemplate(tableName: string, ownServiceContext: types.DynamoDBContext): Promise<string> {

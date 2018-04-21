@@ -151,7 +151,7 @@ export async function preDeploy(serviceContext: ServiceContext<EcsServiceConfig>
 }
 
 export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying service '${stackName}'`);
 
     const clusterName = getShortenedClusterName(ownServiceContext);

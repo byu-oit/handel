@@ -23,7 +23,7 @@ function getDependenciesDeployContextMountPoints(dependenciesDeployContexts: Dep
     const mountPoints = [];
     for (const deployContext of dependenciesDeployContexts) {
         if (deployContext.serviceType.matches(STDLIB_PREFIX, 'efs')) { // Only EFS is supported as an external service mount point for now
-            const envVarKey = deployPhaseCommon.getInjectedEnvVarName(deployContext, 'MOUNT_DIR');
+            const envVarKey = deployContext.getInjectedEnvVarName('MOUNT_DIR');
 
             mountPoints.push({
                 mountDir: deployContext.environmentVariables[envVarKey],

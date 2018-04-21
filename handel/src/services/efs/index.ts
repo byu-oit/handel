@@ -57,9 +57,9 @@ async function getDeployContext(serviceContext: ServiceContext<EfsServiceConfig>
 
     const mountDir = `/mnt/share/${fileSystemName}`;
     const mountScript = await getMountScript(fileSystemId, region, mountDir);
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         'MOUNT_DIR': mountDir
-    }));
+    });
     deployContext.scripts.push(mountScript);
     return deployContext;
 }
@@ -133,7 +133,7 @@ export async function bind(ownServiceContext: ServiceContext<EfsServiceConfig>, 
 
 export async function deploy(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const accountConfig = ownServiceContext.accountConfig;
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying EFS mount '${stackName}'`);
 
     const compiledTemplate = await getCompiledEfsTemplate(stackName, ownServiceContext, ownPreDeployContext);

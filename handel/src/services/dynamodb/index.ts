@@ -84,6 +84,9 @@ function getLambdaConsumers(serviceContext: ServiceContext<DynamoDBConfig>) {
 function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
     const tableName = extensionSupport.awsCalls.cloudFormation.getOutput('TableName', cfStack);
+    if(!tableName) {
+        throw new Error('Expected to receive tableName back from DynamoDB service');
+    }
 
     // Inject policies to talk to the table
     deployContext.policies.push(getTablePolicyForDependentServices(tableName!, serviceContext.accountConfig));
@@ -96,9 +99,9 @@ function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStac
     }
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         TABLE_NAME: tableName
-    }));
+    });
 
     return deployContext;
 }
@@ -312,7 +315,7 @@ export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenci
 }
 
 export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
 
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);

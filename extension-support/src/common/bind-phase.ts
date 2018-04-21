@@ -6,7 +6,7 @@ export async function bindDependentSecurityGroup(
     dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext, protocol: string,
     port: number, serviceName: string
 ) {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     const ownSg = ownPreDeployContext.securityGroups[0];
     const sourceSg = dependentOfPreDeployContext.securityGroups[0];
 

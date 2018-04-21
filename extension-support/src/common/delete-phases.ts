@@ -38,7 +38,7 @@ async function deleteSecurityGroupForService(stackName: string) {
 
 export async function unDeployService(serviceContext: ServiceContext<ServiceConfig>, serviceType: string) {
     const accountConfig = serviceContext.accountConfig;
-    const stackName = serviceContext.getResourceName();
+    const stackName = serviceContext.stackName();
 
     // Delete stack if needed
     const stack = await cloudformationCalls.getStack(stackName);
@@ -57,14 +57,14 @@ export async function unDeployService(serviceContext: ServiceContext<ServiceConf
 }
 
 export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
-    const sgName = ownServiceContext.getResourceName();
+    const sgName = ownServiceContext.stackName();
 
     const success = await deleteSecurityGroupForService(sgName);
     return new UnPreDeployContext(ownServiceContext);
 }
 
 export async function unBindSecurityGroups(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
-    const sgName = ownServiceContext.getResourceName();
+    const sgName = ownServiceContext.stackName();
 
     const success = await unBindAllOnSg(sgName, ownServiceContext.accountConfig);
     return new UnBindContext(ownServiceContext);

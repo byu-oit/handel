@@ -82,7 +82,7 @@ function getLambdasToCreate(stackName: string, swagger: any, ownServiceContext: 
                 handler: functionDef.handler,
                 runtime: functionDef.runtime,
                 pathToArtifact: functionDef.path_to_code,
-                environmentVariables: apigatewayCommon.getEnvVarsForService(functionDef.environment_variables, ownServiceContext, dependenciesDeployContexts)
+                environmentVariables: extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, functionDef.environment_variables)
             });
         }
     }

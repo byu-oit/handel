@@ -126,7 +126,7 @@ export function bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
 export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>,
                              ownPreDeployContext: PreDeployContext,
                              dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
 
     const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);

@@ -65,7 +65,7 @@ export function check(serviceContext: ServiceContext<APIAccessConfig>, dependenc
 }
 
 export async function deploy(ownServiceContext: ServiceContext<APIAccessConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying ${SERVICE_NAME} '${stackName}'`);
     return getDeployContext(ownServiceContext);
 }

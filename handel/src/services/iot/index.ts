@@ -101,7 +101,7 @@ export function check(serviceContext: ServiceContext<IotServiceConfig>, dependen
 
 export async function deploy(ownServiceContext: ServiceContext<IotServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     winston.debug(`${SERVICE_NAME} - Deploy not currently required for the IoT service`);
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     return getDeployContext(stackName, ownServiceContext); // Empty deploy
 }
 

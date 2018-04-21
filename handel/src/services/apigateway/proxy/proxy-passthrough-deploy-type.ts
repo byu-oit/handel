@@ -60,10 +60,10 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
 
     // Add env vars
     if (serviceParams.proxy) {
-        handlebarsParams.environment_variables = apigatewayCommon.getEnvVarsForService(serviceParams.proxy.environment_variables, ownServiceContext, dependenciesDeployContexts);
+        handlebarsParams.environment_variables = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.proxy.environment_variables);
     }
     else {
-        handlebarsParams.environment_variables = apigatewayCommon.getEnvVarsForService(serviceParams.environment_variables, ownServiceContext, dependenciesDeployContexts);
+        handlebarsParams.environment_variables = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     }
 
     const vpc = getParam(serviceParams, 'vpc', undefined, undefined);

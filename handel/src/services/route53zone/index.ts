@@ -27,15 +27,18 @@ function getDeployContext(serviceContext: ServiceContext<Route53ZoneServiceConfi
     const name = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneName', cfStack);
     const id = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneId', cfStack);
     const nameServers = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneNameServers', cfStack);
+    if(!name || !id || !nameServers) {
+        throw new Error('Expected to receive name, id, and name servers back from Route 53 service');
+    }
 
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         ZONE_NAME: name,
         ZONE_ID: id,
         ZONE_NAME_SERVERS: nameServers,
-    }));
+    });
 
     return deployContext;
 }
@@ -84,7 +87,7 @@ export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, 
 }
 
 export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
 
     const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);

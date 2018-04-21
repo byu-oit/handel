@@ -51,7 +51,7 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
 }
 
 export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
-    const sgName = serviceContext.getResourceName();
+    const sgName = serviceContext.stackName();
 
     const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig, getTags(serviceContext));
     const preDeployContext = new PreDeployContext(serviceContext);

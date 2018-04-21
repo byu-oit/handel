@@ -22,17 +22,6 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
 
-function getEnvVariablesToInject(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = Object.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        envVarsToInject = Object.assign(envVarsToInject, serviceParams.environment_variables);
-    }
-    return envVarsToInject;
-}
-
 async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
     const pathToAppSpec = `${dirPath}/appspec.yml`;
     const appSpecFile = util.readYamlFileSync(pathToAppSpec);
@@ -46,7 +35,7 @@ async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: Service
                     // Write wrapper script to upload directory
                     const handlebarsParams = {
                         originalScriptLocation: eventMapping.location,
-                        envVarsToInject: getEnvVariablesToInject(serviceContext, dependenciesDeployContexts)
+                        envVarsToInject: extensionSupport.deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables)
                     };
                     const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
                     const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;

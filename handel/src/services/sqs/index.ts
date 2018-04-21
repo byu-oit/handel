@@ -113,17 +113,18 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     const queueName = extensionSupport.awsCalls.cloudFormation.getOutput('QueueName', cfStack);
     const queueArn = extensionSupport.awsCalls.cloudFormation.getOutput('QueueArn', cfStack);
     const queueUrl = extensionSupport.awsCalls.cloudFormation.getOutput('QueueUrl', cfStack);
-    const deadLetterQueueName = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueName', cfStack);
-    const deadLetterQueueArn = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueArn', cfStack);
-    const deadLetterQueueUrl = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueUrl', cfStack);
+    if(!queueName || !queueArn || !queueUrl) {
+        throw new Error('Expected to receive queue name, ARN, and URL from SQS service');
+    }
+
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         QUEUE_NAME: queueName,
         QUEUE_ARN: queueArn,
         QUEUE_URL: queueUrl
-    }));
+    });
 
     // Add event outputs for event consumption
     deployContext.eventOutputs.queueUrl = queueUrl;
@@ -152,12 +153,19 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     });
 
     // Add exports if a dead letter queue was specified
+    const deadLetterQueueName = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueName', cfStack);
     if (deadLetterQueueName) {
-        deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+        const deadLetterQueueArn = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueArn', cfStack);
+        const deadLetterQueueUrl = extensionSupport.awsCalls.cloudFormation.getOutput('DeadLetterQueueUrl', cfStack);
+        if(!deadLetterQueueArn || !deadLetterQueueUrl) {
+            throw new Error('Expected to receive dead letter queue ARN and URL back from SQS service');
+        }
+
+        deployContext.addEnvironmentVariables({
             DEAD_LETTER_QUEUE_NAME: deadLetterQueueName,
             DEAD_LETTER_QUEUE_ARN: deadLetterQueueArn,
             DEAD_LETTER_QUEUE_URL: deadLetterQueueUrl
-        }));
+        });
 
         deployContext.eventOutputs.deadLetterQueueUrl = deadLetterQueueUrl;
         deployContext.eventOutputs.deadLetterQueueArn = deadLetterQueueArn;
@@ -193,7 +201,7 @@ export function check(serviceContext: ServiceContext<SqsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);

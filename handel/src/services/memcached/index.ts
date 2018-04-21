@@ -40,11 +40,14 @@ function getDeployContext(serviceContext: ServiceContext<MemcachedServiceConfig>
     // Set port and address environment variables
     const port = extensionSupport.awsCalls.cloudFormation.getOutput('CachePort', cfStack);
     const address = extensionSupport.awsCalls.cloudFormation.getOutput('CacheAddress', cfStack);
+    if(!port || !address) {
+        throw new Error('Expected to receive port and address back from Memcached service');
+    }
 
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         PORT: port,
         ADDRESS: address
-    }));
+    });
 
     return deployContext;
 }
@@ -109,7 +112,7 @@ export async function bind(ownServiceContext: ServiceContext<MemcachedServiceCon
 }
 
 export async function deploy(ownServiceContext: ServiceContext<MemcachedServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying cluster '${stackName}'`);
 
     const compiledTemplate = await getCompiledMemcachedTemplate(stackName, ownServiceContext, ownPreDeployContext);

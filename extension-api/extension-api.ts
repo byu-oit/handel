@@ -133,7 +133,11 @@ export interface IServiceContext<Config extends ServiceConfig> extends HasAppSer
 
     tags: Tags;
 
-    getResourceName(): string;
+    resourceName(): string;
+    stackName(): string;
+    injectedEnvVars(outputs: any): any;
+    ssmApplicationPrefix(): string;
+    ssmParamName(suffix: string): string;
 }
 
 export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig> {
@@ -214,6 +218,8 @@ export interface IDeployContext extends HasAppServiceInfo {
     environmentVariables: DeployContextEnvironmentVariables;
     // Scripts intended to be run on startup by the consuming resource.
     scripts: string[];
+
+    addEnvironmentVariables(envVars: EnvironmentVariables): void;
 }
 
 export function isDeployContext(obj: any | IDeployContext): obj is IDeployContext {
@@ -331,8 +337,30 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
                 }) {
     }
 
-    public getResourceName(): string {
-        return `${this.appName}-${this.environmentName}-${this.serviceName}-${this.serviceType.name}`;
+    public resourceName(): string {
+        return `${this.appName}-${this.environmentName}-${this.serviceName}`;
+    }
+
+    public stackName(): string {
+        return `${this.resourceName()}-${this.serviceType.name}`;
+    }
+
+    public injectedEnvVars() {
+        const envVars: EnvironmentVariables = {};
+        envVars.HANDEL_APP_NAME = this.appName;
+        envVars.HANDEL_ENVIRONMENT_NAME = this.environmentName;
+        envVars.HANDEL_SERVICE_NAME = this.serviceName;
+        envVars.HANDEL_PARAMETER_STORE_PREFIX = this.ssmApplicationPrefix();
+        return envVars;
+    }
+
+    public ssmParamName(suffix: string) {
+        const prefix = `${this.ssmApplicationPrefix()}.${this.serviceName}`;
+        return `${prefix}.${suffix}`;
+    }
+
+    public ssmApplicationPrefix(): string {
+        return `${this.appName}.${this.environmentName}`;
     }
 }
 
@@ -398,8 +426,18 @@ export class DeployContext implements IDeployContext {
         this.scripts = [];
     }
 
-    public addEnvironmentVariables(vars: object) {
-        Object.assign(this.environmentVariables, vars);
+    public addEnvironmentVariables(envVars: EnvironmentVariables) {
+        const formattedVars = Object.keys(envVars)
+            .reduce((obj: any, name) => {
+                const envName = this.getInjectedEnvVarName(name);
+                obj[envName] = envVars[name];
+                return obj;
+            }, {});
+        Object.assign(this.environmentVariables, formattedVars);
+    }
+
+    public getInjectedEnvVarName(suffix: string) {
+        return `${this.serviceName}_${suffix}`.toUpperCase().replace(/-/g, '_');
     }
 }
 

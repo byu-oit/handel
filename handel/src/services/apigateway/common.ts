@@ -22,21 +22,6 @@ import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 
-export function getEnvVarsForService(ownEnvironmentVariables: EnvironmentVariables | undefined, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[]) {
-    let returnEnvVars = {};
-
-    if (ownEnvironmentVariables) {
-        returnEnvVars = _.assign(returnEnvVars, ownEnvironmentVariables);
-    }
-
-    const dependenciesEnvVars = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    returnEnvVars = _.assign(returnEnvVars, dependenciesEnvVars);
-    const handelInjectedEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(ownServiceContext);
-    returnEnvVars = _.assign(returnEnvVars, handelInjectedEnvVars);
-
-    return returnEnvVars;
-}
-
 export function getSecurityGroups(ownPreDeployContext: PreDeployContext): string[] {
     const securityGroups: string[] = [];
     if (ownPreDeployContext.securityGroups) {

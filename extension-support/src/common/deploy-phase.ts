@@ -28,6 +28,18 @@ import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../util/util';
 
+function getEnvVarsFromDependencyDeployContexts(deployContexts: DeployContext[]): EnvironmentVariables {
+    const envVars: EnvironmentVariables = {};
+    for (const deployContext of deployContexts) {
+        for (const envVarKey in deployContext.environmentVariables) {
+            if (deployContext.environmentVariables.hasOwnProperty(envVarKey)) {
+                envVars[envVarKey] = deployContext.environmentVariables[envVarKey];
+            }
+        }
+    }
+    return envVars;
+}
+
 export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
     const stack = await cloudFormationCalls.getStack(stackName);
     if (!stack) {
@@ -41,6 +53,25 @@ export async function deployCloudFormationStack(stackName: string, cfTemplate: s
             return stack;
         }
     }
+}
+
+export function getEnvVarsForDeployedService(ownServiceContext: ServiceContext<ServiceConfig>, dependenciesDeployContexts: DeployContext[], userProvidedEnvVars: EnvironmentVariables | undefined): EnvironmentVariables {
+    let environmentVariables = {};
+
+    // Inject env vars defined by service (if any)
+    if (userProvidedEnvVars) {
+        environmentVariables = Object.assign(environmentVariables, userProvidedEnvVars);
+    }
+
+    // Inject env vars defined by dependencies
+    const dependenciesEnvVars = getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
+    environmentVariables = Object.assign(environmentVariables, dependenciesEnvVars);
+
+    // Inject env vars from Handel file
+    const handelInjectedEnvVars = ownServiceContext.injectedEnvVars();
+    environmentVariables = Object.assign(environmentVariables, handelInjectedEnvVars);
+
+    return environmentVariables;
 }
 
 export function getHandelUploadsBucketName(accountConfig: AccountConfig) {

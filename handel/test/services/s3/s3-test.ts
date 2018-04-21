@@ -101,6 +101,7 @@ describe('s3 deployer', () => {
         describe('deploy', () => {
             it('should deploy the bucket', async () => {
                 const bucketName = 'my-bucket';
+                const bucketArn = 'fake-arn';
                 ownServiceContext.params = {
                     type: 's3',
                     bucket_name: bucketName
@@ -111,6 +112,9 @@ describe('s3 deployer', () => {
                     Outputs: [{
                         OutputKey: 'BucketName',
                         OutputValue: bucketName
+                    }, {
+                        OutputKey: 'BucketArn',
+                        OutputValue: bucketArn
                     }]
                 }));
 
@@ -119,6 +123,7 @@ describe('s3 deployer', () => {
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(deployContext.policies.length).to.equal(2);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_NAME).to.equal(bucketName);
+                expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_ARN).to.equal(bucketArn);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_URL).to.contain(bucketName);
                 expect(deployContext.environmentVariables.FAKESERVICE_REGION_ENDPOINT).to.not.equal(null);
             });

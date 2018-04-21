@@ -49,17 +49,6 @@ function getEbConfigurationOption(namespace: string, optionName: string, value: 
     };
 }
 
-function getEnvVariablesToInject(serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = _.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        envVarsToInject = _.assign(envVarsToInject, serviceParams.environment_variables);
-    }
-    return envVarsToInject;
-}
-
 function getDependenciesEbExtensionScript(dependenciesDeployContexts: DeployContext[]): Promise<string> {
     const handlebarsParams: any = {
         dependencyScriptLines: []
@@ -129,7 +118,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     // handlebarsParams.optionSettings.push(getEbConfigurationOption("aws:ec2:vpc", "AssociatePublicIpAddress", false));
 
     // Add environment variables
-    const envVarsToInject = getEnvVariablesToInject(serviceContext, dependenciesDeployContexts);
+    const envVarsToInject = extensionSupport.deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables);
     for (const envVarName in envVarsToInject) {
         if (envVarsToInject.hasOwnProperty(envVarName)) {
             handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:application:environment', envVarName, envVarsToInject[envVarName]));
@@ -288,7 +277,7 @@ export async function preDeploy(serviceContext: ServiceContext<BeanstalkServiceC
 }
 
 export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying Beanstalk application '${stackName}'`);
 
     const serviceRole = await deployPhaseCommon.createCustomRole('elasticbeanstalk.amazonaws.com', 'HandelBeanstalkServiceRole', getPolicyStatementsForServiceRole(), ownServiceContext.accountConfig);

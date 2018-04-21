@@ -85,7 +85,7 @@ export function check(serviceContext: ServiceContext<CloudWatchEventsConfig>, de
 }
 
 export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying event rule ${stackName}`);
 
     const eventRuleTemplate = await getCompiledEventRuleTemplate(stackName, ownServiceContext);
@@ -98,9 +98,9 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
 export async function produceEvents(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownDeployContext: DeployContext, eventConsumerConfig: CloudWatchEventsServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
 
-    const ruleName = ownServiceContext.getResourceName();
+    const ruleName = ownServiceContext.stackName();
     const consumerType = consumerServiceContext.serviceType;
-    const targetId = consumerServiceContext.getResourceName();
+    const targetId = consumerServiceContext.stackName();
     let targetArn;
     let input;
     if (consumerType.matches(STDLIB_PREFIX, 'lambda')) {
@@ -121,7 +121,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<CloudWatch
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<CloudWatchEventsConfig>): Promise<UnDeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Executing UnDeploy on Events Rule '${stackName}'`);
 
     const rule = await cloudWatchEventsCalls.getRule(stackName);

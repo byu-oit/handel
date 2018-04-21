@@ -40,14 +40,19 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
 
     const bucketName = extensionSupport.awsCalls.cloudFormation.getOutput('BucketName', cfStack);
     const bucketArn = extensionSupport.awsCalls.cloudFormation.getOutput('BucketArn', cfStack);
+    if(!bucketName || !bucketArn) {
+        throw new Error('Expected to receive bucket name and ARN from S3 service');
+    }
+
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         BUCKET_NAME: bucketName,
+        BUCKET_ARN: bucketArn,
         BUCKET_URL: `https://${bucketName}.s3.amazonaws.com/`,
         REGION_ENDPOINT: `s3-${accountConfig.region}.amazonaws.com`
-    }));
+    });
 
     // Need two policies for accessing S3. The first allows you to list the contents of the bucket,
     // and the second allows you to modify objects in that bucket
@@ -146,7 +151,7 @@ export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenc
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying bucket '${stackName}'`);
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);

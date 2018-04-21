@@ -44,6 +44,10 @@ function getCompiledSnsTemplate(stackName: string, serviceContext: ServiceContex
 function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const topicName = extensionSupport.awsCalls.cloudFormation.getOutput('TopicName', cfStack);
     const topicArn = extensionSupport.awsCalls.cloudFormation.getOutput('TopicArn', cfStack);
+    if(!topicName || !topicArn) {
+        throw new Error('Expected to receive topic name and ARN back from SNS service');
+    }
+
     const deployContext = new DeployContext(serviceContext);
 
     // Event outputs for consumers of SNS events
@@ -51,10 +55,10 @@ function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfSt
     deployContext.eventOutputs.principal = 'sns.amazonaws.com';
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         TOPIC_ARN: topicArn,
         TOPIC_NAME: topicName
-    }));
+    });
 
     // Policy to talk to this queue
     deployContext.policies.push({
@@ -118,7 +122,7 @@ export function check(serviceContext: ServiceContext<SnsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying topic '${stackName}'`);
 
     const compiledSnsTemplate = await getCompiledSnsTemplate(stackName, ownServiceContext);

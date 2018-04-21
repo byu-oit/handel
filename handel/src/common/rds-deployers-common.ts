@@ -29,13 +29,15 @@ export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
     const port = extensionSupport.awsCalls.cloudFormation.getOutput('DatabasePort', rdsCfStack);
     const dbName = extensionSupport.awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
 
-    deployContext.addEnvironmentVariables(
-        deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
-            ADDRESS: address,
-            PORT: port,
-            DATABASE_NAME: dbName
-        })
-    );
+    if(!address || !port || !dbName) {
+        throw new Error('Expected RDS service to return address, port, and dbName');
+    }
+
+    deployContext.addEnvironmentVariables({
+        ADDRESS: address,
+        PORT: port,
+        DATABASE_NAME: dbName
+    });
 
     return deployContext;
 }
@@ -46,8 +48,8 @@ export async function addDbCredentialToParameterStore(ownServiceContext: Service
                                                       dbPassword: string,
                                                       deployedStack: any) { // TODO - Better param later
     // Add credential to EC2 Parameter Store
-    const usernameParamName = deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_username');
-    const passwordParamName = deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_password');
+    const usernameParamName = ownServiceContext.ssmParamName('db_username');
+    const passwordParamName = ownServiceContext.ssmParamName('db_password');
     await Promise.all([
         ssmCalls.storeParameter(usernameParamName, 'SecureString', dbUsername),
         ssmCalls.storeParameter(passwordParamName, 'SecureString', dbPassword)
@@ -58,8 +60,8 @@ export async function addDbCredentialToParameterStore(ownServiceContext: Service
 export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext<ServiceConfig>,
                                                          unDeployContext: UnDeployContext) {
     const paramsToDelete = [
-        deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_username'),
-        deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_password')
+        ownServiceContext.ssmParamName('db_username'),
+        ownServiceContext.ssmParamName('db_password')
     ];
     await ssmCalls.deleteParameters(paramsToDelete);
     return unDeployContext;

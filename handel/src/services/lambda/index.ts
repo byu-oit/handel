@@ -42,21 +42,6 @@ import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig }
 
 const SERVICE_NAME = 'Lambda';
 
-function getEnvVariablesToInject(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = _.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        for (const envVarName in serviceParams.environment_variables) {
-            if (serviceParams.environment_variables.hasOwnProperty(envVarName)) {
-                envVarsToInject[envVarName] = serviceParams.environment_variables[envVarName];
-            }
-        }
-    }
-    return envVarsToInject;
-}
-
 async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[], s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, securityGroups: string[]): Promise<string> {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
@@ -80,7 +65,7 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
     };
 
     // Inject environment variables (if any)
-    const envVarsToInject = getEnvVariablesToInject(ownServiceContext, dependenciesDeployContexts);
+    const envVarsToInject = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     if (Object.keys(envVarsToInject).length > 0) {
         handlebarsParams.environmentVariables = envVarsToInject;
     }
@@ -97,6 +82,9 @@ function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, c
     const deployContext = new DeployContext(serviceContext);
     const lambdaArn = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionArn', cfStack);
     const lambdaName = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionName', cfStack);
+    if(!lambdaArn || !lambdaName) {
+        throw new Error('Expected to receive lambda name and lambda ARN from lambda service');
+    }
 
     // Output policy for consuming this Lambda
     deployContext.policies.push({
@@ -111,10 +99,10 @@ function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, c
     });
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         FUNCTION_ARN: lambdaArn,
         FUNCTION_NAME: lambdaName
-    }));
+    });
 
     // Inject event outputs
     deployContext.eventOutputs.lambdaArn = lambdaArn;
@@ -167,7 +155,7 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
     policyStatementsToConsume[0].Resource = [];
     const tableStreamGeneralArn = tableStreamArn.substring(0, tableStreamArn.lastIndexOf('/') + 1).concat('*');
     policyStatementsToConsume[0].Resource.push(tableStreamGeneralArn);
-    await iamCalls.attachStreamPolicy(ownServiceContext.getResourceName(), policyStatementsToConsume, ownServiceContext.accountConfig);
+    await iamCalls.attachStreamPolicy(ownServiceContext.stackName(), policyStatementsToConsume, ownServiceContext.accountConfig);
     winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
 
     // Add the event source mapping to the Lambda
@@ -253,7 +241,7 @@ export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConf
 }
 
 export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const securityGroups: string[] = [];
     if (ownPreDeployContext.securityGroups) {
@@ -288,7 +276,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServic
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
-    await iamCalls.detachPoliciesFromRole(ownServiceContext.getResourceName());
+    await iamCalls.detachPoliciesFromRole(ownServiceContext.stackName());
     return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 

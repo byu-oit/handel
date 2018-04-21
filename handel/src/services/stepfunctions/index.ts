@@ -78,7 +78,7 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.getResourceName();
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
     const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
@@ -129,6 +129,9 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
     const deployContext = new DeployContext(serviceContext);
     const stateMachineArn = extensionSupport.awsCalls.cloudFormation.getOutput('StateMachineArn', cfStack);
     const stateMachineName = extensionSupport.awsCalls.cloudFormation.getOutput('StateMachineName', cfStack);
+    if(!stateMachineArn || !stateMachineName) {
+        throw new Error('Expected to receive state machine ARN and name from Step Functions service');
+    }
     // Output policy for consuming this state machine
     deployContext.policies.push({
         'Effect': 'Allow',
@@ -142,10 +145,10 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
     });
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         STATE_MACHINE_ARN: stateMachineArn,
         STATE_MACHINE_NAME: stateMachineName
-    }));
+    });
 
     return deployContext;
 }
