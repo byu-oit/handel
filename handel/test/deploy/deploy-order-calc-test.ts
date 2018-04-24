@@ -16,10 +16,11 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
+import { EnvironmentContext } from '../../src/datatypes';
 import * as deployOrderCalc from '../../src/deploy/deploy-order-calc';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 

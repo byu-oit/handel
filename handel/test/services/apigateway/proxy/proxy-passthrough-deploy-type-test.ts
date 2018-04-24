@@ -15,13 +15,13 @@
  *
  */
 import {expect} from 'chai';
-import { DeployContext, PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, DeployContext, PreDeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
+import { deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as route53 from '../../../../src/aws/route53-calls';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../../src/datatypes';
 import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';
@@ -99,11 +99,11 @@ describe('apigateway proxy deploy type', () => {
             // Stub out dependent services
             const bucketName = 'FakeBucket';
             const bucketKey = 'FakeBucketKey';
-            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: bucketName,
                 Key: bucketKey
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'
@@ -135,11 +135,11 @@ describe('apigateway proxy deploy type', () => {
             // Stub out dependent services
             const bucketName = 'FakeBucket';
             const bucketKey = 'FakeBucketKey';
-            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: bucketName,
                 Key: bucketKey
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'

@@ -17,29 +17,26 @@
 import { expect } from 'chai';
 import * as clone from 'clone';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as ecsCalls from '../../../src/aws/ecs-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as ecsContainers from '../../../src/common/ecs-containers';
 import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as ecsFargate from '../../../src/services/ecs-fargate';
 import { FargateServiceConfig } from '../../../src/services/ecs-fargate/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -120,7 +117,7 @@ describe('fargate deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await ecsFargate.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -184,7 +181,7 @@ describe('fargate deployer', () => {
                 Id: '2',
                 Name: 'myapp.internal.'
             }]);
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             // Run the test
             const deployContext = await ecsFargate.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -208,7 +205,7 @@ describe('fargate deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await ecsFargate.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -218,7 +215,7 @@ describe('fargate deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await ecsFargate.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

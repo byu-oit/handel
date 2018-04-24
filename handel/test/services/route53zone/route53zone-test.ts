@@ -16,20 +16,18 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as route53 from '../../../src/services/route53zone';
 import { Route53ZoneServiceConfig } from '../../../src/services/route53zone/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -107,7 +105,7 @@ describe('route53zone deployer', () => {
         });
 
         it('should deploy the hosted zone', async () => {
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName
@@ -130,7 +128,7 @@ describe('route53zone deployer', () => {
         });
 
         it('can deploy private zones', async () => {
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName
@@ -159,7 +157,7 @@ describe('route53zone deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             const unDeployContext = await route53.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

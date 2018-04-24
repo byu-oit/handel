@@ -14,21 +14,14 @@
  * limitations under the License.
  *
  */
-import * as AWS from 'aws-sdk';
+import { AccountConfig } from 'handel-extension-api';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as stsCalls from '../aws/sts-calls';
-import * as handlebarsUtils from '../common/handlebars-utils';
-import { AccountConfig } from '../datatypes';
 
 function getSubnetGroupName(vpcId: string): string {
     return `handel-subnet-groups-${vpcId}`;
-}
-
-async function isValidRegion(region: string) {
-    const regions = await ec2Calls.getRegions();
-    return regions.includes(region);
 }
 
 async function getDefaultVpcSubnets(vpcId: string) {
@@ -43,11 +36,11 @@ async function getSubnetGroups(vpcId: string, subnetIds: string[]): Promise<AWS.
         subnetGroupDescription: 'Handel-created subnet group for Default VPC',
         subnetIds
     };
-    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/default-vpc-subnet-groups-template.yml`, handlebarsParams);
-    const stack = await cloudFormationCalls.getStack(stackName);
+    const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/default-vpc-subnet-groups-template.yml`, handlebarsParams);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         winston.info(`Creating subnet groups for default VPC`);
-        const cfStack = await cloudFormationCalls.createStack(stackName, compiledTemplate, [], 30, {});
+        const cfStack = await awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, {});
         winston.info(`Created subnet groups for default VPC`);
         return cfStack;
     }
@@ -56,14 +49,20 @@ async function getSubnetGroups(vpcId: string, subnetIds: string[]): Promise<AWS.
     }
 }
 
-export async function getDefaultAccountConfig(accountConfigParam: any): Promise<AccountConfig> {
-    const region = accountConfigParam.substring(accountConfigParam.indexOf('-') + 1);
-    const valid = await isValidRegion(region);
-    if (valid) {
-        // Set region so we can make calls to get the account VPC config (this will be set again later)
-        AWS.config.update({
-            region
-        });
+async function isValidRegion(region: string) {
+    try {
+        const regions = await ec2Calls.getRegions();
+        return regions.includes(region);
+    }
+    catch (err) {
+        return false;
+    }
+}
+
+export async function getDefaultAccountConfig(region: string): Promise<AccountConfig> {
+    // Set region so we can make calls to get the account VPC config (this will be set again later)
+    const validRegion = await isValidRegion(region);
+    if(validRegion) {
         const defaultVpc = await ec2Calls.getDefaultVpc();
         const accountConfig: any = {
             region,
@@ -79,11 +78,11 @@ export async function getDefaultAccountConfig(accountConfigParam: any): Promise<
         accountConfig.data_subnets = subnets;
 
         const cfStack = await getSubnetGroups(accountConfig.vpc, accountConfig.data_subnets);
-        accountConfig.rds_subnet_group = cloudFormationCalls.getOutput('RdsSubnetGroupName', cfStack);
-        accountConfig.elasticache_subnet_group = cloudFormationCalls.getOutput('ElastiCacheSubnetGroupName', cfStack);
+        accountConfig.rds_subnet_group = awsCalls.cloudFormation.getOutput('RdsSubnetGroupName', cfStack);
+        accountConfig.elasticache_subnet_group = awsCalls.cloudFormation.getOutput('ElastiCacheSubnetGroupName', cfStack);
         return accountConfig as AccountConfig;
     }
     else {
-        throw new Error(`Invalid region: '${region}'`);
+        throw new Error(`Invalid region: ${region}`);
     }
 }

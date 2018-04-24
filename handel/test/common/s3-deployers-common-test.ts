@@ -15,12 +15,13 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import { deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../src/common/s3-deployers-common';
-import { AccountConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('S3 deployers common module', () => {
@@ -39,7 +40,7 @@ describe('S3 deployers common module', () => {
     describe('createLoggingBucketIfNotExists', () => {
         it('should deploy the logging bucket', async () => {
             const bucketName = 'FakeBucket';
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'BucketName',
                     OutputValue: bucketName

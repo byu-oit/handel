@@ -24,15 +24,10 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { awsCalls, bindPhase, deletePhases, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import {getTags} from '../../common/tagging-common';
 import {HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType} from './config-types';
 
 const SERVICE_NAME = 'MySQL';
@@ -71,7 +66,7 @@ function getCompiledMysqlTemplate(stackName: string,
         storageType: serviceParams.storage_type || MySQLStorageType.STANDARD,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         parameterGroupFamily: getParameterGroupFamily(mysqlVersion),
-        tags: getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Add parameters to parameter group if specified
@@ -84,7 +79,7 @@ function getCompiledMysqlTemplate(stackName: string,
         handlebarsParams.multi_az = true;
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/mysql-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/mysql-template.yml`, handlebarsParams);
 }
 
 /**
@@ -109,40 +104,40 @@ export function check(serviceContext: ServiceContext<MySQLConfig>,
 }
 
 export function preDeploy(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
 }
 
 export function bind(ownServiceContext: ServiceContext<MySQLConfig>,
                      ownPreDeployContext: PreDeployContext,
                      dependentOfServiceContext: ServiceContext<ServiceConfig>,
                      dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext,
-                                                            ownPreDeployContext,
-                                                            dependentOfServiceContext,
-                                                            dependentOfPreDeployContext,
-                                                            MYSQL_PROTOCOL,
-                                                            MYSQL_PORT,
-                                                            SERVICE_NAME);
+    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+        ownPreDeployContext,
+        dependentOfServiceContext,
+        dependentOfPreDeployContext,
+        MYSQL_PROTOCOL,
+        MYSQL_PORT,
+        SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
                              ownPreDeployContext: PreDeployContext,
                              dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
 
-    const stack = await cloudFormationCalls.getStack(stackName);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         const dbUsername = rdsDeployersCommon.getNewDbUsername();
         const dbPassword = rdsDeployersCommon.getNewDbPassword();
         const compiledTemplate = await getCompiledMysqlTemplate(stackName, ownServiceContext, ownPreDeployContext);
-        const cfParameters = cloudFormationCalls.getCfStyleStackParameters({
+        const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
             DBUsername: dbUsername,
             DBPassword: dbPassword
         });
-        const stackTags = getTags(ownServiceContext);
+        const stackTags = tagging.getTags(ownServiceContext);
         winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await cloudFormationCalls.createStack(stackName,
+        const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
                                                                     compiledTemplate,
                                                                     cfParameters,
                                                                     30,
@@ -162,15 +157,15 @@ export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
 }
 
 export function unPreDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnPreDeployContext> {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export function unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
-    return deletePhasesCommon.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {
-    const unDeployContext = await deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
     return rdsDeployersCommon.deleteParametersFromParameterStore(ownServiceContext, unDeployContext);
 }
 

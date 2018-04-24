@@ -15,23 +15,12 @@
  *
  */
 import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
+import { deployPhase, handlebars } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
-
-function getEnvVariablesToInject(serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = Object.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        envVarsToInject = Object.assign(envVarsToInject, serviceParams.environment_variables);
-    }
-    return envVarsToInject;
-}
 
 async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<void> {
     const pathToAppSpec = `${dirPath}/appspec.yml`;
@@ -46,9 +35,9 @@ async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: Service
                     // Write wrapper script to upload directory
                     const handlebarsParams = {
                         originalScriptLocation: eventMapping.location,
-                        envVarsToInject: getEnvVariablesToInject(serviceContext, dependenciesDeployContexts)
+                        envVarsToInject: deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables)
                     };
-                    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
+                    const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
                     const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;
                     util.writeFileSync(`${dirPath}/${wrapperScriptLocation}`, compiledTemplate);
 
@@ -77,7 +66,7 @@ export async function prepareAndUploadDeployableArtifactToS3(serviceContext: Ser
 
     const s3FileName = `codedeploy-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
+    const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
 
     util.deleteFolderRecursive(tempDirPath); // Delete the whole temp folder now that we're done with it

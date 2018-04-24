@@ -15,14 +15,11 @@
  *
  */
 import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as s3Calls from '../../aws/s3-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import { getTags } from '../../common/tagging-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import { HandlebarsS3Template, S3ServiceConfig, S3ServiceEventConsumer, S3ServiceEventFilterList } from './config-types';
 import * as lifecycleSection from './lifecycles';
@@ -41,16 +38,21 @@ const VERSIONING_PARAM_MAPPING: VersioningParamMapping = {
 function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const accountConfig = serviceContext.accountConfig;
 
-    const bucketName = cloudFormationCalls.getOutput('BucketName', cfStack);
-    const bucketArn = cloudFormationCalls.getOutput('BucketArn', cfStack);
+    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', cfStack);
+    const bucketArn = awsCalls.cloudFormation.getOutput('BucketArn', cfStack);
+    if(!bucketName || !bucketArn) {
+        throw new Error('Expected to receive bucket name and ARN from S3 service');
+    }
+
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         BUCKET_NAME: bucketName,
+        BUCKET_ARN: bucketArn,
         BUCKET_URL: `https://${bucketName}.s3.amazonaws.com/`,
         REGION_ENDPOINT: `s3-${accountConfig.region}.amazonaws.com`
-    }));
+    });
 
     // Need two policies for accessing S3. The first allows you to list the contents of the bucket,
     // and the second allows you to modify objects in that bucket
@@ -99,7 +101,7 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
         bucketName: bucketName,
         bucketACL: serviceParams.bucket_acl,
         versioningStatus: versioningStatus,
-        tags: getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
         lifecycle_policy: lifecycleSection.getLifecycleConfig(ownServiceContext)
     };
 
@@ -108,7 +110,7 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
         handlebarsParams.logFilePrefix = s3DeployersCommon.getLogFilePrefix(ownServiceContext);
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/s3-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/s3-template.yml`, handlebarsParams);
 }
 
 function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AWS.S3.FilterRuleList {
@@ -149,19 +151,19 @@ export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenc
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying bucket '${stackName}'`);
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {

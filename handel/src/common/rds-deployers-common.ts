@@ -15,8 +15,8 @@
  *
  */
 import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import { awsCalls } from 'handel-extension-support';
 import * as uuid from 'uuid';
-import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as deployPhaseCommon from '../common/deploy-phase-common';
 
@@ -25,17 +25,19 @@ export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
     const deployContext = new DeployContext(serviceContext);
 
     // Inject ENV variables to talk to this database
-    const address = cloudFormationCalls.getOutput('DatabaseAddress', rdsCfStack);
-    const port = cloudFormationCalls.getOutput('DatabasePort', rdsCfStack);
-    const dbName = cloudFormationCalls.getOutput('DatabaseName', rdsCfStack);
+    const address = awsCalls.cloudFormation.getOutput('DatabaseAddress', rdsCfStack);
+    const port = awsCalls.cloudFormation.getOutput('DatabasePort', rdsCfStack);
+    const dbName = awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
 
-    deployContext.addEnvironmentVariables(
-        deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
-            ADDRESS: address,
-            PORT: port,
-            DATABASE_NAME: dbName
-        })
-    );
+    if(!address || !port || !dbName) {
+        throw new Error('Expected RDS service to return address, port, and dbName');
+    }
+
+    deployContext.addEnvironmentVariables({
+        ADDRESS: address,
+        PORT: port,
+        DATABASE_NAME: dbName
+    });
 
     return deployContext;
 }
@@ -46,8 +48,8 @@ export async function addDbCredentialToParameterStore(ownServiceContext: Service
                                                       dbPassword: string,
                                                       deployedStack: any) { // TODO - Better param later
     // Add credential to EC2 Parameter Store
-    const usernameParamName = deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_username');
-    const passwordParamName = deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_password');
+    const usernameParamName = ownServiceContext.ssmParamName('db_username');
+    const passwordParamName = ownServiceContext.ssmParamName('db_password');
     await Promise.all([
         ssmCalls.storeParameter(usernameParamName, 'SecureString', dbUsername),
         ssmCalls.storeParameter(passwordParamName, 'SecureString', dbPassword)
@@ -58,8 +60,8 @@ export async function addDbCredentialToParameterStore(ownServiceContext: Service
 export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext<ServiceConfig>,
                                                          unDeployContext: UnDeployContext) {
     const paramsToDelete = [
-        deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_username'),
-        deployPhaseCommon.getSsmParamName(ownServiceContext, 'db_password')
+        ownServiceContext.ssmParamName('db_username'),
+        ownServiceContext.ssmParamName('db_password')
     ];
     await ssmCalls.deleteParameters(paramsToDelete);
     return unDeployContext;

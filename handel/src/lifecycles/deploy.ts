@@ -14,11 +14,10 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
 import {
-    AccountConfig,
     BindContexts,
     DeployContexts,
     DeployOptions,

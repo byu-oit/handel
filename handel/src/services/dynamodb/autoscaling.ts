@@ -15,10 +15,7 @@
  *
  */
 import { Tags } from 'handel-extension-api';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import { normalizeLogicalId } from '../../common/util';
+import { awsCalls, deployPhase, handlebars, util } from 'handel-extension-support';
 import * as types from './config-types';
 
 /* tslint:disable:max-classes-per-file */
@@ -62,7 +59,7 @@ export function deployAutoscaling(mainStackName: string,
     return getCompiledAutoscalingTemplate(mainStackName, ownServiceContext)
         .then((compiledTemplate: string) => {
             const stackName = getAutoscalingStackName(ownServiceContext);
-            return deployPhaseCommon.deployCloudFormationStack(
+            return deployPhase.deployCloudFormationStack(
                 stackName, compiledTemplate, [], true, serviceName, 30, stackTags
             );
         });
@@ -70,9 +67,9 @@ export function deployAutoscaling(mainStackName: string,
 
 export async function undeployAutoscaling(ownServiceContext: types.DynamoDBContext) {
     const stackName = getAutoscalingStackName(ownServiceContext);
-    const stack = await cloudFormationCalls.getStack(stackName);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (stack) {
-        return cloudFormationCalls.deleteStack(stackName);
+        return awsCalls.cloudFormation.deleteStack(stackName);
     }
 }
 
@@ -147,7 +144,7 @@ function tableOrIndexesHaveAutoscaling(ownServiceContext: types.DynamoDBContext)
 }
 
 function getAutoscalingStackName(ownServiceContext: types.DynamoDBContext) {
-    return deployPhaseCommon.getResourceName(ownServiceContext) + '-autoscaling';
+    return ownServiceContext.stackName() + '-autoscaling';
 }
 
 function getCompiledAutoscalingTemplate(tableName: string, ownServiceContext: types.DynamoDBContext): Promise<string> {
@@ -158,7 +155,7 @@ function getCompiledAutoscalingTemplate(tableName: string, ownServiceContext: ty
         targets: getScalingTargets(serviceParams, tableName)
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
 }
 
 function getScalingTargets(serviceParams: types.DynamoDBConfig, tableName: string) {
@@ -176,7 +173,7 @@ function getScalingTargets(serviceParams: types.DynamoDBConfig, tableName: strin
                 return extractScalingTargets(
                     throughput,
                     ScalingTargetTypes.INDEX,
-                    'Index' + normalizeLogicalId(idxName),
+                    'Index' + util.normalizeLogicalId(idxName),
                     'table/' + tableName + '/index/' + idxName
                 );
             }).reduce((acc, cur) => {

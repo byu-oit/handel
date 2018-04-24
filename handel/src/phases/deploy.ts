@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
-import { IDeployContext, IPreDeployContext, isDeployContext, ServiceRegistry } from 'handel-extension-api';
+import {
+    IDeployContext,
+    IPreDeployContext,
+    isDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceRegistry
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as lifecyclesCommon from '../common/lifecycles-common';
 import {
@@ -23,8 +30,7 @@ import {
     DontBlameHandelError,
     EnvironmentContext,
     PreDeployContexts,
-    ServiceConfig,
-    ServiceContext
+
 } from '../datatypes';
 
 function getDependencyDeployContexts(toDeployServiceContext: ServiceContext<ServiceConfig>, toDeployPreDeployContext: IPreDeployContext, environmentContext: EnvironmentContext, deployContexts: DeployContexts, serviceRegistry: ServiceRegistry): IDeployContext[] {
@@ -48,7 +54,7 @@ export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, en
     const levelDeployContexts: DeployContexts = {};
 
     const currentLevelElements = deployOrder[level];
-    winston.info(`Deploying level ${level} of services: ${currentLevelElements.join(', ')}`);
+    winston.info(`Executing Deploy phase on level ${level} in environment '${environmentContext.environmentName}' for services: ${currentLevelElements.join(', ')}`);
     for(const toDeployServiceName of currentLevelElements) {
         // Get ServiceContext and PreDeployContext for service being deployed
         const toDeployServiceContext = environmentContext.serviceContexts[toDeployServiceName];
@@ -58,7 +64,7 @@ export async function deployServicesInLevel(serviceRegistry: ServiceRegistry, en
 
         // Get all the DeployContexts for services that this service being deployed depends on
         const dependenciesDeployContexts = getDependencyDeployContexts(toDeployServiceContext, toDeployPreDeployContext, environmentContext, deployContexts, serviceRegistry);
-        winston.debug(`Deploying service ${toDeployServiceName}`);
+        winston.info(`Deploying service ${toDeployServiceName}`);
         if (serviceDeployer.deploy) {
             const serviceDeployPromise = serviceDeployer.deploy(toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts)
                 .then(deployContext => {

@@ -24,14 +24,17 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import {
+    awsCalls,
+    bindPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../common/bind-phase-common';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
 import {EfsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'EFS';
@@ -53,7 +56,7 @@ async function getMountScript(fileSystemId: string, region: string, mountDir: st
         'EFS_REGION': region,
         'EFS_MOUNT_DIR': mountDir
     };
-    const mountScript = await handlebarsUtils.compileTemplate(`${__dirname}/mount-script-template.sh`, variables);
+    const mountScript = await handlebars.compileTemplate(`${__dirname}/mount-script-template.sh`, variables);
     return mountScript;
 }
 
@@ -62,15 +65,15 @@ async function getDeployContext(serviceContext: ServiceContext<EfsServiceConfig>
 
     const mountDir = `/mnt/share/${fileSystemName}`;
     const mountScript = await getMountScript(fileSystemId, region, mountDir);
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         'MOUNT_DIR': mountDir
-    }));
+    });
     deployContext.scripts.push(mountScript);
     return deployContext;
 }
 
 function getFileSystemIdFromStack(stack: AWS.CloudFormation.Stack): string {
-    const fileSystemId = cloudFormationCalls.getOutput('EFSFileSystemId', stack);
+    const fileSystemId = awsCalls.cloudFormation.getOutput('EFSFileSystemId', stack);
     if (fileSystemId) {
         return fileSystemId;
     }
@@ -104,10 +107,10 @@ async function getCompiledEfsTemplate(stackName: string, ownServiceContext: Serv
         securityGroupId,
         subnetAId,
         subnetBId,
-        tags: getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/efs-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/efs-template.yml`, handlebarsParams);
 }
 
 /**
@@ -129,21 +132,21 @@ export function check(serviceContext: ServiceContext<EfsServiceConfig>, dependen
 }
 
 export async function preDeploy(serviceContext: ServiceContext<EfsServiceConfig>): Promise<PreDeployContext> {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
 export async function bind(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhaseCommon.bindDependentSecurityGroupToSelf(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, EFS_SG_PROTOCOL, EFS_PORT, SERVICE_NAME);
+    return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, EFS_SG_PROTOCOL, EFS_PORT, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const accountConfig = ownServiceContext.accountConfig;
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying EFS mount '${stackName}'`);
 
     const compiledTemplate = await getCompiledEfsTemplate(stackName, ownServiceContext, ownPreDeployContext);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying EFS mount '${stackName}'`);
     const fileSystemId = getFileSystemIdFromStack(deployedStack);
     return getDeployContext(ownServiceContext, fileSystemId, accountConfig.region, stackName);
@@ -151,15 +154,15 @@ export async function deploy(ownServiceContext: ServiceContext<EfsServiceConfig>
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<EfsServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unBind(ownServiceContext: ServiceContext<EfsServiceConfig>): Promise<UnBindContext> {
-    return deletePhasesCommon.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<EfsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

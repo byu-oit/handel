@@ -16,12 +16,13 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
+import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import { deployPhase, util as esUtil } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
-import { AccountConfig, ServiceContext, ServiceType } from '../../../src/datatypes';
 import { BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 import * as ebextensions from '../../../src/services/beanstalk/ebextensions';
@@ -57,8 +58,8 @@ describe('deployable artifact module', () => {
 
             const lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: () => true });
             const addEbextensionsStub = sandbox.stub(ebextensions, 'addEbextensionsToDir').returns(true);
-            const zipDirStub = sandbox.stub(util, 'zipDirectoryToFile').resolves(true);
-            const uploadFileStub = sandbox.stub(deployPhaseCommon, 'uploadFileToHandelBucket').resolves({
+            const zipDirStub = sandbox.stub(esUtil, 'zipDirectoryToFile').resolves(true);
+            const uploadFileStub = sandbox.stub(deployPhase, 'uploadFileToHandelBucket').resolves({
                 Bucket: bucket,
                 Key: key
             });

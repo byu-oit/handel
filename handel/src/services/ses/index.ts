@@ -32,10 +32,10 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
     const identityArn = `arn:aws:ses:${region}:${account}:identity/${address}`;
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         EMAIL_ADDRESS: address,
         IDENTITY_ARN: identityArn
-    }));
+    });
 
     // Policy to talk to this queue
     deployContext.policies.push({

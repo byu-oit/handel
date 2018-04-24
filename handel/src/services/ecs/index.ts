@@ -15,18 +15,15 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
 import * as volumesSection from '../../common/ecs-volumes';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import {getTags} from '../../common/tagging-common';
 import * as asgCycling from './asg-cycling';
 import * as cluster from './cluster';
 import * as clusterAutoScalingSection from './cluster-auto-scaling';
@@ -83,7 +80,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
                 ecsServiceRoleArn: ecsServiceRole.Arn,
                 policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
                 deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-                tags: getTags(ownServiceContext),
+                tags: tagging.getTags(ownServiceContext),
                 containerConfigs,
                 autoScaling,
                 oneOrMoreTasksHasRouting,
@@ -107,7 +104,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
             // Add volumes if present (these are consumed by one or more container mount points)
             handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
 
-            return handlebarsUtils.compileTemplate(`${__dirname}/ecs-service-template.yml`, handlebarsParams);
+            return handlebars.compileTemplate(`${__dirname}/ecs-service-template.yml`, handlebarsParams);
         });
 }
 
@@ -150,11 +147,11 @@ export function check(serviceContext: ServiceContext<EcsServiceConfig>, dependen
 }
 
 export async function preDeploy(serviceContext: ServiceContext<EcsServiceConfig>) {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying service '${stackName}'`);
 
     const clusterName = getShortenedClusterName(ownServiceContext);
@@ -164,19 +161,19 @@ export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>
     const userDataScript = await cluster.getUserDataScript(clusterName, dependenciesDeployContexts);
     const ecsServiceRole = await cluster.createEcsServiceRoleIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript, ecsServiceRole!);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     await asgCycling.cycleInstances(instancesToCycle);
     winston.info(`${SERVICE_NAME} - Finished deploying service '${stackName}'`);
     return new DeployContext(ownServiceContext);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>) {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>) {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

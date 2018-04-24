@@ -142,54 +142,6 @@ describe('util module', () => {
         });
     });
 
-    describe('zipDirectoryToFile', () => {
-        const zippedPath = `${__dirname}/zipped-test-file.zip`;
-
-        afterEach(() => {
-            if (fs.existsSync(zippedPath)) {
-                fs.unlinkSync(zippedPath); // Ensure created ZIP archive gets deleted
-            }
-        });
-
-        it('should zip the given directory if it exists', () => {
-            return util.zipDirectoryToFile(__dirname, zippedPath)
-                .then(() => {
-                    expect(fs.existsSync(zippedPath)).to.equal(true);
-                });
-        });
-
-        it('should throw an error if the given directory doesnt exist', () => {
-            return util.zipDirectoryToFile('${__dirname}/myfakedir/', zippedPath)
-                .then(() => {
-                    expect(true).to.equal(false); // Should not get here
-                })
-                .catch(err => {
-                    expect(err.message).to.contain('Directory path to be zipped does not exist');
-                });
-        });
-    });
-
-    describe('getBindContextName', () => {
-        it('should return a string containing both services in the binding', () => {
-            const name = util.getBindContextName('A', 'B');
-            expect(name).to.equal('B->A');
-        });
-    });
-
-    describe('getConsumeEventsContextName', () => {
-        it('should return a string containing both the consumer and producer', () => {
-            const name = util.getConsumeEventsContextName('A', 'B');
-            expect(name).to.equal('A->B');
-        });
-    });
-
-    describe('getProduceEventsContextName', () => {
-        it('should return a string containing both the producer and consumer', () => {
-            const name = util.getProduceEventsContextName('B', 'A');
-            expect(name).to.equal('B->A');
-        });
-    });
-
     describe('getHandelFileParser', async () => {
         const handelFile = util.readYamlFileSync(`${__dirname}/../test-handel.yml`);
         const handelFileParser = await util.getHandelFileParser(handelFile);

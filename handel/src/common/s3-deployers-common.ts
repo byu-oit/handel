@@ -14,10 +14,8 @@
  * limitations under the License.
  *
  */
-import * as cloudFormationCalls from '../aws/cloudformation-calls';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../datatypes';
-import * as deployPhaseCommon from './deploy-phase-common';
-import * as handlebarsUtils from './handlebars-utils';
+import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import { awsCalls, deployPhase, handlebars } from 'handel-extension-support';
 
 export async function createLoggingBucketIfNotExists(accountConfig: AccountConfig) {
     const stackName = 'HandelS3LoggingBucket';
@@ -26,9 +24,9 @@ export async function createLoggingBucketIfNotExists(accountConfig: AccountConfi
         bucketName
     };
 
-    const compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', 30, accountConfig.handel_resource_tags || {});
-    return cloudFormationCalls.getOutput('BucketName', deployedStack);
+    const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', 30, accountConfig.handel_resource_tags || {});
+    return awsCalls.cloudFormation.getOutput('BucketName', deployedStack);
 }
 
 export function getLogFilePrefix(serviceContext: ServiceContext<ServiceConfig>) {

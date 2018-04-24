@@ -16,18 +16,17 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
 } from 'handel-extension-api';
+import { deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as deployPhaseCommon from '../../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../../src/datatypes';
 import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
 import * as swaggerDeployType from '../../../../src/services/apigateway/swagger/swagger-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';
@@ -79,11 +78,11 @@ describe('apigateway swagger deploy type', () => {
             const dependenciesDeployContexts = getDependencyDeployContexts('FakeApp', 'FakeEnv');
 
             // Stub out dependent services
-            const uploadDeployableArtifactStub = sandbox.stub(deployPhaseCommon, 'uploadDeployableArtifactToHandelBucket').resolves({
+            const uploadDeployableArtifactStub = sandbox.stub(deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'RestApiId',
                     OutputValue: 'someApiId'

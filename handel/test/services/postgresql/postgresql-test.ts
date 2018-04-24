@@ -16,26 +16,21 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     BindContext,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { awsCalls, bindPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as cloudFormationCalls from '../../../src/aws/cloudformation-calls';
-import * as bindPhaseCommon from '../../../src/common/bind-phase-common';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as postgresql from '../../../src/services/postgresql';
 import { PostgreSQLConfig } from '../../../src/services/postgresql/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -91,7 +86,7 @@ describe('postgresql deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup')
+            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
 
             const retPreDeployContext = await postgresql.preDeploy(serviceContext);
@@ -108,7 +103,7 @@ describe('postgresql deployer', () => {
             const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeOtherService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
-            const bindSgStub = sandbox.stub(bindPhaseCommon, 'bindDependentSecurityGroupToSelf')
+            const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
             const bindContext = await postgresql.bind(dependencyServiceContext, dependencyPreDeployContext,
@@ -152,8 +147,8 @@ describe('postgresql deployer', () => {
         });
 
         it('should create the cluster if it doesnt exist', async () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(null);
-            const createStackStub = sandbox.stub(cloudFormationCalls, 'createStack')
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
             const addDbCredentialStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore')
                 .resolves(deployedStack);
@@ -169,8 +164,8 @@ describe('postgresql deployer', () => {
         });
 
         it('should not update the database if it already exists', async () => {
-            const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').resolves(deployedStack);
-            const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').resolves(null);
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
+            const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
             const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
@@ -184,7 +179,7 @@ describe('postgresql deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup')
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await postgresql.unPreDeploy(serviceContext);
@@ -195,7 +190,7 @@ describe('postgresql deployer', () => {
 
     describe('unBind', () => {
         it('should unbind the security group', async () => {
-            const unBindStub = sandbox.stub(deletePhasesCommon, 'unBindSecurityGroups')
+            const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
             const unBindContext = await postgresql.unBind(serviceContext);
@@ -207,7 +202,7 @@ describe('postgresql deployer', () => {
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
             const unDeployContext = new UnDeployContext(serviceContext);
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService')
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(unDeployContext);
             const deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore')
                 .resolves(unDeployContext);

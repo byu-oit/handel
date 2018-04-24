@@ -22,13 +22,10 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as sqsCalls from '../../aws/sqs-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
 
@@ -109,24 +106,25 @@ function getCompiledSqsTemplate(stackName: string, serviceContext: ServiceContex
         }
     }
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/sqs-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const queueName = cloudFormationCalls.getOutput('QueueName', cfStack);
-    const queueArn = cloudFormationCalls.getOutput('QueueArn', cfStack);
-    const queueUrl = cloudFormationCalls.getOutput('QueueUrl', cfStack);
-    const deadLetterQueueName = cloudFormationCalls.getOutput('DeadLetterQueueName', cfStack);
-    const deadLetterQueueArn = cloudFormationCalls.getOutput('DeadLetterQueueArn', cfStack);
-    const deadLetterQueueUrl = cloudFormationCalls.getOutput('DeadLetterQueueUrl', cfStack);
+    const queueName = awsCalls.cloudFormation.getOutput('QueueName', cfStack);
+    const queueArn = awsCalls.cloudFormation.getOutput('QueueArn', cfStack);
+    const queueUrl = awsCalls.cloudFormation.getOutput('QueueUrl', cfStack);
+    if(!queueName || !queueArn || !queueUrl) {
+        throw new Error('Expected to receive queue name, ARN, and URL from SQS service');
+    }
+
     const deployContext = new DeployContext(serviceContext);
 
     // Env variables to inject into consuming services
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         QUEUE_NAME: queueName,
         QUEUE_ARN: queueArn,
         QUEUE_URL: queueUrl
-    }));
+    });
 
     // Add event outputs for event consumption
     deployContext.eventOutputs.queueUrl = queueUrl;
@@ -155,12 +153,19 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     });
 
     // Add exports if a dead letter queue was specified
+    const deadLetterQueueName = awsCalls.cloudFormation.getOutput('DeadLetterQueueName', cfStack);
     if (deadLetterQueueName) {
-        deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+        const deadLetterQueueArn = awsCalls.cloudFormation.getOutput('DeadLetterQueueArn', cfStack);
+        const deadLetterQueueUrl = awsCalls.cloudFormation.getOutput('DeadLetterQueueUrl', cfStack);
+        if(!deadLetterQueueArn || !deadLetterQueueUrl) {
+            throw new Error('Expected to receive dead letter queue ARN and URL back from SQS service');
+        }
+
+        deployContext.addEnvironmentVariables({
             DEAD_LETTER_QUEUE_NAME: deadLetterQueueName,
             DEAD_LETTER_QUEUE_ARN: deadLetterQueueArn,
             DEAD_LETTER_QUEUE_URL: deadLetterQueueUrl
-        }));
+        });
 
         deployContext.eventOutputs.deadLetterQueueUrl = deadLetterQueueUrl;
         deployContext.eventOutputs.deadLetterQueueArn = deadLetterQueueArn;
@@ -196,12 +201,12 @@ export function check(serviceContext: ServiceContext<SqsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
@@ -231,7 +236,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SqsService
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

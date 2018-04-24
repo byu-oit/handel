@@ -14,17 +14,14 @@
  * limitations under the License.
  *
  */
-import * as archiver from 'archiver';
-import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
-import { ServiceRegistry } from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import { ncp } from 'ncp';
 import * as os from 'os';
-import pascalCase = require('pascal-case');
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import { AccountConfig, HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
+import { HandelCoreOptions, HandelFile, HandelFileParser } from '../datatypes';
 
 export function readDirSync(filePath: string) {
     try {
@@ -121,51 +118,6 @@ export function replaceTagInFile(listTag: any, filePath: string, fileName: strin
 }
 
 /**
- * Takes the given directory path and zips it up and stores it
- *   in the given file path
- */
-export function zipDirectoryToFile(directoryPath: string, filePath: string) {
-    return new Promise((resolve, reject) => {
-        if (!fs.existsSync(directoryPath)) {
-            throw new Error(`Directory path to be zipped does not exist: ${directoryPath}`);
-        }
-
-        const archive = archiver.create('zip', {});
-        const output = fs.createWriteStream(filePath);
-        archive.pipe(output);
-        archive.directory(directoryPath, ''); // The 2nd param makes all the files just be included at the root with no directory
-        archive.finalize();
-        output.on('close', () => {
-            resolve();
-        });
-        output.on('error', (err) => {
-            reject(err);
-        });
-    });
-}
-
-/**
- * Given two service names, one binding to another, return a string representing the bind.
- */
-export function getBindContextName(bindServiceName: string, dependentServiceName: string): string {
-    return `${dependentServiceName}->${bindServiceName}`;
-}
-
-/**
- * Given two service names, one consuming events from another, return a string representing the consumption.
- */
-export function getConsumeEventsContextName(consumerServiceName: string, producerServiceName: string): string {
-    return `${consumerServiceName}->${producerServiceName}`;
-}
-
-/**
- * Given two service names, one producing events for another, return a string representing the production.
- */
-export function getProduceEventsContextName(producerServiceName: string, consumerServiceName: string): string {
-    return `${producerServiceName}->${consumerServiceName}`;
-}
-
-/**
  * Given a Handel file object, returns the parser object for that Handel file version
  */
 export function getHandelFileParser(handelFile: HandelFile) {
@@ -193,13 +145,6 @@ export function createEnvironmentContext(handelFile: HandelFile, handelFileParse
         winston.error(`Error while parsing deploy spec: ${err.message}`);
         return null;
     }
-}
-
-export function configureAwsSdk(accountConfig: AccountConfig): void {
-    AWS.config.update({
-        region: accountConfig.region,
-        maxRetries: 10
-    });
 }
 
 /**
@@ -249,15 +194,6 @@ export function deleteFolderRecursive(dirPath: string) {
         });
         fs.rmdirSync(dirPath);
     }
-}
-
-/**
- * Turns a string into a valid CloudFormation Logical ID
- * @param id
- * @returns {string}
- */
-export function normalizeLogicalId(id: string) {
-    return pascalCase(id, undefined, true);
 }
 
 export function makeTmpDir(): string {

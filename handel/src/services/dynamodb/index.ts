@@ -23,12 +23,9 @@ import {
     ServiceContext,
     ServiceEventConsumer
 } from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
 
@@ -86,7 +83,10 @@ function getLambdaConsumers(serviceContext: ServiceContext<DynamoDBConfig>) {
 
 function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const tableName = cloudFormationCalls.getOutput('TableName', cfStack);
+    const tableName = awsCalls.cloudFormation.getOutput('TableName', cfStack);
+    if(!tableName) {
+        throw new Error('Expected to receive tableName back from DynamoDB service');
+    }
 
     // Inject policies to talk to the table
     deployContext.policies.push(getTablePolicyForDependentServices(tableName!, serviceContext.accountConfig));
@@ -94,14 +94,14 @@ function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStac
     // Get values for createEventSourceMapping
     if (serviceContext.params.event_consumers) {
         deployContext.eventOutputs.tableName = tableName;
-        deployContext.eventOutputs.tableStreamArn = cloudFormationCalls.getOutput('StreamArn', cfStack);
+        deployContext.eventOutputs.tableStreamArn = awsCalls.cloudFormation.getOutput('StreamArn', cfStack);
         deployContext.eventOutputs.lambdaConsumers = getLambdaConsumers(serviceContext);
     }
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         TABLE_NAME: tableName
-    }));
+    });
 
     return deployContext;
 }
@@ -217,7 +217,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
         tableReadCapacityUnits: throughputConfig.read.initial,
         tableWriteCapacityUnits: throughputConfig.write.initial,
         ttlAttribute: serviceParams.ttl_attribute,
-        tags: getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Add sort key if provided
@@ -234,7 +234,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     if (serviceParams.stream_view_type) {
         handlebarsParams.streamViewType = serviceParams.stream_view_type;
     }
-    return handlebarsUtils.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
 }
 
 const TABLE_NAME_ALLOWED_PATTERN = /^[a-zA-Z0-9_\-.]{3,255}$/;
@@ -315,13 +315,13 @@ export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenci
 }
 
 export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
 
-    const stackTags = getTags(ownServiceContext);
+    const stackTags = tagging.getTags(ownServiceContext);
 
     const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, SERVICE_NAME, 30, stackTags);
     await autoscaling.deployAutoscaling(stackName, ownServiceContext, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
@@ -333,7 +333,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<DynamoDBCo
 
 export async function unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>) {
     await autoscaling.undeployAutoscaling(ownServiceContext);
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [

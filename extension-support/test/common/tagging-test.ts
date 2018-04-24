@@ -15,26 +15,22 @@
  *
  */
 import {expect} from 'chai';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import config from '../../src/account-config/account-config';
-import {getTags} from '../../src/common/tagging-common';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
-import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import {getTags} from '../../src/common/tagging';
+import accountConfig from '../fake-account-config';
 
 describe('Tagging common module', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
-    let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
     const serviceName = 'FakeService';
 
     beforeEach(async () => {
-        const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        accountConfig = retAccountConfig;
-        serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, retAccountConfig);
+        serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType('someExtension', 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {

@@ -26,57 +26,6 @@ import { documentationUrl } from '../common/util';
 
 // tslint:disable:no-empty-interface
 
-/***********************************
- * Types for the Account Config File
- ***********************************/
-export interface AccountConfig extends api.AccountConfig {
-}
-
-/***********************************
- * Types for the context objects used by service deployers
- ***********************************/
-export class ServiceContext<Config extends ServiceConfig> implements api.ServiceContext<Config> {
-
-    constructor(public appName: string,
-                public environmentName: string,
-                public serviceName: string,
-                public serviceType: api.ServiceType,
-                public params: Config,
-                public accountConfig: AccountConfig,
-                public tags: api.Tags = {},
-                public serviceInfo: api.ServiceInfo = {
-                    consumedDeployOutputTypes: [],
-                    producedDeployOutputTypes: [],
-                    producedEventsSupportedServices: []
-                }) {
-    }
-}
-
-export class ServiceType implements api.ServiceType {
-    constructor(public prefix: string, public name: string) {
-    }
-
-    public matches(prefix: string, name: string): boolean {
-        return this.prefix === prefix && this.name === name;
-    }
-
-    public toString(): string {
-        return this.prefix + '::' + this.name;
-    }
-}
-
-export interface ServiceConfig extends api.ServiceConfig {
-}
-
-export interface ServiceEventConsumer extends api.ServiceEventConsumer {
-}
-
-/***********************************
- * Types for the Service Deployer contract
- ***********************************/
-export interface ServiceDeployer extends api.ServiceDeployer {
-}
-
 /************************************
  * Types for the HandelFileParser contract
  ************************************/
@@ -85,7 +34,7 @@ export interface HandelFileParser {
 
     listExtensions(handelFile: HandelFile): Promise<ExtensionList>;
 
-    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: AccountConfig, serviceRegistry: api.ServiceRegistry, options: HandelCoreOptions): EnvironmentContext;
+    createEnvironmentContext(handelFile: HandelFile, environmentName: string, accountConfig: api.AccountConfig, serviceRegistry: api.ServiceRegistry, options: HandelCoreOptions): EnvironmentContext;
 }
 
 /***********************************
@@ -104,7 +53,7 @@ export interface HandelFileEnvironments {
 }
 
 export interface HandelFileEnvironment {
-    [serviceName: string]: ServiceConfig;
+    [serviceName: string]: api.ServiceConfig;
 }
 
 export interface HandelFileExtensions {
@@ -121,7 +70,7 @@ export class EnvironmentContext {
 
     constructor(public appName: string,
                 public environmentName: string,
-                public accountConfig: AccountConfig,
+                public accountConfig: api.AccountConfig,
                 public options: HandelCoreOptions = {linkExtensions: false},
                 public tags: api.Tags = {}) {
         this.serviceContexts = {};
@@ -167,7 +116,7 @@ export interface EnvironmentsCheckResults {
 }
 
 export interface ServiceContexts {
-    [serviceName: string]: ServiceContext<ServiceConfig>;
+    [serviceName: string]: api.ServiceContext<api.ServiceConfig>;
 }
 
 export interface PreDeployContexts {

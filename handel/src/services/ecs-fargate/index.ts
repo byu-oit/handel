@@ -15,19 +15,16 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import { handlebars, tagging, deployPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
 import * as route53 from '../../aws/route53-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
 import * as volumesSection from '../../common/ecs-volumes';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { getTags } from '../../common/tagging-common';
 import { FargateServiceConfig, HandlebarsFargateTemplateConfig } from './config-types';
 
 const SERVICE_NAME = 'ECS Fargate';
@@ -80,7 +77,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
         vpcId: accountConfig.vpc,
         policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
         deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-        tags: getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
         containerConfigs,
         autoScaling,
         oneOrMoreTasksHasRouting,
@@ -100,7 +97,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
     // Add volumes if present (these are consumed by one or more container mount points)
     handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/ecs-fargate-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/ecs-fargate-template.yml`, handlebarsParams);
 }
 
 /**
@@ -132,27 +129,27 @@ export function check(serviceContext: ServiceContext<FargateServiceConfig>, depe
 }
 
 export async function preDeploy(serviceContext: ServiceContext<FargateServiceConfig>) {
-    return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying ECS Fargate Service '${stackName}'`);
 
     await ecsCalls.createDefaultClusterIfNotExists();
     const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
     return new DeployContext(ownServiceContext);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>) {
-    return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>) {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

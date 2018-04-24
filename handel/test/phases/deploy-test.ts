@@ -15,22 +15,25 @@
  *
  */
 import { expect } from 'chai';
-import { DeployContext, PreDeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import {
-    AccountConfig,
     DeployContexts,
     DeployOrder,
     EnvironmentContext,
-    PreDeployContexts,
-    ServiceContext,
-    ServiceType
+    PreDeployContexts
 } from '../../src/datatypes';
 import * as deployPhase from '../../src/phases/deploy';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('deploy', () => {
     let sandbox: sinon.SinonSandbox;

@@ -15,28 +15,23 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceConfig, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import config from '../../src/account-config/account-config';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
-import * as deletePhasesCommon from '../../src/common/delete-phases-common';
-import { ServiceContext, ServiceType } from '../../src/datatypes';
-import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import * as deletePhases from '../../src/common/delete-phases';
+import accountConfig from '../fake-account-config';
 
 describe('Delete phases common module', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
-    let accountConfig: AccountConfig;
 
     beforeEach(async () => {
-        const retAccountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService',
-            new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, retAccountConfig);
-        accountConfig = retAccountConfig;
+            new ServiceType('someExtension', 'dynamodb'), {type: 'dynamodb'}, accountConfig);
     });
 
     afterEach(() => {
@@ -49,7 +44,7 @@ describe('Delete phases common module', () => {
             const deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
             const deleteMatchingPrefix = sandbox.stub(s3Calls, 'deleteMatchingPrefix').returns(Promise.resolve(true));
 
-            const unDeployContext = await deletePhasesCommon.unDeployService(serviceContext, 'DynamoDB');
+            const unDeployContext = await deletePhases.unDeployService(serviceContext, 'DynamoDB');
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(deleteStackStub.callCount).to.equal(1);
@@ -61,7 +56,7 @@ describe('Delete phases common module', () => {
             const deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
             const deleteMatchingPrefix = sandbox.stub(s3Calls, 'deleteMatchingPrefix').returns(Promise.resolve(true));
 
-            const unDeployContext = await deletePhasesCommon.unDeployService(serviceContext, 'DynamoDB');
+            const unDeployContext = await deletePhases.unDeployService(serviceContext, 'DynamoDB');
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(deleteStackStub.callCount).to.equal(0);
@@ -74,7 +69,7 @@ describe('Delete phases common module', () => {
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve({}));
             const deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            const unPreDeployContext = await deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, 'FakeService');
+            const unPreDeployContext = await deletePhases.unPreDeploySecurityGroup(serviceContext, 'FakeService');
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(deleteStackStub.callCount).to.equal(1);
@@ -84,7 +79,7 @@ describe('Delete phases common module', () => {
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').returns(Promise.resolve(null));
             const deleteStackStub = sandbox.stub(cloudformationCalls, 'deleteStack').returns(Promise.resolve(true));
 
-            const unPreDeployContext = await deletePhasesCommon.unPreDeploySecurityGroup(serviceContext, 'FakeService');
+            const unPreDeployContext = await deletePhases.unPreDeploySecurityGroup(serviceContext, 'FakeService');
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(deleteStackStub.callCount).to.equal(0);
@@ -95,7 +90,7 @@ describe('Delete phases common module', () => {
         it('should remove all ingress from the given security group', async () => {
             const removeIngressStub = sandbox.stub(ec2Calls, 'removeAllIngressFromSg').returns(Promise.resolve({}));
 
-            const unBindContext = await deletePhasesCommon.unBindSecurityGroups(serviceContext, 'FakeService');
+            const unBindContext = await deletePhases.unBindSecurityGroups(serviceContext, 'FakeService');
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(removeIngressStub.callCount).to.equal(1);
         });

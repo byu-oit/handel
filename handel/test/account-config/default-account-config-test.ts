@@ -15,10 +15,10 @@
  *
  */
 import { expect } from 'chai';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as defaultAccountConfig from '../../src/account-config/default-account-config';
-import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as stsCalls from '../../src/aws/sts-calls';
 
@@ -62,8 +62,8 @@ describe('default account config module', () => {
                     SubnetId: subnetIds[1]
                 }
             ]);
-            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves(null);
-            const createStackStub = sandbox.stub(cloudformationCalls, 'createStack').resolves({
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'RdsSubnetGroupName',
@@ -77,7 +77,7 @@ describe('default account config module', () => {
             });
 
             // Invoke and return expectations
-            const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(`default-${region}`);
+            const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
             expect(getRegionsStub.callCount).to.equal(1);
             expect(getDefaultVpcStub.callCount).to.equal(1);
             expect(getAccountIdStub.callCount).to.equal(1);
@@ -102,7 +102,7 @@ describe('default account config module', () => {
             ]));
 
             try {
-                const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(`default-${region}`);
+                const accountConfig = await defaultAccountConfig.getDefaultAccountConfig(region);
                 expect(true).to.equal(false); // Should not get here
             }
             catch (err) {

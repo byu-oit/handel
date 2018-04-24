@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceConfig, ServiceEventConsumer } from '../../datatypes';
+import { ServiceConfig, ServiceEventConsumer } from 'handel-extension-api';
 
 export interface CloudWatchEventsConfig extends ServiceConfig {
     description?: string;

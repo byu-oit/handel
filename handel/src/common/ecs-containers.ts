@@ -15,6 +15,7 @@
  *
  */
 import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
+import { deployPhase } from 'handel-extension-support';
 import * as _ from 'lodash';
 import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
@@ -41,25 +42,6 @@ function checkLinks(serviceContext: ServiceContext<EcsServiceConfig>, container:
             }
         }
     }
-}
-
-function getEnvironmentVariablesForContainer(container: ContainerConfig, ownServiceContext: ServiceContext<EcsServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    let environmentVariables = {};
-
-    // Inject env vars defined by service (if any)
-    if (container.environment_variables) {
-        environmentVariables = _.assign(environmentVariables, container.environment_variables);
-    }
-
-    // Inject env vars defined by dependencies
-    const dependenciesEnvVars = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    environmentVariables = _.assign(environmentVariables, dependenciesEnvVars);
-
-    // Inject env vars from Handel file
-    const handelInjectedEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(ownServiceContext);
-    environmentVariables = _.assign(environmentVariables, handelInjectedEnvVars);
-
-    return environmentVariables;
 }
 
 /**
@@ -125,7 +107,7 @@ export function getContainersConfig(ownServiceContext: ServiceContext<EcsService
             name: container.name,
             maxMb: container.max_mb || 128,
             cpuUnits: container.cpu_units || 100,
-            environmentVariables: getEnvironmentVariablesForContainer(container, ownServiceContext, dependenciesDeployContexts),
+            environmentVariables: deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, container.environment_variables),
             portMappings: [], // This is filled up below if any mappings present
             imageName: getImageName(container, ownServiceContext),
             mountPoints: volumesSection.getMountPointsForContainer(dependenciesDeployContexts), // Add mount points if present

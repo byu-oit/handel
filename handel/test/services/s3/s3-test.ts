@@ -16,22 +16,20 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -103,16 +101,20 @@ describe('s3 deployer', () => {
         describe('deploy', () => {
             it('should deploy the bucket', async () => {
                 const bucketName = 'my-bucket';
+                const bucketArn = 'fake-arn';
                 ownServiceContext.params = {
                     type: 's3',
                     bucket_name: bucketName
                 };
                 const preDeployContext = new PreDeployContext(ownServiceContext);
 
-                const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+                const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'BucketName',
                         OutputValue: bucketName
+                    }, {
+                        OutputKey: 'BucketArn',
+                        OutputValue: bucketArn
                     }]
                 }));
 
@@ -121,6 +123,7 @@ describe('s3 deployer', () => {
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(deployContext.policies.length).to.equal(2);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_NAME).to.equal(bucketName);
+                expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_ARN).to.equal(bucketArn);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_URL).to.contain(bucketName);
                 expect(deployContext.environmentVariables.FAKESERVICE_REGION_ENDPOINT).to.not.equal(null);
             });
@@ -203,7 +206,7 @@ describe('s3 deployer', () => {
                     bucket_name: bucketName
                 };
 
-                const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
+                const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
 
                 const unDeployContext = await s3.unDeploy(ownServiceContext);
                 expect(unDeployContext).to.be.instanceof(UnDeployContext);

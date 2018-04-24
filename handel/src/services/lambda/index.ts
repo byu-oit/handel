@@ -27,39 +27,27 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import {
+    awsCalls,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as iamCalls from '../../aws/iam-calls';
 import * as lambdaCalls from '../../aws/lambda-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
-import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { STDLIB_PREFIX } from '../stdlib';
 import { DynamoDBLambdaConsumer, HandlebarsLambdaTemplate, LambdaServiceConfig } from './config-types';
 
 const SERVICE_NAME = 'Lambda';
-
-function getEnvVariablesToInject(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[]): EnvironmentVariables {
-    const serviceParams = serviceContext.params;
-    let envVarsToInject = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    envVarsToInject = _.assign(envVarsToInject, deployPhaseCommon.getEnvVarsFromServiceContext(serviceContext));
-
-    if (serviceParams.environment_variables) {
-        for (const envVarName in serviceParams.environment_variables) {
-            if (serviceParams.environment_variables.hasOwnProperty(envVarName)) {
-                envVarsToInject[envVarName] = serviceParams.environment_variables[envVarName];
-            }
-        }
-    }
-    return envVarsToInject;
-}
 
 async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: ServiceContext<LambdaServiceConfig>, dependenciesDeployContexts: DeployContext[], s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, securityGroups: string[]): Promise<string> {
     const serviceParams = ownServiceContext.params;
@@ -80,11 +68,11 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         memorySize: memorySize,
         timeout: timeout,
         policyStatements,
-        tags: getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Inject environment variables (if any)
-    const envVarsToInject = getEnvVariablesToInject(ownServiceContext, dependenciesDeployContexts);
+    const envVarsToInject = deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     if (Object.keys(envVarsToInject).length > 0) {
         handlebarsParams.environmentVariables = envVarsToInject;
     }
@@ -94,13 +82,16 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         handlebarsParams.vpcSecurityGroupIds = securityGroups;
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
     }
-    return handlebarsUtils.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const lambdaArn = cloudFormationCalls.getOutput('FunctionArn', cfStack);
-    const lambdaName = cloudFormationCalls.getOutput('FunctionName', cfStack);
+    const lambdaArn = awsCalls.cloudFormation.getOutput('FunctionArn', cfStack);
+    const lambdaName = awsCalls.cloudFormation.getOutput('FunctionName', cfStack);
+    if(!lambdaArn || !lambdaName) {
+        throw new Error('Expected to receive lambda name and lambda ARN from lambda service');
+    }
 
     // Output policy for consuming this Lambda
     deployContext.policies.push({
@@ -115,10 +106,10 @@ function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, c
     });
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         FUNCTION_ARN: lambdaArn,
         FUNCTION_NAME: lambdaName
-    }));
+    });
 
     // Inject event outputs
     deployContext.eventOutputs.lambdaArn = lambdaArn;
@@ -131,7 +122,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Lambd
     const s3FileName = `lambda-deployable-${uuid()}.zip`;
     winston.info(`${SERVICE_NAME} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = serviceContext.params.path_to_code;
-    const s3ArtifactInfo = await deployPhaseCommon.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${SERVICE_NAME} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
 }
@@ -148,9 +139,9 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     };
     let compiledTemplate;
     if (serviceContext.params.vpc) {
-        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
+        compiledTemplate = await handlebars.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
     } else {
-        compiledTemplate = await handlebarsUtils.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
+        compiledTemplate = await handlebars.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
     }
     let ownPolicyStatements = JSON.parse(compiledTemplate);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
@@ -171,7 +162,7 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
     policyStatementsToConsume[0].Resource = [];
     const tableStreamGeneralArn = tableStreamArn.substring(0, tableStreamArn.lastIndexOf('/') + 1).concat('*');
     policyStatementsToConsume[0].Resource.push(tableStreamGeneralArn);
-    await iamCalls.attachStreamPolicy(deployPhaseCommon.getResourceName(ownServiceContext), policyStatementsToConsume, ownServiceContext.accountConfig);
+    await iamCalls.attachStreamPolicy(ownServiceContext.stackName(), policyStatementsToConsume, ownServiceContext.accountConfig);
     winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
 
     // Add the event source mapping to the Lambda
@@ -250,14 +241,14 @@ export function check(serviceContext: ServiceContext<LambdaServiceConfig>, depen
 
 export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
     if (serviceContext.params.vpc) {
-        return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
         return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
 }
 
 export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const securityGroups: string[] = [];
     if (ownPreDeployContext.securityGroups) {
@@ -267,8 +258,8 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     }
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
@@ -285,15 +276,15 @@ export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServ
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
     if (ownServiceContext.params.vpc) {
-        return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
         return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
-    await iamCalls.detachPoliciesFromRole(deployPhaseCommon.getResourceName(ownServiceContext));
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    await iamCalls.detachPoliciesFromRole(ownServiceContext.stackName());
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

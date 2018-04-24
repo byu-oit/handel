@@ -15,14 +15,11 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import { getTags } from '../../common/tagging-common';
 import * as util from '../../common/util';
 import { HandlebarsStepFunctionsTemplate, StepFunctionsConfig } from './config-types';
 
@@ -81,17 +78,17 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledStepFunctionsTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledStepFunctionsTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<StepFunctionsConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];
@@ -125,13 +122,16 @@ function getCompiledStepFunctionsTemplate(stackName: string, ownServiceContext: 
         definitionString,
         policyStatements
     };
-    return handlebarsUtils.compileTemplate(`${__dirname}/stepfunctions-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/stepfunctions-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const stateMachineArn = cloudFormationCalls.getOutput('StateMachineArn', cfStack);
-    const stateMachineName = cloudFormationCalls.getOutput('StateMachineName', cfStack);
+    const stateMachineArn = awsCalls.cloudFormation.getOutput('StateMachineArn', cfStack);
+    const stateMachineName = awsCalls.cloudFormation.getOutput('StateMachineName', cfStack);
+    if(!stateMachineArn || !stateMachineName) {
+        throw new Error('Expected to receive state machine ARN and name from Step Functions service');
+    }
     // Output policy for consuming this state machine
     deployContext.policies.push({
         'Effect': 'Allow',
@@ -145,10 +145,10 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
     });
 
     // Inject env vars
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         STATE_MACHINE_ARN: stateMachineArn,
         STATE_MACHINE_NAME: stateMachineName
-    }));
+    });
 
     return deployContext;
 }

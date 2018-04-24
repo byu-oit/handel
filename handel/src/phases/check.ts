@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-import {ServiceRegistry} from 'handel-extension-api';
+import { ServiceConfig, ServiceContext, ServiceDeployer, ServiceRegistry} from 'handel-extension-api';
+import { tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as winston from 'winston';
-import {getTags} from '../common/tagging-common';
-import {EnvironmentContext, ServiceConfig, ServiceContext, ServiceDeployer } from '../datatypes';
+import { EnvironmentContext } from '../datatypes';
 
 export function checkServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): string[] {
-    winston.info(`Checking services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing Check phase in environment '${environmentContext.environmentName}'`);
     // Run check on all services in environment to make sure params are valid
     const requiredTags = environmentContext.accountConfig.required_tags || [];
     let errors: string[] = [];
@@ -54,7 +54,7 @@ function checkRequiredTags(serviceDeployer: ServiceDeployer, serviceContext: Ser
         return [];
     }
 
-    const tags = getTags(serviceContext);
+    const tags = tagging.getTags(serviceContext);
 
     return requiredTags.filter(tag => !tags.hasOwnProperty(tag))
         .map(tag => `Tagging - ${serviceContext.serviceName} - Missing required tag '${tag}'. You can apply this tag at either the application or service level.`);

@@ -15,14 +15,19 @@
  *    limitations under the License.
  */
 
-import { Extension, ExtensionContext, ServiceRegistry, ServiceType as IServiceType } from 'handel-extension-api';
+import {
+    Extension,
+    ExtensionContext,
+    ServiceDeployer,
+    ServiceRegistry,
+    ServiceType,
+    ServiceType as IServiceType
+} from 'handel-extension-api';
 import {
     ExtensionLoadingError,
     LoadedExtension,
     MissingDeployerError,
-    MissingPrefixError,
-    ServiceDeployer,
-    ServiceType
+    MissingPrefixError
 } from '../datatypes';
 
 /**

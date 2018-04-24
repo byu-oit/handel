@@ -16,19 +16,17 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import {
-    AccountConfig,
-    ServiceConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as alexaSkillKit from '../../../src/services/alexaskillkit';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 

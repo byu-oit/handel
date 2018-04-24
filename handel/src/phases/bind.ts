@@ -35,12 +35,16 @@ function getDependentServicesForCurrentBindService(environmentContext: Environme
     return dependentServices;
 }
 
+function getBindContextName(bindServiceName: string, dependentServiceName: string): string {
+    return `${dependentServiceName}->${bindServiceName}`;
+}
+
 export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder, levelToBind: number): Promise<BindContexts> {
     const bindPromises = [];
     const levelBindContexts: BindContexts = {};
 
     const currentLevelServicesToBind = deployOrder[levelToBind];
-    winston.info(`Executing bind (if any) on service dependencies on level ${levelToBind} for services ${currentLevelServicesToBind.join(', ')}`);
+    winston.info(`Executing Bind phase on service dependencies on level ${levelToBind} of environment '${environmentContext.environmentName}' for services ${currentLevelServicesToBind.join(', ')}`);
     for(const toBindServiceName of currentLevelServicesToBind) {
         // Get ServiceContext and PreDeployContext for the service to call bind on
         const toBindServiceContext = environmentContext.serviceContexts[toBindServiceName];
@@ -54,7 +58,7 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
             const dependentOfPreDeployContext = preDeployContexts[dependentOfServiceName];
 
             // Run bind on the service combination
-            const bindContextName = util.getBindContextName(toBindServiceName, dependentOfServiceName);
+            const bindContextName = getBindContextName(toBindServiceName, dependentOfServiceName);
             winston.debug(`Binding service ${bindContextName}`);
 
             if (serviceDeployer.bind) {

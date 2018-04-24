@@ -14,7 +14,15 @@
  * limitations under the License.
  *
  */
-import { IDeployContext, isProduceEventsContext, ServiceRegistry} from 'handel-extension-api';
+import {
+    IDeployContext,
+    isProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceEventConsumer,
+    ServiceRegistry
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../common/util';
 import {
@@ -22,10 +30,7 @@ import {
     DontBlameHandelError,
     EnvironmentContext,
     ProduceEventsContexts,
-    ServiceConfig,
-    ServiceContext,
-    ServiceDeployer,
-    ServiceEventConsumer
+
 } from '../datatypes';
 
 interface ProduceEventsAction {
@@ -47,8 +52,12 @@ async function produceEvent(consumerServiceContext: ServiceContext<ServiceConfig
     return produceEventsContext;
 }
 
+function getProduceEventsContextName(producerServiceName: string, consumerServiceName: string): string {
+    return `${producerServiceName}->${consumerServiceName}`;
+}
+
 export async function produceEvents(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployContexts: DeployContexts): Promise<ProduceEventsContexts> {
-    winston.info(`Executing produce events phase on services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing ProduceEvents phase in environment '${environmentContext.environmentName}'`);
 
     const produceEventActions: ProduceEventsAction[] = [];
     const produceEventsContexts: ProduceEventsContexts = {};
@@ -65,7 +74,7 @@ export async function produceEvents(serviceRegistry: ServiceRegistry, environmen
                 // Run produce events for each service this service produces to
                 for(const eventConsumerConfig of producerServiceContext.params.event_consumers) {
                     const consumerServiceName = eventConsumerConfig.service_name;
-                    const produceEventsContextName = util.getProduceEventsContextName(producerServiceContext.serviceName, consumerServiceName);
+                    const produceEventsContextName = getProduceEventsContextName(producerServiceContext.serviceName, consumerServiceName);
 
                     const consumerServiceContext = environmentContext.serviceContexts[consumerServiceName];
                     const consumerDeployContext = deployContexts[consumerServiceName];

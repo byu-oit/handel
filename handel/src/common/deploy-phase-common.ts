@@ -24,58 +24,9 @@ import {
     Tags } from 'handel-extension-api';
 import * as os from 'os';
 import * as winston from 'winston';
-import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as iamCalls from '../aws/iam-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as util from '../common/util';
-
-/**
- * Given a ServiceContext and suffix, return the env var name used for environment variables naming
- * All dashes are substituted for underscores.
- */
-export function getInjectedEnvVarName(serviceContext: ServiceContext<ServiceConfig> | DeployContext, suffix: string): string {
-    return `${serviceContext.serviceName}_${suffix}`.toUpperCase().replace(/-/g, '_');
-}
-
-export function getInjectedEnvVarsFor(serviceContext: ServiceContext<ServiceConfig>, outputs: any) {
-    return Object.keys(outputs).reduce((obj: any, name) => {
-        obj[getInjectedEnvVarName(serviceContext, name)] = outputs[name];
-        return obj;
-    }, {});
-}
-
-export function injectedSsmParamPrefix(serviceContext: ServiceContext<ServiceConfig>): string {
-    return `${serviceContext.appName}.${serviceContext.environmentName}.${serviceContext.serviceName}`;
-}
-
-function ssmParamPrefix(serviceContext: ServiceContext<ServiceConfig>): string {
-    return `${serviceContext.appName}.${serviceContext.environmentName}`;
-}
-
-export function getSsmParamName(serviceContext: ServiceContext<ServiceConfig>, suffix: string) {
-    return `${injectedSsmParamPrefix(serviceContext)}.${suffix}`;
-}
-
-export function getEnvVarsFromServiceContext(serviceContext: ServiceContext<ServiceConfig>): EnvironmentVariables {
-    const envVars: EnvironmentVariables = {};
-    envVars.HANDEL_APP_NAME = serviceContext.appName;
-    envVars.HANDEL_ENVIRONMENT_NAME = serviceContext.environmentName;
-    envVars.HANDEL_SERVICE_NAME = serviceContext.serviceName;
-    envVars.HANDEL_PARAMETER_STORE_PREFIX = ssmParamPrefix(serviceContext);
-    return envVars;
-}
-
-export function getEnvVarsFromDependencyDeployContexts(deployContexts: DeployContext[]): EnvironmentVariables {
-    const envVars: EnvironmentVariables = {};
-    for (const deployContext of deployContexts) {
-        for (const envVarKey in deployContext.environmentVariables) {
-            if (deployContext.environmentVariables.hasOwnProperty(envVarKey)) {
-                envVars[envVarKey] = deployContext.environmentVariables[envVarKey];
-            }
-        }
-    }
-    return envVars;
-}
 
 /**
  * Do a one-time creation of the custom role.
@@ -120,59 +71,6 @@ export function getAllPolicyStatementsForServiceRole(ownServicePolicyStatements:
     return policyStatementsToConsume;
 }
 
-export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
-    const stack = await cloudformationCalls.getStack(stackName);
-    if (!stack) {
-        winston.info(`${serviceType} - Creating stack '${stackName}'`);
-        return cloudformationCalls.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
-    }
-    else {
-        if (updatesSupported) {
-            winston.info(`${serviceType} - Updating stack '${stackName}'`);
-            return cloudformationCalls.updateStack(stackName, cfTemplate, cfParameters, stackTags);
-        }
-        else {
-            winston.info(`${serviceType} - Updates not supported for this service type`);
-            return stack;
-        }
-    }
-}
-
-export function getHandelUploadsBucketName(accountConfig: AccountConfig) {
-    return `handel-${accountConfig.region}-${accountConfig.account_id}`;
-}
-
-export async function uploadFileToHandelBucket(diskFilePath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig) {
-    const bucketName = getHandelUploadsBucketName(accountConfig);
-
-    const artifactKey = `${artifactPrefix}/${s3FileName}`;
-    const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region
-    const s3ObjectInfo = await s3Calls.uploadFile(bucketName, artifactKey, diskFilePath);
-    await s3Calls.cleanupOldVersionsOfFiles(bucketName, artifactPrefix);
-    return s3ObjectInfo;
-}
-
-export async function uploadDirectoryToHandelBucket(directoryPath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig) {
-    const zippedPath = `${os.tmpdir()}/${s3FileName}.zip`;
-    await util.zipDirectoryToFile(directoryPath, zippedPath);
-    const s3ObjectInfo = await uploadFileToHandelBucket(zippedPath, artifactPrefix, s3FileName, accountConfig);
-    // Delete temporary file
-    fs.unlinkSync(zippedPath);
-    return s3ObjectInfo;
-}
-
-export async function uploadDeployableArtifactToHandelBucket(serviceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, s3FileName: string) {
-    const accountConfig = serviceContext.accountConfig;
-    const fileStats = fs.lstatSync(pathToArtifact);
-    const artifactPrefix = `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
-    if (fileStats.isDirectory()) { // Zip up artifact and upload it
-        return uploadDirectoryToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
-    }
-    else { // Is file (i.e. WAR file or some other already-compiled archive), just upload directly
-        return uploadFileToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
-    }
-}
-
 export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceContext<ServiceConfig>) {
     const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
     return [
@@ -208,8 +106,4 @@ export function getAppSecretsAccessPolicyStatements(serviceContext: ServiceConte
             ]
         }
     ];
-}
-
-export function getResourceName(serviceContext: ServiceContext<ServiceConfig>) {
-    return `${serviceContext.appName}-${serviceContext.environmentName}-${serviceContext.serviceName}-${serviceContext.serviceType.name}`;
 }

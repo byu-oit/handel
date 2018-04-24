@@ -15,17 +15,20 @@
  *
  */
 import { expect } from 'chai';
-import { BindContext, PreDeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    BindContext,
+    PreDeployContext,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import {
-    AccountConfig,
     DeployOrder,
     EnvironmentContext,
-    PreDeployContexts,
-    ServiceContext,
-    ServiceType
+    PreDeployContexts
 } from '../../src/datatypes';
 import * as bindPhase from '../../src/phases/bind';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';

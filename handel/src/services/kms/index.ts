@@ -15,30 +15,30 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
-import {getTags} from '../../common/tagging-common';
 import {KmsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'KMS';
 
 function getDeployContext(serviceContext: ServiceContext<KmsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const keyId = cloudFormationCalls.getOutput('KeyId', cfStack);
-    const keyArn = cloudFormationCalls.getOutput('KeyArn', cfStack);
-    const aliasName = cloudFormationCalls.getOutput('AliasName', cfStack);
-    const aliasArn = cloudFormationCalls.getOutput('AliasArn', cfStack);
+    const keyId = awsCalls.cloudFormation.getOutput('KeyId', cfStack);
+    const keyArn = awsCalls.cloudFormation.getOutput('KeyArn', cfStack);
+    const aliasName = awsCalls.cloudFormation.getOutput('AliasName', cfStack);
+    const aliasArn = awsCalls.cloudFormation.getOutput('AliasArn', cfStack);
+    if(!keyId || !keyArn || !aliasName || !aliasArn) {
+        throw new Error('Expected to receive key ID, key ARN, alias name, and alias ARN from KMS service');
+    }
 
     const deployContext = new DeployContext(serviceContext);
 
-    deployContext.addEnvironmentVariables(deployPhaseCommon.getInjectedEnvVarsFor(serviceContext, {
+    deployContext.addEnvironmentVariables({
         'KEY_ID': keyId,
         'KEY_ARN': keyArn,
         'ALIAS_NAME': aliasName,
         'ALIAS_ARN': aliasArn
-    }));
+    });
 
     // Set up key use policies
     deployContext.policies.push({
@@ -70,7 +70,7 @@ async function getCompiledTemplate(ownServiceContext: ServiceContext<KmsServiceC
         alias: serviceParams.alias || getDefaultAlias(ownServiceContext)
     };
 
-    return handlebarsUtils.compileTemplate(`${__dirname}/kms-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/kms-template.yml`, handlebarsParams);
 }
 
 function getDefaultAlias(serviceContext: ServiceContext<KmsServiceConfig>): string {
@@ -102,18 +102,18 @@ export function check(serviceContext: ServiceContext<KmsServiceConfig>, dependen
 }
 
 export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
 
     const compiledTemplate = await getCompiledTemplate(ownServiceContext);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<KmsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

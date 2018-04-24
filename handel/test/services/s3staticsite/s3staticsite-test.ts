@@ -16,24 +16,21 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as s3Calls from '../../../src/aws/s3-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import * as handlebarsUtils from '../../../src/common/handlebars-utils';
 import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
 import * as s3StaticSite from '../../../src/services/s3staticsite';
 import { S3StaticSiteServiceConfig } from '../../../src/services/s3staticsite/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -175,12 +172,12 @@ describe('s3staticsite deployer', () => {
 
         beforeEach(() => {
             ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            handlebarsSpy = sandbox.spy(handlebarsUtils, 'compileTemplate');
+            handlebarsSpy = sandbox.spy(handlebars, 'compileTemplate');
         });
 
         it('should deploy the static site bucket', async () => {
             const createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
             deployStackStub.onCall(0).resolves({
                 Outputs: [{
                     OutputKey: 'BucketName',
@@ -218,7 +215,7 @@ describe('s3staticsite deployer', () => {
 
                 createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
 
-                deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack');
+                deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
                 deployStackStub.onCall(0).resolves({
                     Outputs: [{
                         OutputKey: 'BucketName',
@@ -320,7 +317,7 @@ describe('s3staticsite deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(ownServiceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(ownServiceContext));
 
             const unDeployContext = await s3StaticSite.unDeploy(ownServiceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

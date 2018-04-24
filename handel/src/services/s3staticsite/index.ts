@@ -15,15 +15,11 @@
  *
  */
 import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as cloudFormationCalls from '../../aws/cloudformation-calls';
 import * as route53Calls from '../../aws/route53-calls';
 import * as s3Calls from '../../aws/s3-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import {getTags} from '../../common/tagging-common';
 import {
     CloudFrontConfig,
     HandlebarsCloudFrontParams,
@@ -71,12 +67,12 @@ async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticS
         logFilePrefix,
         indexDocument,
         errorDocument,
-        tags: getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
 
     };
 
     handlebarsParams.cloudfront = await getCloudfrontTemplateParameters(ownServiceContext);
-    return handlebarsUtils.compileTemplate(`${__dirname}/s3-static-site-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/s3-static-site-template.yml`, handlebarsParams);
 }
 
 async function getCloudfrontTemplateParameters(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<HandlebarsCloudFrontParams | undefined> {
@@ -207,14 +203,14 @@ export function check(serviceContext: ServiceContext<S3StaticSiteServiceConfig>,
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying static website '${stackName}'`);
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
-    const stackTags = getTags(ownServiceContext);
-    const deployedStack = await deployPhaseCommon.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
-    const bucketName = cloudFormationCalls.getOutput('BucketName', deployedStack)!;
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
+    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
     // Upload files from path_to_website to S3
     winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);
     await s3Calls.uploadDirectory(bucketName, '', ownServiceContext.params.path_to_code);
@@ -224,7 +220,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

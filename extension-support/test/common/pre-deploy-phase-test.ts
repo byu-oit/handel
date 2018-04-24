@@ -15,25 +15,21 @@
  *
  */
 import { expect } from 'chai';
-import { PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import config from '../../src/account-config/account-config';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
-import * as preDeployPhaseCommon from '../../src/common/pre-deploy-phase-common';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
-import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import * as preDeployPhase from '../../src/common/pre-deploy-phase';
+import accountConfig from '../fake-account-config';
 
 describe('PreDeploy Phase Common module', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
-    let accountConfig: AccountConfig;
 
     beforeEach(async () => {
-        accountConfig = await config(`${__dirname}/../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
-        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
+        serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType('someExtension', 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 
     afterEach(() => {
@@ -51,7 +47,7 @@ describe('PreDeploy Phase Common module', () => {
             });
             const getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').resolves({});
 
-            const preDeployContext = await preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, 'FakeService');
+            const preDeployContext = await preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, 'FakeService');
             expect(preDeployContext).to.be.instanceOf(PreDeployContext);
             expect(preDeployContext.securityGroups.length).to.equal(1);
             expect(preDeployContext.securityGroups[0]).to.deep.equal({});
@@ -70,7 +66,7 @@ describe('PreDeploy Phase Common module', () => {
             });
             const getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').resolves({});
 
-            const preDeployContext = await preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, 22, 'FakeService');
+            const preDeployContext = await preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, 'FakeService');
             expect(preDeployContext).to.be.instanceOf(PreDeployContext);
             expect(preDeployContext.securityGroups.length).to.equal(1);
             expect(preDeployContext.securityGroups[0]).to.deep.equal({});

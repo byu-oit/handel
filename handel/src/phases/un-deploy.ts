@@ -24,14 +24,14 @@ export async function unDeployServicesInLevel(serviceRegistry: ServiceRegistry, 
     const levelUnDeployContexts: UnDeployContexts = {};
 
     const currentLevelElements = deployOrder[level];
-    winston.info(`UnDeploying level ${level} of services: ${currentLevelElements.join(', ')}`);
+    winston.info(`Executing UnDeploy phase on level ${level} in environment '${environmentContext.environmentName}' for services: ${currentLevelElements.join(', ')}`);
     for(const toUnDeployServiceName of currentLevelElements) {
         const toUnDeployServiceContext = environmentContext.serviceContexts[toUnDeployServiceName];
 
         const serviceDeployer = serviceRegistry.getService(toUnDeployServiceContext.serviceType);
 
-        winston.debug(`UnDeploying service ${toUnDeployServiceName}`);
         if (serviceDeployer.unDeploy) {
+            winston.info(`UnDeploying service ${toUnDeployServiceName}`);
             const serviceUndeployPromise = serviceDeployer.unDeploy(toUnDeployServiceContext)
                 .then(unDeployContext => {
                     if (!isUnDeployContext(unDeployContext)) {

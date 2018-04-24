@@ -14,7 +14,8 @@
  * limitations under the License.
  *
  */
-import { HandlebarsInstanceScalingDimension, HandlebarsInstanceScalingPolicy, InstanceScalingPolicyAlarmDimensions, ServiceContext } from '../datatypes';
+import { ServiceContext } from 'handel-extension-api';
+import { HandlebarsInstanceScalingDimension, HandlebarsInstanceScalingPolicy, InstanceScalingPolicyAlarmDimensions } from '../datatypes';
 import { BeanstalkServiceConfig } from '../services/beanstalk/config-types';
 import { CodeDeployServiceConfig } from '../services/codedeploy/config-types';
 

@@ -16,22 +16,20 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as cloudWatchEventsCalls from '../../../src/aws/cloudwatch-events-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
 import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from '../../../src/services/cloudwatchevent/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -82,7 +80,7 @@ describe('cloudwatchevent deployer', () => {
             const preDeployContext = new PreDeployContext(serviceContext);
             const eventRuleArn = 'FakeEventRuleArn';
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn
@@ -184,7 +182,7 @@ describe('cloudwatchevent deployer', () => {
         it('should remove all targets and delete the stack', async () => {
             const getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
             const removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').returns(Promise.resolve(true));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(true));
 
             const unDeployContext = await cloudWatchEvent.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

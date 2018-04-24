@@ -14,13 +14,17 @@
  * limitations under the License.
  *
  */
-import {AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, Tags} from 'handel-extension-api';
-import * as winston from 'winston';
+import {
+    AccountConfig,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    Tags
+} from 'handel-extension-api';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
-import * as deployPhaseCommon from './deploy-phase-common';
-import * as handlebarsUtils from './handlebars-utils';
-import {getTags} from './tagging-common';
+import * as handlebarsUtils from '../util/handlebars-utils';
+import { getTags } from './tagging';
 
 async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number | null, accountConfig: AccountConfig, tags: Tags) {
     const sgName = `${stackName}-sg`;
@@ -47,11 +51,9 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
 }
 
 export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
-    const sgName = deployPhaseCommon.getResourceName(serviceContext);
-    winston.info(`${serviceName} - Creating security group '${sgName}'`);
+    const sgName = serviceContext.stackName();
 
     const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext.accountConfig, getTags(serviceContext));
-    winston.info(`${serviceName} - Finished creating security group '${sgName}'`);
     const preDeployContext = new PreDeployContext(serviceContext);
     preDeployContext.securityGroups.push(securityGroup!);
     return preDeployContext;

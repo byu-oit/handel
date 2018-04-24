@@ -15,10 +15,22 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, BindContext, ConsumeEventsContext, DeployContext, PreDeployContext, ProduceEventsContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    BindContext,
+    ConsumeEventsContext,
+    DeployContext,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceContext,
+    ServiceType,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { EnvironmentContext, ServiceContext, ServiceType } from '../../src/datatypes';
+import { EnvironmentContext } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('Datatypes Module', () => {

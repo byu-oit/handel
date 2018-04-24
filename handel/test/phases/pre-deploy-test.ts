@@ -15,10 +15,10 @@
  *
  */
 import { expect } from 'chai';
-import { PreDeployContext } from 'handel-extension-api';
+import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, EnvironmentContext, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
+import { EnvironmentContext } from '../../src/datatypes';
 import * as preDeployPhase from '../../src/phases/pre-deploy';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';

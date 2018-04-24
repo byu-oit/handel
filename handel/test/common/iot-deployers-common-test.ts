@@ -15,11 +15,11 @@
  *
  */
 import { expect } from 'chai';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import * as iotDeployersCommon from '../../src/common/iot-deployers-common';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from '../../src/datatypes';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
 describe('iot deployers common module', () => {

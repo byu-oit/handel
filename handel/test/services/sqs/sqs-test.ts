@@ -16,22 +16,20 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     ConsumeEventsContext,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sqsCalls from '../../../src/aws/sqs-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-    AccountConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import * as sqs from '../../../src/services/sqs';
 import { SqsServiceConfig } from '../../../src/services/sqs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -90,7 +88,7 @@ describe('sqs deployer', () => {
         it('should deploy the queue', async () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
 
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'QueueName',
@@ -192,7 +190,7 @@ describe('sqs deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await sqs.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

@@ -15,19 +15,19 @@
  *
  */
 import * as fs from 'fs';
+import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import { deployPhase, util as esUtil } from 'handel-extension-support';
 import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
-import { AccountConfig, ServiceConfig, ServiceContext } from '../../datatypes';
 import { BeanstalkServiceConfig, EbextensionsToInject } from './config-types';
 import * as ebextensions from './ebextensions';
 
 async function zipDir(dirPath: string): Promise<string> {
   const zippedPath = `${os.tmpdir()}/${uuid()}.zip`;
-  await util.zipDirectoryToFile(dirPath, zippedPath);
+  await esUtil.zipDirectoryToFile(dirPath, zippedPath);
   return zippedPath;
 }
 
@@ -74,7 +74,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Servi
   const s3FileName = `beanstalk-deployable-${uuid()}.${fileExtension}`;
   winston.info(`Uploading deployable artifact to S3: ${s3FileName}`);
   const artifactPrefix = `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
-  const s3ObjectInfo = await deployPhaseCommon.uploadFileToHandelBucket(fileToUpload, artifactPrefix, s3FileName, serviceContext.accountConfig);
+  const s3ObjectInfo = await deployPhase.uploadFileToHandelBucket(fileToUpload, artifactPrefix, s3FileName, serviceContext.accountConfig);
   winston.info(`Uploaded deployable artifact to S3: ${s3FileName}`);
   return s3ObjectInfo;
 }

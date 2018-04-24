@@ -16,18 +16,18 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     ProduceEventsContext,
+    ServiceContext,
+    ServiceType
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
 import {
-    AccountConfig,
     DeployContexts,
     EnvironmentContext,
-    ServiceContext,
-    ServiceType
 } from '../../src/datatypes';
 import * as produceEvents from '../../src/phases/produce-events';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';

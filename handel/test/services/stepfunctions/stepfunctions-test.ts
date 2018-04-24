@@ -16,22 +16,20 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
-import {
-    AccountConfig,
-    ServiceConfig,
-    ServiceContext,
-    ServiceType
-} from '../../../src/datatypes';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 import * as stepfunctions from '../../../src/services/stepfunctions';
 import { StepFunctionsConfig } from '../../../src/services/stepfunctions/config-types';
@@ -175,7 +173,7 @@ describe('stepfunctions deployer', () => {
         it('should deploy the state machine', async () => {
             const stateMachineArn = 'StateMachineArn';
             const stateMachineName = 'StateMachineName';
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'StateMachineArn',
@@ -218,7 +216,7 @@ describe('stepfunctions deployer', () => {
 
     describe('unDeploy', () => {
         it('should delete the stack', async () => {
-            const unDeployStack = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStack = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await stepfunctions.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

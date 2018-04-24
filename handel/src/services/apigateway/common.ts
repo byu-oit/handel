@@ -15,27 +15,12 @@
  *
  */
 import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceContext } from 'handel-extension-api';
+import { awsCalls } from 'handel-extension-support';
 import * as _ from 'lodash';
-import * as cloudformationCalls from '../../aws/cloudformation-calls';
 import * as route53 from '../../aws/route53-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import {APIGatewayConfig, CustomDomain} from './config-types';
-
-export function getEnvVarsForService(ownEnvironmentVariables: EnvironmentVariables | undefined, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[]) {
-    let returnEnvVars = {};
-
-    if (ownEnvironmentVariables) {
-        returnEnvVars = _.assign(returnEnvVars, ownEnvironmentVariables);
-    }
-
-    const dependenciesEnvVars = deployPhaseCommon.getEnvVarsFromDependencyDeployContexts(dependenciesDeployContexts);
-    returnEnvVars = _.assign(returnEnvVars, dependenciesEnvVars);
-    const handelInjectedEnvVars = deployPhaseCommon.getEnvVarsFromServiceContext(ownServiceContext);
-    returnEnvVars = _.assign(returnEnvVars, handelInjectedEnvVars);
-
-    return returnEnvVars;
-}
 
 export function getSecurityGroups(ownPreDeployContext: PreDeployContext): string[] {
     const securityGroups: string[] = [];
@@ -48,7 +33,7 @@ export function getSecurityGroups(ownPreDeployContext: PreDeployContext): string
 }
 
 export function getRestApiUrl(cfStack: AWS.CloudFormation.Stack, serviceContext: ServiceContext<APIGatewayConfig>) {
-    const restApiId = cloudformationCalls.getOutput('RestApiId', cfStack);
+    const restApiId = awsCalls.cloudFormation.getOutput('RestApiId', cfStack);
     const restApiDomain = `${restApiId}.execute-api.${serviceContext.accountConfig.region}.amazonaws.com`;
     const stageName = serviceContext.environmentName; // Env name is the stage name
     return `https://${restApiDomain}/${stageName}/`;

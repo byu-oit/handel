@@ -16,25 +16,22 @@
  */
 import { expect } from 'chai';
 import {
+    AccountConfig,
     DeployContext,
     PreDeployContext,
+    ServiceContext,
+    ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
+import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53 from '../../../src/aws/route53-calls';
-import * as deletePhasesCommon from '../../../src/common/delete-phases-common';
 import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
-import * as preDeployPhaseCommon from '../../../src/common/pre-deploy-phase-common';
-import {
-    AccountConfig,
-    InstanceScalingPolicyType,
-    ServiceContext,
-    ServiceType,
-} from '../../../src/datatypes';
+import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
@@ -121,7 +118,7 @@ describe('beanstalk deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const preDeployCreateSgStub = sandbox.stub(preDeployPhaseCommon, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await beanstalk.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -149,7 +146,7 @@ describe('beanstalk deployer', () => {
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             const sgGroupId = 'FakeSgId';
             const ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
@@ -171,7 +168,7 @@ describe('beanstalk deployer', () => {
                 Bucket: 'FakeBucket',
                 Key: 'FakeKey'
             });
-            const deployStackStub = sandbox.stub(deployPhaseCommon, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             sandbox.stub(route53, 'listHostedZones').resolves([{
                 Id: '1',
@@ -204,7 +201,7 @@ describe('beanstalk deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(deletePhasesCommon, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await beanstalk.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -214,7 +211,7 @@ describe('beanstalk deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(deletePhasesCommon, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await beanstalk.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
+import { AccountConfig, ServiceContext } from 'handel-extension-api';
 import * as route53 from '../aws/route53-calls';
-import { AccountConfig, ServiceContext } from '../datatypes';
 import { EcsServiceConfig } from '../services/ecs/config-types';
 import { ContainerConfig, HandlebarsEcsTemplateContainer, HandlebarsEcsTemplateLoadBalancer, HandlebarsEcsTemplateRoutingInfo } from './ecs-shared-config-types';
 

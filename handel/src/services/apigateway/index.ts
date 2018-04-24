@@ -15,12 +15,11 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import { deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
-import * as deletePhasesCommon from '../../common/delete-phases-common';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
-import * as preDeployPhaseCommon from '../../common/pre-deploy-phase-common';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from './swagger/swagger-deploy-type';
@@ -97,14 +96,14 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
 
 export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
     if(serviceContext.params.vpc) {
-        return preDeployPhaseCommon.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
         return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
 }
 
 export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = deployPhaseCommon.getResourceName(ownServiceContext);
+    const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
     if(ownServiceContext.params.swagger) {
         return swaggerDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
@@ -116,14 +115,14 @@ export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownP
 
 export function unPreDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnPreDeployContext> {
     if(ownServiceContext.params.vpc) {
-        return deletePhasesCommon.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
         return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
 }
 
 export function unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnDeployContext> {
-    return deletePhasesCommon.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

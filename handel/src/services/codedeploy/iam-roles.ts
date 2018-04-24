@@ -15,8 +15,8 @@
  *
  */
 import { DeployContext, ServiceContext } from 'handel-extension-api';
+import { deployPhase, handlebars } from 'handel-extension-support';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
-import * as handlebarsUtils from '../../common/handlebars-utils';
 import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
 
@@ -25,9 +25,9 @@ export async function getStatementsForInstanceRole(ownServiceContext: ServiceCon
     const ownPolicyStatementsTemplate = `${__dirname}/codedeploy-instance-role-statements.handlebars`;
     const handlebarsParams = {
         region: accountConfig.region,
-        handelBucketName: deployPhaseCommon.getHandelUploadsBucketName(accountConfig)
+        handelBucketName: deployPhase.getHandelUploadsBucketName(accountConfig)
     };
-    const compiledPolicyStatements = await handlebarsUtils.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
+    const compiledPolicyStatements = await handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
     let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(ownServiceContext));
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);

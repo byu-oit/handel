@@ -20,14 +20,14 @@ import * as lifecyclesCommon from '../common/lifecycles-common';
 import { DontBlameHandelError, EnvironmentContext, PreDeployContexts } from '../datatypes';
 
 export async function preDeployServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<PreDeployContexts> {
-    winston.info(`Executing pre-deploy phase on services in environment ${environmentContext.environmentName}`);
+    winston.info(`Executing PreDeploy phase in environment '${environmentContext.environmentName}'`);
     const preDeployPromises: Array<Promise<void>> = [];
     const preDeployContexts: PreDeployContexts = {};
 
     for (const serviceName in environmentContext.serviceContexts) {
         if (environmentContext.serviceContexts.hasOwnProperty(serviceName)) {
             const serviceContext = environmentContext.serviceContexts[serviceName];
-            winston.debug(`Executing pre-deploy on service ${serviceContext.serviceName}`);
+            winston.info(`Executing pre-deploy on service ${serviceContext.serviceName}`);
             const serviceDeployer = serviceRegistry.getService(serviceContext.serviceType);
             if (serviceDeployer.preDeploy) {
                 const preDeployPromise = serviceDeployer.preDeploy(serviceContext)

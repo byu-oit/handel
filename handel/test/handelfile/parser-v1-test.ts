@@ -16,12 +16,13 @@
  */
 import { expect } from 'chai';
 import { ServiceRegistry } from 'handel-extension-api';
+import { AccountConfig, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { AccountConfig, HandelCoreOptions, HandelFile, ServiceType } from '../../src/datatypes';
+import { HandelCoreOptions, HandelFile } from '../../src/datatypes';
 import * as parserV1 from '../../src/handelfile/parser-v1';
-import FakeServiceRegistry from '../service-registry/fake-service-registry';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
+import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('parser-v1', () => {
     let serviceRegistry: ServiceRegistry;

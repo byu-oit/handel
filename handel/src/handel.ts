@@ -101,7 +101,7 @@ function loadHandelFile(): HandelFile {
             return printHelpAndExit(`Malformed 'handel.yml' file. Make sure your Handel file is a properly formatted YAML file. You're probably missing a space or two somewhere`);
         }
         else {
-            return printHelpAndExit(`Unexpected error while loading 'handel.yml' file: ${e}`);
+            return printHelpAndExit(`Error while loading 'handel.yml' file: ${e}`);
         }
     }
 }

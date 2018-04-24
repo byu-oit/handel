@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceEventConsumer } from '../datatypes';
+import { AccountConfig, ServiceConfig, ServiceContext, ServiceEventConsumer } from 'handel-extension-api';
 
 export function getTopicRuleNamePrefix(producerServiceContext: ServiceContext<ServiceConfig>) {
     return `${producerServiceContext.appName}_${producerServiceContext.environmentName}_${producerServiceContext.serviceName}`.replace(/-/g, '_');
@@ -25,7 +25,7 @@ export function getTopicRuleNamePrefix(producerServiceContext: ServiceContext<Se
  * and the configuration for an event_consumer that the service will be producing to, this function
  * returns the generated name of the topic rule.
  *
- * NOTE: This doesn't use the usual deployPhaseCommon.getResourceName because the IOT service requires
+ * NOTE: This doesn't use the usual serviceContext.getStackName because the IOT service requires
  * underscores rather than dashes, so we convert all dashes to underscores here.
  */
 export function getTopicRuleName(producerServiceContext: ServiceContext<ServiceConfig>, eventConsumerConfig: ServiceEventConsumer) { // TODO - Need to get this lined up better

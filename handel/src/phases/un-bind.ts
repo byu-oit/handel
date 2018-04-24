@@ -24,13 +24,13 @@ export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, en
     const unBindContexts: UnBindContexts = {};
 
     const currentLevelServicesToUnBind = deployOrder[level];
-    winston.info(`Running UnBind on service dependencies (if any) in level ${level} for services ${currentLevelServicesToUnBind.join(', ')}`);
+    winston.info(`Executing UnBind phase in level ${level} in environment '${environmentContext.environmentName}' for services ${currentLevelServicesToUnBind.join(', ')}`);
     for(const toUnBindServiceName of currentLevelServicesToUnBind) {
         const toUnBindServiceContext = environmentContext.serviceContexts[toUnBindServiceName];
         const serviceDeployer = serviceRegistry.getService(toUnBindServiceContext.serviceType);
 
-        winston.debug(`UnBinding service ${toUnBindServiceName}`);
         if (serviceDeployer.unBind) {
+            winston.info(`UnBinding service ${toUnBindServiceName}`);
             const unBindPromise = serviceDeployer.unBind(toUnBindServiceContext)
                 .then(unBindContext => {
                     if (!isUnBindContext(unBindContext)) {

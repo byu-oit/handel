@@ -17,17 +17,16 @@
 import * as AWS from 'aws-sdk';
 import { stripIndent } from 'common-tags';
 import * as fs from 'fs';
-import { ServiceRegistry, Tags } from 'handel-extension-api';
+import { AccountConfig, ServiceRegistry, Tags } from 'handel-extension-api';
+import { tagging } from 'handel-extension-support';
 import * as inquirer from 'inquirer';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
 import * as stsCalls from '../aws/sts-calls';
-import { TAG_KEY_PATTERN, TAG_KEY_REGEX, TAG_VALUE_MAX_LENGTH } from '../common/tagging-common';
 import * as util from '../common/util';
 import {
-    AccountConfig,
     CheckOptions,
     DeleteOptions,
     DeployOptions,
@@ -71,9 +70,6 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
 
 async function validateLoggedIn(): Promise<void> {
     winston.debug('Checking that the user is logged in');
-    AWS.config.update({ // Just use us-east-1 while we check that we are logged in.
-        region: 'us-east-1'
-    });
     const accountId = await stsCalls.getAccountId();
     if (!accountId) {
         winston.error(`You are not logged into an AWS account`);
@@ -178,7 +174,7 @@ async function confirmDelete(envName: string, forceDelete: boolean): Promise<boo
     }
 }
 
-const TAG_PARAM_PATTERN = RegExp(`^(${TAG_KEY_PATTERN})=(.{1,${TAG_VALUE_MAX_LENGTH}})$`);
+const TAG_PARAM_PATTERN = RegExp(`^(${tagging.TAG_KEY_PATTERN})=(.{1,${tagging.TAG_VALUE_MAX_LENGTH}})$`);
 
 export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions): string[] {
     const {accountConfig, environments, tags} = opts;
@@ -192,14 +188,14 @@ export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions):
 
     if (tags) {
         for (const [tag, value] of _.entries(tags)) {
-            if (!TAG_KEY_REGEX.test(tag)) {
+            if (!tagging.TAG_KEY_REGEX.test(tag)) {
                 errors.push(`The tag name is invalid: '${tag}'`);
             }
             if (value.length === 0) {
                 errors.push(`The value for tag '${tag}' must not be empty`);
             }
-            if (value.length > TAG_VALUE_MAX_LENGTH) {
-                errors.push(`The value for tag '${tag}' must be less than ${TAG_VALUE_MAX_LENGTH} in length.`);
+            if (value.length > tagging.TAG_VALUE_MAX_LENGTH) {
+                errors.push(`The value for tag '${tag}' must be less than ${tagging.TAG_VALUE_MAX_LENGTH} in length.`);
             }
         }
     }
@@ -227,12 +223,9 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
     const environmentsToDeploy = options.environments;
     try {
-        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
-        // Set up AWS SDK with any global options
-        util.configureAwsSdk(accountConfig);
-
+        await validateLoggedIn();
         const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
         // Command-line tags override handelfile tags.
@@ -242,7 +235,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         logFinalResult('deploy', envDeployResults);
     }
     catch (err) {
-        logCaughtError('Unexpected error occurred during deploy', err);
+        logCaughtError('Error occurred during deploy', err);
         process.exit(1);
     }
 }
@@ -280,12 +273,10 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
  */
 export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
     try {
-        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
+        await validateLoggedIn();
         await validateCredentials(accountConfig);
         const environmentToDelete = options.environment;
-        // Set up AWS SDK with any global options
-        util.configureAwsSdk(accountConfig);
 
         const {handelFileParser, serviceRegistry} = await init(handelFile, options);
 
@@ -298,7 +289,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
         }
     } catch (err) {
-        logCaughtError('Unexpected error occurred during delete', err);
+        logCaughtError('Error occurred during delete', err);
         process.exit(1);
     }
 

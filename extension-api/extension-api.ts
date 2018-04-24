@@ -108,7 +108,7 @@ export interface ServiceRegistry {
     allPrefixes(): Set<string>;
 }
 
-export interface ServiceType {
+export interface IServiceType {
     prefix: string;
     name: string;
 
@@ -121,7 +121,7 @@ export function isServiceType(obj: any | ServiceType): obj is ServiceType {
         && isString(obj.name);
 }
 
-export interface ServiceContext<Config extends ServiceConfig> extends HasAppServiceInfo {
+export interface IServiceContext<Config extends ServiceConfig> extends HasAppServiceInfo {
     appName: string;
     environmentName: string;
     serviceName: string;
@@ -132,6 +132,12 @@ export interface ServiceContext<Config extends ServiceConfig> extends HasAppServ
     serviceInfo: ServiceInfo;
 
     tags: Tags;
+
+    resourceName(): string;
+    stackName(): string;
+    injectedEnvVars(outputs: any): any;
+    ssmApplicationPrefix(): string;
+    ssmParamName(suffix: string): string;
 }
 
 export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig> {
@@ -212,6 +218,8 @@ export interface IDeployContext extends HasAppServiceInfo {
     environmentVariables: DeployContextEnvironmentVariables;
     // Scripts intended to be run on startup by the consuming resource.
     scripts: string[];
+
+    addEnvironmentVariables(envVars: EnvironmentVariables): void;
 }
 
 export function isDeployContext(obj: any | IDeployContext): obj is IDeployContext {
@@ -314,6 +322,61 @@ export function hasAppServiceInfo(obj: any | HasAppServiceInfo): obj is HasAppSe
         && isServiceType(obj.serviceType);
 }
 
+export class ServiceContext<Config extends ServiceConfig> implements IServiceContext<Config> {
+    constructor(public appName: string,
+                public environmentName: string,
+                public serviceName: string,
+                public serviceType: ServiceType,
+                public params: Config,
+                public accountConfig: AccountConfig,
+                public tags: Tags = {},
+                public serviceInfo: ServiceInfo = {
+                    consumedDeployOutputTypes: [],
+                    producedDeployOutputTypes: [],
+                    producedEventsSupportedServices: []
+                }) {
+    }
+
+    public resourceName(): string {
+        return `${this.appName}-${this.environmentName}-${this.serviceName}`;
+    }
+
+    public stackName(): string {
+        return `${this.resourceName()}-${this.serviceType.name}`;
+    }
+
+    public injectedEnvVars() {
+        const envVars: EnvironmentVariables = {};
+        envVars.HANDEL_APP_NAME = this.appName;
+        envVars.HANDEL_ENVIRONMENT_NAME = this.environmentName;
+        envVars.HANDEL_SERVICE_NAME = this.serviceName;
+        envVars.HANDEL_PARAMETER_STORE_PREFIX = this.ssmApplicationPrefix();
+        return envVars;
+    }
+
+    public ssmParamName(suffix: string) {
+        const prefix = `${this.ssmApplicationPrefix()}.${this.serviceName}`;
+        return `${prefix}.${suffix}`;
+    }
+
+    public ssmApplicationPrefix(): string {
+        return `${this.appName}.${this.environmentName}`;
+    }
+}
+
+export class ServiceType implements IServiceType {
+    constructor(public prefix: string, public name: string) {
+    }
+
+    public matches(prefix: string, name: string): boolean {
+        return this.prefix === prefix && this.name === name;
+    }
+
+    public toString(): string {
+        return this.prefix + '::' + this.name;
+    }
+}
+
 export class BindContext implements IBindContext {
     public dependencyServiceContext: ServiceContext<ServiceConfig>;
     public dependentOfServiceContext: ServiceContext<ServiceConfig>;
@@ -363,8 +426,18 @@ export class DeployContext implements IDeployContext {
         this.scripts = [];
     }
 
-    public addEnvironmentVariables(vars: object) {
-        Object.assign(this.environmentVariables, vars);
+    public addEnvironmentVariables(envVars: EnvironmentVariables) {
+        const formattedVars = Object.keys(envVars)
+            .reduce((obj: any, name) => {
+                const envName = this.getInjectedEnvVarName(name);
+                obj[envName] = envVars[name];
+                return obj;
+            }, {});
+        Object.assign(this.environmentVariables, formattedVars);
+    }
+
+    public getInjectedEnvVarName(suffix: string) {
+        return `${this.serviceName}_${suffix}`.toUpperCase().replace(/-/g, '_');
     }
 }
 

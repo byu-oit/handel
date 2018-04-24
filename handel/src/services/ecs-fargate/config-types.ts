@@ -15,7 +15,15 @@
  *
  */
 import { ServiceConfig, Tags } from 'handel-extension-api';
-import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer, HandlebarsEcsTemplateLoadBalancer, HandlebarsEcsTemplateVolume, LoadBalancerConfig } from '../../common/ecs-shared-config-types';
+import {
+    AutoScalingConfig,
+    ContainerConfig,
+    HandlebarsEcsTemplateAutoScaling,
+    HandlebarsEcsTemplateContainer,
+    HandlebarsEcsTemplateLoadBalancer,
+    HandlebarsEcsTemplateVolume,
+    LoadBalancerConfig
+} from '../../common/ecs-shared-config-types';
 
 export interface FargateServiceConfig extends ServiceConfig {
     max_mb?: number;
