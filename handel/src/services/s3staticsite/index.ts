@@ -15,7 +15,7 @@
  *
  */
 import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53Calls from '../../aws/route53-calls';
 import * as s3Calls from '../../aws/s3-calls';
@@ -67,12 +67,12 @@ async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticS
         logFilePrefix,
         indexDocument,
         errorDocument,
-        tags: extensionSupport.tagging.getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
 
     };
 
     handlebarsParams.cloudfront = await getCloudfrontTemplateParameters(ownServiceContext);
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/s3-static-site-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/s3-static-site-template.yml`, handlebarsParams);
 }
 
 async function getCloudfrontTemplateParameters(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<HandlebarsCloudFrontParams | undefined> {
@@ -208,9 +208,9 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
-    const bucketName = extensionSupport.awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
+    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
     // Upload files from path_to_website to S3
     winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);
     await s3Calls.uploadDirectory(bucketName, '', ownServiceContext.params.path_to_code);
@@ -220,7 +220,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

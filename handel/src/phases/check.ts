@@ -15,7 +15,7 @@
  *
  */
 import { ServiceConfig, ServiceContext, ServiceDeployer, ServiceRegistry} from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import { EnvironmentContext } from '../datatypes';
@@ -54,7 +54,7 @@ function checkRequiredTags(serviceDeployer: ServiceDeployer, serviceContext: Ser
         return [];
     }
 
-    const tags = extensionSupport.tagging.getTags(serviceContext);
+    const tags = tagging.getTags(serviceContext);
 
     return requiredTags.filter(tag => !tags.hasOwnProperty(tag))
         .map(tag => `Tagging - ${serviceContext.serviceName} - Missing required tag '${tag}'. You can apply this tag at either the application or service level.`);

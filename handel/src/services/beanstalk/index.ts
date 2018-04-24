@@ -23,7 +23,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
@@ -61,7 +61,7 @@ function getDependenciesEbExtensionScript(dependenciesDeployContexts: DeployCont
         }
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/dependencies-ebextension-template.config`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/dependencies-ebextension-template.config`, handlebarsParams);
 }
 
 async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext: PreDeployContext, serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesDeployContexts: DeployContext[], serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
@@ -78,7 +78,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         solutionStack: serviceParams.solution_stack,
         optionSettings: [],
         policyStatements,
-        tags: extensionSupport.tagging.getTags(serviceContext)
+        tags: tagging.getTags(serviceContext)
     };
 
     // Configure min and max size of ASG
@@ -118,7 +118,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     // handlebarsParams.optionSettings.push(getEbConfigurationOption("aws:ec2:vpc", "AssociatePublicIpAddress", false));
 
     // Add environment variables
-    const envVarsToInject = extensionSupport.deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables);
+    const envVarsToInject = deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables);
     for (const envVarName in envVarsToInject) {
         if (envVarsToInject.hasOwnProperty(envVarName)) {
             handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:application:environment', envVarName, envVarsToInject[envVarName]));
@@ -156,7 +156,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
 
     // If the user has specified auto-scaling configurations, it will be done in a system-injected EBExtension file, not in the environment itself
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/beanstalk-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/beanstalk-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<BeanstalkServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
@@ -176,7 +176,7 @@ async function getPolicyStatementsForInstanceRole(serviceContext: ServiceContext
         accountId: accountConfig.account_id,
         appName: serviceContext.appName
     };
-    const compiledPolicyStatements = await extensionSupport.handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
+    const compiledPolicyStatements = await handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
     let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
@@ -195,7 +195,7 @@ function getAutoScalingEbExtension(stackName: string, ownServiceContext: Service
     };
 
     if (serviceParams.auto_scaling && serviceParams.auto_scaling.scaling_policies) {
-        return extensionSupport.handlebars.compileTemplate(`${__dirname}/autoscaling-ebextension-template.yml`, handlebarsParams);
+        return handlebars.compileTemplate(`${__dirname}/autoscaling-ebextension-template.yml`, handlebarsParams);
     }
     else {
         throw new Error('Attempted to generate auto-scaling EbExtensions file but no scaling policies are defined in the Handel file');
@@ -219,7 +219,7 @@ async function getDnsNameEbExtension(ownServiceContext: ServiceContext<Beanstalk
         const handlebarsParams = {
             names: namesParam
         };
-        return extensionSupport.handlebars.compileTemplate(`${__dirname}/dns-names-ebextension-template.yml`, handlebarsParams);
+        return handlebars.compileTemplate(`${__dirname}/dns-names-ebextension-template.yml`, handlebarsParams);
     }
     else {
         throw new Error('Attempted to generate auto-scaling DNS names file but no DNS names are defined in the Handel file');
@@ -273,7 +273,7 @@ export function check(serviceContext: ServiceContext<BeanstalkServiceConfig>, de
 }
 
 export async function preDeploy(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
-    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -287,18 +287,18 @@ export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceC
     const ebextensionFiles = await getSystemInjectedEbExtensions(stackName, ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
     const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, serviceRole, s3ArtifactInfo);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnPreDeployContext> {
-    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

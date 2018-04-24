@@ -57,51 +57,6 @@ describe('s3Calls', () => {
         });
     });
 
-    describe('uploadDirectory', () => {
-        // TODO - Add these back in
-        // it('should upload the directory', function() {
-        //     let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
-        //         callback(null, "somestdout", "");
-        //     });
-
-        //     return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
-        //         .then(response => {
-        //             expect(response).to.be.true;
-        //             expect(execStub.callCount).to.equal(1);
-        //         });
-        // });
-
-        // it('should return an error when the AWS CLI is not present', function() {
-        //     let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
-        //         callback(new Error("command not found"), "", "somestderr");
-        //     });
-
-        //     return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
-        //         .then(response => {
-        //             expect(true).to.be.false; //Should not get here
-        //         })
-        //         .catch(err => {
-        //             expect(err.message).to.include("requires you to have the Python AWS CLI installed");
-        //             expect(execStub.callCount).to.equal(1);
-        //         });
-        // });
-
-        // it('should return any other error', function() {
-        //     let execStub = sandbox.stub(childProcess, 'exec', function(cmd, callback) {
-        //         callback(new Error("some other error"), "", "somestderr");
-        //     });
-
-        //     return s3Calls.uploadDirectory("FakeBucket", "", "/path/to/fake/dir")
-        //         .then(response => {
-        //             expect(true).to.be.false; //Should not get here
-        //         })
-        //         .catch(err => {
-        //             expect(err.message).to.eq("some other error");
-        //             expect(execStub.callCount).to.equal(1);
-        //         });
-        // });
-    });
-
     describe('listFilesByPrefix', () => {
         it('should return a list of objects when there are results', async () => {
             const listObjectsStub = sandbox.stub(awsWrapper.s3, 'listObjectsV2').resolves({

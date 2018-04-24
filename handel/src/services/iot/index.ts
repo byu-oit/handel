@@ -22,7 +22,7 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import { STDLIB_PREFIX } from '../stdlib';
@@ -54,7 +54,7 @@ function getCompiledTopicRuleTemplate(description: string, ruleName: string, sql
         actions
     };
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/iot-topic-rule-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/iot-topic-rule-template.yml`, handlebarsParams);
 }
 
 function getStackNameFromRuleName(ruleName: string) {
@@ -65,10 +65,10 @@ async function deleteTopicRule(ruleName: string) {
     winston.info(`${SERVICE_NAME} - Executing UnDeploy on topic rule '${ruleName}'`);
 
     const stackName = getStackNameFromRuleName(ruleName);
-    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (stack) {
         winston.info(`${SERVICE_NAME} - Deleting stack '${stackName}'`);
-        return extensionSupport.awsCalls.cloudFormation.deleteStack(stackName);
+        return awsCalls.cloudFormation.deleteStack(stackName);
     }
     else {
         winston.info(`${SERVICE_NAME} - Stack '${stackName}' has already been deleted`);
@@ -125,12 +125,12 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
         throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
     }
 
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
+    const stackTags = tagging.getTags(ownServiceContext);
     const serviceParams = ownServiceContext.params;
     const stackName = getStackNameFromRuleName(ruleName);
     const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;
     const compiledTemplate = await getCompiledTopicRuleTemplate(description, ruleName, sql, ruleDisabled, actions);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }

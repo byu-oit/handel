@@ -24,7 +24,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -88,7 +88,7 @@ describe('sqs deployer', () => {
         it('should deploy the queue', async () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'QueueName',
@@ -190,7 +190,7 @@ describe('sqs deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await sqs.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

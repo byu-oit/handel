@@ -25,7 +25,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -117,7 +117,7 @@ describe('fargate deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await ecsFargate.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -181,7 +181,7 @@ describe('fargate deployer', () => {
                 Id: '2',
                 Name: 'myapp.internal.'
             }]);
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             // Run the test
             const deployContext = await ecsFargate.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -205,7 +205,7 @@ describe('fargate deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await ecsFargate.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -215,7 +215,7 @@ describe('fargate deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await ecsFargate.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

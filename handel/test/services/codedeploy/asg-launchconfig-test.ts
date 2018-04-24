@@ -21,7 +21,7 @@ import {
     ServiceContext,
     ServiceType
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -105,7 +105,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             const dependencyDeployContext = new DeployContext(dependencyServiceContext);
             dependencyDeployContext.scripts.push('Some Bash Script');
 
-            const compileTemplateStub = sandbox.stub(extensionSupport.handlebars, 'compileTemplate').resolves('CompiledScript');
+            const compileTemplateStub = sandbox.stub(handlebars, 'compileTemplate').resolves('CompiledScript');
 
             const userDataScript = await asgLaunchConfig.getUserDataScript(serviceContext, deployContexts);
             expect(userDataScript).to.equal('CompiledScript');
@@ -174,7 +174,7 @@ describe('codedeploy asg-launchconfig config module', () => {
         ];
         shouldRollTestParams.forEach(testParams => {
             it(`should return ${testParams.returnValue} if ${testParams.changedField} has changed`, async () => {
-                const getOutputStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getOutput').returns('FakeLaunchConfig');
+                const getOutputStub = sandbox.stub(awsCalls.cloudFormation, 'getOutput').returns('FakeLaunchConfig');
                 const getLaunchConfigStub = sandbox.stub(autoScalingCalls, 'getLaunchConfiguration').resolves(testParams.launchConfig);
 
                 const existingStack: AWS.CloudFormation.Stack = {
@@ -193,7 +193,7 @@ describe('codedeploy asg-launchconfig config module', () => {
 
     describe('rollInstances', () => {
         it('should safely roll the instances in the autoscaling group', async () => {
-            const getOutputStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getOutput').resolves('FakeGroupName');
+            const getOutputStub = sandbox.stub(awsCalls.cloudFormation, 'getOutput').resolves('FakeGroupName');
             const getAsgStub = sandbox.stub(autoScalingCalls, 'getAutoScalingGroup').resolves({
                 DesiredCapacity: 2,
                 MaxSize: 3

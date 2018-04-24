@@ -27,7 +27,7 @@ import {
     UnPreDeployContext
 } from 'handel-extension-api';
 import { bindPhase } from 'handel-extension-support';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -87,7 +87,7 @@ describe('memcached deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const preDeployCreateSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await memcached.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -125,7 +125,7 @@ describe('memcached deployer', () => {
         });
 
         it('should deploy the cluster', async () => {
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'CacheAddress',
@@ -148,7 +148,7 @@ describe('memcached deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await memcached.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -158,7 +158,7 @@ describe('memcached deployer', () => {
 
     describe('unBind', () => {
         it('should unbind the security group', async () => {
-            const unBindStub = sandbox.stub(extensionSupport.deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
+            const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
             const unBindContext = await memcached.unBind(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
@@ -168,7 +168,7 @@ describe('memcached deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await memcached.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

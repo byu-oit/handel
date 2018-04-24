@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as deployPhaseCommon from '../common/deploy-phase-common';
@@ -25,9 +25,9 @@ export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
     const deployContext = new DeployContext(serviceContext);
 
     // Inject ENV variables to talk to this database
-    const address = extensionSupport.awsCalls.cloudFormation.getOutput('DatabaseAddress', rdsCfStack);
-    const port = extensionSupport.awsCalls.cloudFormation.getOutput('DatabasePort', rdsCfStack);
-    const dbName = extensionSupport.awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
+    const address = awsCalls.cloudFormation.getOutput('DatabaseAddress', rdsCfStack);
+    const port = awsCalls.cloudFormation.getOutput('DatabasePort', rdsCfStack);
+    const dbName = awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
 
     if(!address || !port || !dbName) {
         throw new Error('Expected RDS service to return address, port, and dbName');

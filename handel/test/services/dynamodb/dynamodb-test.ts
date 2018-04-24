@@ -25,7 +25,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -272,7 +272,7 @@ describe('dynamodb deployer', () => {
             const tableName = 'FakeTable';
             const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
                     OutputValue: tableName
@@ -295,7 +295,7 @@ describe('dynamodb deployer', () => {
 
             serviceParams.table_name = tableName;
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'TableName',
                     OutputValue: tableName
@@ -317,7 +317,7 @@ describe('dynamodb deployer', () => {
             const fullTableName = 'FakeApp-FakeEnv-FakeService-dynamodb';
 
             beforeEach(() => {
-                templateSpy = sandbox.spy(extensionSupport.handlebars, 'compileTemplate');
+                templateSpy = sandbox.spy(handlebars, 'compileTemplate');
 
                 ownPreDeployContext = new PreDeployContext(serviceContext);
                 dependenciesDeployContexts = [];
@@ -325,7 +325,7 @@ describe('dynamodb deployer', () => {
                 const tableName = 'FakeTable';
                 const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
-                deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+                deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'TableName',
                         OutputValue: tableName
@@ -494,8 +494,8 @@ describe('dynamodb deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve(null));
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').returns(Promise.resolve(null));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             const unDeployContext = await dynamodb.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, ServiceContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as autoScalingCalls from '../../aws/auto-scaling-calls';
 import * as ec2Calls from '../../aws/ec2-calls';
@@ -62,20 +62,20 @@ export async function getUserDataScript(ownServiceContext: ServiceContext<CodeDe
     const agentInstallVariables = {
         region: ownServiceContext.accountConfig.region
     };
-    const codeDeployInstallScript = await extensionSupport.handlebars.compileTemplate(`${__dirname}/codedeploy-agent-install-fragment.handlebars`, agentInstallVariables);
+    const codeDeployInstallScript = await handlebars.compileTemplate(`${__dirname}/codedeploy-agent-install-fragment.handlebars`, agentInstallVariables);
 
     const userdataVariables = {
         dependencyScripts,
         codeDeployInstallScript
     };
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/codedeploy-instance-userdata-template.handlebars`, userdataVariables);
+    return handlebars.compileTemplate(`${__dirname}/codedeploy-instance-userdata-template.handlebars`, userdataVariables);
 }
 
 export async function shouldRollInstances(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, amiToDeploy: AWS.EC2.Image, existingStack: AWS.CloudFormation.Stack | null): Promise<boolean> {
     if(!existingStack) {
         return false;
     }
-    const launchConfigName = extensionSupport.awsCalls.cloudFormation.getOutput('LaunchConfigName', existingStack);
+    const launchConfigName = awsCalls.cloudFormation.getOutput('LaunchConfigName', existingStack);
     if(!launchConfigName) {
         throw new Error('Could not find needed launch configuration name in CloudFormation template');
     }
@@ -94,7 +94,7 @@ export async function shouldRollInstances(ownServiceContext: ServiceContext<Code
 
 export async function rollInstances(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, existingStack: AWS.CloudFormation.Stack): Promise<void> {
     // Get old instances to keep track of
-    const autoScalingGroupName = extensionSupport.awsCalls.cloudFormation.getOutput('AutoScalingGroupName', existingStack);
+    const autoScalingGroupName = awsCalls.cloudFormation.getOutput('AutoScalingGroupName', existingStack);
     if(!autoScalingGroupName) {
         throw new Error('Could not find needed auto scaling group name in CloudFormation template');
     }

@@ -23,7 +23,6 @@ import {
     ServiceContext,
     ServiceType
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';

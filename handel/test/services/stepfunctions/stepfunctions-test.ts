@@ -24,7 +24,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -173,7 +173,7 @@ describe('stepfunctions deployer', () => {
         it('should deploy the state machine', async () => {
             const stateMachineArn = 'StateMachineArn';
             const stateMachineName = 'StateMachineName';
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'StateMachineArn',
@@ -216,7 +216,7 @@ describe('stepfunctions deployer', () => {
 
     describe('unDeploy', () => {
         it('should delete the stack', async () => {
-            const unDeployStack = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStack = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await stepfunctions.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceContext, Tags, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as alb from './alb';
@@ -56,7 +56,7 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         handlebarsParams.sshKeyName = params.key_name;
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
 }
 
 /**
@@ -73,22 +73,22 @@ export function check(serviceContext: ServiceContext<CodeDeployServiceConfig>): 
 }
 
 export async function preDeploy(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
-    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
 
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
+    const stackTags = tagging.getTags(ownServiceContext);
     const serviceRole = await iamRoles.createCodeDeployServiceRoleIfNotExists(ownServiceContext);
-    const existingStack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
+    const existingStack = await awsCalls.cloudFormation.getStack(stackName);
     const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
     const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo, amiToDeploy);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
 
     // If we need to roll the instances (calculated prior to deploy) do so now
     if(shouldRollInstances) {
@@ -101,11 +101,11 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnPreDeployContext> {
-    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 exports.producedEventsSupportedServices = [];

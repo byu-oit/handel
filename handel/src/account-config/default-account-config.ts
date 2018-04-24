@@ -15,7 +15,7 @@
  *
  */
 import { AccountConfig } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as stsCalls from '../aws/sts-calls';
@@ -36,11 +36,11 @@ async function getSubnetGroups(vpcId: string, subnetIds: string[]): Promise<AWS.
         subnetGroupDescription: 'Handel-created subnet group for Default VPC',
         subnetIds
     };
-    const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/default-vpc-subnet-groups-template.yml`, handlebarsParams);
-    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
+    const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/default-vpc-subnet-groups-template.yml`, handlebarsParams);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         winston.info(`Creating subnet groups for default VPC`);
-        const cfStack = await extensionSupport.awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, {});
+        const cfStack = await awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, {});
         winston.info(`Created subnet groups for default VPC`);
         return cfStack;
     }
@@ -78,8 +78,8 @@ export async function getDefaultAccountConfig(region: string): Promise<AccountCo
         accountConfig.data_subnets = subnets;
 
         const cfStack = await getSubnetGroups(accountConfig.vpc, accountConfig.data_subnets);
-        accountConfig.rds_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('RdsSubnetGroupName', cfStack);
-        accountConfig.elasticache_subnet_group = extensionSupport.awsCalls.cloudFormation.getOutput('ElastiCacheSubnetGroupName', cfStack);
+        accountConfig.rds_subnet_group = awsCalls.cloudFormation.getOutput('RdsSubnetGroupName', cfStack);
+        accountConfig.elasticache_subnet_group = awsCalls.cloudFormation.getOutput('ElastiCacheSubnetGroupName', cfStack);
         return accountConfig as AccountConfig;
     }
     else {

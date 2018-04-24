@@ -25,7 +25,7 @@ import {
     UnDeployContext,
     UnPreDeployContext,
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -156,7 +156,7 @@ describe('ecs deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await ecs.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -221,11 +221,11 @@ describe('ecs deployer', () => {
                 Id: '2',
                 Name: 'myapp.internal.'
             }]);
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
-            const uploadDirStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
-            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({});
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const uploadDirStub = sandbox.stub(deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({});
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
@@ -268,11 +268,11 @@ describe('ecs deployer', () => {
                 Id: '2',
                 Name: 'myapp.internal.'
             }]);
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
-            const uploadDirStub = sandbox.stub(extensionSupport.deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
-            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({});
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const uploadDirStub = sandbox.stub(deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({});
             const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
@@ -303,7 +303,7 @@ describe('ecs deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await ecs.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -313,7 +313,7 @@ describe('ecs deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await ecs.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

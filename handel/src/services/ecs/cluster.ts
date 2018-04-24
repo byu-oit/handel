@@ -15,7 +15,7 @@
  *
  */
 import { AccountConfig, DeployContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { handlebars } from 'handel-extension-support';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 
 /**
@@ -35,7 +35,7 @@ export async function getUserDataScript(clusterName: string, dependenciesDeployC
         }
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/ecs-cluster-userdata-template.sh`, variables);
+    return handlebars.compileTemplate(`${__dirname}/ecs-cluster-userdata-template.sh`, variables);
 }
 
 /**

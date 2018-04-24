@@ -24,7 +24,7 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as snsCalls from '../../aws/sns-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -38,12 +38,12 @@ function getCompiledSnsTemplate(stackName: string, serviceContext: ServiceContex
         subscriptions: serviceContext.params.subscriptions,
         topicName: stackName
     };
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/sns-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/sns-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const topicName = extensionSupport.awsCalls.cloudFormation.getOutput('TopicName', cfStack);
-    const topicArn = extensionSupport.awsCalls.cloudFormation.getOutput('TopicArn', cfStack);
+    const topicName = awsCalls.cloudFormation.getOutput('TopicName', cfStack);
+    const topicArn = awsCalls.cloudFormation.getOutput('TopicArn', cfStack);
     if(!topicName || !topicArn) {
         throw new Error('Expected to receive topic name and ARN back from SNS service');
     }
@@ -126,8 +126,8 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
     winston.info(`${SERVICE_NAME} - Deploying topic '${stackName}'`);
 
     const compiledSnsTemplate = await getCompiledSnsTemplate(stackName, ownServiceContext);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledSnsTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledSnsTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying topic '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
@@ -182,7 +182,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SnsService
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<SnsServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [

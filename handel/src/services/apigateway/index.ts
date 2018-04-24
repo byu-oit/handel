@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -96,7 +96,7 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
 
 export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
     if(serviceContext.params.vpc) {
-        return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
         return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
@@ -115,14 +115,14 @@ export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownP
 
 export function unPreDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnPreDeployContext> {
     if(ownServiceContext.params.vpc) {
-        return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
         return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
 }
 
 export function unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

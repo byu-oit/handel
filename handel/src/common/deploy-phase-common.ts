@@ -22,7 +22,6 @@ import {
     ServiceConfig,
     ServiceContext,
     Tags } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
 import * as os from 'os';
 import * as winston from 'winston';
 import * as iamCalls from '../aws/iam-calls';

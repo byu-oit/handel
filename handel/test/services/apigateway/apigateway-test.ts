@@ -23,7 +23,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -168,7 +168,7 @@ describe('apigateway deployer', () => {
             response.securityGroups.push({
                 GroupId: 'FakeId'
             });
-            const preDeployCreateSecurityGroup = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(response);
+            const preDeployCreateSecurityGroup = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(response);
 
             const preDeployContext = await apigateway.preDeploy(serviceContext);
             expect(preDeployContext).to.be.instanceof(PreDeployContext);
@@ -224,7 +224,7 @@ describe('apigateway deployer', () => {
 
         it('should delete the security groups if vpc is true and return the unPreDeploy context', async () => {
             serviceContext.params.vpc = true;
-            const unPreDeploySecurityGroup = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeploySecurityGroup = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
             const unPreDeployContext = await apigateway.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeploySecurityGroup.callCount).to.equal(1);
@@ -233,7 +233,7 @@ describe('apigateway deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await apigateway.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

@@ -23,7 +23,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -172,12 +172,12 @@ describe('s3staticsite deployer', () => {
 
         beforeEach(() => {
             ownPreDeployContext = new PreDeployContext(ownServiceContext);
-            handlebarsSpy = sandbox.spy(extensionSupport.handlebars, 'compileTemplate');
+            handlebarsSpy = sandbox.spy(handlebars, 'compileTemplate');
         });
 
         it('should deploy the static site bucket', async () => {
             const createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack');
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
             deployStackStub.onCall(0).resolves({
                 Outputs: [{
                     OutputKey: 'BucketName',
@@ -215,7 +215,7 @@ describe('s3staticsite deployer', () => {
 
                 createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
 
-                deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack');
+                deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
                 deployStackStub.onCall(0).resolves({
                     Outputs: [{
                         OutputKey: 'BucketName',
@@ -317,7 +317,7 @@ describe('s3staticsite deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(ownServiceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(ownServiceContext));
 
             const unDeployContext = await s3StaticSite.unDeploy(ownServiceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

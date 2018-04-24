@@ -16,7 +16,7 @@
  */
 import {S3} from 'aws-sdk';
 import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as apigatewayCommon from '../common';
@@ -26,7 +26,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGa
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = getParam(serviceContext.params, 'path_to_code', 'path_to_code', undefined);
-    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
 }
@@ -46,7 +46,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         functionTimeout: getParam(serviceParams, 'function_timeout', 'timeout', '3').toString(),
         lambdaRuntime: getParam(serviceParams, 'lambda_runtime', 'runtime', undefined),
         policyStatements: apigatewayCommon.getPolicyStatementsForLambdaRole(ownServiceContext, dependenciesDeployContexts),
-        tags: extensionSupport.tagging.getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Add binary media types if specified
@@ -60,10 +60,10 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
 
     // Add env vars
     if (serviceParams.proxy) {
-        handlebarsParams.environment_variables = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.proxy.environment_variables);
+        handlebarsParams.environment_variables = deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.proxy.environment_variables);
     }
     else {
-        handlebarsParams.environment_variables = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
+        handlebarsParams.environment_variables = deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     }
 
     const vpc = getParam(serviceParams, 'vpc', undefined, undefined);
@@ -77,7 +77,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, serviceParams.custom_domains);
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
 }
 
 function checkForParam(params: any, oldParamName: string, newParamName: string, checkErrors: string[]) {
@@ -117,8 +117,8 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
 export async function deploy(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], serviceName: string) {
     const s3ObjectInfo = await uploadDeployableArtifactToS3(ownServiceContext, serviceName);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ObjectInfo, ownPreDeployContext);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, serviceName, 30, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);

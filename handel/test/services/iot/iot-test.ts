@@ -24,7 +24,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -115,7 +115,7 @@ describe('iot deployer', () => {
             const consumerDeployContext = new DeployContext(consumerServiceContext);
             consumerDeployContext.eventOutputs.lambdaArn = 'FakeArn';
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
                     {
                         OutputKey: 'TopicRuleName',
@@ -159,8 +159,8 @@ describe('iot deployer', () => {
                 ]
             };
 
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
-            const deleteStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'deleteStack').returns(Promise.resolve({}));
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
+            const deleteStackStub = sandbox.stub(awsCalls.cloudFormation, 'deleteStack').returns(Promise.resolve({}));
 
             const unDeployContext = await iot.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

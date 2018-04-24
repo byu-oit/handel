@@ -24,7 +24,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -108,7 +108,7 @@ describe('s3 deployer', () => {
                 };
                 const preDeployContext = new PreDeployContext(ownServiceContext);
 
-                const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+                const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'BucketName',
                         OutputValue: bucketName
@@ -206,7 +206,7 @@ describe('s3 deployer', () => {
                     bucket_name: bucketName
                 };
 
-                const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
+                const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
 
                 const unDeployContext = await s3.unDeploy(ownServiceContext);
                 expect(unDeployContext).to.be.instanceof(UnDeployContext);

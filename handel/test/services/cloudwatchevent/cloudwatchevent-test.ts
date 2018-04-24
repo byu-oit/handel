@@ -24,7 +24,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -80,7 +80,7 @@ describe('cloudwatchevent deployer', () => {
             const preDeployContext = new PreDeployContext(serviceContext);
             const eventRuleArn = 'FakeEventRuleArn';
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'EventRuleArn',
                     OutputValue: eventRuleArn
@@ -182,7 +182,7 @@ describe('cloudwatchevent deployer', () => {
         it('should remove all targets and delete the stack', async () => {
             const getRuleStub = sandbox.stub(cloudWatchEventsCalls, 'getRule').returns(Promise.resolve({}));
             const removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(true));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(true));
 
             const unDeployContext = await cloudWatchEvent.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

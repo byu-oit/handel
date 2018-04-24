@@ -23,7 +23,7 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -105,7 +105,7 @@ describe('route53zone deployer', () => {
         });
 
         it('should deploy the hosted zone', async () => {
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName
@@ -128,7 +128,7 @@ describe('route53zone deployer', () => {
         });
 
         it('can deploy private zones', async () => {
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [{
                     OutputKey: 'ZoneName',
                     OutputValue: dnsName
@@ -157,7 +157,7 @@ describe('route53zone deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
             const unDeployContext = await route53.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

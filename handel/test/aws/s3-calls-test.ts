@@ -32,6 +32,42 @@ describe('s3Calls', () => {
         sandbox.restore();
     });
 
+    describe('uploadDirectory', () => {
+        it('should upload the directory', async () => {
+            const execStub = sandbox.stub(childProcess, 'exec').callsArgWith(1, null, 'somestdout', '');
+
+            const response = await s3Calls.uploadDirectory('FakeBucket', '', '/path/to/fake/dir');
+            expect(response).to.equal(true);
+            expect(execStub.callCount).to.equal(1);
+        });
+
+        it('should return an error when the AWS CLI is not present', async () => {
+            const execStub = sandbox.stub(childProcess, 'exec').callsArgWith(1, new Error('command not found'), '', 'somestderr');
+
+            try {
+                const response = await s3Calls.uploadDirectory('FakeBucket', '', '/path/to/fake/dir');
+                expect(true).to.equal(false); // Should not get here
+            }
+            catch(err) {
+                expect(err.message).to.include('requires you to have the Python AWS CLI installed');
+                expect(execStub.callCount).to.equal(1);
+            }
+        });
+
+        it('should return any other error', async () => {
+            const execStub = sandbox.stub(childProcess, 'exec').callsArgWith(1, new Error('some other error'), '', 'somestderr');
+
+            try {
+                const response = await s3Calls.uploadDirectory('FakeBucket', '', '/path/to/fake/dir');
+                expect(true).to.equal(false); // Should not get here
+            }
+            catch(err) {
+                expect(err.message).to.eq('some other error');
+                expect(execStub.callCount).to.equal(1);
+            }
+        });
+    });
+
     describe('configureBucketNotifications', () => {
         const servicesToTest = [
             'lambda',

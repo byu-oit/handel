@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deployPhase, handlebars } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -35,9 +35,9 @@ async function injectEnvVarsIntoAppSpec(dirPath: string, serviceContext: Service
                     // Write wrapper script to upload directory
                     const handlebarsParams = {
                         originalScriptLocation: eventMapping.location,
-                        envVarsToInject: extensionSupport.deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables)
+                        envVarsToInject: deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, serviceContext.params.environment_variables)
                     };
-                    const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
+                    const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/env-var-inject-template.handlebars`, handlebarsParams);
                     const wrapperScriptLocation = `handel-wrapper-${hookName}-${i}.sh`;
                     util.writeFileSync(`${dirPath}/${wrapperScriptLocation}`, compiledTemplate);
 
@@ -66,7 +66,7 @@ export async function prepareAndUploadDeployableArtifactToS3(serviceContext: Ser
 
     const s3FileName = `codedeploy-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
+    const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, tempDirPath, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
 
     util.deleteFolderRecursive(tempDirPath); // Delete the whole temp folder now that we're done with it

@@ -15,7 +15,7 @@
  *
  */
 import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -24,9 +24,9 @@ import {HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig} from './config-
 const SERVICE_NAME = 'Route53';
 
 function getDeployContext(serviceContext: ServiceContext<Route53ZoneServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
-    const name = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneName', cfStack);
-    const id = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneId', cfStack);
-    const nameServers = extensionSupport.awsCalls.cloudFormation.getOutput('ZoneNameServers', cfStack);
+    const name = awsCalls.cloudFormation.getOutput('ZoneName', cfStack);
+    const id = awsCalls.cloudFormation.getOutput('ZoneId', cfStack);
+    const nameServers = awsCalls.cloudFormation.getOutput('ZoneNameServers', cfStack);
     if(!name || !id || !nameServers) {
         throw new Error('Expected to receive name, id, and name servers back from Route 53 service');
     }
@@ -49,7 +49,7 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
 
     const handlebarsParams: HandlebarsRoute53ZoneTemplate = {
         name: serviceParams.name,
-        tags: extensionSupport.tagging.getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     if (serviceParams.private) {
@@ -59,7 +59,7 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
         }];
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/route53zone-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/route53zone-template.yml`, handlebarsParams);
 }
 
 /**
@@ -91,14 +91,14 @@ export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServic
     winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
 
     const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

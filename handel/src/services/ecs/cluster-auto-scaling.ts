@@ -15,7 +15,7 @@
  *
  */
 import { AccountConfig } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deployPhase, handlebars  } from 'handel-extension-support';
 import * as winston from 'winston';
 import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
 
@@ -101,16 +101,16 @@ const EC2_INSTANCE_MEMORY_MAP: Ec2InstanceMemoryMap = {
  */
 export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountConfig) {
     const stackName = 'HandelEcsAutoScalingLambda';
-    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
-        const s3ObjectInfo = await extensionSupport.deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-scaling-lambda/`, 'handel/ecs-cluster-auto-scaling-lambda', 'lambda-code', accountConfig);
+        const s3ObjectInfo = await deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-scaling-lambda/`, 'handel/ecs-cluster-auto-scaling-lambda', 'lambda-code', accountConfig);
         const handlebarsParams = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key
         };
-        const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/cluster-scaling-lambda/scaling-lambda-template.yml`, handlebarsParams);
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/cluster-scaling-lambda/scaling-lambda-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS auto-scaling`);
-        return extensionSupport.awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, accountConfig.handel_resource_tags);
+        return awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, accountConfig.handel_resource_tags);
     }
     else {
         return stack;
@@ -125,18 +125,18 @@ export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountC
  */
 export async function createDrainingLambdaIfNotExists(accountConfig: AccountConfig) {
     const stackName = 'HandelEcsDrainingLambda';
-    const stack = await extensionSupport.awsCalls.cloudFormation.getStack(stackName);
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         // Stack doesn't exist, create it
-        const s3ObjectInfo = await extensionSupport.deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-draining-lambda/`, 'handel/ecs-cluster-draining-lambda', 'lambda-code', accountConfig);
+        const s3ObjectInfo = await deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-draining-lambda/`, 'handel/ecs-cluster-draining-lambda', 'lambda-code', accountConfig);
         const handlebarsParams = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key
         };
 
-        const compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/cluster-draining-lambda/cluster-draining-template.yml`, handlebarsParams);
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/cluster-draining-lambda/cluster-draining-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS draining`);
-        return extensionSupport.awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, accountConfig.handel_resource_tags);
+        return awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, accountConfig.handel_resource_tags);
     }
     else {
         // Stack already exists

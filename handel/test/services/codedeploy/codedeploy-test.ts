@@ -24,7 +24,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -76,7 +76,7 @@ describe('codedeploy deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const preDeployCreateSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await codedeploy.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -97,7 +97,7 @@ describe('codedeploy deployer', () => {
             const createRoleStub = sandbox.stub(iamRoles, 'createCodeDeployServiceRoleIfNotExists').resolves({
                 Arn: 'MyFakeArn'
             });
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves({});
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves({});
             const shouldRollInstancesStub = sandbox.stub(asgLaunchConfig, 'shouldRollInstances').resolves(true);
             const getUserDataStub = sandbox.stub(asgLaunchConfig, 'getUserDataScript').resolves('FakeScript');
             const uploadArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifactToS3').resolves({
@@ -110,7 +110,7 @@ describe('codedeploy deployer', () => {
             const getInstanceRoleStatementsStub = sandbox.stub(iamRoles, 'getStatementsForInstanceRole').resolves([]);
             const getRoutingStub = sandbox.stub(alb, 'getRoutingConfig').resolves({});
             const assignPublicIpStub = sandbox.stub(ec2Calls, 'shouldAssignPublicIp').resolves(true);
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({});
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
             const rollInstancesStub = sandbox.stub(asgLaunchConfig, 'rollInstances').resolves();
 
             const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);
@@ -131,7 +131,7 @@ describe('codedeploy deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await codedeploy.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -141,7 +141,7 @@ describe('codedeploy deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await codedeploy.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

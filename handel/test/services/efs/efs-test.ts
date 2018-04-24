@@ -26,8 +26,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { bindPhase } from 'handel-extension-support';
-import * as extensionSupport from 'handel-extension-support';
+import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -78,7 +77,7 @@ describe('efs deployer', () => {
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(extensionSupport.preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
+            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
             const retContext = await efs.preDeploy(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
@@ -109,7 +108,7 @@ describe('efs deployer', () => {
             const dependenciesDeployContexts: DeployContext[] = [];
             const fileSystemId = 'FakeFileSystemId';
 
-            const deployStackStub = sandbox.stub(extensionSupport.deployPhase, 'deployCloudFormationStack').resolves({
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'EFSFileSystemId',
                     OutputValue: fileSystemId
@@ -125,7 +124,7 @@ describe('efs deployer', () => {
 
     describe('unPreDeploy', () => {
         it('should delete the security group', async () => {
-            const unPreDeployStub = sandbox.stub(extensionSupport.deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
+            const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
             const unPreDeployContext = await efs.unPreDeploy(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
@@ -135,7 +134,7 @@ describe('efs deployer', () => {
 
     describe('unBind', () => {
         it('should unbind the security group', async () => {
-            const unBindStub = sandbox.stub(extensionSupport.deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
+            const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
             const unBindContext = await efs.unBind(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
@@ -145,7 +144,7 @@ describe('efs deployer', () => {
 
     describe('unDeploy', () => {
         it('should undeploy the stack', async () => {
-            const unDeployStackStub = sandbox.stub(extensionSupport.deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
+            const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await efs.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

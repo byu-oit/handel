@@ -24,7 +24,15 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
@@ -38,8 +46,8 @@ function getDeployContext(serviceContext: ServiceContext<MemcachedServiceConfig>
     const deployContext = new DeployContext(serviceContext);
 
     // Set port and address environment variables
-    const port = extensionSupport.awsCalls.cloudFormation.getOutput('CachePort', cfStack);
-    const address = extensionSupport.awsCalls.cloudFormation.getOutput('CacheAddress', cfStack);
+    const port = awsCalls.cloudFormation.getOutput('CachePort', cfStack);
+    const address = awsCalls.cloudFormation.getOutput('CacheAddress', cfStack);
     if(!port || !address) {
         throw new Error('Expected to receive port and address back from Memcached service');
     }
@@ -68,7 +76,7 @@ function getCompiledMemcachedTemplate(stackName: string, ownServiceContext: Serv
         memcachedSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         nodeCount: serviceParams.node_count || 1,
         memcachedPort: MEMCACHED_PORT,
-        tags: extensionSupport.tagging.getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Either create custom parameter group if params are specified, or just use default
@@ -80,7 +88,7 @@ function getCompiledMemcachedTemplate(stackName: string, ownServiceContext: Serv
         handlebarsParams.defaultCacheParameterGroup = 'default.memcached1.4';
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/memcached-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/memcached-template.yml`, handlebarsParams);
 }
 
 /**
@@ -104,11 +112,11 @@ export function check(serviceContext: ServiceContext<MemcachedServiceConfig>, de
 }
 
 export async function preDeploy(serviceContext: ServiceContext<MemcachedServiceConfig>): Promise<PreDeployContext> {
-    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
 export async function bind(ownServiceContext: ServiceContext<MemcachedServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return extensionSupport.bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, MEMCACHED_SG_PROTOCOL, MEMCACHED_PORT, SERVICE_NAME);
+    return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, MEMCACHED_SG_PROTOCOL, MEMCACHED_PORT, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<MemcachedServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -116,22 +124,22 @@ export async function deploy(ownServiceContext: ServiceContext<MemcachedServiceC
     winston.info(`${SERVICE_NAME} - Deploying cluster '${stackName}'`);
 
     const compiledTemplate = await getCompiledMemcachedTemplate(stackName, ownServiceContext, ownPreDeployContext);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying cluster '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<MemcachedServiceConfig>): Promise<UnPreDeployContext> {
-    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unBind(ownServiceContext: ServiceContext<MemcachedServiceConfig>): Promise<UnBindContext> {
-    return extensionSupport.deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<MemcachedServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

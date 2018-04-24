@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as defaultAccountConfig from '../../src/account-config/default-account-config';
@@ -62,8 +62,8 @@ describe('default account config module', () => {
                     SubnetId: subnetIds[1]
                 }
             ]);
-            const getStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'getStack').resolves(null);
-            const createStackStub = sandbox.stub(extensionSupport.awsCalls.cloudFormation, 'createStack').resolves({
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({
                 Outputs: [
                     {
                         OutputKey: 'RdsSubnetGroupName',

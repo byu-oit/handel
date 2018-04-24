@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { handlebars, tagging, deployPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
@@ -77,7 +77,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
         vpcId: accountConfig.vpc,
         policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
         deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-        tags: extensionSupport.tagging.getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
         containerConfigs,
         autoScaling,
         oneOrMoreTasksHasRouting,
@@ -97,7 +97,7 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
     // Add volumes if present (these are consumed by one or more container mount points)
     handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/ecs-fargate-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/ecs-fargate-template.yml`, handlebarsParams);
 }
 
 /**
@@ -129,7 +129,7 @@ export function check(serviceContext: ServiceContext<FargateServiceConfig>, depe
 }
 
 export async function preDeploy(serviceContext: ServiceContext<FargateServiceConfig>) {
-    return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
@@ -138,18 +138,18 @@ export async function deploy(ownServiceContext: ServiceContext<FargateServiceCon
 
     await ecsCalls.createDefaultClusterIfNotExists();
     const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
     return new DeployContext(ownServiceContext);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>) {
-    return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>) {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

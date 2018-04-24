@@ -27,7 +27,14 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import {
+    awsCalls,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
@@ -61,11 +68,11 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         memorySize: memorySize,
         timeout: timeout,
         policyStatements,
-        tags: extensionSupport.tagging.getTags(ownServiceContext)
+        tags: tagging.getTags(ownServiceContext)
     };
 
     // Inject environment variables (if any)
-    const envVarsToInject = extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
+    const envVarsToInject = deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     if (Object.keys(envVarsToInject).length > 0) {
         handlebarsParams.environmentVariables = envVarsToInject;
     }
@@ -75,13 +82,13 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         handlebarsParams.vpcSecurityGroupIds = securityGroups;
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
     }
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
 }
 
 function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const lambdaArn = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionArn', cfStack);
-    const lambdaName = extensionSupport.awsCalls.cloudFormation.getOutput('FunctionName', cfStack);
+    const lambdaArn = awsCalls.cloudFormation.getOutput('FunctionArn', cfStack);
+    const lambdaName = awsCalls.cloudFormation.getOutput('FunctionName', cfStack);
     if(!lambdaArn || !lambdaName) {
         throw new Error('Expected to receive lambda name and lambda ARN from lambda service');
     }
@@ -115,7 +122,7 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<Lambd
     const s3FileName = `lambda-deployable-${uuid()}.zip`;
     winston.info(`${SERVICE_NAME} - Uploading deployable artifact to S3: ${s3FileName}`);
     const pathToArtifact = serviceContext.params.path_to_code;
-    const s3ArtifactInfo = await extensionSupport.deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
+    const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${SERVICE_NAME} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
 }
@@ -132,9 +139,9 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     };
     let compiledTemplate;
     if (serviceContext.params.vpc) {
-        compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
+        compiledTemplate = await handlebars.compileTemplate(`${__dirname}/lambda-role-statements-vpc.handlebars`, handlebarsParams);
     } else {
-        compiledTemplate = await extensionSupport.handlebars.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
+        compiledTemplate = await handlebars.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
     }
     let ownPolicyStatements = JSON.parse(compiledTemplate);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
@@ -234,7 +241,7 @@ export function check(serviceContext: ServiceContext<LambdaServiceConfig>, depen
 
 export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
     if (serviceContext.params.vpc) {
-        return extensionSupport.preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     } else {
         return lifecyclesCommon.preDeployNotRequired(serviceContext);
     }
@@ -251,8 +258,8 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     }
     const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
     const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledLambdaTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
@@ -269,7 +276,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServ
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
     if (ownServiceContext.params.vpc) {
-        return extensionSupport.deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     } else {
         return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
     }
@@ -277,7 +284,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServic
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
     await iamCalls.detachPoliciesFromRole(ownServiceContext.stackName());
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export const producedEventsSupportedServices = [];

@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { deployPhase } from 'handel-extension-support';
 import * as _ from 'lodash';
 import { FargateServiceConfig } from '../services/ecs-fargate/config-types';
 import { EcsServiceConfig } from '../services/ecs/config-types';
@@ -107,7 +107,7 @@ export function getContainersConfig(ownServiceContext: ServiceContext<EcsService
             name: container.name,
             maxMb: container.max_mb || 128,
             cpuUnits: container.cpu_units || 100,
-            environmentVariables: extensionSupport.deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, container.environment_variables),
+            environmentVariables: deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, container.environment_variables),
             portMappings: [], // This is filled up below if any mappings present
             imageName: getImageName(container, ownServiceContext),
             mountPoints: volumesSection.getMountPointsForContainer(dependenciesDeployContexts), // Add mount points if present

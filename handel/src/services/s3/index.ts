@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
-import * as extensionSupport from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as s3Calls from '../../aws/s3-calls';
 import * as deployPhaseCommon from '../../common/deploy-phase-common';
@@ -38,8 +38,8 @@ const VERSIONING_PARAM_MAPPING: VersioningParamMapping = {
 function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const accountConfig = serviceContext.accountConfig;
 
-    const bucketName = extensionSupport.awsCalls.cloudFormation.getOutput('BucketName', cfStack);
-    const bucketArn = extensionSupport.awsCalls.cloudFormation.getOutput('BucketArn', cfStack);
+    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', cfStack);
+    const bucketArn = awsCalls.cloudFormation.getOutput('BucketArn', cfStack);
     if(!bucketName || !bucketArn) {
         throw new Error('Expected to receive bucket name and ARN from S3 service');
     }
@@ -101,7 +101,7 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
         bucketName: bucketName,
         bucketACL: serviceParams.bucket_acl,
         versioningStatus: versioningStatus,
-        tags: extensionSupport.tagging.getTags(ownServiceContext),
+        tags: tagging.getTags(ownServiceContext),
         lifecycle_policy: lifecycleSection.getLifecycleConfig(ownServiceContext)
     };
 
@@ -110,7 +110,7 @@ function getCompiledS3Template(stackName: string, ownServiceContext: ServiceCont
         handlebarsParams.logFilePrefix = s3DeployersCommon.getLogFilePrefix(ownServiceContext);
     }
 
-    return extensionSupport.handlebars.compileTemplate(`${__dirname}/s3-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/s3-template.yml`, handlebarsParams);
 }
 
 function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AWS.S3.FilterRuleList {
@@ -156,14 +156,14 @@ export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>,
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
-    const stackTags = extensionSupport.tagging.getTags(ownServiceContext);
-    const deployedStack = await extensionSupport.deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const stackTags = tagging.getTags(ownServiceContext);
+    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig>): Promise<UnDeployContext> {
-    return extensionSupport.deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
 export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
