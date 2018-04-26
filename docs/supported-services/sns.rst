@@ -58,7 +58,7 @@ See the `SNS subscription documentation <http://docs.aws.amazon.com/sns/latest/a
 
 Example Handel File
 -------------------
-This Handel file shows an SQS service being configured:
+This Handel file shows an SNS service being configured:
 
 .. code-block:: yaml
 
