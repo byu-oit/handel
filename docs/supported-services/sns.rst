@@ -82,11 +82,7 @@ This Handel file shows an SNS Topic as a dependency to a Lambda Function
 
     version: 1
 
-    name: departmentalAWSBilling
-    tags:
-      data-sensitivity: confidential
-      team: SS-Engineering
-
+    name: my-lambda-sns-example
     environments:
       dev:
         function:
