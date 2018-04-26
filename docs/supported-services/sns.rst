@@ -73,6 +73,35 @@ This Handel file shows an SNS service being configured:
           subscriptions:
             - endpoint: fake@example.com
               protocol: email
+              
+Example Handel File
+-------------------
+This Handel file shows an SNS Topic as a dependency to a Lambda Function
+
+.. code-block:: yaml
+
+version: 1
+
+name: departmentalAWSBilling
+tags:
+  data-sensitivity: confidential
+  team: SS-Engineering
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: lambda_function.lambda_handler
+      runtime: python3.6 
+      timeout: 180
+      dependencies:
+      - topic
+    topic:
+      type: sns
+      subscriptions:
+        - endpoint: fake@example.com
+          protocol: email            
 
 Depending on this service
 -------------------------
