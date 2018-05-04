@@ -18,7 +18,7 @@ Resources:
           - Effect: "Allow"
             Principal: 
               Service: 
-              - "ec2.amazonaws.com"
+              - "elasticbeanstalk.amazonaws.com"
             Action:
             - "sts:AssumeRole"
   ServiceRolePolicy:
@@ -152,7 +152,7 @@ Resources:
           - codebuild:BatchGetBuilds
           - codebuild:StartBuild
           Resource:
-          - "*"
+          - "*" # This is the role used by the AWS service itself, so it doesn't really need to have a granular resource like those used by our applications 
 
   # 
   # Role that goes on the instance

@@ -51,33 +51,6 @@ describe('Deploy phase common module', () => {
         sandbox.restore();
     });
 
-    describe('createCustomRole', () => {
-        it('should create the role if it doesnt exist', async () => {
-            const createRoleStub = sandbox.stub(iamCalls, 'createRole').resolves({});
-            const createOrUpdatePolicy = sandbox.stub(iamCalls, 'createOrUpdatePolicy').resolves({
-                Arn: 'FakeArn'
-            });
-            const attachPolicyStub = sandbox.stub(iamCalls, 'attachPolicyToRole').resolves({});
-            const getRoleStub = sandbox.stub(iamCalls, 'getRole').resolves(null);
-
-            const role = await deployPhaseCommon.createCustomRole('ecs.amazonaws.com', 'MyRole', [{}], accountConfig);
-            expect(getRoleStub.callCount).to.equal(2);
-            expect(createRoleStub.callCount).to.equal(1);
-            expect(createOrUpdatePolicy.callCount).to.equal(1);
-            expect(attachPolicyStub.callCount).to.equal(1);
-        });
-
-        it('should return the role if it already exists', async () => {
-            const createRoleStub = sandbox.stub(iamCalls, 'createRoleIfNotExists').returns(Promise.resolve({}));
-            const getRoleStub = sandbox.stub(iamCalls, 'getRole').returns(Promise.resolve({}));
-
-            const role = await deployPhaseCommon.createCustomRole('ecs.amazonaws.com', 'MyRole', [], accountConfig);
-            expect(getRoleStub.callCount).to.equal(1);
-            expect(createRoleStub.callCount).to.equal(0);
-            expect(role).to.deep.equal({});
-        });
-    });
-
     describe('getAllPolicyStatementsForServiceRole', () => {
         it('should return the combination of policy statements from the own service and its dependencies', () => {
             const ownServicePolicyStatements = [{

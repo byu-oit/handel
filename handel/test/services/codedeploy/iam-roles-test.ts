@@ -59,14 +59,4 @@ describe('codedeploy asg-launchconfig config module', () => {
             expect(getAllStatementsStub.callCount).to.equal(1);
         });
     });
-
-    describe('createCodeDeployServiceRoleIfNotExists', () => {
-        it('should create the service role needed for codedeploy', async () => {
-            const createRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-
-            const role = await iamRoles.createCodeDeployServiceRoleIfNotExists(serviceContext);
-            expect(role).to.deep.equal({});
-            expect(createRoleStub.callCount).to.equal(1);
-        });
-    });
 });

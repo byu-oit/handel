@@ -54,7 +54,7 @@ export interface HandlebarsEcsTemplateConfig {
     asgCooldown: string;
     minimumHealthyPercentDeployment: string;
     vpcId: string;
-    ecsServiceRoleArn: string;
+    serviceRoleName: string;
     policyStatements: any[];
     deploymentSuffix: number;
     tags: Tags;

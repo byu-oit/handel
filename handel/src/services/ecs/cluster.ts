@@ -37,32 +37,3 @@ export async function getUserDataScript(clusterName: string, dependenciesDeployC
 
     return handlebars.compileTemplate(`${__dirname}/ecs-cluster-userdata-template.sh`, variables);
 }
-
-/**
- * This function creates the ECS service role if it doesn't exist. This role is used by the
- * ECS service to interact with the ALB for auto-scaling and other things.
- */
-export async function createEcsServiceRoleIfNotExists(accountConfig: AccountConfig) {
-    const roleName = 'HandelEcsServiceRole';
-    const trustedService = 'ecs.amazonaws.com';
-    const policyStatementsToConsume = [
-        {
-            'Effect': 'Allow',
-            'Action': [
-                'ec2:AuthorizeSecurityGroupIngress',
-                'ec2:Describe*',
-                'elasticloadbalancing:DeregisterInstancesFromLoadBalancer',
-                'elasticloadbalancing:DeregisterTargets',
-                'elasticloadbalancing:Describe*',
-                'elasticloadbalancing:RegisterInstancesWithLoadBalancer',
-                'elasticloadbalancing:RegisterTargets'
-            ],
-            'Resource': [
-                '*'
-            ]
-        }
-    ];
-
-    const role = await deployPhaseCommon.createCustomRole(trustedService, roleName, policyStatementsToConsume, accountConfig);
-    return role;
-}

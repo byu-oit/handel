@@ -94,9 +94,6 @@ describe('codedeploy deployer', () => {
             }];
             const dependenciesDeployContexts: DeployContext[] = [];
 
-            const createRoleStub = sandbox.stub(iamRoles, 'createCodeDeployServiceRoleIfNotExists').resolves({
-                Arn: 'MyFakeArn'
-            });
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves({});
             const shouldRollInstancesStub = sandbox.stub(asgLaunchConfig, 'shouldRollInstances').resolves(true);
             const getUserDataStub = sandbox.stub(asgLaunchConfig, 'getUserDataScript').resolves('FakeScript');
@@ -115,7 +112,6 @@ describe('codedeploy deployer', () => {
 
             const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
-            expect(createRoleStub.callCount).to.equal(1);
             expect(getStackStub.callCount).to.equal(1);
             expect(shouldRollInstancesStub.callCount).to.equal(1);
             expect(getUserDataStub.callCount).to.equal(1);

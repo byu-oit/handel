@@ -32,13 +32,3 @@ export async function getStatementsForInstanceRole(ownServiceContext: ServiceCon
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(ownServiceContext));
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
 }
-
-export async function createCodeDeployServiceRoleIfNotExists(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<AWS.IAM.Role> {
-    const accountConfig = ownServiceContext.accountConfig;
-    const policyStatements = JSON.parse(util.readFileSync(`${__dirname}/codedeploy-service-role-statements.json`));
-    const createdRole = await deployPhaseCommon.createCustomRole('codedeploy.amazonaws.com', 'HandelCodeDeployServiceRole', policyStatements, accountConfig);
-    if (!createdRole) {
-        throw new Error('Expected role to be created for CodeDeploy service, but none was returned');
-    }
-    return createdRole;
-}

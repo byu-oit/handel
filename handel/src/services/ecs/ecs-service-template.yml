@@ -4,6 +4,44 @@ Description: Handel-created ECS Cluster
 
 Resources:
   #
+  # Service role used by ECS
+  #
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{serviceRoleName}}
+      Path: "/services/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal: 
+              Service: 
+              - "ecs.amazonaws.com"
+            Action:
+            - "sts:AssumeRole"
+  ServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{serviceRoleName}}
+      Roles:
+      - !Ref ServiceRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: 'Allow'
+          Action:
+          - "ec2:AuthorizeSecurityGroupIngress"
+          - "ec2:Describe*"
+          - "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+          - "elasticloadbalancing:DeregisterTargets"
+          - "elasticloadbalancing:Describe*"
+          - "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+          - "elasticloadbalancing:RegisterTargets"
+          Resource:
+          - "*"
+
+  #
   # Configure IAM resources for ECS resources
   #
   TaskRole:
