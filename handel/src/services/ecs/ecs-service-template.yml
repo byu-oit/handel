@@ -237,7 +237,7 @@ Resources:
           Ref: AlbTargetGroup{{name}}
       {{/if}}
       {{/each}}
-      Role: {{ecsServiceRoleArn}}
+      Role: !GetAtt ServiceRole.Arn
       {{/if}}
       TaskDefinition:
         Ref: TaskDefinition{{deploymentSuffix}}

@@ -32,8 +32,9 @@ environments:
         type: http
       containers:
       - name: ecstest
+        image_name: nginx:latest
         port_mappings:
-        - 5000
+        - 80
         routing:
-          base_path: /mypath
+          base_path: /
           health_check_path: /
