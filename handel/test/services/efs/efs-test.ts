@@ -30,7 +30,6 @@ import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-ext
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as efs from '../../../src/services/efs';
 import { EfsPerformanceMode, EfsServiceConfig } from '../../../src/services/efs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

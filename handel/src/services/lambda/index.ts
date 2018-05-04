@@ -40,7 +40,6 @@ import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as iamCalls from '../../aws/iam-calls';
 import * as lambdaCalls from '../../aws/lambda-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import * as util from '../../common/util';
@@ -143,10 +142,9 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     } else {
         compiledTemplate = await handlebars.compileTemplate(`${__dirname}/lambda-role-statements.handlebars`, handlebarsParams);
     }
-    let ownPolicyStatements = JSON.parse(compiledTemplate);
-    ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
+    const ownPolicyStatements = JSON.parse(compiledTemplate);
 
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
 async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {

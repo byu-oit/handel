@@ -138,4 +138,49 @@ describe('Deploy phase common module', () => {
         });
     });
 
+    describe('getAllPolicyStatementsForServiceRole', () => {
+        it('should return the combination of policy statements from the own service and its dependencies', () => {
+            const ownServicePolicyStatements = [{
+                'Effect': 'Allow',
+                'Action': [
+                    'logs:CreateLogGroup',
+                    'logs:CreateLogStream',
+                    'logs:PutLogEvents'
+                ],
+                'Resource': [
+                    'arn:aws:logs:*:*:*'
+                ]
+            }];
+
+            const dependenciesDeployContexts = [];
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType('someExtension', 'sqs'), {type: 'sqs'}, serviceContext.accountConfig);
+            const dependencyDeployContext = new DeployContext(dependencyServiceContext);
+            dependencyDeployContext.policies.push({
+                'Effect': 'Allow',
+                'Action': [
+                    'sqs:ChangeMessageVisibility',
+                    'sqs:ChangeMessageVisibilityBatch',
+                    'sqs:DeleteMessage',
+                    'sqs:DeleteMessageBatch',
+                    'sqs:GetQueueAttributes',
+                    'sqs:GetQueueUrl',
+                    'sqs:ListDeadLetterSourceQueues',
+                    'sqs:ListQueues',
+                    'sqs:PurgeQueue',
+                    'sqs:ReceiveMessage',
+                    'sqs:SendMessage',
+                    'sqs:SendMessageBatch'
+                ],
+                'Resource': [
+                    'SomeQueueArn'
+                ]
+            });
+            dependenciesDeployContexts.push(dependencyDeployContext);
+
+            const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownServicePolicyStatements, dependenciesDeployContexts, true);
+            expect(policyStatements.length).to.equal(5); // 2 of our own, plus 3 for the app secrets
+            expect(policyStatements[3].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
+            expect(policyStatements[3].Resource[1]).to.contain(`parameter/handel.global*`);
+        });
+    });
 });

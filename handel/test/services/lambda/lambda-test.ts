@@ -31,7 +31,6 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as iamCalls from '../../../src/aws/iam-calls';
 import * as lambdaCalls from '../../../src/aws/lambda-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import {
 } from '../../../src/datatypes';

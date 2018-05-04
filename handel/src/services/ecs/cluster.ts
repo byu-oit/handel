@@ -16,7 +16,6 @@
  */
 import { AccountConfig, DeployContext } from 'handel-extension-api';
 import { handlebars } from 'handel-extension-support';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 
 /**
  * This function calculates the user data script to be run on the cluster EC2 instances when launching.

@@ -29,7 +29,6 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sqsCalls from '../../../src/aws/sqs-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as sqs from '../../../src/services/sqs';
 import { SqsServiceConfig } from '../../../src/services/sqs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

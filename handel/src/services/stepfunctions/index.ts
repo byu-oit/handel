@@ -19,7 +19,6 @@ import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import { HandlebarsStepFunctionsTemplate, StepFunctionsConfig } from './config-types';
 
@@ -116,7 +115,7 @@ function generateDefinitionString(filename: string, dependenciesDeployContexts: 
 
 function getCompiledStepFunctionsTemplate(stackName: string, ownServiceContext: ServiceContext<StepFunctionsConfig>, dependenciesDeployContexts: DeployContext[]): Promise<string> {
     const definitionString = generateDefinitionString(ownServiceContext.params.definition, dependenciesDeployContexts);
-    const policyStatements = deployPhaseCommon.getAllPolicyStatementsForServiceRole([], dependenciesDeployContexts);
+    const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(ownServiceContext, [], dependenciesDeployContexts, false);
     const handlebarsParams: HandlebarsStepFunctionsTemplate = {
         stateMachineName: stackName,
         definitionString,

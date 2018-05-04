@@ -19,7 +19,6 @@ import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as common from '../../../src/services/apigateway/common';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -60,13 +59,8 @@ describe('apigateway common module', () => {
 
     describe('getPolicyStatementsForLambdaRole', () => {
         it('should return the list of policy statements for the service role', async () => {
-            const getAppSecretsPolicyStub = sandbox.stub(deployPhaseCommon, 'getAppSecretsAccessPolicyStatements').returns([]);
-            const getPolicyStatementsStub = sandbox.stub(deployPhaseCommon, 'getAllPolicyStatementsForServiceRole').returns(Promise.resolve([]));
-
             const statements = await common.getPolicyStatementsForLambdaRole(serviceContext, []);
-            expect(statements).to.deep.equal([]);
-            expect(getAppSecretsPolicyStub.callCount).to.equal(1);
-            expect(getPolicyStatementsStub.callCount).to.equal(1);
+            expect(statements.length).to.equal(4);
         });
     });
 });

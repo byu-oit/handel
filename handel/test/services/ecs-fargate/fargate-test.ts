@@ -32,7 +32,6 @@ import config from '../../../src/account-config/account-config';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as ecsCalls from '../../../src/aws/ecs-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as ecsContainers from '../../../src/common/ecs-containers';
 import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';

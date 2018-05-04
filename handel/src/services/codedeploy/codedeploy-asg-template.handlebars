@@ -20,58 +20,54 @@ Resources:
               - "codedeploy.amazonaws.com"
             Action:
             - "sts:AssumeRole"
-  ServiceRolePolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: {{serviceRoleName}}
-      Roles:
-      - !Ref ServiceRole
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-        - Effect: Allow
-          Action:
-          - autoscaling:CompleteLifecycleAction
-          - autoscaling:DeleteLifecycleHook
-          - autoscaling:DescribeAutoScalingGroups
-          - autoscaling:DescribeLifecycleHooks
-          - autoscaling:PutLifecycleHook
-          - autoscaling:RecordLifecycleActionHeartbeat
-          - autoscaling:CreateAutoScalingGroup
-          - autoscaling:UpdateAutoScalingGroup
-          - autoscaling:EnableMetricsCollection
-          - autoscaling:DescribeAutoScalingGroups
-          - autoscaling:DescribePolicies
-          - autoscaling:DescribeScheduledActions
-          - autoscaling:DescribeNotificationConfigurations
-          - autoscaling:DescribeLifecycleHooks
-          - autoscaling:SuspendProcesses
-          - autoscaling:ResumeProcesses
-          - autoscaling:AttachLoadBalancers
-          - autoscaling:PutScalingPolicy
-          - autoscaling:PutScheduledUpdateGroupAction
-          - autoscaling:PutNotificationConfiguration
-          - autoscaling:PutLifecycleHook
-          - autoscaling:DescribeScalingActivities
-          - autoscaling:DeleteAutoScalingGroup
-          - ec2:DescribeInstances
-          - ec2:DescribeInstanceStatus
-          - ec2:TerminateInstances
-          - tag:GetTags
-          - tag:GetResources
-          - sns:Publish
-          - cloudwatch:DescribeAlarms
-          - cloudwatch:PutMetricAlarm
-          - elasticloadbalancing:DescribeLoadBalancers
-          - elasticloadbalancing:DescribeInstanceHealth
-          - elasticloadbalancing:RegisterInstancesWithLoadBalancer
-          - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
-          - elasticloadbalancing:DescribeTargetGroups
-          - elasticloadbalancing:DescribeTargetHealth
-          - elasticloadbalancing:RegisterTargets
-          - elasticloadbalancing:DeregisterTargets
-          Resource:
-          - "*" # This is the role used by the AWS service itself, so it doesn't really need to have a granular resource like those used by our applications 
+      Policies:
+      - PolicyName: {{serviceRoleName}}
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action:
+            - autoscaling:CompleteLifecycleAction
+            - autoscaling:DeleteLifecycleHook
+            - autoscaling:DescribeAutoScalingGroups
+            - autoscaling:DescribeLifecycleHooks
+            - autoscaling:PutLifecycleHook
+            - autoscaling:RecordLifecycleActionHeartbeat
+            - autoscaling:CreateAutoScalingGroup
+            - autoscaling:UpdateAutoScalingGroup
+            - autoscaling:EnableMetricsCollection
+            - autoscaling:DescribeAutoScalingGroups
+            - autoscaling:DescribePolicies
+            - autoscaling:DescribeScheduledActions
+            - autoscaling:DescribeNotificationConfigurations
+            - autoscaling:DescribeLifecycleHooks
+            - autoscaling:SuspendProcesses
+            - autoscaling:ResumeProcesses
+            - autoscaling:AttachLoadBalancers
+            - autoscaling:PutScalingPolicy
+            - autoscaling:PutScheduledUpdateGroupAction
+            - autoscaling:PutNotificationConfiguration
+            - autoscaling:PutLifecycleHook
+            - autoscaling:DescribeScalingActivities
+            - autoscaling:DeleteAutoScalingGroup
+            - ec2:DescribeInstances
+            - ec2:DescribeInstanceStatus
+            - ec2:TerminateInstances
+            - tag:GetTags
+            - tag:GetResources
+            - sns:Publish
+            - cloudwatch:DescribeAlarms
+            - cloudwatch:PutMetricAlarm
+            - elasticloadbalancing:DescribeLoadBalancers
+            - elasticloadbalancing:DescribeInstanceHealth
+            - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+            - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+            - elasticloadbalancing:DescribeTargetGroups
+            - elasticloadbalancing:DescribeTargetHealth
+            - elasticloadbalancing:RegisterTargets
+            - elasticloadbalancing:DeregisterTargets
+            Resource:
+            - "*" # This is the role used by the AWS service itself, so it doesn't really need to have a granular resource like those used by our applications 
 
   #
   # Role used by CodeDeploy

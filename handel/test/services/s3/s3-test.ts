@@ -29,7 +29,6 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

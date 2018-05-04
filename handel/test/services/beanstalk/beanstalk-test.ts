@@ -29,7 +29,6 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53 from '../../../src/aws/route53-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import { InstanceScalingPolicyType } from '../../../src/datatypes';
 import * as  beanstalk from '../../../src/services/beanstalk';

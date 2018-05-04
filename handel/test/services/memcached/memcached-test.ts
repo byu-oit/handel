@@ -31,7 +31,6 @@ import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-supp
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as memcached from '../../../src/services/memcached';
 import { MemcachedServiceConfig } from '../../../src/services/memcached/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

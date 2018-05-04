@@ -108,3 +108,59 @@ export async function uploadDeployableArtifactToHandelBucket(serviceContext: Ser
         return uploadFileToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
     }
 }
+
+export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceContext<ServiceConfig>, ownServicePolicyStatements: any[], dependenciesDeployContexts: any[], includeAppSecretsStatements: boolean): any[] {
+    const policyStatementsToConsume = [];
+
+    // Add policies from dependencies that have them
+    for (const deployContext of dependenciesDeployContexts) {
+        for (const policyDoc of deployContext.policies) {
+            policyStatementsToConsume.push(policyDoc);
+        }
+    }
+
+    // Let consuming service add its own policy if needed
+    for (const ownServicePolicyStatement of ownServicePolicyStatements) {
+        policyStatementsToConsume.push(ownServicePolicyStatement);
+    }
+
+    if(includeAppSecretsStatements) {
+        const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
+        const appSecretsAcessStatements = [
+            {
+                Effect: 'Allow',
+                Action: [
+                    'ssm:DescribeParameters'
+                ],
+                Resource: [
+                    '*'
+                ]
+            },
+            {
+                Effect: 'Allow',
+                Action: [
+                    'ssm:GetParameters',
+                    'ssm:GetParameter'
+                ],
+                Resource: [
+                    applicationParameters,
+                    `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
+                ]
+            },
+            {
+                Effect: 'Allow',
+                Action: [
+                    'ssm:PutParameter',
+                    'ssm:DeleteParameter',
+                    'ssm:DeleteParameters'
+                ],
+                Resource: [
+                    applicationParameters
+                ]
+            }
+        ];
+        policyStatementsToConsume.push(...appSecretsAcessStatements);
+    }
+
+    return policyStatementsToConsume;
+}

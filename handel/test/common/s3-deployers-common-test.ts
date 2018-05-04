@@ -20,7 +20,6 @@ import { deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../src/common/s3-deployers-common';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 

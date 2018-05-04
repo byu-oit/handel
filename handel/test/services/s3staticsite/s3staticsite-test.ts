@@ -29,7 +29,6 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as s3Calls from '../../../src/aws/s3-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
 import * as s3StaticSite from '../../../src/services/s3staticsite';
 import { S3StaticSiteServiceConfig } from '../../../src/services/s3staticsite/config-types';

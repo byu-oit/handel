@@ -27,7 +27,6 @@ import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from '
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as instanceAutoScaling from '../../common/instance-auto-scaling';
 import * as util from '../../common/util';
 import {
@@ -175,9 +174,8 @@ async function getPolicyStatementsForInstanceRole(serviceContext: ServiceContext
         appName: serviceContext.appName
     };
     const compiledPolicyStatements = await handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
-    let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
-    ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+    const ownPolicyStatements = JSON.parse(compiledPolicyStatements);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
 function getAutoScalingEbExtension(stackName: string, ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<string> {

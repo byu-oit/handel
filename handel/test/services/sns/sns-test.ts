@@ -31,7 +31,6 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as snsCalls from '../../../src/aws/sns-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as sns from '../../../src/services/sns';
 import { SnsServiceConfig } from '../../../src/services/sns/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

@@ -20,7 +20,6 @@ import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
 import * as route53 from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
@@ -44,8 +43,7 @@ const ALLOWED_FARGATE_MEMORY_FOR_CPU: AllowedFargateMemoryForCpu = {
 };
 
 function getTaskRoleStatements(serviceContext: ServiceContext<FargateServiceConfig>, dependenciesDeployContexts: DeployContext[]) {
-    const ownPolicyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, [], dependenciesDeployContexts, true);
 }
 
 async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<string> {

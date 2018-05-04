@@ -18,7 +18,6 @@ import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'h
 import { awsCalls } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as ssmCalls from '../aws/ssm-calls';
-import * as deployPhaseCommon from '../common/deploy-phase-common';
 
 export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
                                  rdsCfStack: any) { // TODO - Better type later
