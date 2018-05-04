@@ -15,7 +15,7 @@
  *
  */
 import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
-import { handlebars, tagging, deployPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
+import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';

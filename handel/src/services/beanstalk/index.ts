@@ -64,12 +64,13 @@ function getDependenciesEbExtensionScript(dependenciesDeployContexts: DeployCont
     return handlebars.compileTemplate(`${__dirname}/dependencies-ebextension-template.config`, handlebarsParams);
 }
 
-async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext: PreDeployContext, serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesDeployContexts: DeployContext[], serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
+async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext: PreDeployContext, serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesDeployContexts: DeployContext[], s3ArtifactInfo: AWS.S3.ManagedUpload.SendData): Promise<string> {
     const serviceParams = serviceContext.params;
     const accountConfig = serviceContext.accountConfig;
 
     const descVer = serviceParams.description || 'Application for ' + stackName;
     const policyStatements = await getPolicyStatementsForInstanceRole(serviceContext, dependenciesDeployContexts);
+    const serviceRoleName = `${stackName}-service-role`;
     const handlebarsParams: HandlebarsBeanstalkTemplate = {
         applicationName: stackName,
         applicationVersionBucket: s3ArtifactInfo.Bucket,
@@ -78,6 +79,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         solutionStack: serviceParams.solution_stack,
         optionSettings: [],
         policyStatements,
+        serviceRoleName,
         tags: tagging.getTags(serviceContext)
     };
 
@@ -130,11 +132,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
 
     // Set up routing
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:environment', 'LoadBalancerType', 'application'));
-    let serviceRoleName = `${serviceRole.Path}${serviceRole.RoleName}`;
-    if (serviceRoleName.startsWith('/')) { // Beanstalk doesnt like the leading slash, it just wants something like services/HandelBeanstalkServiceRole
-        serviceRoleName = serviceRoleName.substr(1);
-    }
-    handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:environment', 'ServiceRole', serviceRoleName));
+    handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:environment', 'ServiceRole', `services/${serviceRoleName}`)); // Beanstalk wants the full path in the role name
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elbv2:loadbalancer', 'IdleTimeout', '300'));
     if (serviceParams.routing && serviceParams.routing.type === 'https') { // HTTPS ALB Listener
         handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elbv2:listener:443', 'Protocol', 'HTTPS'));
@@ -180,10 +178,6 @@ async function getPolicyStatementsForInstanceRole(serviceContext: ServiceContext
     let ownPolicyStatements = JSON.parse(compiledPolicyStatements);
     ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
     return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
-}
-
-function getPolicyStatementsForServiceRole() {
-    return JSON.parse(util.readFileSync(`${__dirname}/beanstalk-service-role-statements.json`));
 }
 
 function getAutoScalingEbExtension(stackName: string, ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<string> {
@@ -280,13 +274,9 @@ export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceC
     const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying Beanstalk application '${stackName}'`);
 
-    const serviceRole = await deployPhaseCommon.createCustomRole('elasticbeanstalk.amazonaws.com', 'HandelBeanstalkServiceRole', getPolicyStatementsForServiceRole(), ownServiceContext.accountConfig);
-    if (!serviceRole) {
-        throw new Error('Could not create Beanstalk service role');
-    }
     const ebextensionFiles = await getSystemInjectedEbExtensions(stackName, ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
-    const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, serviceRole, s3ArtifactInfo);
+    const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo);
     const stackTags = tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledBeanstalkTemplate, [], true, SERVICE_NAME, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);

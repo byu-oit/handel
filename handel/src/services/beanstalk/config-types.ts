@@ -55,6 +55,7 @@ export interface HandlebarsBeanstalkTemplate {
     solutionStack: string;
     optionSettings: HandlebarsBeanstalkOptionSetting[];
     policyStatements: any[];
+    serviceRoleName: string;
     tags: Tags;
 }
 

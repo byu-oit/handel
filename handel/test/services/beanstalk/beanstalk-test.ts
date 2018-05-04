@@ -138,9 +138,6 @@ describe('beanstalk deployer', () => {
         }
 
         it('should deploy the service', async () => {
-            const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({
-                RoleName: 'FakeServiceRole'
-            });
             const getScalingPoliciesStub = sandbox.stub(instanceAutoScaling, 'getScalingPoliciesConfig').returns({});
             const prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').resolves({
                 Bucket: 'FakeBucket',
@@ -152,7 +149,6 @@ describe('beanstalk deployer', () => {
             const ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
 
             const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
-            expect(createCustomRoleStub.callCount).to.equal(1);
             expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
@@ -160,9 +156,6 @@ describe('beanstalk deployer', () => {
         });
 
         it('should set up dns records if requested', async () => {
-            const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({
-                RoleName: 'FakeServiceRole'
-            });
             const getScalingPoliciesStub = sandbox.stub(instanceAutoScaling, 'getScalingPoliciesConfig').returns({});
             const prepareAndUploadDeployableArtifactStub = sandbox.stub(deployableArtifact, 'prepareAndUploadDeployableArtifact').resolves({
                 Bucket: 'FakeBucket',
@@ -190,7 +183,6 @@ describe('beanstalk deployer', () => {
             };
 
             const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
-            expect(createCustomRoleStub.callCount).to.equal(1);
             expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.firstCall.args[1]).to.have.property('02dns-names.config');
