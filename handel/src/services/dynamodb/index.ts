@@ -25,7 +25,6 @@ import {
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
 

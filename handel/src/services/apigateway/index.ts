@@ -18,7 +18,6 @@ import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeplo
 import { deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 import * as proxyPassthroughDeployType from './proxy/proxy-passthrough-deploy-type';

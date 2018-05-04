@@ -26,7 +26,6 @@ import {
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
 import { HandlebarsRedisTemplate, RedisServiceConfig } from './config-types';
 

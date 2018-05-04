@@ -26,10 +26,11 @@ import * as iamRoles from './iam-roles';
 
 const SERVICE_NAME = 'CodeDeploy';
 
-async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, serviceRole: AWS.IAM.Role, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, amiToDeploy: AWS.EC2.Image): Promise<string> {
+async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], stackTags: Tags, userDataScript: string, s3ArtifactInfo: AWS.S3.ManagedUpload.SendData, amiToDeploy: AWS.EC2.Image): Promise<string> {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
+    const serviceRoleName = `${stackName}-service-role`;
     const policyStatements = await iamRoles.getStatementsForInstanceRole(ownServiceContext, dependenciesDeployContexts);
     const handlebarsParams: HandlebarsCodeDeployTemplate = {
         appName: stackName,
@@ -47,7 +48,7 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         s3BucketName: s3ArtifactInfo.Bucket,
         s3KeyName: s3ArtifactInfo.Key,
         deploymentConfigName: 'CodeDeployDefault.OneAtATime', // TODO - Add support for multiple kinds later
-        serviceRoleArn: serviceRole.Arn,
+        serviceRoleName: serviceRoleName,
         assignPublicIp: await ec2Calls.shouldAssignPublicIp(accountConfig.private_subnets)
     };
 
@@ -81,13 +82,12 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
 
     const stackTags = tagging.getTags(ownServiceContext);
-    const serviceRole = await iamRoles.createCodeDeployServiceRoleIfNotExists(ownServiceContext);
     const existingStack = await awsCalls.cloudFormation.getStack(stackName);
     const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
     const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
-    const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, serviceRole, s3ArtifactInfo, amiToDeploy);
+    const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, s3ArtifactInfo, amiToDeploy);
     const deployedStack = await deployPhase.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
 
     // If we need to roll the instances (calculated prior to deploy) do so now

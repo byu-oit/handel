@@ -18,7 +18,6 @@ import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-exte
 import { deployPhase, handlebars } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
 

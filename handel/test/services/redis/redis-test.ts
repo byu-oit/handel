@@ -30,10 +30,6 @@ import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-ext
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
-import {
-
-} from '../../../src/datatypes';
 import * as redis from '../../../src/services/redis';
 import { RedisServiceConfig } from '../../../src/services/redis/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

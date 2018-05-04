@@ -29,7 +29,6 @@ import { awsCalls, deletePhases, deployPhase, handlebars } from 'handel-extensio
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as dynamodb from '../../../src/services/dynamodb';
 import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';

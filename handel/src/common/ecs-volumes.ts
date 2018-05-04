@@ -16,7 +16,6 @@
  */
 import { DeployContext } from 'handel-extension-api';
 import { STDLIB_PREFIX } from '../services/stdlib';
-import * as deployPhaseCommon from './deploy-phase-common';
 import { HandlebarsEcsTemplateMountPoint, HandlebarsEcsTemplateVolume } from './ecs-shared-config-types';
 
 function getDependenciesDeployContextMountPoints(dependenciesDeployContexts: DeployContext[]) {

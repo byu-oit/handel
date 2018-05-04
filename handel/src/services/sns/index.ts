@@ -27,7 +27,6 @@ import {
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as snsCalls from '../../aws/sns-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import { STDLIB_PREFIX } from '../stdlib';
 import {SnsServiceConfig} from './config-types';
 

@@ -31,7 +31,6 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as ecsContainers from '../../../src/common/ecs-containers';
 import * as ecsRouting from '../../../src/common/ecs-routing';
 import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
@@ -224,7 +223,6 @@ describe('ecs deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const uploadDirStub = sandbox.stub(deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({});
-            const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
@@ -238,7 +236,6 @@ describe('ecs deployer', () => {
             expect(getLatestAmiByNameStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(2);
             expect(deployStackStub.callCount).to.equal(1);
-            expect(createCustomRoleStub.callCount).to.equal(1);
             expect(getInstancesToCycleStub.callCount).to.equal(1);
             expect(cycleInstancesStub.callCount).to.equal(1);
 
@@ -271,7 +268,6 @@ describe('ecs deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const uploadDirStub = sandbox.stub(deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({});
-            const createCustomRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
 
             const getInstancesToCycleStub = sandbox.stub(asgCycling, 'getInstancesToCycle').resolves([]);
@@ -285,7 +281,6 @@ describe('ecs deployer', () => {
             expect(getLatestAmiByNameStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(2);
             expect(deployStackStub.callCount).to.equal(1);
-            expect(createCustomRoleStub.callCount).to.equal(1);
             expect(getInstancesToCycleStub.callCount).to.equal(1);
             expect(cycleInstancesStub.callCount).to.equal(1);
 

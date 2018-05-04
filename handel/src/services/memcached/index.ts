@@ -34,7 +34,6 @@ import {
     tagging
 } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
 import {HandlebarsMemcachedTemplate, MemcachedServiceConfig} from './config-types';
 

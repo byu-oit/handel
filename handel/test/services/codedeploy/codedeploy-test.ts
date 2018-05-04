@@ -29,7 +29,6 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as codedeploy from '../../../src/services/codedeploy';
 import * as alb from '../../../src/services/codedeploy/alb';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
@@ -94,9 +93,6 @@ describe('codedeploy deployer', () => {
             }];
             const dependenciesDeployContexts: DeployContext[] = [];
 
-            const createRoleStub = sandbox.stub(iamRoles, 'createCodeDeployServiceRoleIfNotExists').resolves({
-                Arn: 'MyFakeArn'
-            });
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves({});
             const shouldRollInstancesStub = sandbox.stub(asgLaunchConfig, 'shouldRollInstances').resolves(true);
             const getUserDataStub = sandbox.stub(asgLaunchConfig, 'getUserDataScript').resolves('FakeScript');
@@ -115,7 +111,6 @@ describe('codedeploy deployer', () => {
 
             const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
-            expect(createRoleStub.callCount).to.equal(1);
             expect(getStackStub.callCount).to.equal(1);
             expect(shouldRollInstancesStub.callCount).to.equal(1);
             expect(getUserDataStub.callCount).to.equal(1);

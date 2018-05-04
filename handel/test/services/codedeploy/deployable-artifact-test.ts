@@ -20,7 +20,6 @@ import { deployPhase, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import * as util from '../../../src/common/util';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as deployableArtifact from '../../../src/services/codedeploy/deployable-artifact';

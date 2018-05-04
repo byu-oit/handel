@@ -15,10 +15,9 @@
  *
  */
 import { DeployContext, EnvironmentVariables, PreDeployContext, ServiceContext } from 'handel-extension-api';
-import { awsCalls } from 'handel-extension-support';
+import { awsCalls, deployPhase } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as route53 from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as util from '../../common/util';
 import {APIGatewayConfig, CustomDomain} from './config-types';
 
@@ -46,9 +45,8 @@ export function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<
     } else {
         ownPolicyStatements = JSON.parse(util.readFileSync(`${__dirname}/lambda-role-statements.json`));
     }
-    ownPolicyStatements = ownPolicyStatements.concat(deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext));
 
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
 export async function getCustomDomainHandlebarsParams(serviceContext: ServiceContext<any>, customDomains?: CustomDomain[]): Promise<any[]> {

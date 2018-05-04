@@ -58,7 +58,7 @@ export interface HandlebarsCodeDeployTemplate {
     s3BucketName: string;
     s3KeyName: string;
     deploymentConfigName: string;
-    serviceRoleArn: string;
+    serviceRoleName: string;
     sshKeyName?: string;
     assignPublicIp: boolean;
 }

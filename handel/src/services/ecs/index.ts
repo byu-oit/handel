@@ -19,7 +19,6 @@ import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from '
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
@@ -33,15 +32,14 @@ const SERVICE_NAME = 'ECS';
 const DEFAULT_INSTANCE_TYPE = 't2.micro';
 
 function getTaskRoleStatements(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesDeployContexts: DeployContext[]) {
-    const ownPolicyStatements = deployPhaseCommon.getAppSecretsAccessPolicyStatements(serviceContext);
-    return deployPhaseCommon.getAllPolicyStatementsForServiceRole(ownPolicyStatements, dependenciesDeployContexts);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, [], dependenciesDeployContexts, true);
 }
 
 function getLatestEcsAmiId() {
     return ec2Calls.getLatestAmiByName('amazon', 'amazon-ecs');
 }
 
-function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], userDataScript: string, ecsServiceRole: AWS.IAM.Role) {
+function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], userDataScript: string) {
     const accountConfig = ownServiceContext.accountConfig;
 
     return Promise.all([getLatestEcsAmiId(), route53.listHostedZones()])
@@ -62,6 +60,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
 
             const logRetention = ownServiceContext.params.log_retention_in_days;
 
+            const serviceRoleName = `${stackName}-service-role`;
             // Create object used for templating the CloudFormation template
             const handlebarsParams: HandlebarsEcsTemplateConfig = {
                 clusterName,
@@ -77,7 +76,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
                 asgCooldown: '60', // This is set pretty short because we handel the instance-level auto-scaling from a Lambda that runs every minute.
                 minimumHealthyPercentDeployment: '50', // TODO - Do we need to support more than just 50?
                 vpcId: accountConfig.vpc,
-                ecsServiceRoleArn: ecsServiceRole.Arn,
+                serviceRoleName,
                 policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
                 deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
                 tags: tagging.getTags(ownServiceContext),
@@ -159,8 +158,7 @@ export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>
     await clusterAutoScalingSection.createAutoScalingLambdaIfNotExists(ownServiceContext.accountConfig);
     await clusterAutoScalingSection.createDrainingLambdaIfNotExists(ownServiceContext.accountConfig);
     const userDataScript = await cluster.getUserDataScript(clusterName, dependenciesDeployContexts);
-    const ecsServiceRole = await cluster.createEcsServiceRoleIfNotExists(ownServiceContext.accountConfig);
-    const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript, ecsServiceRole!);
+    const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript);
     const stackTags = tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
     await asgCycling.cycleInstances(instancesToCycle);

@@ -20,7 +20,6 @@ import { handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as deployPhaseCommon from '../../../src/common/deploy-phase-common';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
 import * as iamRoles from '../../../src/services/codedeploy/iam-roles';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -49,24 +48,10 @@ describe('codedeploy asg-launchconfig config module', () => {
     describe('getStatementsForInstanceRole', () => {
         it('should return the list of IAM statements needed for the instance role', async () => {
             const compileTemplateStub = sandbox.stub(handlebars, 'compileTemplate').resolves('[]');
-            const getAppSecretsStatementStub = sandbox.stub(deployPhaseCommon, 'getAppSecretsAccessPolicyStatements').resolves([]);
-            const getAllStatementsStub = sandbox.stub(deployPhaseCommon, 'getAllPolicyStatementsForServiceRole').resolves([]);
 
             const statements = await iamRoles.getStatementsForInstanceRole(serviceContext, []);
-            expect(statements).to.deep.equal([]);
+            expect(statements.length).to.equal(3);
             expect(compileTemplateStub.callCount).to.equal(1);
-            expect(getAppSecretsStatementStub.callCount).to.equal(1);
-            expect(getAllStatementsStub.callCount).to.equal(1);
-        });
-    });
-
-    describe('createCodeDeployServiceRoleIfNotExists', () => {
-        it('should create the service role needed for codedeploy', async () => {
-            const createRoleStub = sandbox.stub(deployPhaseCommon, 'createCustomRole').resolves({});
-
-            const role = await iamRoles.createCodeDeployServiceRoleIfNotExists(serviceContext);
-            expect(role).to.deep.equal({});
-            expect(createRoleStub.callCount).to.equal(1);
         });
     });
 });

@@ -34,7 +34,6 @@ import {
     tagging
 } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import {EfsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'EFS';

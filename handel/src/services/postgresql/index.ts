@@ -26,7 +26,6 @@ import {
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, deletePhases, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
 

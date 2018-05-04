@@ -18,7 +18,6 @@ import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeploy
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
-import * as deployPhaseCommon from '../../common/deploy-phase-common';
 import {HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'Route53';
