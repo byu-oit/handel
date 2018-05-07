@@ -19,7 +19,6 @@ import { AccountConfig, ServiceContext, ServiceType, UnDeployContext } from 'han
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../src/common/rds-deployers-common';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 
@@ -65,29 +64,6 @@ describe('RDS deployers common module', () => {
             expect(deployContext.environmentVariables.FAKESERVICE_ADDRESS).to.equal(dbAddress);
             expect(deployContext.environmentVariables.FAKESERVICE_PORT).to.equal(dbPort);
             expect(deployContext.environmentVariables.FAKESERVICE_DATABASE_NAME).to.equal(dbName);
-        });
-    });
-
-    describe('addDbCredentialToParameterStore', () => {
-        it('should store the database password to the parameter store', async () => {
-            const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
-
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
-            const deployedStack = await rdsDeployersCommon.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword', {});
-            expect(deployedStack).to.deep.equal({});
-            expect(storeParamStub.callCount).to.equal(2);
-        });
-    });
-
-    describe('deleteParametersFromParameterStore', () => {
-        it('should delete the RDS parameters from the parameter store', async () => {
-            const deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves(true);
-
-            const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
-            const unDeployContext = new UnDeployContext(serviceContext);
-            const retUnDeployContext = await rdsDeployersCommon.deleteParametersFromParameterStore(serviceContext, unDeployContext);
-            expect(retUnDeployContext).to.deep.equal(unDeployContext);
-            expect(deleteParamsStub.callCount).to.equal(1);
         });
     });
 });

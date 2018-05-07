@@ -26,6 +26,7 @@ import {
 import * as os from 'os';
 import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as s3Calls from '../aws/s3-calls';
+import * as ssmCalls from '../aws/ssm-calls';
 import * as util from '../util/util';
 
 function getEnvVarsFromDependencyDeployContexts(deployContexts: DeployContext[]): EnvironmentVariables {
@@ -124,7 +125,7 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
         policyStatementsToConsume.push(ownServicePolicyStatement);
     }
 
-    if(includeAppSecretsStatements) {
+    if (includeAppSecretsStatements) {
         const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
         const appSecretsAcessStatements = [
             {
@@ -163,4 +164,16 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
     }
 
     return policyStatementsToConsume;
+}
+
+// TODO - Once all logic using this is ported to TS, remove the "deployedStack" param
+export async function addDbCredentialToParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, dbUsername: string, dbPassword: string): Promise<boolean> {
+    // Add credential to EC2 Parameter Store
+    const usernameParamName = ownServiceContext.ssmParamName('db_username');
+    const passwordParamName = ownServiceContext.ssmParamName('db_password');
+    await Promise.all([
+        ssmCalls.storeParameter(usernameParamName, 'SecureString', dbUsername),
+        ssmCalls.storeParameter(passwordParamName, 'SecureString', dbPassword)
+    ]);
+    return true;
 }
