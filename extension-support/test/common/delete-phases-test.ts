@@ -100,7 +100,7 @@ describe('Delete phases common module', () => {
     describe('deleteParametersFromParameterStore', () => {
         it('should delete the RDS parameters from the parameter store', async () => {
             const deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves(true);
-            const response = await deletePhases.deleteParametersFromParameterStore(serviceContext);
+            const response = await deletePhases.deleteServiceItemsFromSSMParameterStore(serviceContext, ['db_username', 'db_password']);
             expect(response).to.deep.equal(true);
             expect(deleteParamsStub.callCount).to.equal(1);
         });

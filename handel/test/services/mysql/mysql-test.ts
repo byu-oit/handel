@@ -150,13 +150,13 @@ describe('mysql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
-            const addCredentialsStub = sandbox.stub(deployPhase, 'addDbCredentialToParameterStore')
+            const addCredentialsStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
                 .resolves(deployedStack);
 
             const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
-            expect(addCredentialsStub.callCount).to.equal(1);
+            expect(addCredentialsStub.callCount).to.equal(2);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
             expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
@@ -203,7 +203,7 @@ describe('mysql deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(new UnDeployContext(serviceContext));
-            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteParametersFromParameterStore').resolves({});
+            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore').resolves({});
 
             const unDeployContext = await mysql.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

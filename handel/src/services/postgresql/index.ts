@@ -147,7 +147,13 @@ export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>
                                                                     30,
                                                                     stackTags);
         winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}'`);
-        await deployPhase.addDbCredentialToParameterStore(ownServiceContext, dbUsername, dbPassword);
+
+        // Add DB credentials to the Parameter Store
+        await Promise.all([
+            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
+            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
+        ]);
+
         winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
         return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
     }
@@ -167,7 +173,7 @@ export function unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>): Pro
 
 export async function unDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnDeployContext> {
     const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-    await deletePhases.deleteParametersFromParameterStore(ownServiceContext);
+    await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
     return unDeployContext;
 }
 

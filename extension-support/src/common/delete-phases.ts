@@ -71,10 +71,7 @@ export async function unBindSecurityGroups(ownServiceContext: ServiceContext<Ser
     return new UnBindContext(ownServiceContext);
 }
 
-export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext<ServiceConfig>): Promise<boolean> {
-    const paramsToDelete = [
-        ownServiceContext.ssmParamName('db_username'),
-        ownServiceContext.ssmParamName('db_password')
-    ];
-    return await ssmCalls.deleteParameters(paramsToDelete);
+export async function deleteServiceItemsFromSSMParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, paramsToDelete: string[]): Promise<boolean> {
+    const paramsToDeleteFullNames = paramsToDelete.map(paramToDelete => ownServiceContext.ssmParamName(paramToDelete));
+    return await ssmCalls.deleteParameters(paramsToDeleteFullNames);
 }

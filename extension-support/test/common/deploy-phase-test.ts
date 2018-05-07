@@ -188,9 +188,9 @@ describe('Deploy phase common module', () => {
     describe('addDbCredentialToParameterStore', () => {
         it('should store the database password to the parameter store', async () => {
             const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
-            const result = await deployPhase.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword');
+            const result = await deployPhase.addItemToSSMParameterStore(serviceContext, 'db_username', 'FakeUsername');
             expect(result).to.equal(true);
-            expect(storeParamStub.callCount).to.equal(2);
+            expect(storeParamStub.callCount).to.equal(1);
         });
     });
 });

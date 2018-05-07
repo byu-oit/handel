@@ -166,14 +166,8 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
     return policyStatementsToConsume;
 }
 
-// TODO - Once all logic using this is ported to TS, remove the "deployedStack" param
-export async function addDbCredentialToParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, dbUsername: string, dbPassword: string): Promise<boolean> {
-    // Add credential to EC2 Parameter Store
-    const usernameParamName = ownServiceContext.ssmParamName('db_username');
-    const passwordParamName = ownServiceContext.ssmParamName('db_password');
-    await Promise.all([
-        ssmCalls.storeParameter(usernameParamName, 'SecureString', dbUsername),
-        ssmCalls.storeParameter(passwordParamName, 'SecureString', dbPassword)
-    ]);
+export async function addItemToSSMParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, paramName: string, paramValue: string): Promise<boolean> {
+    const fullParamName = ownServiceContext.ssmParamName(paramName);
+    await ssmCalls.storeParameter(fullParamName, 'SecureString', paramValue);
     return true;
 }

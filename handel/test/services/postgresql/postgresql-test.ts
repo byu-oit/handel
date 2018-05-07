@@ -150,13 +150,13 @@ describe('postgresql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
-            const addDbCredentialStub = sandbox.stub(deployPhase, 'addDbCredentialToParameterStore')
+            const addDbCredentialStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
                 .resolves(deployedStack);
 
             const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
-            expect(addDbCredentialStub.callCount).to.equal(1);
+            expect(addDbCredentialStub.callCount).to.equal(2);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(databaseAddress);
             expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
@@ -204,7 +204,7 @@ describe('postgresql deployer', () => {
             const unDeployContext = new UnDeployContext(serviceContext);
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(unDeployContext);
-            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteParametersFromParameterStore')
+            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore')
                 .resolves(unDeployContext);
 
             const retUnDeployContext = await postgresql.unDeploy(serviceContext);
