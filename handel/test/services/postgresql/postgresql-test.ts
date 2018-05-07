@@ -26,7 +26,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
+import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -150,7 +150,7 @@ describe('postgresql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
-            const addDbCredentialStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore')
+            const addDbCredentialStub = sandbox.stub(deployPhase, 'addDbCredentialToParameterStore')
                 .resolves(deployedStack);
 
             const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -204,7 +204,7 @@ describe('postgresql deployer', () => {
             const unDeployContext = new UnDeployContext(serviceContext);
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(unDeployContext);
-            const deleteParametersStub = sandbox.stub(rdsDeployersCommon, 'deleteParametersFromParameterStore')
+            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteParametersFromParameterStore')
                 .resolves(unDeployContext);
 
             const retUnDeployContext = await postgresql.unDeploy(serviceContext);

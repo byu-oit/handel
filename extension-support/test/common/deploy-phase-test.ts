@@ -27,6 +27,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import * as cloudFormationCalls from '../../src/aws/cloudformation-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
+import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as deployPhase from '../../src/common/deploy-phase';
 import * as util from '../../src/util/util';
 import accountConfig from '../fake-account-config';
@@ -181,6 +182,15 @@ describe('Deploy phase common module', () => {
             expect(policyStatements.length).to.equal(5); // 2 of our own, plus 3 for the app secrets
             expect(policyStatements[3].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
             expect(policyStatements[3].Resource[1]).to.contain(`parameter/handel.global*`);
+        });
+    });
+
+    describe('addDbCredentialToParameterStore', () => {
+        it('should store the database password to the parameter store', async () => {
+            const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
+            const result = await deployPhase.addDbCredentialToParameterStore(serviceContext, 'FakeUsername', 'FakePassword');
+            expect(result).to.equal(true);
+            expect(storeParamStub.callCount).to.equal(2);
         });
     });
 });

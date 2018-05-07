@@ -18,6 +18,7 @@ import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployCo
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as s3Calls from '../aws/s3-calls';
+import * as ssmCalls from '../aws/ssm-calls';
 
 async function unBindAllOnSg(stackName: string, accountConfig: AccountConfig) {
     const sgName = `${stackName}-sg`;
@@ -68,4 +69,12 @@ export async function unBindSecurityGroups(ownServiceContext: ServiceContext<Ser
 
     const success = await unBindAllOnSg(sgName, ownServiceContext.accountConfig);
     return new UnBindContext(ownServiceContext);
+}
+
+export async function deleteParametersFromParameterStore(ownServiceContext: ServiceContext<ServiceConfig>): Promise<boolean> {
+    const paramsToDelete = [
+        ownServiceContext.ssmParamName('db_username'),
+        ownServiceContext.ssmParamName('db_password')
+    ];
+    return await ssmCalls.deleteParameters(paramsToDelete);
 }

@@ -85,20 +85,6 @@ const awsWrapper = {
             return s3.putBucketNotificationConfiguration(params).promise();
         }
     },
-    ssm: {
-        putParameter: (params: AWS.SSM.PutParameterRequest): Promise<AWS.SSM.PutParameterResult> => {
-            const ssm = new AWS.SSM({ apiVersion: '2014-11-06' });
-            return ssm.putParameter(params).promise();
-        },
-        deleteParameter: (params: AWS.SSM.DeleteParameterRequest): Promise<AWS.SSM.DeleteParameterResult> => {
-            const ssm = new AWS.SSM({ apiVersion: '2014-11-06' });
-            return ssm.deleteParameter(params).promise();
-        },
-        deleteParameters: (params: AWS.SSM.DeleteParametersRequest): Promise<AWS.SSM.DeleteParametersResult> => {
-            const ssm = new AWS.SSM({ apiVersion: '2014-11-06' });
-            return ssm.deleteParameters(params).promise();
-        }
-    },
     ses: {
         getIdentityVerificationAttributes: (params: AWS.SES.GetIdentityVerificationAttributesRequest) => {
             const ses = new AWS.SES({ apiVersion: '2010-12-01' });

@@ -21,6 +21,7 @@ import * as sinon from 'sinon';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
 import * as s3Calls from '../../src/aws/s3-calls';
+import * as ssmCalls from '../../src/aws/ssm-calls';
 import * as deletePhases from '../../src/common/delete-phases';
 import accountConfig from '../fake-account-config';
 
@@ -93,6 +94,15 @@ describe('Delete phases common module', () => {
             const unBindContext = await deletePhases.unBindSecurityGroups(serviceContext, 'FakeService');
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(removeIngressStub.callCount).to.equal(1);
+        });
+    });
+
+    describe('deleteParametersFromParameterStore', () => {
+        it('should delete the RDS parameters from the parameter store', async () => {
+            const deleteParamsStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves(true);
+            const response = await deletePhases.deleteParametersFromParameterStore(serviceContext);
+            expect(response).to.deep.equal(true);
+            expect(deleteParamsStub.callCount).to.equal(1);
         });
     });
 });

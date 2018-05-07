@@ -26,11 +26,10 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
+import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as ssmCalls from '../../../src/aws/ssm-calls';
 import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import * as mysql from '../../../src/services/mysql';
 import { MySQLConfig } from '../../../src/services/mysql/config-types';
@@ -151,7 +150,7 @@ describe('mysql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
-            const addCredentialsStub = sandbox.stub(rdsDeployersCommon, 'addDbCredentialToParameterStore')
+            const addCredentialsStub = sandbox.stub(deployPhase, 'addDbCredentialToParameterStore')
                 .resolves(deployedStack);
 
             const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
@@ -204,7 +203,7 @@ describe('mysql deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(new UnDeployContext(serviceContext));
-            const deleteParametersStub = sandbox.stub(ssmCalls, 'deleteParameters').resolves({});
+            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteParametersFromParameterStore').resolves({});
 
             const unDeployContext = await mysql.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);

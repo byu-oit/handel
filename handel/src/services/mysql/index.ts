@@ -24,7 +24,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { awsCalls, bindPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import {HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType} from './config-types';
@@ -142,10 +142,7 @@ export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
                                                                     30,
                                                                     stackTags);
         winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
-        await rdsDeployersCommon.addDbCredentialToParameterStore(ownServiceContext,
-                                                                  dbUsername,
-                                                                  dbPassword,
-                                                                  deployedStack);
+        await deployPhase.addDbCredentialToParameterStore(ownServiceContext, dbUsername, dbPassword);
         winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
         return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
     }
@@ -165,7 +162,8 @@ export function unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<
 
 export async function unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {
     const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-    return rdsDeployersCommon.deleteParametersFromParameterStore(ownServiceContext, unDeployContext);
+    await deletePhases.deleteParametersFromParameterStore(ownServiceContext);
+    return unDeployContext;
 }
 
 export const producedEventsSupportedServices = [];
