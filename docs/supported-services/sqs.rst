@@ -67,7 +67,7 @@ Parameters
      - :ref:`sqs-dead-letter`
      - No
      -
-     - If present, indicates that the queue will use a `Dead-Letter Queue <http://http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_.
+     - If present, indicates that the queue will use a `Dead-Letter Queue <http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_.
    * - tags
      - :ref:`tagging-resources`
      - No
@@ -120,7 +120,7 @@ This Handel file shows a basic SQS service being configured:
           receive_message_wait_time_seconds: 3
           visibility_timeout: 40
 
-This Handel file shows an SQS service being configured with a `Dead-Letter Queue <http://http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_:
+This Handel file shows an SQS service being configured with a `Dead-Letter Queue <http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_:
 
 .. code-block:: yaml
 
