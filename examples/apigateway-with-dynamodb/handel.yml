@@ -2,9 +2,6 @@ version: 1
 
 name: apigateway-example
 
-extensions:
-  sns: sns-handel-extension
-
 environments:
   dev:
     webapp:
@@ -14,6 +11,12 @@ environments:
       tags:
         mytag: myvalue
       dependencies:
-      - topic
-    topic:
-      type: sns::sns
+      - table
+    table:
+      type: dynamodb
+      partition_key:
+        name: MyPartionKey
+        type: String
+      provisioned_throughput:
+        read_capacity_units: 2
+        write_capacity_units: 2
