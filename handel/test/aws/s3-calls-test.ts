@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import * as childProcess from 'child_process';
+import { ServiceEventType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import awsWrapper from '../../src/aws/aws-wrapper';
@@ -70,9 +71,9 @@ describe('s3Calls', () => {
 
     describe('configureBucketNotifications', () => {
         const servicesToTest = [
-            'lambda',
-            'sns',
-            'sqs'
+            ServiceEventType.Lambda,
+            ServiceEventType.SNS,
+            ServiceEventType.SQS
         ];
         servicesToTest.forEach(serviceToTest => {
             it(`should configure bucket notifications for the ${serviceToTest} type`, async () => {
@@ -96,7 +97,7 @@ describe('s3Calls', () => {
 
         it('should throw an error for other service types', async () => {
             const bucketName = 'FakeS3BucketName';
-            const notificationType = 'othertype';
+            const notificationType = ServiceEventType.CloudWatchEvents;
             const notificationArn = 'FakeNotificationArn';
             const notificationEvents: AWS.S3.EventList = [
                 's3:ObjectCreated*'

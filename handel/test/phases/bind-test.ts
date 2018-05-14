@@ -109,7 +109,7 @@ describe('bind', () => {
         it('should execute bind on all the services in parallel', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
@@ -118,7 +118,7 @@ describe('bind', () => {
                     supportsTagging: true,
                 },
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
@@ -136,14 +136,14 @@ describe('bind', () => {
         it('should return empty BindContexts for services that dont implement bind', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
                     // Simulating that ECS doesn't implement bind,
                     supportsTagging: true,
                 },
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
                     bind: (toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {

@@ -17,6 +17,7 @@
 import {
     BindContext,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
@@ -164,12 +165,12 @@ export async function unDeploy(ownServiceContext: ServiceContext<EfsServiceConfi
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'scripts',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Scripts,
+    DeployOutputType.SecurityGroups
 ];
 
 export const consumedDeployOutputTypes = [];

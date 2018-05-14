@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { EnvironmentVariables, ServiceConfig, Tags } from 'handel-extension-api';
+import { EnvironmentVariables, ServiceConfig, ServiceEventConsumer, Tags } from 'handel-extension-api';
 
 export interface LambdaServiceConfig extends ServiceConfig {
     path_to_code: string;
@@ -44,7 +44,6 @@ export interface HandlebarsLambdaTemplate {
     vpcSubnetIds?: string[];
 }
 
-export interface DynamoDBLambdaConsumer {
-    serviceName: string;
-    batchSize: number;
+export interface DynamoDBLambdaConsumer extends ServiceEventConsumer {
+    batch_size: number;
 }

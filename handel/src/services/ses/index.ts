@@ -14,7 +14,13 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as sesCalls from '../../aws/ses-calls';
 import { SesServiceConfig } from './config-types';
@@ -75,11 +81,11 @@ export async function deploy(ownServiceContext: ServiceContext<SesServiceConfig>
     return getDeployContext(ownServiceContext);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];

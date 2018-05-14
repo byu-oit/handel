@@ -17,6 +17,7 @@
 import {
     BindContext,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
@@ -141,11 +142,11 @@ export async function unDeploy(ownServiceContext: ServiceContext<MemcachedServic
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.SecurityGroups
 ];
 
 export const consumedDeployOutputTypes = [];

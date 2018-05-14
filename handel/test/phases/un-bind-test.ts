@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceContext, ServiceType, UnBindContext } from 'handel-extension-api';
+import { AccountConfig, DeployOutputType, ServiceContext, ServiceType, UnBindContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -80,13 +80,13 @@ describe('unBind', () => {
         it('should execute UnBind on all the services in parallel', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     unBind: (toUnBindServiceContext) => {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
@@ -94,11 +94,11 @@ describe('unBind', () => {
                     supportsTagging: true,
                 },
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     unBind: (toUnBindServiceContext) => {
@@ -115,13 +115,13 @@ describe('unBind', () => {
         it('should return emtpy unbind contexts for services that dont implement unbind', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     unBind: (toUnBindServiceContext) => {
                         return Promise.reject(new Error(`Should not have called ECS bind`));
@@ -129,11 +129,11 @@ describe('unBind', () => {
                     supportsTagging: true,
                 },
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     supportsTagging: true,

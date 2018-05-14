@@ -17,11 +17,13 @@
 import {
     AccountConfig,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
-    ServiceEventConsumer
+    ServiceEventConsumer,
+    ServiceEventType
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -68,23 +70,11 @@ function buildTableARN(tableName: string, accountConfig: AccountConfig) {
     return `arn:aws:dynamodb:${accountConfig.region}:${accountConfig.account_id}:table/${tableName}`;
 }
 
-function getLambdaConsumers(serviceContext: ServiceContext<DynamoDBConfig>) {
-    const consumers = serviceContext.params.event_consumers as DynamoDBServiceEventConsumer[];
-    const lambdaConsumers: any[] = [];
-    consumers.forEach((consumer) => {
-        lambdaConsumers.push({
-            serviceName: consumer.service_name,
-            batchSize: consumer.batch_size
-        });
-    });
-    return lambdaConsumers;
-}
-
 function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
     const tableName = awsCalls.cloudFormation.getOutput('TableName', cfStack);
     if(!tableName) {
-        throw new Error('Expected to receive tableName back from DynamoDB service');
+        throw new Error('Expected to receive TableName back from DynamoDB service');
     }
 
     // Inject policies to talk to the table
@@ -92,9 +82,16 @@ function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStac
 
     // Get values for createEventSourceMapping
     if (serviceContext.params.event_consumers) {
-        deployContext.eventOutputs.tableName = tableName;
-        deployContext.eventOutputs.tableStreamArn = awsCalls.cloudFormation.getOutput('StreamArn', cfStack);
-        deployContext.eventOutputs.lambdaConsumers = getLambdaConsumers(serviceContext);
+        const tableStreamArn = awsCalls.cloudFormation.getOutput('StreamArn', cfStack);
+        if(!tableStreamArn) {
+            throw new Error('Expected to receive StreamArn back from DynamoDB service');
+        }
+        deployContext.eventOutputs = {
+            resourceArn: tableStreamArn,
+            resourceName: tableName,
+            resourcePrincipal: 'dynamodb.amazonaws.com',
+            serviceEventType: ServiceEventType.DynamoDB
+        };
     }
 
     // Inject env vars
@@ -335,13 +332,15 @@ export async function unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [
-    'lambda'
+export const providedEventType = ServiceEventType.DynamoDB;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda
 ];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];

@@ -41,7 +41,7 @@ export class RandomSecretService implements ServiceDeployer {
 
     public readonly consumedDeployOutputTypes = [];
     public readonly producedDeployOutputTypes = ['environmentVariables'];
-    public readonly producedEventsSupportedServices = [];
+    public readonly producedEventsSupportedTypes = [];
     public readonly supportsTagging = false;
 
     public check(serviceContext: ServiceContext<RandomSecretConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {

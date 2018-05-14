@@ -34,7 +34,9 @@ export default class FakeServiceRegistry implements ServiceRegistry {
         return this.services[key] as ServiceDeployer || {
             consumedDeployOutputTypes: [],
             producedDeployOutputTypes: [],
-            producedEventsSupportedServices: []
+            producedEventsSupportedTypes: [],
+            providedEventType: null,
+            supportsTagging: true
         };
     }
 

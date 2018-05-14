@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -90,21 +97,13 @@ export async function unDeploy(ownServiceContext: ServiceContext<StepFunctionsCo
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
-
-export const producedDeployOutputTypes = ['environmentVariables', 'policies'];
-
-export const consumedDeployOutputTypes = ['environmentVariables', 'policies'];
-
-export const supportsTagging = false;
-
 function generateDefinitionString(filename: string, dependenciesDeployContexts: DeployContext[]): string {
     const readFile = path.extname(filename) === '.json' ? util.readJsonFileSync : util.readYamlFileSync;
     const definitionFile = readFile(filename);
     const dependencyArns: Map<string, string> = new Map();
     // Map service name to ARN
     for (const context of dependenciesDeployContexts) {
-        dependencyArns.set(context.serviceName, context.eventOutputs.lambdaArn);
+        dependencyArns.set(context.serviceName, context.eventOutputs!.resourceArn!);
     }
     // Change 'resource' in each state from service name to ARN
     _.values(definitionFile.States)
@@ -151,3 +150,17 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
 
     return deployContext;
 }
+
+export const producedEventsSupportedTypes = [];
+
+export const producedDeployOutputTypes = [
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
+];
+
+export const consumedDeployOutputTypes = [
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
+];
+
+export const supportsTagging = false;

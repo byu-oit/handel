@@ -15,7 +15,13 @@
  *
  */
 import * as fs from 'fs';
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext
+} from 'handel-extension-api';
 import * as winston from 'winston';
 import * as util from '../../common/util';
 import { APIAccessConfig } from './config-types';
@@ -69,10 +75,10 @@ export async function deploy(ownServiceContext: ServiceContext<APIAccessConfig>,
     return getDeployContext(ownServiceContext);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'policies'
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];
