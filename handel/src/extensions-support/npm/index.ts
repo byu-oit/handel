@@ -54,7 +54,9 @@ export interface LinkedPackage {
 }
 
 async function run(tag: string, args: string[], quiet: boolean = false, opts?: SpawnOptions) {
-    const promise = spawn('npm', args, opts);
+    const command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
+    log.debug('running npm', command, args, opts);
+    const promise = spawn(command, args, opts);
     const proc = promise.child;
 
     if (!quiet) {
