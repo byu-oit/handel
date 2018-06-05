@@ -43,7 +43,7 @@ import { initServiceRegistry } from '../service-registry';
 function logCaughtError(msg: string, err: Error) {
     winston.error(`${msg}: ${err.message}`);
     if (winston.level === 'debug') {
-        winston.error(err.toString());
+        winston.error(err.stack!);
     }
 }
 
