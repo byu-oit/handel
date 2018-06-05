@@ -95,7 +95,7 @@ Now that you've got a working app, you need to create a Handel file specifying h
         webapp: # This is the name of your single service inside your 'dev' environment.
           type: beanstalk # Every Handel service requires a 'type' parameter
           path_to_code: . # This contains the path to the directory where your code lives that should be sent to Beanstalk
-          solution_stack: 64bit Amazon Linux 2017.09 v4.4.5 running Node.js # This specifies which Beanstalk 'solution stack' should be used for the app.
+          solution_stack: 64bit Amazon Linux 2018.03 v4.5.0 running Node.js # This specifies which Beanstalk 'solution stack' should be used for the app.
 
 .. NOTE::
 

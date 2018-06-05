@@ -9,3 +9,4 @@ coverage/
 dist/
 lerna-debug.log
 .vscode/
+.handel-extensions/
