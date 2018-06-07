@@ -241,7 +241,14 @@ export async function listExtensions(handelFile: HandelFile): Promise<ExtensionL
         return [];
     }
     return _.entries(handelFile.extensions).map(([prefix, spec]) => {
-        const [name, versionSpec = '*'] = spec.split('@', 2);
+        let toParse = spec;
+        let namePrefix = '';
+        if (spec.startsWith('@')) { // Handle scoped NPM packages (https://github.com/byu-oit/handel/issues/438)
+            toParse = spec.substring(1);
+            namePrefix = '@';
+        }
+        const [parsedName, versionSpec = '*'] = toParse.split('@', 2);
+        const name = namePrefix + parsedName;
         return {prefix, name, versionSpec};
     });
 }
