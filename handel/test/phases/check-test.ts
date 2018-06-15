@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import { AccountConfig, DeployOutputType, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
 import { EnvironmentContext } from '../../src/datatypes';
@@ -34,13 +34,13 @@ describe('check', () => {
         function getServiceRegistry(): FakeServiceRegistry {
             return new FakeServiceRegistry({
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'policies',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Policies,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     check: (serviceContext: ServiceContext<ServiceConfig>) => {
                         return [];
@@ -48,11 +48,11 @@ describe('check', () => {
                     supportsTagging: true,
                 },
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'environmentVariables',
-                        'scripts',
-                        'securityGroups'
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.SecurityGroups
                     ],
                     consumedDeployOutputTypes: [],
                     supportsTagging: true,

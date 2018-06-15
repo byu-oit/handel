@@ -66,7 +66,7 @@ export async function consumeEvents(serviceRegistry: ServiceRegistry, environmen
                         throw new Error(`Tried to invoke the 'consumeEvents' phase on the '${consumerServiceContext.serviceType}' service, but it does not implement it`);
                     }
 
-                    const consumeEventsContext = await consumerServiceDeployer.consumeEvents(consumerServiceContext, consumerDeployContext, producerServiceContext, producerDeployContext);
+                    const consumeEventsContext = await consumerServiceDeployer.consumeEvents(consumerServiceContext, consumerDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
                     if (!isConsumeEventsContext(consumeEventsContext)) {
                         throw new DontBlameHandelError('Expected ConsumeEventsContext back from \'consumeEvents\' phase of service deployer', consumerServiceContext.serviceType);
                     }

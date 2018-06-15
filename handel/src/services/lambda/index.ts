@@ -14,7 +14,12 @@
  * limitations under the License.
  *
  */
-import {ServiceType} from 'handel-extension-api';
+import {
+    DeployOutputType,
+    ServiceEventConsumer,
+    ServiceEventType,
+    ServiceType
+} from 'handel-extension-api';
 import {
     AccountConfig,
     ConsumeEventsContext,
@@ -111,8 +116,12 @@ function getDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>, c
     });
 
     // Inject event outputs
-    deployContext.eventOutputs.lambdaArn = lambdaArn;
-    deployContext.eventOutputs.lambdaName = lambdaName;
+    deployContext.eventOutputs = {
+        resourceArn: lambdaArn,
+        resourceName: lambdaName,
+        resourcePrincipal: 'lambda.amazonaws.com',
+        serviceEventType: ServiceEventType.Lambda
+    };
 
     return deployContext;
 }
@@ -147,13 +156,18 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
-async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {
-    const functionName = ownDeployContext.eventOutputs.lambdaName;
+async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: DynamoDBLambdaConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {
+    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+    }
+    const functionName = ownDeployContext.eventOutputs.resourceName;
 
     // Get event outputs from the DynamoDB producer (we have to do all the work for Dynamo in this consume phase)
-    const tableStreamArn = producerDeployContext.eventOutputs.tableStreamArn;
-    const tableName = producerDeployContext.eventOutputs.tableName;
-    const lambdaConsumers = producerDeployContext.eventOutputs.lambdaConsumers as DynamoDBLambdaConsumer[];
+    const tableStreamArn = producerDeployContext.eventOutputs.resourceArn;
+    const tableName = producerDeployContext.eventOutputs.resourceName;
+    if(!functionName || !tableStreamArn || !tableName) {
+        throw new Error(`${SERVICE_NAME} - Expected to receive function name, table stream ARN, and table name from event outputs`);
+    }
 
     // Attach the stream policy to the Lambda to allow for consuming events
     const policyStatementsToConsume = JSON.parse(util.readFileSync(`${__dirname}/lambda-dynamodb-stream-role-statements.json`));
@@ -164,42 +178,27 @@ async function addDynamoDBPermissions(ownServiceContext: ServiceContext<LambdaSe
     winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
 
     // Add the event source mapping to the Lambda
-    // let lambdaConsumer: DynamoDBLambdaConsumer;
-    for(const consumer of lambdaConsumers) {
-        if (consumer.serviceName === ownServiceContext.serviceName) {
-            await lambdaCalls.addLambdaEventSourceMapping(functionName, tableName, tableStreamArn, consumer.batchSize);
-            return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
-        }
-    }
-    // Didn't find the consumer, so throw an error
-    throw Error('Consumer serviceName not found in dynamodb event_consumers.');
+    await lambdaCalls.addLambdaEventSourceMapping(functionName, tableName, tableStreamArn, eventConsumerConfig.batch_size);
+    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
 }
 
 async function addOtherPermissions(producerServiceType: ServiceType, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
-    const functionName = ownDeployContext.eventOutputs.lambdaName;
-    let principal;
+    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+    }
+
+    const functionName = ownDeployContext.eventOutputs.resourceName;
+    if(!functionName) {
+        throw new Error(`${SERVICE_NAME} - Expected to get function name for event binding`);
+    }
+    const principal = producerDeployContext.eventOutputs.resourcePrincipal;
     let sourceArn;
-    if (producerServiceType.matches(STDLIB_PREFIX, 'sns')) {
-        principal = producerDeployContext.eventOutputs.principal;
-        sourceArn = producerDeployContext.eventOutputs.topicArn;
-    }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 'cloudwatchevent')) {
-        principal = producerDeployContext.eventOutputs.principal;
-        sourceArn = producerDeployContext.eventOutputs.eventRuleArn;
-    }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 'alexaskillkit')) {
-        principal = producerDeployContext.eventOutputs.principal;
-    }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 'iot')) {
-        principal = producerDeployContext.eventOutputs.principal;
-        sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.topicRuleArnPrefix, ownServiceContext.serviceName);
-    }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
-        principal = producerDeployContext.eventOutputs.principal;
-        sourceArn = producerDeployContext.eventOutputs.bucketArn;
+    // TODO - Figure out how to deal with IoT better
+    if (producerDeployContext.eventOutputs.serviceEventType === ServiceEventType.IoT) {
+        sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.resourceArn!, ownServiceContext.serviceName);
     }
     else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
+        sourceArn = producerDeployContext.eventOutputs.resourceArn!;
     }
 
     await lambdaCalls.addLambdaPermissionIfNotExists(functionName, principal, sourceArn);
@@ -262,11 +261,11 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
     const producerType = producerServiceContext.serviceType;
     if (producerType.matches(STDLIB_PREFIX, 'dynamodb')) {
-        return addDynamoDBPermissions(ownServiceContext, ownDeployContext, producerServiceContext, producerDeployContext);
+        return addDynamoDBPermissions(ownServiceContext, ownDeployContext, eventConsumerConfig as DynamoDBLambdaConsumer, producerServiceContext, producerDeployContext);
     } else {
         return addOtherPermissions(producerType, producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
     }
@@ -285,16 +284,18 @@ export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceCo
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const providedEventType = ServiceEventType.Lambda;
+
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'policies'
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [
-    'environmentVariables',
-    'policies',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies,
+    DeployOutputType.SecurityGroups
 ];
 
 export const supportsTagging = true;

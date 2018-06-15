@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { ServiceEventConsumer } from 'handel-extension-api';
+import { DeployOutputType, ServiceEventConsumer, ServiceEventType } from 'handel-extension-api';
 import {
     ConsumeEventsContext,
     DeployContext,
@@ -50,8 +50,12 @@ function getDeployContext(serviceContext: ServiceContext<SnsServiceConfig>, cfSt
     const deployContext = new DeployContext(serviceContext);
 
     // Event outputs for consumers of SNS events
-    deployContext.eventOutputs.topicArn = topicArn;
-    deployContext.eventOutputs.principal = 'sns.amazonaws.com';
+    deployContext.eventOutputs = {
+        resourceArn: topicArn,
+        resourceName: topicName,
+        resourcePrincipal: 'sns.amazonaws.com',
+        serviceEventType: ServiceEventType.SNS
+    };
 
     // Env variables to inject into consuming services
     deployContext.addEnvironmentVariables({
@@ -133,18 +137,22 @@ export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>
 
 export async function produceEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    // Add subscription to sns service
-    const topicArn = ownDeployContext.eventOutputs.topicArn;
-    const consumerServiceType = consumerServiceContext.serviceType;
-    let protocol;
-    let endpoint;
-    if (consumerServiceType.matches(STDLIB_PREFIX, 'lambda')) {
-        protocol = 'lambda';
-        endpoint = consumerDeployContext.eventOutputs.lambdaArn;
+    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
     }
-    else if (consumerServiceType.matches(STDLIB_PREFIX, 'sqs')) {
+    // Add subscription to sns service
+    const topicArn = ownDeployContext.eventOutputs.resourceArn;
+    const endpoint = consumerDeployContext.eventOutputs.resourceArn;
+    if(!topicArn || !endpoint) {
+        throw new Error(`${SERVICE_NAME} - Expected topic ARN and endpoint from event outputs`);
+    }
+    const consumerServiceType = consumerDeployContext.eventOutputs.serviceEventType;
+    let protocol;
+    if (consumerServiceType === ServiceEventType.Lambda) {
+        protocol = 'lambda';
+    }
+    else if (consumerServiceType === ServiceEventType.SQS) {
         protocol = 'sqs';
-        endpoint = consumerDeployContext.eventOutputs.queueArn;
     }
     else {
         throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
@@ -155,24 +163,24 @@ export async function produceEvents(ownServiceContext: ServiceContext<SnsService
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }
 
-export async function consumeEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
-
+export async function consumeEvents(ownServiceContext: ServiceContext<SnsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    const topicArn = ownDeployContext.eventOutputs.topicArn;
-    const producerServiceType = producerServiceContext.serviceType;
-    let producerArn;
-    let policyStatement;
-    if (producerServiceType.matches(STDLIB_PREFIX, 'cloudwatchevent')) {
-        producerArn = producerDeployContext.eventOutputs.eventRuleArn;
-        policyStatement = getPolicyStatementForEventConsumption(topicArn, 'events.amazonaws.com');
+    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
     }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
-        producerArn = producerDeployContext.eventOutputs.bucketArn;
-        policyStatement = getPolicyStatementForEventConsumption(topicArn, 's3.amazonaws.com');
+
+    const topicArn = ownDeployContext.eventOutputs.resourceArn;
+    const producerArn = producerDeployContext.eventOutputs.resourceArn;
+    if(!topicArn || !producerArn) {
+        throw new Error(`${SERVICE_NAME} - Expected topic ARN and producer ARN from event outputs`);
     }
-    else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
+
+    const producerServiceType = producerDeployContext.eventOutputs.serviceEventType;
+    const principalService = producerDeployContext.eventOutputs.resourcePrincipal;
+    if(!consumedEventsSupportedServices.includes(producerServiceType)) {
+        throw new Error('${SERVICE_NAME} - Unsupported event producer type given: ${consumerEventType}');
     }
+    const policyStatement = getPolicyStatementForEventConsumption(topicArn, principalService);
 
     // Add SNS permission
     const permissionStatement = await snsCalls.addSnsPermissionIfNotExists(topicArn, producerArn, policyStatement);
@@ -184,18 +192,23 @@ export async function unDeploy(ownServiceContext: ServiceContext<SnsServiceConfi
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [
-    'lambda',
-    'sqs'
+export const providedEventType = ServiceEventType.SNS;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda,
+    ServiceEventType.SQS
+];
+
+export const consumedEventsSupportedServices = [
+    ServiceEventType.CloudWatchEvents,
+    ServiceEventType.S3
 ];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
-export const consumedDeployOutputTypes = [
-    'cloudwatchevent'
-];
+export const consumedDeployOutputTypes = [];
 
 export const supportsTagging = true;

@@ -16,6 +16,7 @@
  */
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import { ServiceEventType } from 'handel-extension-api';
 import { awsCalls } from 'handel-extension-support';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
@@ -48,7 +49,7 @@ export function uploadDirectory(bucketName: string, keyPrefix: string, dirToUplo
 }
 
 // TODO - I would like to find a way to reduce duplication in this function. The TS types make it difficult to generalize this the way I would in untyped JS
-export async function configureBucketNotifications(bucketName: string, notificationType: string, notificationArn: string, notificationEvents: AWS.S3.EventList, eventFilters: AWS.S3.FilterRuleList) {
+export async function configureBucketNotifications(bucketName: string, notificationType: ServiceEventType, notificationArn: string, notificationEvents: AWS.S3.EventList, eventFilters: AWS.S3.FilterRuleList) {
     const putNotificationParams: AWS.S3.PutBucketNotificationConfigurationRequest = {
         Bucket: bucketName,
         NotificationConfiguration: {}
@@ -64,7 +65,7 @@ export async function configureBucketNotifications(bucketName: string, notificat
         };
     }
 
-    if (notificationType === 'lambda') {
+    if (notificationType === ServiceEventType.Lambda) {
         putNotificationParams.NotificationConfiguration.LambdaFunctionConfigurations = [{
             LambdaFunctionArn: notificationArn,
             Events: notificationEvents,
@@ -73,7 +74,7 @@ export async function configureBucketNotifications(bucketName: string, notificat
             putNotificationParams.NotificationConfiguration.LambdaFunctionConfigurations[0].Filter = filterConfig;
         }
     }
-    else if (notificationType === 'sns') {
+    else if (notificationType === ServiceEventType.SNS) {
         putNotificationParams.NotificationConfiguration.TopicConfigurations = [{
             TopicArn: notificationArn,
             Events: notificationEvents
@@ -82,7 +83,7 @@ export async function configureBucketNotifications(bucketName: string, notificat
             putNotificationParams.NotificationConfiguration.TopicConfigurations[0].Filter = filterConfig;
         }
     }
-    else if (notificationType === 'sqs') {
+    else if (notificationType === ServiceEventType.SQS) {
         putNotificationParams.NotificationConfiguration.QueueConfigurations = [{
             QueueArn: notificationArn,
             Events: notificationEvents

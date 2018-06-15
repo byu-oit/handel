@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import { AccountConfig, DeployOutputType, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
 import { EnvironmentContext } from '../../src/datatypes';
@@ -66,11 +66,11 @@ describe('preDeploy', () => {
         it('should execute predeploy on all services, even across levels', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups
                     ],
                     consumedDeployOutputTypes: [],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
@@ -79,13 +79,13 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups',
-                        'policies'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Policies
                     ],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
                         return new PreDeployContext(serviceContext);
@@ -102,11 +102,11 @@ describe('preDeploy', () => {
         it('should return empty preDeployContexts for services that dont implement preDeploy', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups
                     ],
                     consumedDeployOutputTypes: [],
                     preDeploy: async (serviceContext: ServiceContext<ServiceConfig>) => {
@@ -115,13 +115,13 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups',
-                        'policies'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Policies
                     ],
                     supportsTagging: true,
                     // We're pretending here that ECS doesn't implement predeploy for the purposes of this test, even though it really does

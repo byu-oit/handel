@@ -223,7 +223,7 @@ export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteSer
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [];
 

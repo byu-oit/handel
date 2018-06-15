@@ -14,7 +14,16 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ProduceEventsContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceEventType,
+    UnDeployContext
+ } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as s3Calls from '../../aws/s3-calls';
@@ -80,9 +89,12 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
     });
 
     // Output certain information for events
-    deployContext.eventOutputs.bucketName = bucketName;
-    deployContext.eventOutputs.bucketArn = bucketArn;
-    deployContext.eventOutputs.principal = 's3.amazonaws.com';
+    deployContext.eventOutputs = {
+        resourceName: bucketName,
+        resourceArn: bucketArn,
+        resourcePrincipal: 's3.amazonaws.com',
+        serviceEventType: ServiceEventType.S3
+    };
 
     return deployContext;
 }
@@ -167,38 +179,36 @@ export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig
 
 export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    // Add subscription to sns service
-    const bucketName = ownDeployContext.eventOutputs.bucketName;
-    const consumerServiceType = consumerServiceContext.serviceType;
-    let consumerArn;
-    if (consumerServiceType.matches(STDLIB_PREFIX, 'lambda')) {
-        consumerArn = consumerDeployContext.eventOutputs.lambdaArn;
+    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
     }
-    else if(consumerServiceType.matches(STDLIB_PREFIX, 'sns')) {
-        consumerArn = consumerDeployContext.eventOutputs.topicArn;
+    const bucketName = ownDeployContext.eventOutputs.resourceName;
+    const consumerArn = consumerDeployContext.eventOutputs.resourceArn;
+    if(!bucketName || !consumerArn) {
+        throw new Error(`${SERVICE_NAME} - Expected bucket name and consumer ARN in deploy outputs`);
     }
-    else if(consumerServiceType.matches(STDLIB_PREFIX, 'sqs')) {
-        consumerArn = consumerDeployContext.eventOutputs.queueArn;
-    }
-    else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerServiceType}`);
+
+    const consumerEventType = consumerDeployContext.eventOutputs.serviceEventType;
+    if(!producedEventsSupportedTypes.includes(consumerEventType)) {
+        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerEventType}`);
     }
     const filters = getS3EventFilters(eventConsumerConfig.filters);
-
-    const result = await s3Calls.configureBucketNotifications(bucketName, consumerServiceType.name, consumerArn, eventConsumerConfig.bucket_events, filters);
+    const result = await s3Calls.configureBucketNotifications(bucketName, consumerEventType, consumerArn, eventConsumerConfig.bucket_events, filters);
     winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }
 
-export const producedEventsSupportedServices = [
-    'lambda',
-    'sns',
-    'sqs'
+export const providedEventType = ServiceEventType.S3;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda,
+    ServiceEventType.SNS,
+    ServiceEventType.SQS
 ];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];

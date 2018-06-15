@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -89,8 +90,8 @@ describe('cloudwatchevent deployer', () => {
             const deployContext = await cloudWatchEvent.deploy(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
-            expect(deployContext.eventOutputs.principal).to.equal('events.amazonaws.com');
-            expect(deployContext.eventOutputs.eventRuleArn).to.equal(eventRuleArn);
+            expect(deployContext.eventOutputs!.resourcePrincipal).to.equal('events.amazonaws.com');
+            expect(deployContext.eventOutputs!.resourceArn).to.equal(eventRuleArn);
         });
     });
 
@@ -104,7 +105,11 @@ describe('cloudwatchevent deployer', () => {
             const consumerServiceName = 'ConsumerService';
             const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.eventOutputs.lambdaArn = 'FakeLambdaArn';
+            consumerDeployContext.eventOutputs = {
+                resourceArn: 'FakeLambdaArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.Lambda
+            };
 
             serviceContext.params = {
                 type: 'cloudwatchevents',
@@ -116,6 +121,11 @@ describe('cloudwatchevent deployer', () => {
                 ]
             };
             const producerDeployContext = new DeployContext(serviceContext);
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.CloudWatchEvents
+            };
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
@@ -128,7 +138,11 @@ describe('cloudwatchevent deployer', () => {
             const consumerServiceName = 'ConsumerService';
             const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.eventOutputs.topicARN = 'FakeTopicArn';
+            consumerDeployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
 
             serviceContext.params = {
                 type: 'cloudwatchevents',
@@ -140,40 +154,17 @@ describe('cloudwatchevent deployer', () => {
                 ]
             };
             const producerDeployContext = new DeployContext(serviceContext);
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.CloudWatchEvents
+            };
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
             const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(addTargetStub.callCount).to.equal(1);
-        });
-
-        it('should throw an error for an unsupported consumer service type', async () => {
-            const consumerServiceName = 'ConsumerService';
-            const consumerServiceContext = new ServiceContext(appName, envName, consumerServiceName, new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, accountConfig);
-            const consumerDeployContext = new DeployContext(consumerServiceContext);
-
-            serviceContext.params = {
-                type: 'cloudwatchevents',
-                event_consumers: [
-                    {
-                        service_name: consumerServiceName,
-                        event_input: '{"notify": false}'
-                    }
-                ]
-            };
-            const producerDeployContext = new DeployContext(serviceContext);
-
-            const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
-
-            try {
-                const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(err.message).to.contain('Unsupported event consumer type');
-                expect(addTargetStub.callCount).to.equal(0);
-            }
         });
     });
 

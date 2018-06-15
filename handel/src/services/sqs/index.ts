@@ -17,9 +17,12 @@
 import {
     ConsumeEventsContext,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventConsumer,
+    ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
@@ -126,8 +129,12 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     });
 
     // Add event outputs for event consumption
-    deployContext.eventOutputs.queueUrl = queueUrl;
-    deployContext.eventOutputs.queueArn = queueArn;
+    deployContext.eventOutputs = {
+        resourceName: queueUrl,
+        resourceArn: queueArn,
+        resourcePrincipal: 'sqs.amazonaws.com',
+        serviceEventType: ServiceEventType.SQS
+    };
 
     // Policy to talk to this queue
     deployContext.policies.push({
@@ -165,9 +172,6 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
             DEAD_LETTER_QUEUE_ARN: deadLetterQueueArn,
             DEAD_LETTER_QUEUE_URL: deadLetterQueueUrl
         });
-
-        deployContext.eventOutputs.deadLetterQueueUrl = deadLetterQueueUrl;
-        deployContext.eventOutputs.deadLetterQueueArn = deadLetterQueueArn;
 
         deployContext.policies[0].Resource.push(deadLetterQueueArn);
     }
@@ -210,20 +214,18 @@ export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>
     return getDeployContext(ownServiceContext, deployedStack);
 }
 
-export async function consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
+export async function consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    const queueUrl = ownDeployContext.eventOutputs.queueUrl;
-    const queueArn = ownDeployContext.eventOutputs.queueArn;
-    const producerServiceType = producerServiceContext.serviceType;
-    let producerArn;
-    if (producerServiceType.matches(STDLIB_PREFIX, 'sns')) {
-        producerArn = producerDeployContext.eventOutputs.topicArn;
+    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
     }
-    else if (producerServiceType.matches(STDLIB_PREFIX, 's3')) {
-        producerArn = producerDeployContext.eventOutputs.bucketArn;
-    }
-    else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event producer type given: ${producerServiceType}`);
+    const producerEventType = producerDeployContext.eventOutputs.serviceEventType;
+
+    const queueUrl = ownDeployContext.eventOutputs.resourceName;
+    const queueArn = ownDeployContext.eventOutputs.resourceArn;
+    const producerArn = producerDeployContext.eventOutputs.resourceArn;
+    if(!queueUrl || !queueArn || !producerArn) {
+        throw new Error(`${SERVICE_NAME} - Expected to receive queue URL, queue ARN, and producer ARN from event outputs`);
     }
 
     const policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
@@ -238,11 +240,13 @@ export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfi
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const providedEventType = ServiceEventType.SQS;
+
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];

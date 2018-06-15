@@ -14,14 +14,17 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer } from 'handel-extension-api';
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, ServiceEventType } from 'handel-extension-api';
 import * as winston from 'winston';
 
 const SERVICE_NAME = 'Alexa Skill Kit';
 
 function getDeployContext(ownServiceContext: ServiceContext<ServiceConfig>): DeployContext {
     const deployContext = new DeployContext(ownServiceContext);
-    deployContext.eventOutputs.principal = 'alexa-appkit.amazon.com';
+    deployContext.eventOutputs = {
+        resourcePrincipal: 'alexa-appkit.amazon.com',
+        serviceEventType: ServiceEventType.AlexaSkillKit
+    };
     return deployContext;
 }
 
@@ -45,8 +48,10 @@ export function produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, 
     return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
 }
 
-export const producedEventsSupportedServices = [
-    'lambda'
+export const providedEventType = ServiceEventType.AlexaSkillKit;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda
 ];
 
 export const producedDeployOutputTypes = [];

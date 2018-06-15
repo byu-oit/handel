@@ -20,6 +20,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
@@ -36,8 +37,14 @@ function getDeployContext(serviceContext: ServiceContext<CloudWatchEventsConfig>
 
     // Event outputs for consumers of CloudWatch events
     const eventRuleArn = awsCalls.cloudFormation.getOutput('EventRuleArn', deployedStack);
-    deployContext.eventOutputs.eventRuleArn = eventRuleArn;
-    deployContext.eventOutputs.principal = 'events.amazonaws.com';
+    if(!eventRuleArn) {
+        throw new Error('Should have returned an Event Rule ARN from the deployed stack');
+    }
+    deployContext.eventOutputs = {
+        resourceArn: eventRuleArn,
+        resourcePrincipal: 'events.amazonaws.com',
+        serviceEventType: ServiceEventType.CloudWatchEvents
+    };
 
     return deployContext;
 }
@@ -97,23 +104,17 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
 
 export async function produceEvents(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownDeployContext: DeployContext, eventConsumerConfig: CloudWatchEventsServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
+    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+    }
 
     const ruleName = ownServiceContext.stackName();
-    const consumerType = consumerServiceContext.serviceType;
     const targetId = consumerServiceContext.stackName();
-    let targetArn;
-    let input;
-    if (consumerType.matches(STDLIB_PREFIX, 'lambda')) {
-        targetArn = consumerDeployContext.eventOutputs.lambdaArn;
-        input = eventConsumerConfig.event_input;
+    const targetArn = consumerDeployContext.eventOutputs.resourceArn;
+    if(!targetArn) {
+        throw new Error(`${SERVICE_NAME} - Consumed service did not return an ARN`);
     }
-    else if (consumerType.matches(STDLIB_PREFIX, 'sns')) {
-        targetArn = consumerDeployContext.eventOutputs.topicArn;
-        input = eventConsumerConfig.event_input;
-    }
-    else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
-    }
+    const input = eventConsumerConfig.event_input;
 
     const retTargetId = await cloudWatchEventsCalls.addTarget(ruleName, targetArn, targetId, input);
     winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
@@ -137,9 +138,11 @@ export async function unDeploy(ownServiceContext: ServiceContext<CloudWatchEvent
     return new UnDeployContext(ownServiceContext);
 }
 
-export const producedEventsSupportedServices = [
-    'lambda',
-    'sns'
+export const providedEventType = ServiceEventType.CloudWatchEvents;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda,
+    ServiceEventType.SNS
 ];
 
 export const producedDeployOutputTypes = [];

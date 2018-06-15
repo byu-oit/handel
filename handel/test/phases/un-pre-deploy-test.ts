@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceContext, ServiceType, UnPreDeployContext } from 'handel-extension-api';
+import { AccountConfig, DeployOutputType, ServiceContext, ServiceType, UnPreDeployContext } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
 import { EnvironmentContext } from '../../src/datatypes';
@@ -66,11 +66,11 @@ describe('preDeploy', () => {
         it('should execute unpredeploy on all services, even across levels', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     unPreDeploy: (serviceContext) => {
@@ -79,13 +79,13 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     unPreDeploy: (serviceContext) => {
                         return Promise.resolve(new UnPreDeployContext(serviceContext));
@@ -102,11 +102,11 @@ describe('preDeploy', () => {
         it('should return empty unpredeploy contexts for deployers that dont implement unpredeploy', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     unPreDeploy: (serviceContext) => {
@@ -115,13 +115,13 @@ describe('preDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     supportsTagging: true,
                     // Simulating that ECS doesn't implement unpredeploy

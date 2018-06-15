@@ -17,6 +17,7 @@
 import {
     BindContext,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
@@ -172,11 +173,11 @@ export async function unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): 
     return unDeployContext;
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.SecurityGroups
 ];
 
 export const consumedDeployOutputTypes = [];

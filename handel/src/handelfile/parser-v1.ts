@@ -132,7 +132,7 @@ function checkServiceDependencies(handelFile: HandelFile, serviceRegistry: Servi
  * Checks the event_consumers of each service (if any) to make sure the producers and consumers are
  * compatible with each other
  *
- * This is accomplished via the "producedEventsSupportedServices" list from the
+ * This is accomplished via the "producedEventsSupportedTypes" list from the
  * deployer contract, where the deployers specify what services (if any) can consume events
  * from that service.
  */
@@ -156,10 +156,13 @@ function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceReg
                                 errors.push(`You declared an event consumer '${eventConsumerServiceName}' in the service '${serviceName}' that doesn't exist`);
                             }
                             const eventConsumerServiceDef = environmentDef[eventConsumerServiceName];
+                            const eventConsumerServiceType = parseServiceType(eventConsumerServiceDef.type);
 
-                            const serviceDeployer = serviceRegistry.getService(serviceType);
-                            const supportedConsumerTypes = serviceDeployer.producedEventsSupportedServices;
-                            if (!supportedConsumerTypes.includes(eventConsumerServiceDef.type)) {
+                            const producerServiceDeployer = serviceRegistry.getService(serviceType);
+                            const consumerServiceDeployer = serviceRegistry.getService(eventConsumerServiceType);
+
+                            const supportedConsumerTypes = producerServiceDeployer.producedEventsSupportedTypes;
+                            if (!supportedConsumerTypes.includes(consumerServiceDeployer.providedEventType!)) {
                                 errors.push(`The '${eventConsumerServiceDef.type}' service type can't consume events from the '${serviceDef.type}' service type`);
                             }
                         }
@@ -227,7 +230,7 @@ export function createEnvironmentContext(handelFile: HandelFile, environmentName
         const type = parseServiceType(serviceSpec.type);
         const service = serviceRegistry.getService(type);
         environmentContext.serviceContexts[serviceName] = new ServiceContext(handelFile.name, environmentName, serviceName, type, serviceSpec, accountConfig, handelFile.tags || {}, {
-            producedEventsSupportedServices: service.producedEventsSupportedServices,
+            producedEventsSupportedTypes: service.producedEventsSupportedTypes,
             producedDeployOutputTypes: service.producedDeployOutputTypes,
             consumedDeployOutputTypes: service.consumedDeployOutputTypes,
         });
@@ -241,7 +244,14 @@ export async function listExtensions(handelFile: HandelFile): Promise<ExtensionL
         return [];
     }
     return _.entries(handelFile.extensions).map(([prefix, spec]) => {
-        const [name, versionSpec = '*'] = spec.split('@', 2);
+        let toParse = spec;
+        let namePrefix = '';
+        if (spec.startsWith('@')) { // Handle scoped NPM packages (https://github.com/byu-oit/handel/issues/438)
+            toParse = spec.substring(1);
+            namePrefix = '@';
+        }
+        const [parsedName, versionSpec = '*'] = toParse.split('@', 2);
+        const name = namePrefix + parsedName;
         return {prefix, name, versionSpec};
     });
 }

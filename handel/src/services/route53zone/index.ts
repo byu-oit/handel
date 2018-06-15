@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
@@ -100,10 +107,10 @@ export async function unDeploy(ownServiceContext: ServiceContext<Route53ZoneServ
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables'
+    DeployOutputType.EnvironmentVariables
 ];
 
 export const consumedDeployOutputTypes = [];

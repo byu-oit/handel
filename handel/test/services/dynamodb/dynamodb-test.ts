@@ -272,10 +272,16 @@ describe('dynamodb deployer', () => {
             const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'TableName',
-                    OutputValue: tableName
-                }]
+                Outputs: [
+                    {
+                        OutputKey: 'TableName',
+                        OutputValue: tableName
+                    },
+                    {
+                        OutputKey: 'StreamArn',
+                        OutputValue: 'FakeArn'
+                    }
+                ]
             }));
 
             const deployContext = await dynamodb.deploy(serviceContext, ownPreDeployContext, []);
@@ -295,10 +301,16 @@ describe('dynamodb deployer', () => {
             serviceParams.table_name = tableName;
 
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
-                Outputs: [{
-                    OutputKey: 'TableName',
-                    OutputValue: tableName
-                }]
+                Outputs: [
+                    {
+                        OutputKey: 'TableName',
+                        OutputValue: tableName
+                    },
+                    {
+                        OutputKey: 'StreamArn',
+                        OutputValue: 'FakeArn'
+                    }
+                ]
             }));
 
             const deployContext = await dynamodb.deploy(serviceContext, ownPreDeployContext, []);
@@ -325,10 +337,16 @@ describe('dynamodb deployer', () => {
                 const tableArn = `arn:aws:dynamodb:us-west-2:123456789012:table/${tableName}`;
 
                 deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
-                    Outputs: [{
-                        OutputKey: 'TableName',
-                        OutputValue: tableName
-                    }]
+                    Outputs: [
+                        {
+                            OutputKey: 'TableName',
+                            OutputValue: tableName
+                        },
+                        {
+                            OutputKey: 'StreamArn',
+                            OutputValue: 'FakeArn'
+                        }
+                    ]
                 }));
             });
 
@@ -481,7 +499,7 @@ describe('dynamodb deployer', () => {
 
     describe('produceEvents', () => {
         it('should return an empty ProduceEventsContext', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', new ServiceType(STDLIB_PREFIX, 'faketype'), {type: 'faketype'}, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', new ServiceType(STDLIB_PREFIX, 'faketype'), { type: 'faketype' }, accountConfig);
             const eventConsumerConfig: DynamoDBServiceEventConsumer = {
                 service_name: 'fakeservice',
                 batch_size: 1

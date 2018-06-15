@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -144,18 +145,27 @@ describe('sqs deployer', () => {
 
         beforeEach(() => {
             deployContext = new DeployContext(serviceContext);
-            deployContext.eventOutputs.queueUrl = 'FakeQueueUrl';
-            deployContext.eventOutputs.queueArn = 'FakeQueueArn';
+            deployContext.eventOutputs = {
+                resourceName: 'FakeQueueUrl',
+                resourceArn: 'FakeQueueArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SQS
+            };
         });
 
         it('should consume from SNS event services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
 
             const addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').resolves({});
 
-            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            const eventConsumerConfig = { service_name: serviceName };
+            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSqsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -163,27 +173,18 @@ describe('sqs deployer', () => {
         it('should consume from S3 event services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 's3'), {type: 's3'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeBucketArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.S3
+            };
 
             const addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').resolves({});
 
-            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            const eventConsumerConfig = { service_name: serviceName };
+            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSqsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
-        });
-
-        it('should throw an error because SQS cant consume other services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 'otherService'), {type: 'otherService'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.otherArn = 'FakeArn';
-
-            try {
-                const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(err.message).to.contain('SQS - Unsupported event producer type given');
-            }
         });
     });
 
