@@ -42,7 +42,7 @@ Parameters
 
 Example Handel File
 -------------------
-This Handel file shows an SQS service being configured:
+This Handel file shows an SES service being configured:
 
 .. code-block:: yaml
 

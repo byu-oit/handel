@@ -28,6 +28,7 @@ software:
       - CircleCI.com
       - NodeJS
       - TypeScript
+      - HTML
     stages:
       production:
         urls:

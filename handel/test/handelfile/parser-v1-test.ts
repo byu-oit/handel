@@ -332,5 +332,22 @@ describe('parser-v1', () => {
                 versionSpec: '*'
             });
         });
+        it('Handles extensions with a scoped package name (issue #438)', async () => {
+            const inputExtensions = validHandelFile.extensions!;
+            inputExtensions.foo = '@test-org/foo-extension@^1.0.0';
+            inputExtensions.bar = '@test-org/bar-extension';
+
+            const extensions = await parserV1.listExtensions(validHandelFile);
+            expect(extensions).to.deep.include({
+                prefix: 'foo',
+                name: '@test-org/foo-extension',
+                versionSpec: '^1.0.0'
+            });
+            expect(extensions).to.deep.include({
+                prefix: 'bar',
+                name: '@test-org/bar-extension',
+                versionSpec: '*'
+            });
+        });
     });
 });
