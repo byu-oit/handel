@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -138,7 +139,11 @@ describe('s3 deployer', () => {
 
             beforeEach(() => {
                 ownDeployContext = new DeployContext(ownServiceContext);
-                ownDeployContext.eventOutputs.bucketName = bucketName;
+                ownDeployContext.eventOutputs = {
+                    resourceName: bucketName,
+                    resourcePrincipal: 'FakePrincipal',
+                    serviceEventType: ServiceEventType.S3
+                };
                 eventConsumerConfig = {
                     service_name: 'FakeConsumer',
                     bucket_events: bucketEvents
@@ -148,25 +153,27 @@ describe('s3 deployer', () => {
             const servicesToTest = [
                 {
                     serviceType: 'lambda',
-                    arnPropertyName: 'lambdaArn',
-                    arnPropertyValue: 'FakeLambdaArn'
+                    serviceEventType: ServiceEventType.Lambda
                 },
                 {
                     serviceType: 'sns',
-                    arnPropertyName: 'topicArn',
-                    arnPropertyValue: 'FakeTopicArn'
+                    serviceEventType: ServiceEventType.SNS
                 },
                 {
                     serviceType: 'sqs',
-                    arnPropertyName: 'queueArn',
-                    arnPropertyValue: 'FakeQueueArn'
+                    serviceEventType: ServiceEventType.SQS
                 }
             ];
             servicesToTest.forEach(serviceToTest => {
-                it(`should produce events to the ${serviceToTest} service type`, async () => {
+                it(`should produce events to the ${serviceToTest.serviceType} service type`, async () => {
                     const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', new ServiceType(STDLIB_PREFIX, serviceToTest.serviceType), {type: serviceToTest.serviceType}, accountConfig);
                     const consumerDeployContext = new DeployContext(consumerServiceContext);
-                    consumerDeployContext.eventOutputs[serviceToTest.arnPropertyName] = serviceToTest.arnPropertyValue;
+                    consumerDeployContext.eventOutputs = {
+                        resourceArn: 'FakeArn',
+                        resourceName: 'FakeName',
+                        resourcePrincipal: 'FakePrincipal',
+                        serviceEventType: serviceToTest.serviceEventType
+                    };
 
                     const configureBucketNotificationsStub = sandbox.stub(s3Calls, 'configureBucketNotifications').resolves({});
 
@@ -174,8 +181,8 @@ describe('s3 deployer', () => {
                     expect(configureBucketNotificationsStub.callCount).to.equal(1);
                     expect(configureBucketNotificationsStub.getCall(0).args).to.deep.equal([
                         bucketName,
-                        serviceToTest.serviceType,
-                        serviceToTest.arnPropertyValue,
+                        serviceToTest.serviceEventType,
+                        'FakeArn',
                         bucketEvents,
                         []
                     ]);
@@ -186,6 +193,11 @@ describe('s3 deployer', () => {
             it('should throw an error on all other service types', async () => {
                 const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumerService', new ServiceType(STDLIB_PREFIX, 'someother'), {type: 'someother'}, accountConfig);
                 const consumerDeployContext = new DeployContext(consumerServiceContext);
+                consumerDeployContext.eventOutputs = {
+                    resourceArn: 'FakeArn',
+                    resourcePrincipal: 'FakePrincipal',
+                    serviceEventType: ServiceEventType.CloudWatchEvents
+                };
 
                 try {
                     const produceEventsContext = await s3.produceEvents(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);

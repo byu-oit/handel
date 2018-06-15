@@ -23,6 +23,7 @@ import {
     ProduceEventsContext,
     ServiceContext,
     ServiceEventConsumer,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -129,11 +130,19 @@ describe('sns deployer', () => {
 
         it('should subscribe the service to the topic when a lambda is given', async () => {
             const ownDeployContext = new DeployContext(serviceContext);
-            ownDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
+            ownDeployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
 
             const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.eventOutputs.lambdaArn = 'FakeLambdaArn';
+            consumerDeployContext.eventOutputs = {
+                resourceArn: 'FakeLambdaArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.Lambda
+            };
 
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
@@ -144,10 +153,19 @@ describe('sns deployer', () => {
 
         it('should return an error for any other service type', async () => {
             const ownDeployContext = new DeployContext(serviceContext);
-            ownDeployContext.eventOutputs.topicArn = 'FakeTopicArn';
+            ownDeployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
 
             const consumerServiceContext = new ServiceContext(appName, envName, 'consumerService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
+            consumerDeployContext.eventOutputs = {
+                resourceArn: 'FakeArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.AlexaSkillKit
+            };
 
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
@@ -167,17 +185,26 @@ describe('sns deployer', () => {
         let deployContext: DeployContext;
         beforeEach(() => {
             deployContext = new DeployContext(serviceContext);
-            deployContext.eventOutputs.topicArn = 'FakeTopicArn';
+            deployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
         });
 
         it('should consume cloud watch event service', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 'cloudwatchevent'), {type: 'cloudwatchevent'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.eventRuleArn = 'FakeRuleArn';
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeRuleArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.CloudWatchEvents
+            };
 
             const addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').resolves({});
 
-            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            const eventConsumerConfig = { service_name: serviceName };
+            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSnsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -185,27 +212,18 @@ describe('sns deployer', () => {
         it('should consume S3 event services', async () => {
             const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 's3'), {type: 's3'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.bucketArn = 'FakeBucketArn';
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeBucketArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.S3
+            };
 
             const addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').resolves({});
 
-            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
+            const eventConsumerConfig = { service_name: serviceName };
+            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSnsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
-        });
-
-        it('should throw an error because SNS cant consume other services', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'ProducerService', new ServiceType(STDLIB_PREFIX, 'otherService'), {type: 'otherService'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs.otherArn = 'FakeArn';
-
-            try {
-                const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, producerServiceContext, producerDeployContext);
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(err.message).to.contain('SNS - Unsupported event producer type given');
-            }
         });
     });
 

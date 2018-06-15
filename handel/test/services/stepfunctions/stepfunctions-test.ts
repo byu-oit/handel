@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -162,7 +163,11 @@ describe('stepfunctions deployer', () => {
             for (const [serviceName, functionArn] of dependencies) {
                 const otherServiceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, serviceContext.accountConfig);
                 const deployContext = new DeployContext(otherServiceContext);
-                deployContext.eventOutputs.lambdaArn = functionArn;
+                deployContext.eventOutputs = {
+                    resourceArn: functionArn,
+                    resourcePrincipal: 'FakePrincipal',
+                    serviceEventType: ServiceEventType.Lambda
+                };
                 dependenciesDeployContexts.push(deployContext);
             }
 

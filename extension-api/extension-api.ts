@@ -32,9 +32,10 @@ export interface ExtensionContext {
  * Types for the Service Deployer contract
  ***********************************/
 export interface ServiceDeployer {
-    producedEventsSupportedServices: string[];
-    producedDeployOutputTypes: string[];
-    consumedDeployOutputTypes: string[];
+    providedEventType: ServiceEventType | null;
+    producedEventsSupportedTypes: ServiceEventType[];
+    producedDeployOutputTypes: DeployOutputType[];
+    consumedDeployOutputTypes: DeployOutputType[];
     /**
      * If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
      *
@@ -52,7 +53,7 @@ export interface ServiceDeployer {
 
     deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
 
-    consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: IDeployContext): Promise<IConsumeEventsContext>;
+    consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: IDeployContext): Promise<IConsumeEventsContext>;
 
     produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: IDeployContext): Promise<IProduceEventsContext>;
 
@@ -61,6 +62,25 @@ export interface ServiceDeployer {
     unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
 
     unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnDeployContext>;
+}
+
+export enum DeployOutputType {
+    SecurityGroups = 'SecurityGroups',
+    Policies = 'Policies',
+    EnvironmentVariables = 'EnvironmentVariables',
+    Scripts = 'Scripts',
+    Credentials = 'Credentials'
+}
+
+export enum ServiceEventType {
+    SNS = 'SNS',
+    Lambda = 'Lambda',
+    SQS = 'SQS',
+    CloudWatchEvents = 'CloudWatchEvents',
+    S3 = 'S3',
+    DynamoDB = 'DynamoDB',
+    IoT = 'IoT',
+    AlexaSkillKit = 'AlexaSkillKit'
 }
 
 /***********************************
@@ -150,14 +170,14 @@ export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig>
 }
 
 export interface ServiceInfo {
-    producedEventsSupportedServices: string[];
+    producedEventsSupportedTypes: ServiceEventType[];
     producedDeployOutputTypes: string[];
     consumedDeployOutputTypes: string[];
 }
 
 export function isServiceInfo(obj: any): obj is ServiceInfo {
     return !!obj
-        && isArray(obj.producedEventsSupportedServices, isString)
+        && isArray(obj.producedEventsSupportedTypes, isString)
         && isArray(obj.producedDeployOutputTypes, isString)
         && isArray(obj.consumedDeployOutputTypes, isString)
         ;
@@ -211,7 +231,7 @@ export interface IDeployContext extends HasAppServiceInfo {
     serviceName: string;
     serviceType: ServiceType;
     // Any outputs needed for producing/consuming events for this service
-    eventOutputs: DeployContextEventOutputs;
+    eventOutputs: DeployContextEventOutputs | null;
     // Policies the consuming service can use when creating service roles in order to talk to this service
     policies: any[]; // There doesn't seem to be a great AWS-provided IAM type for Policy Documents
     // Items intended to be injected as environment variables into the consuming service
@@ -241,11 +261,14 @@ export function isDeployContextEnvironmentVariables(obj: any | DeployContextEnvi
 }
 
 export interface DeployContextEventOutputs {
-    [key: string]: any;
+    resourceName?: string;
+    resourceArn?: string;
+    resourcePrincipal: string;
+    serviceEventType: ServiceEventType;
 }
 
 export function isDeployContextEventOutputs(obj: any | DeployContextEventOutputs): obj is DeployContextEventOutputs {
-    return isHash(obj);
+    return isHash(obj) || obj == null;
 }
 
 export interface IPreDeployContext extends HasAppServiceInfo {
@@ -333,7 +356,7 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
                 public serviceInfo: ServiceInfo = {
                     consumedDeployOutputTypes: [],
                     producedDeployOutputTypes: [],
-                    producedEventsSupportedServices: []
+                    producedEventsSupportedTypes: []
                 }) {
     }
 
@@ -407,7 +430,7 @@ export class DeployContext implements IDeployContext {
     public serviceName: string;
     public serviceType: ServiceType;
     // Any outputs needed for producing/consuming events for this service
-    public eventOutputs: DeployContextEventOutputs;
+    public eventOutputs: DeployContextEventOutputs | null;
     // Policies the consuming service can use when creating service roles in order to talk to this service
     public policies: any[]; // There doesn't seem to be a great AWS-provided IAM type for Policy Documents
     // Items intended to be injected as environment variables into the consuming service
@@ -420,7 +443,7 @@ export class DeployContext implements IDeployContext {
         this.environmentName = serviceContext.environmentName;
         this.serviceName = serviceContext.serviceName;
         this.serviceType = serviceContext.serviceType;
-        this.eventOutputs = {};
+        this.eventOutputs = null;
         this.policies = [];
         this.environmentVariables = {};
         this.scripts = [];

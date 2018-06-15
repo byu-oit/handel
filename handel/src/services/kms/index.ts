@@ -14,7 +14,14 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext
+} from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import {KmsServiceConfig} from './config-types';
@@ -115,11 +122,11 @@ export async function unDeploy(ownServiceContext: ServiceContext<KmsServiceConfi
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [
-    'environmentVariables',
-    'policies'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
 ];
 
 export const consumedDeployOutputTypes = [];

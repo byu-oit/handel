@@ -20,6 +20,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
 import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
@@ -34,8 +35,12 @@ function getDeployContext(stackName: string, ownServiceContext: ServiceContext<I
     const deployContext = new DeployContext(ownServiceContext);
 
     const ruleNamePrefix = iotDeployersCommon.getTopicRuleNamePrefix(ownServiceContext);
-    deployContext.eventOutputs.topicRuleArnPrefix = iotDeployersCommon.getTopicRuleArnPrefix(ruleNamePrefix, ownServiceContext.accountConfig); // This will be suffixed by the name of the consuming service (since there may be more than one)
-    deployContext.eventOutputs.principal = 'iot.amazonaws.com';
+    const topicRuleArnPrefix = iotDeployersCommon.getTopicRuleArnPrefix(ruleNamePrefix, ownServiceContext.accountConfig); // This will be suffixed by the name of the consuming service (since there may be more than one)
+    deployContext.eventOutputs = {
+        resourceArn: topicRuleArnPrefix, // TODO - I don't like returning a prefix, but I'm not sure how to deal with this yet
+        resourcePrincipal: 'iot.amazonaws.com',
+        serviceEventType: ServiceEventType.IoT
+    };
 
     return deployContext;
 }
@@ -107,6 +112,9 @@ export async function deploy(ownServiceContext: ServiceContext<IotServiceConfig>
 
 export async function produceEvents(ownServiceContext: ServiceContext<IotServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: IotServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+    }
 
     // Create topic rule
     const consumerType = consumerServiceContext.serviceType;
@@ -114,10 +122,10 @@ export async function produceEvents(ownServiceContext: ServiceContext<IotService
     const sql = eventConsumerConfig.sql;
     const ruleDisabled = eventConsumerConfig.rule_disabled;
     const actions = [];
-    if (consumerType.matches(STDLIB_PREFIX, 'lambda')) {
+    if (consumerDeployContext.eventOutputs.serviceEventType === ServiceEventType.Lambda) {
         actions.push({
             Lambda: {
-                FunctionArn: consumerDeployContext.eventOutputs.lambdaArn
+                FunctionArn: consumerDeployContext.eventOutputs.resourceArn
             }
         });
     }
@@ -156,8 +164,10 @@ export async function unDeploy(ownServiceContext: ServiceContext<ServiceConfig>)
         });
 }
 
-export const producedEventsSupportedServices = [
-    'lambda'
+export const providedEventType = ServiceEventType.IoT;
+
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda
 ];
 
 export const producedDeployOutputTypes = [];

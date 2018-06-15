@@ -20,6 +20,7 @@ import {
     DeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType
 } from 'handel-extension-api';
 import 'mocha';
@@ -50,7 +51,7 @@ describe('produceEvents module', () => {
         it('should execute produceEvents on all services that specify themselves as producers for other services', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 lambda: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
                     produceEvents: async (ownServiceContext, ownDeployContext, consumerServiceContext, consumerDeployContext) => {
@@ -59,8 +60,8 @@ describe('produceEvents module', () => {
                     supportsTagging: true,
                 },
                 s3: {
-                    producedEventsSupportedServices: [
-                        'lambda',
+                    producedEventsSupportedTypes: [
+                        ServiceEventType.Lambda
                     ],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],

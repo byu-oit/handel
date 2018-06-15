@@ -14,7 +14,15 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import { deletePhases, preDeployPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
@@ -124,14 +132,14 @@ export function unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): P
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [
-    'environmentVariables',
-    'policies',
-    'securityGroups'
+    DeployOutputType.Policies,
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.SecurityGroups
 ];
 
 export const supportsTagging = true;

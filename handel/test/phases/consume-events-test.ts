@@ -20,6 +20,7 @@ import {
     ConsumeEventsContext,
     DeployContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType
 } from 'handel-extension-api';
 import 'mocha';
@@ -47,21 +48,21 @@ describe('consumeEvents module', () => {
         it('should execute consumeEvents on all services that are specified as consumers by other services', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 lambda: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
-                    consumeEvents: (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) => {
+                    consumeEvents: (ownServiceContext,  ownDeployContext, eventConfigConsumer,  producerServiceContext,  producerDeployContext) => {
                         return Promise.resolve(new ConsumeEventsContext(ownServiceContext, producerServiceContext));
                     },
                     supportsTagging: true,
                 },
                 s3: {
-                    producedEventsSupportedServices: [
-                        'lambda'
+                    producedEventsSupportedTypes: [
+                        ServiceEventType.Lambda
                     ],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [],
-                    consumeEvents: (ownServiceContext,  ownDeployContext,  producerServiceContext,  producerDeployContext) => {
+                    consumeEvents: (ownServiceContext,  ownDeployContext, eventConfigConsumer,  producerServiceContext,  producerDeployContext) => {
                         return Promise.reject(new Error('S3 doesn\'t consume events'));
                     },
                     supportsTagging: true,

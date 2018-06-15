@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceContext, ServiceType, UnDeployContext } from 'handel-extension-api';
+import { AccountConfig, DeployOutputType, ServiceContext, ServiceType, UnDeployContext } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -74,11 +74,11 @@ describe('unDeploy', () => {
         it('should UnDeploy the services in the given level', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     unDeploy: (toUnDeployServiceContext) => {
@@ -87,13 +87,13 @@ describe('unDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     unDeploy: (toUnDeployServiceContext) => {
                         return Promise.resolve(new UnDeployContext(toUnDeployServiceContext));
@@ -109,11 +109,11 @@ describe('unDeploy', () => {
         it('should return emtpy undeploy contexts for services that dont implment undeploy', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
                     unDeploy: (toUnDeployServiceContext) => {
@@ -122,13 +122,13 @@ describe('unDeploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'securityGroups',
-                        'scripts',
-                        'environmentVariables',
-                        'policies'
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.Policies
                     ],
                     supportsTagging: true,
                     // Simulating that ECS doesn't implement undeploy

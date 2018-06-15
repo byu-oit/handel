@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import {
     AccountConfig,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceContext,
     ServiceType
@@ -103,11 +104,11 @@ describe('deploy', () => {
         it('should deploy the services in the given level', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups
                     ],
                     consumedDeployOutputTypes: [],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
@@ -116,13 +117,13 @@ describe('deploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups',
-                        'policies'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Policies
                     ],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
                         return new DeployContext(toDeployServiceContext);
@@ -138,11 +139,11 @@ describe('deploy', () => {
         it('should return empty deploy contexts for the phases that dont implement deploy', async () => {
             const serviceRegistry = new FakeServiceRegistry({
                 efs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups
                     ],
                     consumedDeployOutputTypes: [],
                     deploy: async (toDeployServiceContext, toDeployPreDeployContext, dependenciesDeployContexts) => {
@@ -151,13 +152,13 @@ describe('deploy', () => {
                     supportsTagging: true,
                 },
                 ecs: {
-                    producedEventsSupportedServices: [],
+                    producedEventsSupportedTypes: [],
                     producedDeployOutputTypes: [],
                     consumedDeployOutputTypes: [
-                        'scripts',
-                        'environmentVariables',
-                        'securityGroups',
-                        'policies'
+                        DeployOutputType.Scripts,
+                        DeployOutputType.EnvironmentVariables,
+                        DeployOutputType.SecurityGroups,
+                        DeployOutputType.Policies
                     ],
                     supportsTagging: true,
                     // Simulating that ECS doesnt implement deploy

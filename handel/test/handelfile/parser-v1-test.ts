@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { ServiceRegistry } from 'handel-extension-api';
+import { DeployOutputType, ServiceEventType, ServiceRegistry } from 'handel-extension-api';
 import { AccountConfig, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
@@ -35,51 +35,53 @@ describe('parser-v1', () => {
             lambda: {
                 producedDeployOutputTypes: [],
                 consumedDeployOutputTypes: [
-                    'environmentVariables',
-                    'policies'
+                    DeployOutputType.EnvironmentVariables,
+                    DeployOutputType.Policies,
                 ],
-                producedEventsSupportedServices: [],
+                providedEventType: ServiceEventType.Lambda,
+                producedEventsSupportedTypes: [],
                 supportsTagging: true,
             },
             dynamodb: {
                 producedDeployOutputTypes: [
-                    'environmentVariables',
-                    'policies'
+                    DeployOutputType.EnvironmentVariables,
+                    DeployOutputType.Policies
                 ],
                 consumedDeployOutputTypes: [],
-                producedEventsSupportedServices: [
-                    'lambda'
+                providedEventType: ServiceEventType.DynamoDB,
+                producedEventsSupportedTypes: [
+                    ServiceEventType.Lambda
                 ],
                 supportsTagging: true,
             },
             ecs: {
                 producedDeployOutputTypes: [],
                 consumedDeployOutputTypes: [
-                    'environmentVariables',
-                    'scripts',
-                    'policies',
-                    'securityGroups'
+                    DeployOutputType.EnvironmentVariables,
+                    DeployOutputType.Scripts,
+                    DeployOutputType.Policies,
+                    DeployOutputType.SecurityGroups
                 ],
-                producedEventsSupportedServices: [],
+                producedEventsSupportedTypes: [],
                 supportsTagging: true,
             },
             efs: {
                 producedDeployOutputTypes: [
-                    'environmentVariables',
-                    'scripts',
-                    'securityGroups'
+                    DeployOutputType.EnvironmentVariables,
+                    DeployOutputType.Scripts,
+                    DeployOutputType.SecurityGroups
                 ],
                 consumedDeployOutputTypes: [],
-                producedEventsSupportedServices: [],
+                producedEventsSupportedTypes: [],
                 supportsTagging: true,
             },
             apigateway: {
                 producedDeployOutputTypes: [],
                 consumedDeployOutputTypes: [
-                    'environmentVariables',
-                    'policies'
+                    DeployOutputType.EnvironmentVariables,
+                    DeployOutputType.Policies
                 ],
-                producedEventsSupportedServices: [],
+                producedEventsSupportedTypes: [],
                 supportsTagging: true,
             }
         });

@@ -80,7 +80,7 @@ describe('Datatypes Module', () => {
             expect(deployContext.environmentName).to.equal(serviceContext.environmentName);
             expect(deployContext.serviceName).to.equal(serviceContext.serviceName);
             expect(deployContext.serviceType).to.equal(serviceContext.serviceType);
-            expect(deployContext.eventOutputs).to.deep.equal({});
+            expect(deployContext.eventOutputs).to.deep.equal(null);
             expect(deployContext.policies).to.deep.equal([]);
             expect(deployContext.environmentVariables).to.deep.equal({});
             expect(deployContext.scripts).to.deep.equal([]);

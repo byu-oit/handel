@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceEventType,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -107,12 +108,21 @@ describe('iot deployer', () => {
             };
 
             ownDeployContext = new DeployContext(serviceContext);
+            ownDeployContext.eventOutputs = {
+                resourceArn: 'FakeArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.IoT
+            };
         });
 
         it('should create topic rules when lambda is the event consumer', async () => {
             const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', new ServiceType(STDLIB_PREFIX, 'lambda'), {type: 'lambda'}, accountConfig);
             const consumerDeployContext = new DeployContext(consumerServiceContext);
-            consumerDeployContext.eventOutputs.lambdaArn = 'FakeArn';
+            consumerDeployContext.eventOutputs = {
+                resourceArn: 'FakeArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.Lambda
+            };
 
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                 Outputs: [
@@ -126,19 +136,6 @@ describe('iot deployer', () => {
             const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(deployStackStub.callCount).to.equal(1);
-        });
-
-        it('should return an error if any other consumer type is specified', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'FakeConsumer', new ServiceType(STDLIB_PREFIX, 'unknowntype'), {type: 'unknowntype'}, accountConfig);
-            const consumerDeployContext = new DeployContext(consumerServiceContext);
-
-            try {
-                const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(err.message).to.contain('Unsupported event consumer type');
-            }
         });
     });
 

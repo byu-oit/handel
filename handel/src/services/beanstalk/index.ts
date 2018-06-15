@@ -16,6 +16,7 @@
  */
 import {
     DeployContext,
+    DeployOutputType,
     EnvironmentVariables,
     PreDeployContext,
     ServiceConfig,
@@ -289,16 +290,16 @@ export async function unDeploy(ownServiceContext: ServiceContext<BeanstalkServic
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [
-    'environmentVariables',
-    'scripts',
-    'policies',
-    'credentials',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Scripts,
+    DeployOutputType.Policies,
+    DeployOutputType.Credentials,
+    DeployOutputType.SecurityGroups
 ];
 
 export const supportsTagging = true;

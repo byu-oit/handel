@@ -14,7 +14,13 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import {
+    DeployContext,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext
+} from 'handel-extension-api';
 import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
@@ -174,15 +180,15 @@ export async function unDeploy(ownServiceContext: ServiceContext<EcsServiceConfi
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 
-export const producedEventsSupportedServices = [];
+export const producedEventsSupportedTypes = [];
 
 export const producedDeployOutputTypes = [];
 
 export const consumedDeployOutputTypes = [
-    'environmentVariables',
-    'scripts',
-    'policies',
-    'securityGroups'
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Scripts,
+    DeployOutputType.Policies,
+    DeployOutputType.SecurityGroups
 ];
 
 export const supportsTagging = true;

@@ -108,7 +108,7 @@ describe('apigateway deployer', () => {
                         {}, {
                             producedDeployOutputTypes: ['securityGroups'],
                             consumedDeployOutputTypes: [],
-                            producedEventsSupportedServices: []
+                            producedEventsSupportedTypes: []
                         }
                     )
                 ];
