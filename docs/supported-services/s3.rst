@@ -179,7 +179,7 @@ This Handel file shows an S3 service that is configured to send events to a Lamb
             - name: prefix
               value: somefolderprefix
 
-*Filters for Bucket Suffixes are also supported.
+*Filters for Bucket Suffixes are also supported.*
 
 Depending on this service
 -------------------------
