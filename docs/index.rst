@@ -94,4 +94,4 @@ including taking care of all the tricky security bits to make the services be ab
    :caption: Extensions
 
    extensions/using-extensions
-
+   extensions/writing-extensions

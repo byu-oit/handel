@@ -32,35 +32,99 @@ export interface ExtensionContext {
  * Types for the Service Deployer contract
  ***********************************/
 export interface ServiceDeployer {
-    providedEventType: ServiceEventType | null;
-    producedEventsSupportedTypes: ServiceEventType[];
-    producedDeployOutputTypes: DeployOutputType[];
-    consumedDeployOutputTypes: DeployOutputType[];
-    /**
-     * If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
-     *
-     * If not specified, 'true' is assumed, effectively making tagging enforcement opt-out.
-     *
-     * If the deployer deploys anything to Cloudformation, it should declare that it supports tagging.
-     */
-    supportsTagging: boolean;
+    // ------------------------------------------------
+    // Required metadata for the provisioner
+    // ------------------------------------------------
+    providedEventType: ServiceEventType | null; // The type of event type this deployer provides (if any)
+    producedEventsSupportedTypes: ServiceEventType[]; // The types of event types that this deployer can produce to (if)
+    producedDeployOutputTypes: DeployOutputType[]; // The types of deploy output types this deployer produces to other deployers
+    consumedDeployOutputTypes: DeployOutputType[]; // The types of deploy output types this deployer can consume from other deployers
+    supportsTagging: boolean; // If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
 
+    // ------------------------------------------------
+    // Phase types that hte provisioner supports
+    // ------------------------------------------------
+    /**
+     * Checks the given service configuration in the user's Handel file for required parameters and correctness.
+     * This provides a fail-fast mechanism for configuration errors before deploy is attempted.
+     *
+     * You should probably always implement this phase in every service deployer
+     */
     check?(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[];
 
+    /**
+     * Create resources needed for deployment that are also needed for dependency wiring
+     * with other services.
+     *
+     * Implement this phase if you'll be creating security groups for any of your resources
+     *
+     * Example AWS services that woulod need to implement this phase include Beanstalk and RDS
+     */
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
 
+    /**
+     * Bind two resources from the preDeploy phase together by performing some wiring action on them. An example
+     * is to add an ingress rule from one security group onto another.
+     *
+     * Bind is run from the perspective of the service being consumed, not the other way around. In other words, it
+     * is run on the dependency who is adding the ingress rule for the dependent service.
+     *
+     * Implement this phase if you'll be creating resources that need to add ingress rules for dependent services
+     * to talk to them
+     *
+     * Example AWS services that would need to implement this phase include RDS and EFS
+     */
     bind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IBindContext>;
 
+    /**
+     * Deploy the resources contained in your service deployer.
+     *
+     * You are responsible for using the outputs in the dependenciesDeployContexts to wire up this service
+     * to those. For example, each one may return an IAM policiy that you should add to whatever role is
+     * created for your service.
+     *
+     * All this service's dependencies are guaranteed to be deployed before this phase gets called
+     */
     deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
 
+    /**
+     * In this phase, this service should make any changes necessary to allow it to consume events from the given source
+     * For example, a Lambda consuming events from an SNS topic should add a Lambda Function Permission to itself to allow
+     * the SNS ARN to invoke it.
+     *
+     * This method will only be called if your service is listed as an event consumer in another service's configuration.
+     */
     consumeEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: IDeployContext): Promise<IConsumeEventsContext>;
 
+    /**
+     * In this phase, this service should make any changes necessary to allow it to produce events to the consumer service.
+     * For example, an S3 bucket producing events to a Lambda should add the event notifications to the S3 bucket for the
+     * Lambda.
+     *
+     * This method will only be called if your service has an event_consumers element in its configruation.
+     */
     produceEvents?(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: IDeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: IDeployContext): Promise<IProduceEventsContext>;
 
+    /**
+     * In this phase, the service should remove all resources created in the preDeploy phase.
+     *
+     * Implment this phase if you implemented the preDeploy phase!
+     */
     unPreDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnPreDeployContext>;
 
+    /**
+     * In this phase, the service should remove all bindings on preDeploy resources.
+     */
     unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
 
+    /**
+     * In this phase, the service should delete resources created during the deploy phase.
+     *
+     * Note that there are no 'unConsumeEvents' or 'unProduceEvents' phases. In most cases, deleting the
+     * service will automatically delete any event bindings the service itself has, but in some cases this phase will
+     * also need to manually remove event bindings. An example of this is CloudWatch Events, which requires that
+     * you remove all targets before you can delete the service.
+     */
     unDeploy?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnDeployContext>;
 }
 
