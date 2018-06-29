@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-import * as SES from 'aws-sdk/clients/ses';
+import * as AWS from 'aws-sdk';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
 export async function verifyEmailAddress(address: string) {
-    const ses = new SES({ apiVersion: '2010-12-01' });
+    const ses = new AWS.SES({ apiVersion: '2010-12-01' });
     winston.verbose(`Verifying ${address} if needed`);
 
     const response = await awsWrapper.ses.getIdentityVerificationAttributes({ Identities: [address] });

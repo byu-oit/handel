@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';

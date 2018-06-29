@@ -19,7 +19,6 @@ import { EC2 } from 'aws-sdk';
 /***********************************
  * Types for the Extension contract
  ***********************************/
-
 export interface Extension {
     loadHandelExtension(context: ExtensionContext): void | Promise<void>;
 }

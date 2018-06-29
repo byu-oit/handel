@@ -21,7 +21,7 @@ import { loadStandardLib } from '../services/stdlib';
 import { initNpmLoader } from './npm-loader';
 import { ExtensionLoader } from './types';
 
-type StandardLibLoader = () => Promise<LoadedExtension>;
+export type StandardLibLoader = () => Promise<LoadedExtension>;
 
 export async function resolveExtensions(
     definitions: ExtensionDefinition[],

@@ -19,7 +19,9 @@ import {
     DeployOutputType,
     PreDeployContext,
     ServiceConfig,
-    ServiceContext
+    ServiceContext,
+    UnDeployContext,
+    UnPreDeployContext
 } from 'handel-extension-api';
 import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -172,11 +174,11 @@ export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>
     return new DeployContext(ownServiceContext);
 }
 
-export async function unPreDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>) {
+export async function unPreDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnPreDeployContext> {
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export async function unDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>) {
+export async function unDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnDeployContext> {
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 

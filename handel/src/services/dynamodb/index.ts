@@ -23,7 +23,8 @@ import {
     ServiceConfig,
     ServiceContext,
     ServiceEventConsumer,
-    ServiceEventType
+    ServiceEventType,
+    UnDeployContext
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -327,7 +328,7 @@ export async function produceEvents(ownServiceContext: ServiceContext<DynamoDBCo
     return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }
 
-export async function unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>) {
+export async function unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>): Promise<UnDeployContext> {
     await autoscaling.undeployAutoscaling(ownServiceContext);
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
