@@ -1,8 +1,7 @@
 {
     "extends": "../tsconfig",
     "compilerOptions": {
-        "outDir": "dist",
-        "declaration": true
+      "outDir": "dist"
     },
     "include": [
       "extension-api.ts"

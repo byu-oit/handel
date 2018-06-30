@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import * as winston from 'winston';
+import * as AWS from 'aws-sdk';
 import awsWrapper from './aws-wrapper';
 
 export function listHostedZones(): Promise<AWS.Route53.HostedZone[]> {

@@ -29,7 +29,7 @@ import {
 import { CliNpmClient, NpmClient } from './npm';
 import { ExtensionLoader } from './types';
 
-class NpmLoader implements ExtensionLoader {
+export class NpmLoader implements ExtensionLoader {
 
     constructor(private readonly client: NpmClient, private readonly importer: ModuleImporter) {
     }

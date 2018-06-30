@@ -14,11 +14,9 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import * as childProcess from 'child_process';
-import * as fs from 'fs';
 import { ServiceEventType } from 'handel-extension-api';
-import { awsCalls } from 'handel-extension-support';
-import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
 /**

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import { ServiceContext } from 'handel-extension-api';
 import * as winston from 'winston';
 import * as autoScalingCalls from '../../aws/auto-scaling-calls';

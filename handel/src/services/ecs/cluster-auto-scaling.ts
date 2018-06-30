@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import { AccountConfig } from 'handel-extension-api';
 import { awsCalls, deployPhase, handlebars  } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -99,7 +100,7 @@ const EC2_INSTANCE_MEMORY_MAP: Ec2InstanceMemoryMap = {
  * The code for the auto-scaling Lambda can be found in the "cluster-scaling-lambda" directory inside
  * the ECS service deployer directory.
  */
-export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountConfig) {
+export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountConfig): Promise<AWS.CloudFormation.Stack> {
     const stackName = 'HandelEcsAutoScalingLambda';
     const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
@@ -123,7 +124,7 @@ export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountC
  * The code for the draining Lambda can be found in the "cluster-draining-lambda" directory inside
  * the ECS service deployer directory.
  */
-export async function createDrainingLambdaIfNotExists(accountConfig: AccountConfig) {
+export async function createDrainingLambdaIfNotExists(accountConfig: AccountConfig): Promise<AWS.CloudFormation.Stack> {
     const stackName = 'HandelEcsDrainingLambda';
     const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {

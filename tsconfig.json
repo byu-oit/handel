@@ -7,6 +7,8 @@
         "removeComments": false,
         "strict": true,
         "strictNullChecks": true,
+        "allowJs": false,
+        "declaration": true,
         "moduleResolution": "node",
         "lib": [
             "es7", "es2017.object"

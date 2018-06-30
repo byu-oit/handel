@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';

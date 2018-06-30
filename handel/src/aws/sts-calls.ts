@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as AWS from 'aws-sdk';
 import awsWrapper from './aws-wrapper';
 
 export async function getAccountId(): Promise<string|null> {
