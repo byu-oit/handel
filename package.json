@@ -2,8 +2,8 @@
 	"scripts": {
 		"postinstall": "lerna bootstrap",
 		"lint": "lerna run lint",
-		"build": "lerna run build",
-		"test": "lerna run build && lerna run test",
+		"build": "lerna run build --concurrency 1",
+		"test": "lerna run build --concurrency 1 && lerna run test",
 		"publish-modules": "lerna publish --cd-version=$cdVersion --force-publish=*"
 	},
 	"devDependencies": {
