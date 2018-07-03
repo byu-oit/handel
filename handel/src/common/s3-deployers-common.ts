@@ -14,8 +14,18 @@
  * limitations under the License.
  *
  */
-import { AccountConfig, ServiceConfig, ServiceContext } from 'handel-extension-api';
-import { awsCalls, deployPhase, handlebars } from 'handel-extension-support';
+import { AccountConfig, ServiceConfig, ServiceContext, Tags } from 'handel-extension-api';
+import { awsCalls, handlebars } from 'handel-extension-support';
+
+async function deployStack(stackName: string, cfTemplate: string, timeout: number, tags: Tags) {
+    const stack = await awsCalls.cloudFormation.getStack(stackName);
+    if (!stack) {
+        return awsCalls.cloudFormation.createStack(stackName, cfTemplate, [], timeout, tags);
+    }
+    else {
+        return stack;
+    }
+}
 
 export async function createLoggingBucketIfNotExists(accountConfig: AccountConfig) {
     const stackName = 'HandelS3LoggingBucket';
@@ -23,9 +33,8 @@ export async function createLoggingBucketIfNotExists(accountConfig: AccountConfi
     const handlebarsParams = {
         bucketName
     };
-
     const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/s3-static-site-logging-bucket.yml`, handlebarsParams);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], false, 'Logging Bucket for S3 Static Sites', 30, accountConfig.handel_resource_tags || {});
+    const deployedStack = await deployStack(stackName, compiledTemplate, 30, accountConfig.handel_resource_tags || {});
     return awsCalls.cloudFormation.getOutput('BucketName', deployedStack);
 }
 

@@ -98,7 +98,7 @@ export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServic
 
     const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

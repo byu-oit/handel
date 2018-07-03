@@ -316,7 +316,7 @@ describe('dynamodb deployer', () => {
             const deployContext = await dynamodb.deploy(serviceContext, ownPreDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             const call = deployStackStub.firstCall;
-            expect(call.args[1]).to.include(`TableName: ${tableName}`);
+            expect(call.args[2]).to.include(`TableName: ${tableName}`);
         });
 
         describe('autoscaling', () => {

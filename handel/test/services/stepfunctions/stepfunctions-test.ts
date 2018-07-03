@@ -212,7 +212,7 @@ describe('stepfunctions deployer', () => {
             expect(deployContext.environmentVariables[`${prefix}_STATE_MACHINE_NAME`]).to.equal(stateMachineName);
             expect(deployStackStub.callCount).to.equal(1);
             expect(readYamlFileSyncStub.callCount).to.equal(1);
-            const template = deployStackStub.getCall(0).args[1];
+            const template = deployStackStub.getCall(0).args[2];
             expect(template).to.contain(alphaLambdaArn);
             expect(template).to.contain(betaLambdaArn);
         });

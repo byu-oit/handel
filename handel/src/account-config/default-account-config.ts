@@ -19,6 +19,7 @@ import { awsCalls, handlebars } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as stsCalls from '../aws/sts-calls';
+import accountConfig from './account-config';
 
 function getSubnetGroupName(vpcId: string): string {
     return `handel-subnet-groups-${vpcId}`;

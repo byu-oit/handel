@@ -149,7 +149,7 @@ describe('kms deployer', () => {
             const deployContext = await kms.deploy(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
-            expect(deployStackStub.firstCall.args[1]).to.contain('AliasName: ' + aliasToUse);
+            expect(deployStackStub.firstCall.args[2]).to.contain('AliasName: ' + aliasToUse);
 
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies).to.have.lengthOf(1);
@@ -181,7 +181,7 @@ describe('kms deployer', () => {
             const deployContext = await kms.deploy(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
-            expect(deployStackStub.firstCall.args[1]).to.contain('EnableKeyRotation: true');
+            expect(deployStackStub.firstCall.args[2]).to.contain('EnableKeyRotation: true');
         });
 
     });

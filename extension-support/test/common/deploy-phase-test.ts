@@ -50,29 +50,47 @@ describe('Deploy phase common module', () => {
 
     describe('deployCloudFormationStack', () => {
         it('should create the stack if it doesnt exist yet', async () => {
+            const ensureBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').resolves({});
+            const uploadStringStub = sandbox.stub(s3Calls, 'uploadString').resolves({
+                Location: 's3://fakelocation'
+            });
+            const cleanupStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').resolves({});
             const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve(null));
             const createStackStub = sandbox.stub(cloudFormationCalls, 'createStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhase.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
+            const deployedStack = await deployPhase.deployCloudFormationStack(serviceContext, 'FakeStack', '', [], true, 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
+            expect(ensureBucketStub.callCount).to.equal(1);
+            expect(uploadStringStub.callCount).to.equal(1);
+            expect(cleanupStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
         });
 
         it('should update the stack if it exists and updates are supported', async () => {
+            const ensureBucketStub = sandbox.stub(s3Calls, 'createBucketIfNotExists').resolves({});
+            const uploadStringStub = sandbox.stub(s3Calls, 'uploadString').resolves({
+                Location: 's3://fakelocation'
+            });
+            const cleanupStub = sandbox.stub(s3Calls, 'cleanupOldVersionsOfFiles').resolves({});
             const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve({}));
-            const deployedStack = await deployPhase.deployCloudFormationStack('FakeStack', '', [], true, 'FakeService', 30, {});
+            const deployedStack = await deployPhase.deployCloudFormationStack(serviceContext, 'FakeStack', '', [], true, 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
+            expect(ensureBucketStub.callCount).to.equal(1);
+            expect(uploadStringStub.callCount).to.equal(1);
+            expect(cleanupStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(1);
         });
 
         it('should just return the stack if it exists and updates are not supported', async () => {
+            const uploadStringStub = sandbox.stub(s3Calls, 'uploadString').rejects(new Error());
             const getStackStub = sandbox.stub(cloudFormationCalls, 'getStack').returns(Promise.resolve({}));
             const updateStackStub = sandbox.stub(cloudFormationCalls, 'updateStack').returns(Promise.resolve(null));
-            const deployedStack = await deployPhase.deployCloudFormationStack('FakeStack', '', [], false, 'FakeService', 30, {});
+            const deployedStack = await deployPhase.deployCloudFormationStack(serviceContext, 'FakeStack', '', [], false, 30, {});
             expect(deployedStack).to.deep.equal({});
             expect(getStackStub.callCount).to.equal(1);
+            expect(uploadStringStub.callCount).to.equal(0);
             expect(updateStackStub.callCount).to.equal(0);
         });
     });

@@ -16,7 +16,7 @@
  */
 import { expect } from 'chai';
 import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
-import { deployPhase } from 'handel-extension-support';
+import { awsCalls } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
@@ -37,18 +37,36 @@ describe('S3 deployers common module', () => {
     });
 
     describe('createLoggingBucketIfNotExists', () => {
-        it('should deploy the logging bucket', async () => {
+        it('should deploy the logging bucket when it doesnt exist', async () => {
             const bucketName = 'FakeBucket';
-            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({
                 Outputs: [{
                     OutputKey: 'BucketName',
                     OutputValue: bucketName
                 }]
-            }));
+            });
 
             const returnBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(accountConfig);
             expect(returnBucketName).to.equal(bucketName);
-            expect(deployStackStub.callCount).to.equal(1);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(createStackStub.callCount).to.equal(1);
+        });
+
+        it('should just return the bucket if its already deployed', async () => {
+            const bucketName = 'FakeBucket';
+            const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves({
+                Outputs: [{
+                    OutputKey: 'BucketName',
+                    OutputValue: bucketName
+                }]
+            });
+            const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').rejects(new Error());
+
+            const returnBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(accountConfig);
+            expect(returnBucketName).to.equal(bucketName);
+            expect(getStackStub.callCount).to.equal(1);
+            expect(createStackStub.callCount).to.equal(0);
         });
     });
 

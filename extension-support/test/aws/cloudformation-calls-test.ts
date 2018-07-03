@@ -100,9 +100,32 @@ describe('cloudformationCalls', () => {
                 }]
             });
 
-            const stack = await cloudformationCalls.createStack(stackName, 'FakeTemplateBody', [], 30, {});
+            const templateBody = 'FakeTemplateBody';
+            const stack = await cloudformationCalls.createStack(stackName, templateBody, [], 30, {});
             expect(stack.StackName).to.equal(stackName);
             expect(createStackStub.callCount).to.equal(1);
+            expect(createStackStub.getCall(0).args[0]).to.include({
+                TemplateBody: templateBody
+            });
+            expect(waitForStub.callCount).to.equal(1);
+        });
+
+        it('should support providing the template from an S3 URL', async () => {
+            const stackName = 'FakeStack';
+            const createStackStub = sandbox.stub(awsWrapper.cloudFormation, 'createStack').resolves({});
+            const waitForStub = sandbox.stub(awsWrapper.cloudFormation, 'waitFor').resolves({
+                Stacks: [{
+                    StackName: stackName
+                }]
+            });
+
+            const s3Url = 's3://fakelocation';
+            const stack = await cloudformationCalls.createStack(stackName, s3Url, [], 30, {});
+            expect(stack.StackName).to.equal(stackName);
+            expect(createStackStub.callCount).to.equal(1);
+            expect(createStackStub.getCall(0).args[0]).to.include({
+                TemplateURL: s3Url
+            });
             expect(waitForStub.callCount).to.equal(1);
         });
     });
@@ -132,10 +155,33 @@ describe('cloudformationCalls', () => {
                 StackName: stackName
             });
 
-            const stack = await cloudformationCalls.updateStack(stackName, 'FakeTemplateBody', [], {});
+            const templateBody = 'FakeTemplateBody';
+            const stack = await cloudformationCalls.updateStack(stackName, templateBody, [], {});
             expect(stack.StackName).to.equal(stackName);
             expect(updateStackStub.callCount).to.equal(1);
+            expect(updateStackStub.getCall(0).args[0]).to.include({
+                TemplateBody: templateBody
+            });
             expect(getStackStub.callCount).to.equal(1);
+        });
+
+        it('should support providing the template from an S3 URL', async () => {
+            const stackName = 'FakeStack';
+            const updateStackStub = sandbox.stub(awsWrapper.cloudFormation, 'updateStack').resolves({});
+            const waitForStub = sandbox.stub(awsWrapper.cloudFormation, 'waitFor').resolves({
+                Stacks: [{
+                    StackName: stackName
+                }]
+            });
+
+            const templateUrl = 's3://fakelocation';
+            const stack = await cloudformationCalls.updateStack(stackName, templateUrl, [], {});
+            expect(stack.StackName).to.equal(stackName);
+            expect(updateStackStub.callCount).to.equal(1);
+            expect(updateStackStub.getCall(0).args[0]).to.include({
+                TemplateURL: templateUrl
+            });
+            expect(waitForStub.callCount).to.equal(1);
         });
 
         it('should throw an error if any other error is returned', async () => {

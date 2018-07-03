@@ -15,11 +15,12 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import { PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as cloudformationCalls from '../../src/aws/cloudformation-calls';
 import * as ec2Calls from '../../src/aws/ec2-calls';
+import * as deployPhase from '../../src/common/deploy-phase';
 import * as preDeployPhase from '../../src/common/pre-deploy-phase';
 import accountConfig from '../fake-account-config';
 
@@ -38,6 +39,9 @@ describe('PreDeploy Phase Common module', () => {
 
     describe('preDeployCreateSecurityGroup', () => {
         it('should create the security group when it doesnt exist', async () => {
+            const uploadTemplateStub = sandbox.stub(deployPhase, 'uploadCFTemplateToHandelBucket').resolves({
+                Location: 's3://fakelocation'
+            });
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(cloudformationCalls, 'createStack').resolves({
                 Outputs: [{
@@ -51,12 +55,16 @@ describe('PreDeploy Phase Common module', () => {
             expect(preDeployContext).to.be.instanceOf(PreDeployContext);
             expect(preDeployContext.securityGroups.length).to.equal(1);
             expect(preDeployContext.securityGroups[0]).to.deep.equal({});
+            expect(uploadTemplateStub.callCount).to.equal(1);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
             expect(getSecurityGroupByIdStub.callCount).to.equal(1);
         });
 
         it('should update the security group when it exists', async () => {
+            const uploadTemplateStub = sandbox.stub(deployPhase, 'uploadCFTemplateToHandelBucket').resolves({
+                Location: 's3://fakelocation'
+            });
             const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves({});
             const updateStackStub = sandbox.stub(cloudformationCalls, 'updateStack').resolves({
                 Outputs: [{
@@ -70,6 +78,7 @@ describe('PreDeploy Phase Common module', () => {
             expect(preDeployContext).to.be.instanceOf(PreDeployContext);
             expect(preDeployContext.securityGroups.length).to.equal(1);
             expect(preDeployContext.securityGroups[0]).to.deep.equal({});
+            expect(uploadTemplateStub.callCount).to.equal(1);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(1);
             expect(getSecurityGroupByIdStub.callCount).to.equal(1);

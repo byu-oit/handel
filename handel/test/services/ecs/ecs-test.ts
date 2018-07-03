@@ -240,14 +240,14 @@ describe('ecs deployer', () => {
             expect(cycleInstancesStub.callCount).to.equal(1);
 
             // DNS name setup
-            expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
-            expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
-            expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
+            expect(deployStackStub.firstCall.args[2]).to.include('myapp.byu.edu');
+            expect(deployStackStub.firstCall.args[2]).to.include('HostedZoneId: 1');
+            expect(deployStackStub.firstCall.args[2]).to.include('myapp.internal');
 
             // Container Logging Setup
-            expect(deployStackStub.firstCall.args[1]).to.include('awslogs');
-            expect(deployStackStub.firstCall.args[1]).to.include('LogConfiguration');
-            expect(deployStackStub.firstCall.args[1]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
+            expect(deployStackStub.firstCall.args[2]).to.include('awslogs');
+            expect(deployStackStub.firstCall.args[2]).to.include('LogConfiguration');
+            expect(deployStackStub.firstCall.args[2]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
         });
 
         it('should deploy a new ECS service stack', async () => {
@@ -285,14 +285,14 @@ describe('ecs deployer', () => {
             expect(cycleInstancesStub.callCount).to.equal(1);
 
             // DNS name setup
-            expect(deployStackStub.firstCall.args[1]).to.include('myapp.byu.edu');
-            expect(deployStackStub.firstCall.args[1]).to.include('HostedZoneId: 1');
-            expect(deployStackStub.firstCall.args[1]).to.include('myapp.internal');
+            expect(deployStackStub.firstCall.args[2]).to.include('myapp.byu.edu');
+            expect(deployStackStub.firstCall.args[2]).to.include('HostedZoneId: 1');
+            expect(deployStackStub.firstCall.args[2]).to.include('myapp.internal');
 
             // Container Logging Setup
-            expect(deployStackStub.firstCall.args[1]).to.include('awslogs');
-            expect(deployStackStub.firstCall.args[1]).to.include('LogConfiguration');
-            expect(deployStackStub.firstCall.args[1]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
+            expect(deployStackStub.firstCall.args[2]).to.include('awslogs');
+            expect(deployStackStub.firstCall.args[2]).to.include('LogConfiguration');
+            expect(deployStackStub.firstCall.args[2]).to.include(`LogGroupName: ecs/${appName}-${envName}-FakeService`);
         });
     });
 

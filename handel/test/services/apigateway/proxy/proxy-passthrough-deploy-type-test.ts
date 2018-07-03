@@ -160,7 +160,7 @@ describe('apigateway proxy deploy type', () => {
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(uploadDeployableArtifactToHandelBucketStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
-            const cloudformation = deployStackStub.firstCall.args[1];
+            const cloudformation = deployStackStub.firstCall.args[2];
             expect(cloudformation).to.contain('CustomDomainApiExampleCom');
             expect(cloudformation).to.contain('CustomDomainApiMycompanyCom');
         });

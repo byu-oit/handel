@@ -97,7 +97,7 @@ export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsC
 
     const eventRuleTemplate = await getCompiledEventRuleTemplate(stackName, ownServiceContext);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, eventRuleTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, eventRuleTemplate, [], true, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying event rule ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
