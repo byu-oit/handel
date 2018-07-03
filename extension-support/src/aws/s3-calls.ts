@@ -154,6 +154,17 @@ export async function uploadFile(bucketName: string, key: string, filePath: stri
     return uploadResponse;
 }
 
+export async function uploadString(bucketName: string, key: string, content: string): Promise<AWS.S3.ManagedUpload.SendData> {
+    const uploadParams: AWS.S3.PutObjectRequest = {
+        Bucket: bucketName,
+        Key: key,
+        Body: Buffer.from(content, 'binary')
+    };
+
+    const uploadResponse = await awsWrapper.s3.upload(uploadParams);
+    return uploadResponse;
+}
+
 /**
  * Creates an S3 bucket in the given region
  */

@@ -209,7 +209,7 @@ export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>
 
     const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, sqsTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, sqsTemplate, [], true, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

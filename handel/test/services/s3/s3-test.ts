@@ -30,6 +30,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
+import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
 import * as s3 from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -108,6 +109,7 @@ describe('s3 deployer', () => {
                 };
                 const preDeployContext = new PreDeployContext(ownServiceContext);
 
+                const createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeLoggingBucket');
                 const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').returns(Promise.resolve({
                     Outputs: [{
                         OutputKey: 'BucketName',
@@ -119,7 +121,8 @@ describe('s3 deployer', () => {
                 }));
 
                 const deployContext = await s3.deploy(ownServiceContext, preDeployContext, []);
-                expect(deployStackStub.callCount).to.equal(2);
+                expect(createLoggingBucketStub.callCount).to.equal(1);
+                expect(deployStackStub.callCount).to.equal(1);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(deployContext.policies.length).to.equal(2);
                 expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_NAME).to.equal(bucketName);

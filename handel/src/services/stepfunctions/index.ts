@@ -88,7 +88,7 @@ export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConf
     winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
     const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledStepFunctionsTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledStepFunctionsTemplate, [], true, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
     return getDeployContext(ownServiceContext, deployedStack);
 }

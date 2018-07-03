@@ -96,7 +96,7 @@ export async function deploy(ownServiceContext: ServiceContext<CodeDeployService
     const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
     const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
     const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, s3ArtifactInfo, amiToDeploy);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, codeDeployTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, codeDeployTemplate, [], true, 30, stackTags);
 
     // If we need to roll the instances (calculated prior to deploy) do so now
     if(shouldRollInstances) {

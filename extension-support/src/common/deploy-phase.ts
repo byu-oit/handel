@@ -24,31 +24,26 @@ import {
     Tags
 } from 'handel-extension-api';
 import * as os from 'os';
+import * as uuid from 'uuid';
 import * as cloudFormationCalls from '../aws/cloudformation-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as ssmCalls from '../aws/ssm-calls';
 import * as util from '../util/util';
 
-function getEnvVarsFromDependencyDeployContexts(deployContexts: DeployContext[]): EnvironmentVariables {
-    const envVars: EnvironmentVariables = {};
-    for (const deployContext of deployContexts) {
-        for (const envVarKey in deployContext.environmentVariables) {
-            if (deployContext.environmentVariables.hasOwnProperty(envVarKey)) {
-                envVars[envVarKey] = deployContext.environmentVariables[envVarKey];
-            }
-        }
-    }
-    return envVars;
-}
-
-export async function deployCloudFormationStack(stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, serviceType: string, timeoutInMinutes: number, stackTags: Tags) {
+// ------------------------------------------------------------------------------
+// Public functions
+// ------------------------------------------------------------------------------
+export async function deployCloudFormationStack(serviceContext: ServiceContext<ServiceConfig>, stackName: string, cfTemplate: string, cfParameters: AWS.CloudFormation.Parameters, updatesSupported: boolean, timeoutInMinutes: number, stackTags: Tags) {
+    // Upload template
     const stack = await cloudFormationCalls.getStack(stackName);
     if (!stack) {
-        return cloudFormationCalls.createStack(stackName, cfTemplate, cfParameters, timeoutInMinutes, stackTags);
+        const s3ObjectData = await uploadCFTemplateToHandelBucket(serviceContext, cfTemplate);
+        return cloudFormationCalls.createStack(stackName, s3ObjectData.Location, cfParameters, timeoutInMinutes, stackTags);
     }
     else {
         if (updatesSupported) {
-            return cloudFormationCalls.updateStack(stackName, cfTemplate, cfParameters, stackTags);
+            const s3ObjectData = await uploadCFTemplateToHandelBucket(serviceContext, cfTemplate);
+            return cloudFormationCalls.updateStack(stackName, s3ObjectData.Location, cfParameters, stackTags);
         }
         else { // Updates not supported, so just return stack
             return stack;
@@ -80,11 +75,17 @@ export function getHandelUploadsBucketName(accountConfig: AccountConfig) {
 }
 
 export async function uploadFileToHandelBucket(diskFilePath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig): Promise<AWS.S3.ManagedUpload.SendData> {
-    const bucketName = getHandelUploadsBucketName(accountConfig);
-
+    const bucketName = await ensureHandelBucketCreated(accountConfig);
     const artifactKey = `${artifactPrefix}/${s3FileName}`;
-    const bucket = await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region
     const s3ObjectInfo = await s3Calls.uploadFile(bucketName, artifactKey, diskFilePath);
+    await s3Calls.cleanupOldVersionsOfFiles(bucketName, artifactPrefix);
+    return s3ObjectInfo;
+}
+
+export async function uploadStringToHandelBucket(content: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig): Promise<AWS.S3.ManagedUpload.SendData> {
+    const bucketName = await ensureHandelBucketCreated(accountConfig);
+    const artifactKey = `${artifactPrefix}/${s3FileName}`;
+    const s3ObjectInfo = await s3Calls.uploadString(bucketName, artifactKey, content);
     await s3Calls.cleanupOldVersionsOfFiles(bucketName, artifactPrefix);
     return s3ObjectInfo;
 }
@@ -98,10 +99,17 @@ export async function uploadDirectoryToHandelBucket(directoryPath: string, artif
     return s3ObjectInfo;
 }
 
+export async function uploadCFTemplateToHandelBucket(serviceContext: ServiceContext<ServiceConfig>, templateBody: string): Promise<AWS.S3.ManagedUpload.SendData> {
+    const accountConfig = serviceContext.accountConfig;
+    const prefix = getServiceUploadLocation(serviceContext);
+    const filename = `cfTemplates/template-${uuid()}`;
+    return uploadStringToHandelBucket(templateBody, prefix, filename, accountConfig);
+}
+
 export async function uploadDeployableArtifactToHandelBucket(serviceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, s3FileName: string): Promise<AWS.S3.ManagedUpload.SendData> {
     const accountConfig = serviceContext.accountConfig;
     const fileStats = fs.lstatSync(pathToArtifact);
-    const artifactPrefix = `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
+    const artifactPrefix = getServiceUploadLocation(serviceContext);
     if (fileStats.isDirectory()) { // Zip up artifact and upload it
         return uploadDirectoryToHandelBucket(pathToArtifact, artifactPrefix, s3FileName, accountConfig);
     }
@@ -170,4 +178,29 @@ export async function addItemToSSMParameterStore(ownServiceContext: ServiceConte
     const fullParamName = ownServiceContext.ssmParamName(paramName);
     await ssmCalls.storeParameter(fullParamName, 'SecureString', paramValue);
     return true;
+}
+
+// ------------------------------------------------------------------------------
+// Private functions
+// ------------------------------------------------------------------------------
+function getEnvVarsFromDependencyDeployContexts(deployContexts: DeployContext[]): EnvironmentVariables {
+    const envVars: EnvironmentVariables = {};
+    for (const deployContext of deployContexts) {
+        for (const envVarKey in deployContext.environmentVariables) {
+            if (deployContext.environmentVariables.hasOwnProperty(envVarKey)) {
+                envVars[envVarKey] = deployContext.environmentVariables[envVarKey];
+            }
+        }
+    }
+    return envVars;
+}
+
+async function ensureHandelBucketCreated(accountConfig: AccountConfig): Promise<string> {
+    const bucketName = getHandelUploadsBucketName(accountConfig);
+    await s3Calls.createBucketIfNotExists(bucketName, accountConfig.region, accountConfig.handel_resource_tags); // Ensure Handel bucket exists in this region
+    return bucketName;
+}
+
+function getServiceUploadLocation(serviceContext: ServiceContext<ServiceConfig>): string {
+    return `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
 }

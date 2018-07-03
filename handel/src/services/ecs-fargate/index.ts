@@ -145,7 +145,7 @@ export async function deploy(ownServiceContext: ServiceContext<FargateServiceCon
     await ecsCalls.createDefaultClusterIfNotExists();
     const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledFargateTemplate, [], true, SERVICE_NAME, 30, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledFargateTemplate, [], true, 30, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
     return new DeployContext(ownServiceContext);
 }

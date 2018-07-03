@@ -209,7 +209,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
     const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(stackName, compiledTemplate, [], true, SERVICE_NAME, 120, stackTags);
+    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 120, stackTags);
     const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
     // Upload files from path_to_website to S3
     winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);

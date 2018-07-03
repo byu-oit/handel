@@ -79,15 +79,19 @@ export async function waitForStack(stackName: string, stackState: string): Promi
  * This method will wait for the stack to be in a create complete state
  * before resolving the promise
  */
-export async function createStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, timeoutInMinutes: number, tags?: Tags | null): Promise<AWS.CloudFormation.Stack> {
+export async function createStack(stackName: string, templateBodyOrUrl: string, parameters: AWS.CloudFormation.Parameters, timeoutInMinutes: number, tags?: Tags | null): Promise<AWS.CloudFormation.Stack> {
     const params: AWS.CloudFormation.CreateStackInput = {
         StackName: stackName,
         OnFailure: 'DELETE',
         Parameters: parameters,
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
-        TemplateBody: templateBody,
         TimeoutInMinutes: timeoutInMinutes
     };
+    if(templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
+        params.TemplateURL = templateBodyOrUrl;
+    } else {
+        params.TemplateBody = templateBodyOrUrl;
+    }
 
     // Add tags to the stack if provided
     if (tags) {
@@ -112,13 +116,17 @@ export async function createStack(stackName: string, templateBody: AWS.CloudForm
  * This method will wait for the stack to be in an update complete state
  * before resolving the promise.
  */
-export async function updateStack(stackName: string, templateBody: AWS.CloudFormation.TemplateBody, parameters: AWS.CloudFormation.Parameters, tags?: Tags | null) {
+export async function updateStack(stackName: string, templateBodyOrUrl: string, parameters: AWS.CloudFormation.Parameters, tags?: Tags | null) {
     const params: AWS.CloudFormation.UpdateStackInput = {
         StackName: stackName,
         Parameters: parameters,
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
-        TemplateBody: templateBody
     };
+    if(templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
+        params.TemplateURL = templateBodyOrUrl;
+    } else {
+        params.TemplateBody = templateBodyOrUrl;
+    }
 
     // Add tags to the stack if provided
     if (tags) {
