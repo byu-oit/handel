@@ -28,7 +28,6 @@ import {
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as sqsCalls from '../../aws/sqs-calls';
-import { STDLIB_PREFIX } from '../stdlib';
 import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SQS';

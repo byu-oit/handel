@@ -24,10 +24,9 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as snsCalls from '../../aws/sns-calls';
-import { STDLIB_PREFIX } from '../stdlib';
 import {SnsServiceConfig} from './config-types';
 
 const SERVICE_NAME = 'SNS';
@@ -109,19 +108,7 @@ function getPolicyStatementForEventConsumption(topicArn: string, trustedService:
  */
 
 export function check(serviceContext: ServiceContext<SnsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-
-    if (serviceContext.params.subscriptions) {
-
-        for (const subscription of serviceContext.params.subscriptions) {
-            const allowedValues = ['http', 'https', 'email', 'email-json', 'sms'];
-
-            if (!subscription.endpoint) { errors.push(`${SERVICE_NAME} - A subscription requires an 'endpoint' parameter`); }
-            if (!subscription.protocol) { errors.push(`${SERVICE_NAME} - A subscription requires a 'protocol' parameter`); }
-            else if (!allowedValues.includes(subscription.protocol)) { errors.push(`${SERVICE_NAME} - Protocol must be one of ${allowedValues.join(', ')}`); }
-        }
-    }
-    return errors;
+    return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SnsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
