@@ -63,30 +63,7 @@ describe('sns deployer', () => {
         sandbox.restore();
     });
 
-    describe('check', () => {
-        it('should handle no subscriptions', () => {
-            const errors = sns.check(serviceContext, []);
-            expect(errors).to.deep.equal([]);
-        });
-        it('should require an endpoint on a subscription', () => {
-            delete serviceContext.params.subscriptions![0].endpoint;
-            const errors = sns.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`requires an 'endpoint'`);
-        });
-        it('should require a protocol on a subscription', () => {
-            delete serviceContext.params.subscriptions![0].protocol;
-            const errors = sns.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`requires a 'protocol'`);
-        });
-        it('should require a valid protocol', () => {
-            serviceContext.params.subscriptions![0].protocol = 'webhook';
-            const errors = sns.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`Protocol must be one of`);
-        });
-    });
+    // At the moment, check only validates the JSON schema, so no tests here for that phase at the moment
 
     describe('deploy', () => {
         const topicName = 'FakeTopic';
