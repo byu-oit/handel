@@ -47,13 +47,6 @@ describe('apiaccess deployer', () => {
     });
 
     describe('check', () => {
-        it('should require the aws_services parameter', () => {
-            delete serviceContext.params.aws_services;
-            const errors = apiaccess.check(serviceContext, []);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'aws_services\' parameter is required');
-        });
-
         it('should require the provided aws_services to be from the supported list', () => {
             serviceContext.params.aws_services[0] = 'unknownservice';
             const errors = apiaccess.check(serviceContext, []);

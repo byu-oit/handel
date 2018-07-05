@@ -22,6 +22,7 @@ import {
     ServiceConfig,
     ServiceContext
 } from 'handel-extension-api';
+import { checkPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as util from '../../common/util';
 import { APIAccessConfig } from './config-types';
@@ -51,13 +52,9 @@ function getDeployContext(serviceContext: ServiceContext<APIAccessConfig>): Depl
  */
 
 export function check(serviceContext: ServiceContext<APIAccessConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-
-    const serviceParams = serviceContext.params;
-    if (!serviceParams.aws_services) {
-        errors.push(`${SERVICE_NAME} - The 'aws_services' parameter is required.`);
-    }
-    else {
+    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    if(errors.length === 0) { // If no schema errors, validate that they've asked for supported services
+        const serviceParams = serviceContext.params;
         for (const service of serviceParams.aws_services) {
             const statementsPath = `${__dirname}/${service}-statements.json`;
             if (!fs.existsSync(statementsPath)) {
@@ -65,7 +62,6 @@ export function check(serviceContext: ServiceContext<APIAccessConfig>, dependenc
             }
         }
     }
-
     return errors;
 }
 
