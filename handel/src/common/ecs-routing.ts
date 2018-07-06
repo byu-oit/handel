@@ -86,9 +86,13 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
         }
         if (loadBalancer.dns_names) {
             loadBalancerConfig.dnsNames = loadBalancer.dns_names.map(name => {
+                const zone = route53.getBestMatchingHostedZone(name, hostedZones);
+                if (!zone) {
+                    throw new Error(`There is no Route53 hosted zone in this account that matches '${name}'`);
+                }
                 return {
                     name: name,
-                    zoneId: route53.getBestMatchingHostedZone(name, hostedZones)!.Id
+                    zoneId: zone.Id
                 };
             });
         }

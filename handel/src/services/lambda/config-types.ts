@@ -25,6 +25,11 @@ export interface LambdaServiceConfig extends ServiceConfig {
     timeout?: number;
     vpc?: boolean;
     environment_variables?: EnvironmentVariables;
+    keep_warm?: LambdaServiceKeepWarmConfig;
+}
+
+export interface LambdaServiceKeepWarmConfig {
+    cron: string;
 }
 
 export interface HandlebarsLambdaTemplate {
