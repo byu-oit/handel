@@ -95,10 +95,7 @@ async function getCloudfrontTemplateParameters(ownServiceContext: ServiceContext
     const dnsNames = cf.dns_names;
     if (dnsNames) {
         handlebarsParams.dnsNames = dnsNames.map(dnsName => {
-            const zone = route53Calls.getBestMatchingHostedZone(dnsName, hostedZones);
-            if (!zone) {
-                throw new Error(`There is no Route53 hosted zone in this account that matches '${dnsName}'`);
-            }
+            const zone = route53Calls.requireBestMatchingHostedZone(dnsName, hostedZones);
             return {
                 name: dnsName,
                 zoneId: zone.Id

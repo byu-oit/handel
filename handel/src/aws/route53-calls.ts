@@ -43,6 +43,14 @@ export function getBestMatchingHostedZone(domain: string, zones: AWS.Route53.Hos
         .pop();
 }
 
+export function requireBestMatchingHostedZone(domain: string, zones: AWS.Route53.HostedZone[]): AWS.Route53.HostedZone {
+    const found = getBestMatchingHostedZone(domain, zones);
+    if (!found) {
+        throw new Error(`There is no Route53 hosted zone in this account that matches '${domain}'`);
+    }
+    return found;
+}
+
 const VALID_HOSTNAME_REGEX = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/;
 
 export function isValidHostname(hostname: string): boolean {

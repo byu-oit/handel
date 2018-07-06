@@ -62,7 +62,7 @@ describe('codedeploy alb config module', () => {
             listHostedZonesStub = sandbox.stub(route53Calls, 'listHostedZones').resolves([{
                 Id: 'FakeZoneId'
             }]);
-            getBestZoneStub = sandbox.stub(route53Calls, 'getBestMatchingHostedZone').returns({
+            getBestZoneStub = sandbox.stub(route53Calls, 'requireBestMatchingHostedZone').returns({
                 Id: 'FakeZoneId'
             });
         });
