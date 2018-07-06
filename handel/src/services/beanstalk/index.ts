@@ -209,7 +209,7 @@ async function getDnsNameEbExtension(ownServiceContext: ServiceContext<Beanstalk
             }
             return {
                 name: name,
-                zoneId: zone.Id, // TODO - I think this is a bug, it can indeed be undefined, causing .Id to fail. We should handle this better
+                zoneId: zone.Id,
             };
         });
 
