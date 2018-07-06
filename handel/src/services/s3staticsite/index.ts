@@ -194,8 +194,7 @@ function getDeployContext(serviceContext: ServiceContext<S3StaticSiteServiceConf
         REGION_ENDPOINT: `s3-${accountConfig.region}.amazonaws.com`
     });
 
-    // Need two policies for accessing S3. The first allows you to list the contents of the bucket,
-    // and the second allows you to modify objects in that bucket
+    // Need two policies for accessing S3 because the resource is different for object-level vs. bucket-level access
     deployContext.policies.push({
         'Effect': 'Allow',
         'Action': [
