@@ -33,9 +33,13 @@ export async function getRoutingConfig(stackName: string, ownServiceContext: Ser
         if(params.routing.dns_names) { // Add DNS names if specified
             const hostedZones = await route53Calls.listHostedZones();
             routingConfig.dnsNames = params.routing.dns_names.map(name => {
+                const zone = route53Calls.getBestMatchingHostedZone(name, hostedZones);
+                if (!zone) {
+                    throw new Error(`There is no Route53 hosted zone in this account that matches '${name}'`);
+                }
                 return {
                     name: name,
-                    zoneId: route53Calls.getBestMatchingHostedZone(name, hostedZones)!.Id
+                    zoneId: zone.Id
                 };
             });
         }
