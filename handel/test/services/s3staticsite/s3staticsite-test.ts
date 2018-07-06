@@ -176,23 +176,27 @@ describe('s3staticsite deployer', () => {
 
         it('should deploy the static site bucket', async () => {
             const createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
-            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
-            deployStackStub.onCall(0).resolves({
+            const bucketName = 'my-static-site-bucket';
+            const bucketArn = 'fake-bucket-arn';
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                 Outputs: [{
                     OutputKey: 'BucketName',
-                    OutputValue: 'logging-bucket'
-                }]
-            });
-            deployStackStub.onCall(1).resolves({
-                Outputs: [{
-                    OutputKey: 'BucketName',
-                    OutputValue: 'my-static-site-bucket'
+                    OutputValue: bucketName
+                }, {
+                    OutputKey: 'BucketArn',
+                    OutputValue: bucketArn
                 }]
             });
             const uploadDirectoryStub = sandbox.stub(s3Calls, 'uploadDirectory').resolves({});
 
             const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
             expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(deployContext.policies.length).to.equal(2);
+            expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_NAME).to.equal(bucketName);
+            expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_ARN).to.equal(bucketArn);
+            expect(deployContext.environmentVariables.FAKESERVICE_BUCKET_URL).to.contain(bucketName);
+            expect(deployContext.environmentVariables.FAKESERVICE_REGION_ENDPOINT).to.not.equal(null);
             expect(createLoggingBucketStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
             expect(uploadDirectoryStub.callCount).to.equal(1);
@@ -207,6 +211,8 @@ describe('s3staticsite deployer', () => {
             let listHostedZonesStub: sinon.SinonStub;
             let deployStackStub: sinon.SinonStub;
             let createLoggingBucketStub: sinon.SinonStub;
+            const bucketName = 'my-static-site-bucket';
+            const bucketArn = 'fake-bucket-arn';
 
             beforeEach(() => {
                 ownServiceContext.params.cloudfront = {};
@@ -214,17 +220,13 @@ describe('s3staticsite deployer', () => {
 
                 createLoggingBucketStub = sandbox.stub(s3DeployersCommon, 'createLoggingBucketIfNotExists').resolves('FakeBucket');
 
-                deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack');
-                deployStackStub.onCall(0).resolves({
+                deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
                     Outputs: [{
                         OutputKey: 'BucketName',
-                        OutputValue: 'logging-bucket'
-                    }]
-                });
-                deployStackStub.onCall(1).resolves({
-                    Outputs: [{
-                        OutputKey: 'BucketName',
-                        OutputValue: 'my-static-site-bucket'
+                        OutputValue: bucketName
+                    }, {
+                        OutputKey: 'BucketArn',
+                        OutputValue: bucketArn
                     }]
                 });
                 sandbox.stub(s3Calls, 'uploadDirectory').resolves({});

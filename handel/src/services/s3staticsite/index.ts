@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
+import {DeployContext, DeployOutputType, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53Calls from '../../aws/route53-calls';
@@ -173,6 +173,49 @@ function checkCloudfront(cloudfront: CloudFrontConfig): string[] {
     return errors;
 }
 
+function getDeployContext(serviceContext: ServiceContext<S3StaticSiteServiceConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
+    const accountConfig = serviceContext.accountConfig;
+    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', cfStack);
+    const bucketArn = awsCalls.cloudFormation.getOutput('BucketArn', cfStack);
+    if(!bucketName || !bucketArn) {
+        throw new Error('Expected to receive bucket name and ARN from S3 service');
+    }
+
+    const deployContext = new DeployContext(serviceContext);
+
+    // Env variables to inject into consuming services
+    deployContext.addEnvironmentVariables({
+        BUCKET_NAME: bucketName,
+        BUCKET_ARN: bucketArn,
+        BUCKET_URL: `https://${bucketName}.s3.amazonaws.com/`,
+        REGION_ENDPOINT: `s3-${accountConfig.region}.amazonaws.com`
+    });
+
+    // Need two policies for accessing S3 because the resource is different for object-level vs. bucket-level access
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            's3:ListBucket'
+        ],
+        'Resource': [
+            `arn:aws:s3:::${bucketName}`
+        ]
+    });
+    // Only allow read access to the bucket because the contents are managed by the deployment, re-synced on every deploy
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            's3:GetObject',
+            's3:GetObjectAcl',
+        ],
+        'Resource': [
+            `arn:aws:s3:::${bucketName}/*`
+        ]
+    });
+
+    return deployContext;
+}
+
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
@@ -213,7 +256,7 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
     await s3Calls.uploadDirectory(bucketName, '', ownServiceContext.params.path_to_code);
     winston.info(`${SERVICE_NAME} - Finished uploading code files to static site '${stackName}'`);
     winston.info(`${SERVICE_NAME} - Finished deploying static site '${stackName}'`);
-    return new DeployContext(ownServiceContext);
+    return getDeployContext(ownServiceContext, deployedStack);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<UnDeployContext> {
@@ -222,7 +265,10 @@ export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteSer
 
 export const producedEventsSupportedTypes = [];
 
-export const producedDeployOutputTypes = [];
+export const producedDeployOutputTypes = [
+    DeployOutputType.EnvironmentVariables,
+    DeployOutputType.Policies
+];
 
 export const consumedDeployOutputTypes = [];
 
