@@ -112,8 +112,10 @@ Resources:
 Outputs:
   BucketName:
     Description: The name of the bucket
-    Value: 
-      Ref: Bucket
+    Value: !Ref Bucket
+  BucketArn:
+    Description: The ARN of the bucket
+    Value: !GetAtt Bucket.Arn
   {{#if cloudfront}}
   CloudfrontDistribution:
     Description: The Cloudfront Distribution ID
