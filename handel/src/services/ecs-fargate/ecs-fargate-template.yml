@@ -332,7 +332,7 @@ Resources:
       DefaultActions:
       - Type: forward
         TargetGroupArn:
-          Ref: AlbTargetGroup{{loadBalancer.defaultRouteContainer.name}}
+          Ref: AlbTargetGroup{{logicalId loadBalancer.defaultRouteContainer.name}}
       LoadBalancerArn:
         Ref: Alb
       {{#if loadBalancer.httpsCertificate}}
@@ -346,16 +346,16 @@ Resources:
       {{/if}}
   {{#each containerConfigs}}
   {{#if routingInfo}}
-  AlbListenerRule{{name}}:
+  AlbListenerRule{{logicalId name}}:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     DependsOn:
     - AlbListener
-    - AlbTargetGroup{{name}}
+    - AlbTargetGroup{{logicalId name}}
     Properties:
       Actions:
       - Type: forward
         TargetGroupArn:
-          Ref: AlbTargetGroup{{name}}
+          Ref: AlbTargetGroup{{logicalId name}}
       Conditions:
       - Field: path-pattern
         Values:
@@ -363,7 +363,7 @@ Resources:
       ListenerArn:
         Ref: AlbListener
       Priority: {{routingInfo.albPriority}}
-  AlbTargetGroup{{name}}:
+  AlbTargetGroup{{logicalId name}}:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 10
