@@ -56,10 +56,7 @@ export async function getCustomDomainHandlebarsParams(serviceContext: ServiceCon
     const zones = await route53.listHostedZones();
     return customDomains.map(domain => {
         const {dns_name, https_certificate} = domain;
-        const hostedZone = route53.getBestMatchingHostedZone(dns_name, zones);
-        if (!hostedZone) {
-            throw new Error(`There is no Route53 hosted zone in this account that matches '${dns_name}'`);
-        }
+        const hostedZone = route53.requireBestMatchingHostedZone(dns_name, zones);
 
         let cert: string;
         if (https_certificate.indexOf('arn:') === 0) {
