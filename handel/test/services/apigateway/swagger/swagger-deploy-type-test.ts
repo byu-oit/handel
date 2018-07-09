@@ -26,6 +26,7 @@ import { deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
+import * as common from '../../../../src/services/apigateway/common';
 import { APIGatewayConfig } from '../../../../src/services/apigateway/config-types';
 import * as swaggerDeployType from '../../../../src/services/apigateway/swagger/swagger-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';
@@ -92,6 +93,35 @@ describe('apigateway swagger deploy type', () => {
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(uploadDeployableArtifactStub.callCount).to.equal(3); // Should be 3
             expect(deployStackStub.callCount).to.equal(1);
+        });
+
+        it('should prewarm warm-able lambdas', async () => {
+            // Set up input parameters
+            const ownPreDeployContext = new PreDeployContext(serviceContext);
+            const dependenciesDeployContexts = getDependencyDeployContexts('FakeApp', 'FakeEnv');
+
+            serviceContext.params.swagger = `${__dirname}/swagger-with-warmup.json`;
+
+            // Stub out dependent services
+            const uploadDeployableArtifactStub = sandbox.stub(deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
+                Bucket: 'FakeBucket',
+                Key: 'FakeKey'
+            });
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
+                Outputs: [{
+                    OutputKey: 'RestApiId',
+                    OutputValue: 'someApiId'
+                }]
+            });
+
+            const maybeWarmLambdaStub = sandbox.stub(common, 'preWarmLambda').resolves();
+
+            const deployContext = await swaggerDeployType.deploy('FakeStack', serviceContext, ownPreDeployContext, dependenciesDeployContexts, 'API Gateway');
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(uploadDeployableArtifactStub.callCount).to.equal(3); // Should be 3
+            expect(deployStackStub.callCount).to.equal(1);
+
+            expect(maybeWarmLambdaStub.callCount).to.equal(2);
         });
     });
 });

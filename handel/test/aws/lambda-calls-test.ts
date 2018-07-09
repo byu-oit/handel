@@ -206,4 +206,14 @@ describe('lambdaCalls', () => {
             expect(createMappingStub.callCount).to.equal(1);
         });
     });
+    describe('invokeLambda', () => {
+        it('should invoke the specified lambda', async () => {
+            const invokeStub = sandbox.stub(awsWrapper.lambda, 'invoke').resolves({Payload: Buffer.from('{"foo": "bar"}', 'utf8')});
+
+            const response = await lambdaCalls.invokeLambda('test', []);
+
+            expect(response).to.deep.equal({foo: 'bar'});
+            expect(invokeStub.callCount).to.equal(1);
+        });
+    });
 });

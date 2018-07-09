@@ -15,15 +15,22 @@
  *
  */
 import * as fs from 'fs';
-import {AccountConfig, DeployContext, PreDeployContext, ServiceConfig, ServiceContext, Tags} from 'handel-extension-api';
-import { deployPhase, handlebars, tagging } from 'handel-extension-support';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    Tags
+} from 'handel-extension-api';
+import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as tmp from 'tmp';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as util from '../../../common/util';
 import * as apigatewayCommon from '../common';
-import {APIGatewayConfig} from '../config-types';
+import { APIGatewayConfig, WarmupConfig } from '../config-types';
 
 const VALID_METHOD_NAMES = [
     'get',
@@ -75,15 +82,24 @@ function getLambdasToCreate(stackName: string, swagger: any, ownServiceContext: 
     for (const functionName in lambdaDefinitions) {
         if (lambdaDefinitions.hasOwnProperty(functionName)) {
             const functionDef = lambdaDefinitions[functionName];
-            functionConfigs.push({
+            const warmupConf: WarmupConfig = functionDef.warmup;
+
+            const funcConfig: any = {
+                fullName: stackName + '-' + functionName,
                 name: functionName,
                 provisionedMemory: functionDef.memory || '128',
                 timeout: functionDef.timeout || '5',
                 handler: functionDef.handler,
                 runtime: functionDef.runtime,
                 pathToArtifact: functionDef.path_to_code,
-                environmentVariables: deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, functionDef.environment_variables)
-            });
+                environmentVariables: deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, functionDef.environment_variables),
+            };
+
+            if (warmupConf) {
+                funcConfig.warmup = apigatewayCommon.getWarmupTemplateParameters(warmupConf, ownServiceContext, 'RestApi');
+            }
+
+            functionConfigs.push(funcConfig);
         }
     }
     return functionConfigs;
@@ -154,7 +170,9 @@ function enrichSwagger(stackName: string, originalSwagger: any, accountConfig: A
         if (paths.hasOwnProperty(pathName)) {
             const path = paths[pathName];
             for (const methodName in path) {
-                if (!isMethodDef(methodName)) { continue; }
+                if (!isMethodDef(methodName)) {
+                    continue;
+                }
 
                 const method = path[methodName];
                 const requestedFunction = method['x-lambda-function'];
@@ -206,7 +224,7 @@ function enrichSwagger(stackName: string, originalSwagger: any, accountConfig: A
 }
 
 async function uploadSwaggerToS3(ownServiceContext: ServiceContext<APIGatewayConfig>, enrichedSwagger: any): Promise<AWS.S3.ManagedUpload.SendData> {
-    const tmpDir = tmp.dirSync({ unsafeCleanup: true });
+    const tmpDir = tmp.dirSync({unsafeCleanup: true});
     const swaggerFilePath = `${tmpDir.name}/swagger.json`;
     fs.writeFileSync(swaggerFilePath, JSON.stringify(enrichedSwagger), 'utf-8');
     const s3FileName = `apigateway-deployable-swagger-${uuid()}.zip`;
@@ -254,7 +272,19 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     const swaggerS3ArtifactInfo = await uploadSwaggerToS3(ownServiceContext, enrichedSwagger);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, lambdasToCreate, swaggerS3ArtifactInfo, stackTags);
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+    await maybePreWarmLambdas(lambdasToCreate, ownServiceContext, deployedStack);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);
+}
+
+async function maybePreWarmLambdas(lambdas: any[], serviceContext: ServiceContext<APIGatewayConfig>, deployedStack: AWS.CloudFormation.Stack): Promise<void> {
+    const restApiId = awsCalls.cloudFormation.getOutput('RestApiId', deployedStack)!;
+
+    const promises = lambdas.filter(it => !!it.warmup)
+        .map(it => {
+            return apigatewayCommon.preWarmLambda(serviceContext, it.warmup, it.fullName, restApiId);
+        });
+
+    await Promise.all(promises);
 }

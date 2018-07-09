@@ -21,6 +21,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../../src/account-config/account-config';
 import * as route53 from '../../../../src/aws/route53-calls';
+import * as common from '../../../../src/services/apigateway/common';
 import {APIGatewayConfig} from '../../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import { STDLIB_PREFIX } from '../../../../src/services/stdlib';
@@ -72,6 +73,19 @@ describe('apigateway proxy deploy type', () => {
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'handler\' parameter is required');
+        });
+
+        it('should check the \'warmup\' param', function() {
+            serviceContext.params.proxy!.warmup = {
+                schedule: 'rate(5 minutes)'
+            };
+
+            const checkStub = sandbox.stub(common, 'checkWarmupConfig').returns([]);
+
+            const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
+            expect(errors).to.be.empty;
+
+            expect(checkStub.callCount).to.equal(1);
         });
 
     });
@@ -163,6 +177,38 @@ describe('apigateway proxy deploy type', () => {
             const cloudformation = deployStackStub.firstCall.args[2];
             expect(cloudformation).to.contain('CustomDomainApiExampleCom');
             expect(cloudformation).to.contain('CustomDomainApiMycompanyCom');
+        });
+
+        it('should prewarm warm-able lambdas', async () => {
+            // Set up input parameters
+            const ownPreDeployContext = new PreDeployContext(serviceContext);
+            const dependenciesDeployContexts = getDependencyDeployContexts('FakeApp', 'FakeEnv');
+
+            serviceContext.params.proxy!.warmup = {
+                schedule: 'rate(5 minutes)'
+            };
+
+            // Stub out dependent services
+            const bucketName = 'FakeBucket';
+            const bucketKey = 'FakeBucketKey';
+            const uploadDeployableArtifactToHandelBucketStub = sandbox.stub(deployPhase, 'uploadDeployableArtifactToHandelBucket').resolves({
+                Bucket: bucketName,
+                Key: bucketKey
+            });
+            const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({
+                Outputs: [{
+                    OutputKey: 'RestApiId',
+                    OutputValue: 'someApiId'
+                }]
+            });
+            const maybeWarmLambdaStub = sandbox.stub(common, 'preWarmLambda').resolves();
+
+            const deployContext = await proxyPassthroughDeployType.deploy('FakeStack', serviceContext, ownPreDeployContext, dependenciesDeployContexts, 'API Gateway');
+            expect(deployContext).to.be.instanceof(DeployContext);
+            expect(uploadDeployableArtifactToHandelBucketStub.callCount).to.equal(1);
+            expect(deployStackStub.callCount).to.equal(1);
+
+            expect(maybeWarmLambdaStub.callCount).to.equal(1);
         });
     });
 });

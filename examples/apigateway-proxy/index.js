@@ -3,10 +3,12 @@
 var warm = false;
 
 exports.handler = function (event, context, callback) {
-    //Just respond Hello World to all the paths for this example.
+    console.log('Input', JSON.stringify(event, null, 2));
+    console.log('Path', event.path);
+    //Echo back the input
     var responseBody = {
-        message: "Hello 2!",
-        warm: warm
+        warm: warm,
+        request: event,
     };
     warm = true;
     var response = {
@@ -16,7 +18,7 @@ exports.handler = function (event, context, callback) {
         },
         body: JSON.stringify(responseBody)
     };
-    console.log("Hello 2!");
-    console.log("response: " + JSON.stringify(response))
+    console.log("Hello 1!");
+    console.log("response: " + JSON.stringify(response));
     callback(null, response);
 };
