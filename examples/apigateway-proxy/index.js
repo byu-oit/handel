@@ -3,10 +3,12 @@
 var warm = false;
 
 exports.handler = function (event, context, callback) {
+    console.log('Input', JSON.stringify(event, null, 2));
+    console.log('Path', event.path);
     //Echo back the input
     var responseBody = {
+        warm: warm,
         request: event,
-        warm: warm
     };
     warm = true;
     var response = {

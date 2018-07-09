@@ -31,6 +31,12 @@
             "path_to_code": "./function1",
             "environment_variables": {
                 "MY_VAR_1": "Hello"
+            },
+            "warmup": {
+                "schedule": "rate(5 minutes)",
+                "http_paths": [
+                    "/"
+                ]
             }
         },
         "my-function-2": {
