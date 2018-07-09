@@ -288,9 +288,6 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     lambdasToCreate = await uploadDeployableArtifactsToS3(ownServiceContext, lambdasToCreate, serviceName, enrichedSwagger);
     const swaggerS3ArtifactInfo = await uploadSwaggerToS3(ownServiceContext, enrichedSwagger);
     const compiledTemplate = await getCompiledApiGatewayTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, lambdasToCreate, swaggerS3ArtifactInfo, stackTags);
-
-    await require('fs-extra').writeFile('./apigw.yml', compiledTemplate);
-
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
     await maybePreWarmLambdas(lambdasToCreate, ownServiceContext, deployedStack);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);

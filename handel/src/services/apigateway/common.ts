@@ -136,56 +136,53 @@ export function createCloudwatchScheduledEventBody(context: ServiceContext<APIGa
 }
 
 export function createApiGatewayProxyEventBody(path: string, apiId: string, stageName: string, serviceContext: ServiceContext<APIGatewayConfig>): any {
-    const fullPath = path.startsWith('/') ? path : '/' + path;
-    let proxyPath = fullPath.substring(1);
+    let proxyPath = path.startsWith('/') ? path.substring(1) : path;
     let queryString = '';
-    if (fullPath.includes('?')) {
-        [proxyPath, queryString] = path.split('?', 2);
+    if (proxyPath.includes('?')) {
+        [proxyPath, queryString] = proxyPath.split('?', 2);
     }
 
     const queryParams = queryString ? parseQuery(queryString) : null;
 
     return {
-        input: {
-            resource: '/{proxy+}',
-            path: '/' + proxyPath,
+        resource: '/{proxy+}',
+        path: '/' + proxyPath,
+        httpMethod: 'GET',
+        headers: {
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache',
+            'Host': `${apiId}.execute-api.${serviceContext.accountConfig.region}.amazonaws.com`,
+            'User-Agent': 'Handel-Warmup/0.0.0',
+            'X-Lambda-Warmup': path,
+        },
+        queryStringParameters: queryParams,
+        pathParameters: {
+            proxy: proxyPath,
+        },
+        stageVariables: null,
+        requestContext: {
+            accountId: serviceContext.accountConfig.account_id,
+            resourceId: 'warmup',
+            stage: stageName,
+            requestId: 'warmup',
+            identity: {
+                cognitoIdentityPoolId: null,
+                accountId: null,
+                cognitoIdentityId: null,
+                caller: null,
+                apiKey: null,
+                sourceIp: '192.168.196.186',
+                cognitoAuthenticationType: null,
+                cognitoAuthenticationProvider: null,
+                userArn: null,
+                userAgent: 'Handel-Warmup/0.0.0',
+                user: null,
+            },
+            resourcePath: '/{proxy+}',
             httpMethod: 'GET',
-            headers: {
-                'Accept': '*/*',
-                'Cache-Control': 'no-cache',
-                'Host': `${apiId}.execute-api.${serviceContext.accountConfig.region}.amazonaws.com`,
-                'User-Agent': 'Handel-Warmup/0.0.0',
-                'X-Lambda-Warmup': path,
-            },
-            queryStringParameters: queryParams,
-            pathParameters: {
-                proxy: proxyPath,
-            },
-            stageVariables: null,
-            requestContext: {
-                accountId: serviceContext.accountConfig.account_id,
-                resourceId: 'warmup',
-                stage: stageName,
-                requestId: 'warmup',
-                identity: {
-                    cognitoIdentityPoolId: null,
-                    accountId: null,
-                    cognitoIdentityId: null,
-                    caller: null,
-                    apiKey: null,
-                    sourceIp: '192.168.196.186',
-                    cognitoAuthenticationType: null,
-                    cognitoAuthenticationProvider: null,
-                    userArn: null,
-                    userAgent: 'Handel-Warmup/0.0.0',
-                    user: null,
-                },
-                resourcePath: '/{proxy+}',
-                httpMethod: 'GET',
-                apiId
-            },
-            body: null,
-            isBase64Encoded: false,
-        }
+            apiId
+        },
+        body: null,
+        isBase64Encoded: false,
     };
 }

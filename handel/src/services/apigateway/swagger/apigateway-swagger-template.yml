@@ -100,6 +100,7 @@ Resources:
       Action: 'lambda:InvokeFunction'
       FunctionName: !Ref LambdaFunction{{@index}}
       Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaWarmupEvent{{@index}}.Arn
 
   LambdaWarmupEvent{{@index}}:
     Type: "AWS::Events::Rule"
