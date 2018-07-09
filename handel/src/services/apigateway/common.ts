@@ -98,6 +98,28 @@ export function checkWarmupConfig(warmup: WarmupConfig): string[] {
     return errors;
 }
 
+export function getWarmupTemplateParameters(warmupConf: WarmupConfig, serviceContext: ServiceContext<APIGatewayConfig>, restApiLogicalId: string) {
+    const result: any = {
+        schedule: warmupConf.schedule
+    };
+
+    if (warmupConf.http_paths) {
+        result.httpPaths = warmupConf.http_paths.map(it => {
+            const event = createApiGatewayProxyEventBody(
+                it,
+                `$\{${restApiLogicalId}}`,
+                serviceContext.environmentName,
+                serviceContext
+            );
+            return {
+                path: it,
+                eventBody: JSON.stringify(JSON.stringify(event))// Double-encoding for YAML
+            };
+        });
+    }
+    return result;
+}
+
 export async function preWarmLambda(
     serviceContext: ServiceContext<APIGatewayConfig>,
     warmupConfig: WarmupConfig,

@@ -96,24 +96,7 @@ function getLambdasToCreate(stackName: string, swagger: any, ownServiceContext: 
             };
 
             if (warmupConf) {
-                funcConfig.warmup = {
-                    schedule: warmupConf.schedule
-                };
-
-                if (warmupConf.http_paths) {
-                    funcConfig.warmup.httpPaths = warmupConf.http_paths.map(it => {
-                        const event = apigatewayCommon.createApiGatewayProxyEventBody(
-                            it,
-                            '${RestApi}',
-                            ownServiceContext.environmentName,
-                            ownServiceContext
-                        );
-                        return {
-                            path: it,
-                            eventBody: JSON.stringify(JSON.stringify(event))// Double-encoding for YAML
-                        };
-                    });
-                }
+                funcConfig.warmup = apigatewayCommon.getWarmupTemplateParameters(warmupConf, ownServiceContext, 'RestApi');
             }
 
             functionConfigs.push(funcConfig);

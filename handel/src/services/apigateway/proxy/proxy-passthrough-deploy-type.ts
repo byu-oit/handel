@@ -81,18 +81,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
 
     const warmup: WarmupConfig = getParam(serviceParams, 'warmup', 'warmup', undefined);
     if (warmup) {
-        handlebarsParams.warmup = {
-            schedule: warmup.schedule,
-        };
-        if (warmup.http_paths) {
-            handlebarsParams.warmup.httpPaths = warmup.http_paths.map(it => {
-                const event = apigatewayCommon.createApiGatewayProxyEventBody(it, '${ServerlessRestApi}', stageName, ownServiceContext);
-                return {
-                    path: it,
-                    eventBody: JSON.stringify(JSON.stringify(event))// Double-encoding for YAML
-                };
-            });
-        }
+        handlebarsParams.warmup = apigatewayCommon.getWarmupTemplateParameters(warmup, ownServiceContext, 'ServerlessRestApi');
     }
 
     return handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
