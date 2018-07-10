@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import { AccountConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import * as _ from 'lodash';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -85,10 +86,10 @@ describe('apigateway common module', () => {
                 }
             };
 
-            Object.entries(configs).forEach(([name, thisConfig]) => {
+            _.entries(configs).forEach(([name, thisConfig]) => {
                 it(`allows a valid ${name} config`, () => {
                     const errors = common.checkWarmupConfig(thisConfig);
-                    expect(errors).to.be.empty;
+                    expect(errors.length).to.equal(0);
                 });
             });
 
