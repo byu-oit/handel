@@ -22,7 +22,16 @@ export interface S3StaticSiteServiceConfig extends ServiceConfig {
     versioning?: string;
     index_document?: string;
     error_document?: string;
+    cors?: CorsConfig[];
     cloudfront?: CloudFrontConfig;
+}
+
+export interface CorsConfig {
+    allowed_origins: string[];
+    allowed_headers: string[];
+    allowed_methods: string[];
+    exposed_headers: string[];
+    max_age: number;
 }
 
 export interface CloudFrontConfig {
@@ -43,6 +52,7 @@ export interface HandlebarsS3StaticSiteTemplate {
     indexDocument: string;
     errorDocument: string;
     tags: Tags;
+    cors?: CorsConfig[];
     cloudfront?: HandlebarsCloudFrontParams;
 }
 
