@@ -77,7 +77,7 @@ Resources:
       - ContainerName: {{name}}
         ContainerPort: {{routingInfo.containerPort}}
         TargetGroupArn:
-          Ref: AlbTargetGroup{{name}}
+          Ref: AlbTargetGroup{{logicalId name}}
       {{/if}}
       {{/each}}
       {{/if}}
@@ -324,7 +324,7 @@ Resources:
     DependsOn:
     {{#each containerConfigs}}
     {{#if routingInfo}}
-    - AlbTargetGroup{{name}}
+    - AlbTargetGroup{{logicalId name}}
     {{/if}}
     {{/each}}
     - Alb
