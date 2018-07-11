@@ -8,29 +8,6 @@ Resources:
     Properties:
       AccessControl: PublicRead
       BucketName: {{bucketName}}
-      {{#if cors}}
-      CorsConfiguration:
-        CorsRules:
-        {{#each cors}}
-        - AllowedHeaders:
-          {{#each allowed_headers}}
-          - '{{this}}'
-          {{/each}}
-          AllowedMethods:
-          {{#each allowed_methods}}
-          - '{{this}}'
-          {{/each}}
-          AllowedOrigins:
-          {{#each allowed_origins}}
-          - '{{this}}'
-          {{/each}}
-          {{#each exposed_headers}}
-          ExposedHeaders:
-          - '{{this}}'
-          {{/each}}
-          MaxAge: {{max_age}}
-        {{/each}}
-      {{/if}}
       LoggingConfiguration:
         DestinationBucketName: {{loggingBucketName}}
         LogFilePrefix: {{logFilePrefix}}
@@ -92,6 +69,8 @@ Resources:
           DefaultTTL: {{cloudfront.defaultTTL}}
           TargetOriginId: only-origin
           ForwardedValues:
+            Headers: # There is a default CORS config even if you don't specify a custom CORS configuration
+            - Origin
             QueryString: true
           {{#if cloudfront.httpsCertificateId}}
           ViewerProtocolPolicy: redirect-to-https

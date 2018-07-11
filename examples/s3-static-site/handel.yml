@@ -13,13 +13,3 @@ environments:
       path_to_code: ./site/
       index_document: index.html
       error_document: error.html
-      cors:
-      - allowed_origins:
-        - '*'
-        allowed_methods:
-        - GET
-        allowed_headers:
-        - '*'
-        exposed_headers:
-        - '*'
-        max_age: 3000

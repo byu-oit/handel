@@ -71,7 +71,6 @@ async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticS
     };
 
     handlebarsParams.cloudfront = await getCloudfrontTemplateParameters(ownServiceContext);
-    handlebarsParams.cors = serviceParams.cors;
     return handlebars.compileTemplate(`${__dirname}/s3-static-site-template.yml`, handlebarsParams);
 }
 
@@ -248,8 +247,6 @@ export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServi
 
     const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
     const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
-    console.log(compiledTemplate);
-    process.exit(0);
     const stackTags = tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 120, stackTags);
     const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
