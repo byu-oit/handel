@@ -33,7 +33,7 @@ export function compileTemplate(filename: string, variables: any): Promise<strin
     return new Promise((resolve, reject) => {
         fs.readFile(filename, 'utf-8', (error, source) => {
             // Register any helpers we need
-            const template = handlebars.compile(source);
+            const template = handlebars.compile(source, {noEscape: true});
             const output = template(variables);
             resolve(output);
         });

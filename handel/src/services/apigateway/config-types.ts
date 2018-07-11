@@ -33,6 +33,12 @@ export interface ProxyPassthroughConfig {
     memory?: number;
     timeout?: number;
     environment_variables?: EnvironmentVariables;
+    warmup?: WarmupConfig;
+}
+
+export interface WarmupConfig {
+    schedule: string;
+    http_paths?: string[];
 }
 
 export interface CustomDomain {

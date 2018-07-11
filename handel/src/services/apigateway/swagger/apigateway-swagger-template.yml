@@ -61,7 +61,7 @@ Resources:
         S3Bucket: {{s3ArtifactInfo.Bucket}}
         S3Key: {{s3ArtifactInfo.Key}}
       Description: {{../description}}
-      FunctionName: {{../apiName}}-{{name}}
+      FunctionName: {{fullName}}
       MemorySize: {{provisionedMemory}}
       {{#if environmentVariables}}
       Environment:
@@ -92,6 +92,37 @@ Resources:
         Value: {{this}}
       {{/each}}
       {{/if}}
+
+  {{#if warmup}}
+  LambdaWarmupPermission{{@index}}:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaFunction{{@index}}
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaWarmupEvent{{@index}}.Arn
+
+  LambdaWarmupEvent{{@index}}:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Handel-created warmup rule for {{../apiName}}-{{name}}"
+      Name: "{{../apiName}}-{{name}}-warmup"
+      ScheduleExpression: "{{warmup.schedule}}"
+      State: ENABLED
+      Targets:
+      {{#unless warmup.httpPaths}}
+        - Id: {{../apiName}}{{name}}
+          Arn: !GetAtt LambdaFunction{{@index}}.Arn
+      {{else}}
+      {{#each warmup.httpPaths}}
+        - Id: {{logicalId ../../apiName}}{{logicalId ../name}}{{logicalId path}}
+          Arn: !GetAtt LambdaFunction{{@../index}}.Arn
+          Input:
+            Fn::Sub: {{eventBody}}
+      {{/each}}
+      {{/unless}}
+  {{/if}}
+
   {{/each}}
   Deployment{{deploymentIdSuffix}}:
     Type: AWS::ApiGateway::Deployment

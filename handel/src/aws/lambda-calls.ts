@@ -118,7 +118,17 @@ export async function addLambdaEventSourceMapping(functionName: string, tableNam
             }
         }
     }
-    addLambdaEventSourceMappingWithRetry();
+    await addLambdaEventSourceMappingWithRetry();
 
     return deferred.promise;
+}
+
+export async function invokeLambda(functionName: string, input: any): Promise<any> {
+    const response = await awsWrapper.lambda.invoke({
+        FunctionName: functionName,
+        InvocationType: 'RequestResponse',
+        Payload: JSON.stringify(input)
+    });
+
+    return response.Payload ? JSON.parse((response.Payload as Buffer).toString('utf8')) : undefined;
 }

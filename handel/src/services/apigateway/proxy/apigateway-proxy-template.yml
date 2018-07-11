@@ -152,6 +152,36 @@ Resources:
           DNSName: !GetAtt CustomDomain{{logicalId name}}.DistributionDomainName
   {{/each}}
 
+  {{#if warmup}}
+  LambdaWarmupPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LambdaWarmupEvent.Arn
+
+  LambdaWarmupEvent:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Handel-created warmup rule for {{apiName}}"
+      Name: "{{apiName}}-warmup"
+      ScheduleExpression: "{{warmup.schedule}}"
+      State: ENABLED
+      Targets:
+      {{#unless warmup.httpPaths}}
+        - Id: {{apiName}}
+          Arn: !GetAtt LambdaFunction.Arn
+      {{else}}
+      {{#each warmup.httpPaths}}
+        - Id: {{logicalId ../apiName}}{{logicalId path}}
+          Arn: !GetAtt LambdaFunction.Arn
+          Input:
+            Fn::Sub: {{eventBody}}
+      {{/each}}
+      {{/unless}}
+  {{/if}}
+
 Outputs:
   LambdaArn:
     Value:
