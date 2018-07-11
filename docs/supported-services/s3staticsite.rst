@@ -12,6 +12,15 @@ This document contains information about the S3 Static Site service supported in
 
 Service Limitations
 -------------------
+
+No CORS Support
+~~~~~~~~~~~~~~~
+This service doesn't support configuring CORS support on the static site bucket. It just uses the default CORS configuration for S3 buckets:
+
+* Origin: *
+* Methods: GET
+* Headers: Authorization
+
 No Redirects Support
 ~~~~~~~~~~~~~~~~~~~~
 This service doesn't yet support redirects (i.e. 'www.mysite.com' to 'mysite.com') to your static site bucket.
