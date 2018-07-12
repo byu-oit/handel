@@ -8,7 +8,6 @@ Resources:
     Properties:
       AccessControl: PublicRead
       BucketName: {{bucketName}}
-      # TODO - Add CORS Configuration support
       LoggingConfiguration:
         DestinationBucketName: {{loggingBucketName}}
         LogFilePrefix: {{logFilePrefix}}
@@ -70,6 +69,8 @@ Resources:
           DefaultTTL: {{cloudfront.defaultTTL}}
           TargetOriginId: only-origin
           ForwardedValues:
+            Headers: # There is a default CORS config even if you don't specify a custom CORS configuration
+            - Origin
             QueryString: true
           {{#if cloudfront.httpsCertificateId}}
           ViewerProtocolPolicy: redirect-to-https

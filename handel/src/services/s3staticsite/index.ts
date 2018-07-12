@@ -68,7 +68,6 @@ async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticS
         indexDocument,
         errorDocument,
         tags: tagging.getTags(ownServiceContext),
-
     };
 
     handlebarsParams.cloudfront = await getCloudfrontTemplateParameters(ownServiceContext);
