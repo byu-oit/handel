@@ -82,7 +82,7 @@ export async function addLambdaPermissionIfNotExists(functionName: string, princ
     }
 }
 
-export async function addLambdaEventSourceMapping(functionName: string, tableName: string, streamArn: string, batchSize: number) {
+export async function addLambdaEventSourceMapping(functionName: string, resourceName: string, resourceArn: string, batchSize: number) {
     const deferred: any = {};
     deferred.promise = new Promise((resolve, reject) => {
         deferred.resolve = resolve;
@@ -90,18 +90,21 @@ export async function addLambdaEventSourceMapping(functionName: string, tableNam
     });
 
     async function addLambdaEventSourceMappingWithRetry() {
-        const createEventSourceParams = {
-            EventSourceArn: streamArn,
+        const createEventSourceParams: AWS.Lambda.CreateEventSourceMappingRequest = {
+            EventSourceArn: resourceArn,
             FunctionName: functionName,
-            StartingPosition: 'LATEST', // Other options (TRIM_HORIZON, AT_TIMESTAMP) are for Kinesis Streams Only
             BatchSize: batchSize,
             Enabled: true
         };
-        winston.debug(`Adding Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+        if(resourceArn.includes('dynamo')) { // This is hacky, probably should be refactored
+            createEventSourceParams.StartingPosition = 'LATEST';
+        }
+        // Other options (TRIM_HORIZON, AT_TIMESTAMP) are for Kinesis Streams Only
+        winston.debug(`Adding Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
 
         try {
             await awsWrapper.lambda.createEventSourceMapping(createEventSourceParams);
-            winston.debug(`Added Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+            winston.debug(`Added Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
             deferred.resolve();
         }
         catch(err) {
@@ -110,10 +113,10 @@ export async function addLambdaEventSourceMapping(functionName: string, tableNam
                     addLambdaEventSourceMappingWithRetry();
                 }, 5000);
             } else if (err.code === 'ResourceConflictException' && err.message.indexOf('provided mapping already exists') !== -1) {
-                winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${tableName} already exists`);
+                winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${resourceName} already exists`);
                 deferred.resolve();
             } else {
-                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
                 deferred.reject(err);
             }
         }

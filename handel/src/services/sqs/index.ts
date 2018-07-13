@@ -23,12 +23,13 @@ import {
     ServiceContext,
     ServiceEventConsumer,
     ServiceEventType,
-    UnDeployContext
+    UnDeployContext,
+    ProduceEventsContext
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as sqsCalls from '../../aws/sqs-calls';
-import {HandlebarsSqsTemplate, SqsServiceConfig} from './config-types';
+import { HandlebarsSqsTemplate, SqsServiceConfig } from './config-types';
 
 const SERVICE_NAME = 'SQS';
 
@@ -114,7 +115,7 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     const queueName = awsCalls.cloudFormation.getOutput('QueueName', cfStack);
     const queueArn = awsCalls.cloudFormation.getOutput('QueueArn', cfStack);
     const queueUrl = awsCalls.cloudFormation.getOutput('QueueUrl', cfStack);
-    if(!queueName || !queueArn || !queueUrl) {
+    if (!queueName || !queueArn || !queueUrl) {
         throw new Error('Expected to receive queue name, ARN, and URL from SQS service');
     }
 
@@ -162,7 +163,7 @@ function getDeployContext(serviceContext: ServiceContext<SqsServiceConfig>, cfSt
     if (deadLetterQueueName) {
         const deadLetterQueueArn = awsCalls.cloudFormation.getOutput('DeadLetterQueueArn', cfStack);
         const deadLetterQueueUrl = awsCalls.cloudFormation.getOutput('DeadLetterQueueUrl', cfStack);
-        if(!deadLetterQueueArn || !deadLetterQueueUrl) {
+        if (!deadLetterQueueArn || !deadLetterQueueUrl) {
             throw new Error('Expected to receive dead letter queue ARN and URL back from SQS service');
         }
 
@@ -192,6 +193,22 @@ function getPolicyStatementForSqsEventConsumption(queueArn: string, producerArn:
     };
 }
 
+function getPolicyStatementForSqsEventProduce(queueArn: string, consumerArn: string): any {
+    return {
+        Effect: 'Allow',
+        Principal: {
+            AWS: consumerArn
+        },
+        Action: [
+            'SQS:GetQueueAttributes',
+            'SQS:ChangeMessageVisibility',
+            'SQS:DeleteMessage',
+            'SQS:ReceiveMessage'
+        ],
+        Resource: queueArn
+    };
+}
+
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
@@ -215,7 +232,7 @@ export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>
 
 export async function consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+    if (!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
         throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
     }
     const producerEventType = producerDeployContext.eventOutputs.serviceEventType;
@@ -223,16 +240,20 @@ export async function consumeEvents(ownServiceContext: ServiceContext<SqsService
     const queueUrl = ownDeployContext.eventOutputs.resourceName;
     const queueArn = ownDeployContext.eventOutputs.resourceArn;
     const producerArn = producerDeployContext.eventOutputs.resourceArn;
-    if(!queueUrl || !queueArn || !producerArn) {
+    if (!queueUrl || !queueArn || !producerArn) {
         throw new Error(`${SERVICE_NAME} - Expected to receive queue URL, queue ARN, and producer ARN from event outputs`);
     }
 
     const policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
 
     // Add SQS permission
-    const permissionStatement = await sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement);
+    await sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement);
     winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
     return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
+}
+
+export async function produceEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
@@ -241,7 +262,9 @@ export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfi
 
 export const providedEventType = ServiceEventType.SQS;
 
-export const producedEventsSupportedTypes = [];
+export const producedEventsSupportedTypes = [
+    ServiceEventType.Lambda
+];
 
 export const producedDeployOutputTypes = [
     DeployOutputType.EnvironmentVariables,

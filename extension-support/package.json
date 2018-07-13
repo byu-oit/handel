@@ -24,7 +24,7 @@
     "winston": "^2.3.1"
   },
   "peerDependencies": {
-    "aws-sdk": "^2.188.0"
+    "aws-sdk": "^2.274.1"
   },
   "devDependencies": {
     "@types/archiver": "^2.0.1",

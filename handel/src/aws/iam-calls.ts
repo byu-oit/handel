@@ -200,6 +200,14 @@ export async function attachStreamPolicy(roleName: string, policyStatementsToCon
     return policy;
 }
 
+export async function attachSqsEventsPolicy(roleName: string, policyStatementsToConsume: any[], accountConfig: AccountConfig): Promise<AWS.IAM.Policy> {
+    const policyArn = `arn:aws:iam::${accountConfig.account_id}:policy/services/${roleName}-sqs-events`;
+    const policyDocument = constructPolicyDoc(policyStatementsToConsume);
+    const policy = await createOrUpdatePolicy(`${roleName}-sqs-events`, policyArn, policyDocument);
+    await attachPolicyToRole(policy.Arn!, roleName);
+    return policy;
+}
+
 /**
  * Detaches all policies from the given role
  */

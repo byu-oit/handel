@@ -49,6 +49,6 @@ export interface HandlebarsLambdaTemplate {
     vpcSubnetIds?: string[];
 }
 
-export interface DynamoDBLambdaConsumer extends ServiceEventConsumer {
+export interface LambdaEventSourceConfig extends ServiceEventConsumer {
     batch_size: number;
 }
