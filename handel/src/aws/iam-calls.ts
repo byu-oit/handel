@@ -15,7 +15,6 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
@@ -173,7 +172,7 @@ export async function deleteAllPolicyVersionsButProvided(policyArn: string, poli
         }
 
     }
-    const deleteResponses = await Promise.all(deletePolicyPromises);
+    await Promise.all(deletePolicyPromises);
     winston.verbose(`Deleted all old policy versions for ${policyArn} but ${policyVersionToKeep.VersionId}`);
     return policyVersionToKeep; // Return kept version
 }
@@ -190,51 +189,6 @@ export async function attachPolicyToRole(policyArn: string, roleName: string) {
     const attachResponse = await awsWrapper.iam.attachRolePolicy(params);
     winston.verbose(`Attached policy ${policyArn} to role ${roleName}`);
     return attachResponse;
-}
-
-export async function attachStreamPolicy(roleName: string, policyStatementsToConsume: any[], accountConfig: AccountConfig): Promise<AWS.IAM.Policy> {
-    const policyArn = `arn:aws:iam::${accountConfig.account_id}:policy/services/${roleName}-dynamodb-stream`;
-    const policyDocument = constructPolicyDoc(policyStatementsToConsume);
-    const policy = await createOrUpdatePolicy(`${roleName}-dynamodb-stream`, policyArn, policyDocument);
-    await attachPolicyToRole(policy.Arn!, roleName);
-    return policy;
-}
-
-export async function attachSqsEventsPolicy(roleName: string, policyStatementsToConsume: any[], accountConfig: AccountConfig): Promise<AWS.IAM.Policy> {
-    const policyArn = `arn:aws:iam::${accountConfig.account_id}:policy/services/${roleName}-sqs-events`;
-    const policyDocument = constructPolicyDoc(policyStatementsToConsume);
-    const policy = await createOrUpdatePolicy(`${roleName}-sqs-events`, policyArn, policyDocument);
-    await attachPolicyToRole(policy.Arn!, roleName);
-    return policy;
-}
-
-/**
- * Detaches all policies from the given role
- */
-export async function detachPoliciesFromRole(roleName: string) {
-    winston.debug(`Detaching custom policies from ${roleName}`);
-    const role = await getRole(roleName);
-    if (role) {
-        const listAttachedParams = {
-            RoleName: roleName
-        };
-        winston.debug(`Attempting to find policies attached to ${roleName}`);
-        const policies = await awsWrapper.iam.listAttachedRolePolicies(listAttachedParams);
-        const detachPromises: Array<Promise<{}>> = [];
-
-        policies.AttachedPolicies!.forEach((policy) => {
-            const detachParams = {
-                PolicyArn: policy.PolicyArn!,
-                RoleName: roleName
-            };
-            detachPromises.push(awsWrapper.iam.detachRolePolicy(detachParams));
-        });
-
-        return Promise.all(detachPromises);
-    }
-    else {
-        return [];
-    }
 }
 
 /**
@@ -267,6 +221,29 @@ export async function createPolicyIfNotExists(policyName: string, policyArn: str
         return createPolicy(policyName, policyDocument);
     }
     return policy;
+}
+
+export async function listAttachedPolicies(roleName: string): Promise<AWS.IAM.AttachedPolicy[]> {
+    const listAttachedParams = {
+        RoleName: roleName
+    };
+    const policies = await awsWrapper.iam.listAttachedRolePolicies(listAttachedParams);
+    return policies.AttachedPolicies || [];
+}
+
+export async function detachPolicyFromRole(roleName: string, policy: AWS.IAM.AttachedPolicy): Promise<void> {
+    const detachParams: AWS.IAM.DetachRolePolicyRequest = {
+        PolicyArn: policy.PolicyArn!,
+        RoleName: roleName
+    };
+    await awsWrapper.iam.detachRolePolicy(detachParams);
+}
+
+export async function deletePolicy(policyArn: string) {
+    const deleteParams: AWS.IAM.DeletePolicyRequest = {
+        PolicyArn: policyArn
+    };
+    await awsWrapper.iam.deletePolicy(deleteParams);
 }
 
 /**

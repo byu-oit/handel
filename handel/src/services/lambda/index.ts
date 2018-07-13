@@ -15,19 +15,16 @@
  *
  */
 import {
-    DeployOutputType,
-    ServiceEventConsumer,
-    ServiceEventType,
-    ServiceType
-} from 'handel-extension-api';
-import {
     AccountConfig,
     ConsumeEventsContext,
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceEventConsumer,
+    ServiceEventType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -39,16 +36,13 @@ import {
     preDeployPhase,
     tagging
 } from 'handel-extension-support';
-import * as _ from 'lodash';
+
 import * as uuid from 'uuid';
 import * as winston from 'winston';
-import * as iamCalls from '../../aws/iam-calls';
 import * as lambdaCalls from '../../aws/lambda-calls';
-import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
-import * as util from '../../common/util';
-import { STDLIB_PREFIX } from '../stdlib';
 import { HandlebarsLambdaTemplate, LambdaEventSourceConfig, LambdaServiceConfig } from './config-types';
+import * as lambdaEvents from './events';
 
 const SERVICE_NAME = 'Lambda';
 
@@ -155,81 +149,6 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
-async function consumeSqsEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: LambdaEventSourceConfig, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {
-    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
-    }
-    const functionName = ownDeployContext.eventOutputs.resourceName;
-
-    // Get event outputs from the producer
-    const resourceArn = producerDeployContext.eventOutputs.resourceArn;
-    const resourceName = producerDeployContext.eventOutputs.resourceName;
-    if(!functionName || !resourceArn || !resourceName) {
-        throw new Error(`${SERVICE_NAME} - Expected to receive function name, producer resource ARN, and producer resource name from event outputs`);
-    }
-
-    // Attach permissions to call the queue to the Lambda
-    const policyStatementsToConsume = JSON.parse(util.readFileSync(`${__dirname}/sqs-events-statements.json`));
-    policyStatementsToConsume[0].Resource = [];
-    policyStatementsToConsume[0].Resource.push(resourceArn);
-    await iamCalls.attachSqsEventsPolicy(ownServiceContext.stackName(), policyStatementsToConsume, ownServiceContext.accountConfig);
-    winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
-
-    // Add the event source mapping to the Lambda
-    await lambdaCalls.addLambdaEventSourceMapping(functionName, resourceName, resourceArn, eventConsumerConfig.batch_size);
-    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
-}
-
-async function consumeDynamoEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: LambdaEventSourceConfig, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext) {
-    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
-    }
-    const functionName = ownDeployContext.eventOutputs.resourceName;
-
-    // Get event outputs from the producer
-    const resourceArn = producerDeployContext.eventOutputs.resourceArn;
-    const resourceName = producerDeployContext.eventOutputs.resourceName;
-    if(!functionName || !resourceArn || !resourceName) {
-        throw new Error(`${SERVICE_NAME} - Expected to receive function name, producer resource ARN, and producer resource name from event outputs`);
-    }
-
-    // Attach the stream policy to the Lambda to allow for consuming events
-    const policyStatementsToConsume = JSON.parse(util.readFileSync(`${__dirname}/dynamo-events-statements.json`));
-    policyStatementsToConsume[0].Resource = [];
-    const tableStreamGeneralArn = resourceArn.substring(0, resourceArn.lastIndexOf('/') + 1).concat('*');
-    policyStatementsToConsume[0].Resource.push(tableStreamGeneralArn);
-    await iamCalls.attachStreamPolicy(ownServiceContext.stackName(), policyStatementsToConsume, ownServiceContext.accountConfig);
-    winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
-
-    // Add the event source mapping to the Lambda
-    await lambdaCalls.addLambdaEventSourceMapping(functionName, resourceName, resourceArn, eventConsumerConfig.batch_size);
-    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
-}
-
-async function addProducePermissions(producerServiceType: ServiceType, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
-    if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
-    }
-
-    const functionName = ownDeployContext.eventOutputs.resourceName;
-    if(!functionName) {
-        throw new Error(`${SERVICE_NAME} - Expected to get function name for event binding`);
-    }
-    const principal = producerDeployContext.eventOutputs.resourcePrincipal;
-    let sourceArn;
-    // TODO - Figure out how to deal with IoT better
-    if (producerDeployContext.eventOutputs.serviceEventType === ServiceEventType.IoT) {
-        sourceArn = iotDeployersCommon.getTopicRuleArn(producerDeployContext.eventOutputs.resourceArn!, ownServiceContext.serviceName);
-    }
-    else {
-        sourceArn = producerDeployContext.eventOutputs.resourceArn!;
-    }
-
-    await lambdaCalls.addLambdaPermissionIfNotExists(functionName, principal, sourceArn);
-    winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
-    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
-}
-
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
@@ -287,14 +206,21 @@ export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConf
 
 export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
     winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    const producerType = producerServiceContext.serviceType;
-    if (producerType.matches(STDLIB_PREFIX, 'dynamodb')) {
-        return consumeDynamoEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
-    } else if (producerType.matches(STDLIB_PREFIX, 'sqs')) {
-        return consumeSqsEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
-    } else {
-        return addProducePermissions(producerType, producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
+    if(!producerDeployContext.eventOutputs) {
+        throw new Error(`${SERVICE_NAME} - The producer must return event outputs from their deploy`);
     }
+    const consumerServiceType = producerDeployContext.eventOutputs.serviceEventType;
+    if (consumerServiceType === ServiceEventType.DynamoDB) {
+        await lambdaEvents.consumeDynamoEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
+    }
+    else if (consumerServiceType === ServiceEventType.SQS) {
+        await lambdaEvents.consumeSqsEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
+    }
+    else {
+        await lambdaEvents.addProducePermissions(producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
+    }
+    winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
+    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
 }
 
 export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
@@ -306,7 +232,8 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServic
 }
 
 export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
-    await iamCalls.detachPoliciesFromRole(ownServiceContext.stackName());
+    await lambdaCalls.deleteAllEventSourceMappings(ownServiceContext.stackName()); // Delete all event source mappings (if any)
+    await lambdaEvents.deleteEventSourcePolicies(ownServiceContext.stackName()); // Detach and delete policies for event source mappings (if any)
     return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
 }
 

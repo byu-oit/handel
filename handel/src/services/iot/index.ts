@@ -26,7 +26,6 @@ import {
 import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
-import { STDLIB_PREFIX } from '../stdlib';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'IOT';

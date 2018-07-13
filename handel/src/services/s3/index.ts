@@ -28,7 +28,6 @@ import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel
 import * as winston from 'winston';
 import * as s3Calls from '../../aws/s3-calls';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
-import { STDLIB_PREFIX } from '../stdlib';
 import { HandlebarsS3Template, S3ServiceConfig, S3ServiceEventConsumer, S3ServiceEventFilterList } from './config-types';
 import * as lifecycleSection from './lifecycles';
 

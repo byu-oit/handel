@@ -19,12 +19,12 @@ import {
     DeployContext,
     DeployOutputType,
     PreDeployContext,
+    ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
     ServiceEventConsumer,
     ServiceEventType,
-    UnDeployContext,
-    ProduceEventsContext
+    UnDeployContext
 } from 'handel-extension-api';
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -190,22 +190,6 @@ function getPolicyStatementForSqsEventConsumption(queueArn: string, producerArn:
                 'aws:SourceArn': producerArn
             }
         }
-    };
-}
-
-function getPolicyStatementForSqsEventProduce(queueArn: string, consumerArn: string): any {
-    return {
-        Effect: 'Allow',
-        Principal: {
-            AWS: consumerArn
-        },
-        Action: [
-            'SQS:GetQueueAttributes',
-            'SQS:ChangeMessageVisibility',
-            'SQS:DeleteMessage',
-            'SQS:ReceiveMessage'
-        ],
-        Resource: queueArn
     };
 }
 
