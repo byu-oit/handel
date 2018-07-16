@@ -30,15 +30,14 @@ import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-supp
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as iamCalls from '../../../src/aws/iam-calls';
 import * as lambdaCalls from '../../../src/aws/lambda-calls';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import {
 } from '../../../src/datatypes';
 import * as lambda from '../../../src/services/lambda';
 import { LambdaServiceConfig } from '../../../src/services/lambda/config-types';
+import * as lambdaEvents from '../../../src/services/lambda/events';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
-import FakeServiceRegistry from '../../service-registry/fake-service-registry';
 
 describe('lambda deployer', () => {
     let sandbox: sinon.SinonSandbox;
@@ -204,91 +203,8 @@ describe('lambda deployer', () => {
             };
         });
 
-        it('should add permissions for the sns service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs = {
-                resourceArn: 'FakeTopicArn',
-                resourcePrincipal: 'FakePrincipal',
-                serviceEventType: ServiceEventType.SNS
-            };
-
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
-
-            const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should add permissions for the cloudwatchevent service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'cloudwatchevent'), {type: 'cloudwatchevent'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs = {
-                resourceArn: 'FakeEventRuleArn',
-                resourcePrincipal: 'FakePrincipal',
-                serviceEventType: ServiceEventType.CloudWatchEvents
-            };
-
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
-
-            const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should add permissions for the s3 service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 's3'), {type: 's3'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs = {
-                resourceArn: 'FakeBucketArn',
-                resourcePrincipal: 'FakePrincipal',
-                serviceEventType: ServiceEventType.S3
-            };
-
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
-
-            const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should add permissions for the alexaskillkit service type', async () => {
-            const principal = 'alexa-appkit.amazon.com';
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'alexaskillkit'), {type: 'alexaskillkit'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
-            producerDeployContext.eventOutputs = {
-                resourcePrincipal: principal,
-                serviceEventType: ServiceEventType.AlexaSkillKit
-            };
-
-            const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should add permissions for the iot service type', async () => {
-            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'iot'), {type: 'iot'}, accountConfig);
-            const producerDeployContext = new DeployContext(producerServiceContext);
-            producerDeployContext.eventOutputs = {
-                resourceArn: 'FakeTopicRuleArnPrefix',
-                resourcePrincipal: 'FakePrincipal',
-                serviceEventType: ServiceEventType.IoT
-            };
-
-            const addLambdaPermissionStub = sandbox.stub(lambdaCalls, 'addLambdaPermissionIfNotExists').resolves({});
-
-            const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
-            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(addLambdaPermissionStub.callCount).to.equal(1);
-        });
-
-        it('should add permissions for the dynamodb service type', async () => {
+        it('should add an event source mapping for the dynamodb service type', async () => {
+            const consumeEventsStub = sandbox.stub(lambdaEvents, 'consumeDynamoEvents').resolves({});
             const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'dynamodb'), {type: 'dynamodb'}, accountConfig);
             const producerDeployContext = new DeployContext(producerServiceContext);
             producerDeployContext.eventOutputs = {
@@ -297,17 +213,50 @@ describe('lambda deployer', () => {
                 resourcePrincipal: 'FakePrincipal',
                 serviceEventType: ServiceEventType.DynamoDB
             };
-
-            const attachStreamPolicyStub = sandbox.stub(iamCalls, 'attachStreamPolicy').resolves({});
-            const addLambdaEventSourceMapping = sandbox.stub(lambdaCalls, 'addLambdaEventSourceMapping').resolves({});
             const eventConsumerConfig = {
                 service_name: lambdaServiceName,
                 batch_size: 100
             };
+
             const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
-            expect(attachStreamPolicyStub.callCount).to.equal(1);
-            expect(addLambdaEventSourceMapping.callCount).to.equal(1);
+            expect(consumeEventsStub.callCount).to.equal(1);
+        });
+
+        it('should add an event source mapping for the SQS service type', async () => {
+            const consumeEventsStub = sandbox.stub(lambdaEvents, 'consumeSqsEvents').resolves({});
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
+            const producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs = {
+                resourceName: 'FakeFunctionName',
+                resourceArn: 'FakeSqsArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SQS
+            };
+            const eventConsumerConfig = {
+                service_name: lambdaServiceName,
+                batch_size: 9
+            };
+
+            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+            expect(consumeEventsStub.callCount).to.equal(1);
+        });
+
+        it('should add permissions for all other service type', async () => {
+            const producerServiceContext = new ServiceContext(appName, envName, 'producerService', new ServiceType(STDLIB_PREFIX, 'sns'), {type: 'sns'}, accountConfig);
+            const producerDeployContext = new DeployContext(producerServiceContext);
+            producerDeployContext.eventOutputs = {
+                resourceArn: 'FakeTopicArn',
+                resourcePrincipal: 'FakePrincipal',
+                serviceEventType: ServiceEventType.SNS
+            };
+            const addPermissionsStub = sandbox.stub(lambdaEvents, 'addProducePermissions').resolves({});
+
+            const eventConsumerConfig = { service_name: lambdaServiceName };
+            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
+            expect(addPermissionsStub.callCount).to.equal(1);
         });
     });
 
@@ -331,13 +280,15 @@ describe('lambda deployer', () => {
 
     describe('unDeploy', () => {
         it('should delete the stack', async () => {
-            const detachPoliciesFromRoleStub = sandbox.stub(iamCalls, 'detachPoliciesFromRole').resolves();
+            const deleteMappingsStub = sandbox.stub(lambdaCalls, 'deleteAllEventSourceMappings').resolves();
+            const deleteEventSourcePoliciesStub = sandbox.stub(lambdaEvents, 'deleteEventSourcePolicies').resolves();
             const unDeployStack = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
             const unDeployContext = await lambda.unDeploy(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStack.callCount).to.equal(1);
-            expect(detachPoliciesFromRoleStub.callCount).to.equal(1);
+            expect(deleteMappingsStub.callCount).to.equal(1);
+            expect(deleteEventSourcePoliciesStub.callCount).to.equal(1);
         });
     });
 });

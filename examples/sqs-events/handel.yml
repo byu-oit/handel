@@ -1,0 +1,16 @@
+version: 1
+
+name: test-sqs-events
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+    queue:
+      type: sqs
+      event_consumers:
+      - service_name: function
+        batch_size: 9

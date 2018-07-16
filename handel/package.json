@@ -18,7 +18,7 @@
   "dependencies": {
     "ajv": "^5.2.3",
     "ajv-errors": "^1.0.0",
-    "aws-sdk": "^2.169.0",
+    "aws-sdk": "^2.274.1",
     "caporal": "^0.10.0",
     "child-process-es6-promise": "^1.2.0",
     "common-tags": "^1.7.2",
