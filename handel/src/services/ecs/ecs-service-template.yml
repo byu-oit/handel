@@ -308,10 +308,10 @@ Resources:
       {{/if}}
   {{/if}}
 
+  {{#if autoScaling.scalingEnabled}}
   #
   # Configure Service Auto Scaling
   #
-  {{#if autoScaling.scalingEnabled}}
   ServiceAutoScalingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -404,10 +404,10 @@ Resources:
   {{/each}}
   {{/if}}
 
-  # 
-  # Configure Load Balancer if requested
-  # 
   {{#if oneOrMoreTasksHasRouting}}
+  # 
+  # Configure Load Balancer
+  # 
   Alb:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn: AlbSecurityGroup
