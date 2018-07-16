@@ -194,7 +194,7 @@ The Swagger section is defined by the following schema:
     swagger: <string> # The path to the Swagger file in your repository
 
 Lambda Swagger Extensions
-*************************
+~~~~~~~~~~~~~~~~~~~~~~~~~
 For the most part, the Swagger document you provide in the *swagger* section is just a regular Swagger document, 
 specifying the API paths you want your app to use. If you're using Lambdas to service your API Gateway resources, 
 Handel makes use of certain Swagger extensions in your Swagger document so that it can create and wire your Lambdas
@@ -335,7 +335,7 @@ functionality to have more complex transformations before sending requests to yo
 Notice that the above example has omitted the Lambda-specific properties in the integration object, such as *uri*. Handel will still create and wire the Lambdas for you.
 
 HTTP Passthrough Swagger Extensions
-***********************************
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In addition to servicing your API methods with Lambdas, you can configure API Gateway to just do an HTTP passthrough to some other HTTP endpoint, be it an AWS EC2 server or something else outside of AWS entirely.
 
 Handel supports this with another swagger extension, called *x-http-passthrough-url* that you configure on your resource methods. Here's an example:

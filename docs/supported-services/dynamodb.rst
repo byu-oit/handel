@@ -216,7 +216,7 @@ The DynamoDB service outputs the following environment variables:
 See :ref:`environment-variable-names` for information about how the service name is included in the environment variable name.
 
 DynamoDB Streams
--------------------------------
+----------------
 A `DynamoDB Stream <http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html>`_ sends an event to a lambda function when data in the table changes.  To configure a stream, include the stream_view_type element in your handel file and declare your lambda function as an `event_consumer <https://handel.readthedocs.io/en/latest/handel-basics/service-events.html>`_ with the following syntax:
 
 .. code-block:: yaml
