@@ -83,7 +83,7 @@ export async function consumeDynamoEvents(ownServiceContext: ServiceContext<Lamb
     return addEventSourceMapping(ownServiceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext, policyStatementsToConsume);
 }
 
-export async function addProducePermissions(producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext, ownDeployContext: DeployContext, ownServiceContext: ServiceContext<LambdaServiceConfig>) {
+export async function addProducePermissions(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, producerDeployContext: DeployContext) {
     if(!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
         throw new Error(`Both the consumer and producer must return event outputs from their deploy`);
     }

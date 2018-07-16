@@ -217,7 +217,7 @@ export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServ
         await lambdaEvents.consumeSqsEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
     }
     else {
-        await lambdaEvents.addProducePermissions(producerServiceContext, producerDeployContext, ownDeployContext, ownServiceContext);
+        await lambdaEvents.addProducePermissions(ownServiceContext, ownDeployContext, producerDeployContext);
     }
     winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
     return new ConsumeEventsContext(ownServiceContext, producerServiceContext);

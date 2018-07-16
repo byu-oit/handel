@@ -178,20 +178,6 @@ export async function deleteAllPolicyVersionsButProvided(policyArn: string, poli
 }
 
 /**
- * Attaches the given policy to the given role
- */
-export async function attachPolicyToRole(policyArn: string, roleName: string) {
-    winston.verbose(`Attaching policy ${policyArn} to role ${roleName}`);
-    const params = {
-        PolicyArn: policyArn,
-        RoleName: roleName
-    };
-    const attachResponse = await awsWrapper.iam.attachRolePolicy(params);
-    winston.verbose(`Attached policy ${policyArn} to role ${roleName}`);
-    return attachResponse;
-}
-
-/**
  * Creates or updates the given policy with the provided policy document.
  *
  * The policy document must be a valid IAM policy.
@@ -210,6 +196,20 @@ export async function createOrUpdatePolicy(policyName: string, policyArn: string
         const updatedPolicy = await getPolicy(policyArn);
         return updatedPolicy!;
     }
+}
+
+/**
+ * Attaches the given policy to the given role
+ */
+export async function attachPolicyToRole(policyArn: string, roleName: string) {
+    winston.verbose(`Attaching policy ${policyArn} to role ${roleName}`);
+    const params = {
+        PolicyArn: policyArn,
+        RoleName: roleName
+    };
+    const attachResponse = await awsWrapper.iam.attachRolePolicy(params);
+    winston.verbose(`Attached policy ${policyArn} to role ${roleName}`);
+    return attachResponse;
 }
 
 /**
