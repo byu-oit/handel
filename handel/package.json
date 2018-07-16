@@ -1,6 +1,6 @@
 {
   "name": "handel",
-  "version": "0.26.15",
+  "version": "0.27.0",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "./bin/handel",
   "scripts": {
@@ -23,8 +23,8 @@
     "child-process-es6-promise": "^1.2.0",
     "common-tags": "^1.7.2",
     "fs-extra": "^5.0.0",
-    "handel-extension-api": "^0.26.15",
-    "handel-extension-support": "^0.26.15",
+    "handel-extension-api": "^0.27.0",
+    "handel-extension-support": "^0.27.0",
     "inquirer": "^3.3.0",
     "js-yaml": "3.7.0",
     "lodash": "^4.17.4",
