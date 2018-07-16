@@ -32,6 +32,7 @@ import { AuroraConfig } from './config-types';
 
 const SERVICE_NAME = 'Aurora';
 const DB_PROTOCOL = 'tcp';
+const DB_PORT = 3306;
 
 function getCompiledAuroraTemplate(stackName: string,
                                   ownServiceContext: ServiceContext<AuroraConfig>,
@@ -53,7 +54,7 @@ export function check(serviceContext: ServiceContext<AuroraConfig>,
 }
 
 export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, DB_PORT, SERVICE_NAME);
 }
 
 export function bind(ownServiceContext: ServiceContext<AuroraConfig>,
@@ -65,7 +66,7 @@ export function bind(ownServiceContext: ServiceContext<AuroraConfig>,
         dependentOfServiceContext,
         dependentOfPreDeployContext,
         DB_PROTOCOL,
-        MYSQL_PORT,
+        DB_PORT,
         SERVICE_NAME);
 }
 

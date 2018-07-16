@@ -6,3 +6,15 @@ environments:
   dev:
     db:
       type: aurora
+      description: MyAuroraCluster
+      database_name: MyDb
+      engine: "<mysql|postgres>"
+      primary: # Required
+        instance_type: t2.micro # Required?
+      read_replicas: # Optional
+      - instance_type: t2.micro
+      
+      db_parameters:
+        some.parameter: value
+      tags:
+        some: tag

@@ -44,6 +44,7 @@ Resources:
       DBClusterParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
       Engine: {{engine}}
+      EngineVersion: {{engineVersion}}
       Port: {{port}}
       Tags:
       {{#if tags}}
@@ -60,31 +61,17 @@ Resources:
   PrimaryInstance:
     Type: AWS::RDS::DBInstance
     Properties:
-      Engine: aurora
-      DBClusterIdentifier: !Ref "DatabaseCluster"
-      DBInstanceClass: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "InstanceType"]
-      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
-
-  Instance:
-    Type: AWS::RDS::DBInstance
-    Properties:
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: true
       DBClusterIdentifier: !Ref Cluster
-      DBInstanceClass: {{instanceType}}
+      DBInstanceClass: {{primary.instanceType}}
       DBInstanceIdentifier: {{stackName}}-primary
       DBName: {{databaseName}}
       DBParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName: {{dbSubnetGroup}}
-      Engine: mysql
-      EngineVersion: {{mysqlVersion}}
-      MasterUsername: !Ref DBUsername
-      MasterUserPassword: !Ref DBPassword
-      {{#if multiAZ}}
-      MultiAZ: true
-      {{/if}}
-      Port: {{dbPort}}
-      PubliclyAccessible: false
+      Engine: {{engine}}
+      Port: {{port}}
+      PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
       StorageType: {{storageType}}
       Tags:
       {{#if tags}}
@@ -98,22 +85,45 @@ Resources:
       VPCSecurityGroups:
       - {{dbSecurityGroupId}}
 
-
-  DatabaseReplicaInstance:
+  {{#each readReplicas}}
+  DatabaseReplicaInstance{{@index}}:
     Type: AWS::RDS::DBInstance
     Properties:
-      Engine: aurora
-      DBClusterIdentifier: !Ref "DatabaseCluster"
-      DBInstanceClass: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "InstanceType"]
-      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: {{instanceType}}
+      DBInstanceIdentifier: {{../stackName}}-read{{@index}}
+      DBName: {{../databaseName}}
+      DBParameterGroupName: !Ref ParameterGroup
+      DBSubnetGroupName: {{../dbSubnetGroup}}
+      Engine: {{../engine}}
+      Port: {{../port}}
+      PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
+      StorageType: {{../storageType}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VPCSecurityGroups:
+      - {{dbSecurityGroupId}}
+  {{/each}}
 
 Outputs:
-  DatabaseAddress:
-    Description: The address of the RDS database
-    Value: !GetAtt Instance.Endpoint.Address
-  DatabasePort:
-    Description: The port of the RDS database
-    Value: !GetAtt Instance.Endpoint.Port
+  ClusterAddress:
+    Description: The connection endpoint of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Address
+  ClusterPort:
+    Description: The port of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Port
+  ClusterReadEndpoint:
+    Description: The read endpoint for the Aurora cluster
+    Value: !GetAtt Cluster.ReadEndpoint.Address
   DatabaseName:
     Description: The name of the database
     Value: {{databaseName}}

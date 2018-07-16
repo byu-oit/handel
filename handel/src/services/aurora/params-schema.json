@@ -4,16 +4,11 @@
     "properties": {
         "type": {
             "type": "string",
-            "description": "The service type (should always be 'apiaccess')",
-            "pattern": "apiaccess",
-            "errorMessage": "The 'type' field must equal 'apiaccess'"
+            "description": "The service type (should always be 'aurora')",
+            "pattern": "aurora",
+            "errorMessage": "The 'type' field must equal 'aurora'"
         },
-        "aws_services": {
-            "type": "array",
-            "description": "The list of services to which consuming dependencies will be granted read-only access",
-            "errorMessage": "The 'aws_services' property must contain a list of one or more strings",
-            "items": { "type": "string" }
-        }
+        
     },
     "required": ["type"],
     "additionalProperties": false,
