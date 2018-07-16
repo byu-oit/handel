@@ -1,0 +1,8 @@
+version: 1
+
+name: aurora-test
+
+environments:
+  dev:
+    db:
+      type: aurora

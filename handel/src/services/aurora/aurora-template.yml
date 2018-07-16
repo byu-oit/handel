@@ -1,0 +1,119 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Aurora RDS instance
+
+Parameters:
+  DBUsername:
+    NoEcho: true
+    Description: The username of the database
+    Type: String
+  DBPassword:
+    NoEcho: true
+    Description: The password of the database
+    Type: String
+
+Resources:
+  ParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      {{#if parameterGroupParams}}
+      Parameters:
+        {{#each parameterGroupParams}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  Cluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DatabaseName: {{databaseName}}
+      DBClusterIdentifier: {{stackName}}
+      DBClusterParameterGroupName: !Ref ParameterGroup
+      DBSubnetGroupName:  {{dbSubnetGroup}}
+      Engine: {{engine}}
+      Port: {{port}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VpcSecurityGroupIds:
+      - {{dbSecurityGroupId}}
+
+  PrimaryInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "InstanceType"]
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+
+  Instance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: {{instanceType}}
+      DBInstanceIdentifier: {{stackName}}-primary
+      DBName: {{databaseName}}
+      DBParameterGroupName: !Ref ParameterGroup
+      DBSubnetGroupName: {{dbSubnetGroup}}
+      Engine: mysql
+      EngineVersion: {{mysqlVersion}}
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      {{#if multiAZ}}
+      MultiAZ: true
+      {{/if}}
+      Port: {{dbPort}}
+      PubliclyAccessible: false
+      StorageType: {{storageType}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VPCSecurityGroups:
+      - {{dbSecurityGroupId}}
+
+
+  DatabaseReplicaInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora
+      DBClusterIdentifier: !Ref "DatabaseCluster"
+      DBInstanceClass: !FindInMap [!Ref "AWS::AccountId", !Ref "AWS::Region", "InstanceType"]
+      DBSubnetGroupName: !Ref "DatabaseSubnetGroup"
+
+Outputs:
+  DatabaseAddress:
+    Description: The address of the RDS database
+    Value: !GetAtt Instance.Endpoint.Address
+  DatabasePort:
+    Description: The port of the RDS database
+    Value: !GetAtt Instance.Endpoint.Port
+  DatabaseName:
+    Description: The name of the database
+    Value: {{databaseName}}
