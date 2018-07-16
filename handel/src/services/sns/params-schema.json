@@ -5,7 +5,7 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be SNS)",
-            "pattern": "sns",
+            "pattern": "^sns$",
             "errorMessage": "The 'type' field must equal 'sns'"
         },
         "subscriptions": {
@@ -21,7 +21,7 @@
                     },
                     "protocol": {
                         "type": "string",
-                        "pattern": "http|https|email|email-json|sms",
+                        "pattern": "^(http|https|email|email-json|sms)$",
                         "errorMessage": "The 'protocol' field must be one of the following values: http, https, email, email-json, sms"
                     }
                 },

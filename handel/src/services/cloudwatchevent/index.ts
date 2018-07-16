@@ -23,7 +23,7 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
 import * as cloudWatchEventsCalls from '../../aws/cloudwatch-events-calls';
@@ -78,16 +78,14 @@ async function getCompiledEventRuleTemplate(stackName: string, serviceContext: S
  */
 
 export function check(serviceContext: ServiceContext<CloudWatchEventsConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = [];
-
-    const serviceParams = serviceContext.params;
-
-    // Require 'schedule' or 'event_pattern'
-    if (!serviceParams.schedule && !serviceParams.event_pattern) {
-        errors.push(`${SERVICE_NAME} - You must specify at least one of the 'schedule' or 'event_pattern' parameters`);
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    if(errors.length === 0) {
+        const serviceParams = serviceContext.params;
+        if (!serviceParams.schedule && !serviceParams.event_pattern) {
+            errors.push(`You must specify at least one of the 'schedule' or 'event_pattern' parameters`);
+        }
     }
-
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
