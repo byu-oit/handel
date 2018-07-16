@@ -201,6 +201,18 @@ const awsWrapper = {
         createEventSourceMapping: (params: AWS.Lambda.CreateEventSourceMappingRequest) => {
             const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
             return lambda.createEventSourceMapping(params).promise();
+        },
+        listEventSourceMappings: (params: AWS.Lambda.ListEventSourceMappingsRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.listEventSourceMappings(params).promise();
+        },
+        deleteEventSourceMapping: (params: AWS.Lambda.DeleteEventSourceMappingRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.deleteEventSourceMapping(params).promise();
+        },
+        invoke: (params: AWS.Lambda.InvocationRequest) => {
+            const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
+            return lambda.invoke(params).promise();
         }
     },
     route53: {

@@ -82,43 +82,100 @@ export async function addLambdaPermissionIfNotExists(functionName: string, princ
     }
 }
 
-export async function addLambdaEventSourceMapping(functionName: string, tableName: string, streamArn: string, batchSize: number) {
+export async function addLambdaEventSourceMapping(functionName: string, resourceName: string, resourceArn: string, batchSize: number) {
     const deferred: any = {};
     deferred.promise = new Promise((resolve, reject) => {
         deferred.resolve = resolve;
         deferred.reject = reject;
     });
 
+    // This deferred promise approach is used because we sometimes have to wait for IAM changes to propagate before we can create the mapping
     async function addLambdaEventSourceMappingWithRetry() {
-        const createEventSourceParams = {
-            EventSourceArn: streamArn,
+        const createEventSourceParams: AWS.Lambda.CreateEventSourceMappingRequest = {
+            EventSourceArn: resourceArn,
             FunctionName: functionName,
-            StartingPosition: 'LATEST', // Other options (TRIM_HORIZON, AT_TIMESTAMP) are for Kinesis Streams Only
             BatchSize: batchSize,
             Enabled: true
         };
-        winston.debug(`Adding Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+        if(resourceArn.includes('dynamo')) { // This is hacky, probably should be refactored
+            createEventSourceParams.StartingPosition = 'LATEST';
+        }
+        // Other options (TRIM_HORIZON, AT_TIMESTAMP) are for Kinesis Streams Only
+        winston.debug(`Adding Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
 
         try {
             await awsWrapper.lambda.createEventSourceMapping(createEventSourceParams);
-            winston.debug(`Added Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+            winston.debug(`Added Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
             deferred.resolve();
         }
         catch(err) {
-            if (err.code === 'InvalidParameterValueException' && err.message.indexOf('Cannot access stream') !== -1) {
+            if (err.code === 'InvalidParameterValueException') { // Role doesn't have permissions yet
                 setTimeout(() => {
                     addLambdaEventSourceMappingWithRetry();
                 }, 5000);
-            } else if (err.code === 'ResourceConflictException' && err.message.indexOf('provided mapping already exists') !== -1) {
-                winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${tableName} already exists`);
+            } else if (err.code === 'ResourceConflictException') { // The stream already exists
+                winston.debug(`The Lambda Event Source Mapping for ${functionName} and ${resourceName} already exists`);
                 deferred.resolve();
             } else {
-                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${tableName}`);
+                winston.debug(`Failed to add Lambda Event Source Mapping to ${functionName} for ${resourceName}`);
                 deferred.reject(err);
             }
         }
     }
-    addLambdaEventSourceMappingWithRetry();
+    await addLambdaEventSourceMappingWithRetry();
 
     return deferred.promise;
+}
+
+export async function listEventSourceMappings(functionName: string, marker?: string): Promise<AWS.Lambda.EventSourceMappingsList> {
+    const listParams: AWS.Lambda.ListEventSourceMappingsRequest = {
+        FunctionName: functionName,
+    };
+    if(marker) {
+        listParams.Marker = marker;
+    }
+
+    // Get the mappings for this page
+    const response = await awsWrapper.lambda.listEventSourceMappings(listParams);
+    let eventSourceMappings: AWS.Lambda.EventSourceMappingsList = [];
+    if(response.EventSourceMappings) {
+        eventSourceMappings = response.EventSourceMappings;
+    }
+
+    // Get the rest of the mappings (if any)
+    let restMappings: AWS.Lambda.EventSourceMappingsList = [];
+    if(response.NextMarker) {
+        restMappings = await listEventSourceMappings(functionName, response.NextMarker);
+    }
+
+    return eventSourceMappings.concat(restMappings);
+}
+
+export async function deleteEventSourceMapping(eventSourceMappingId: string) {
+    const deleteParams: AWS.Lambda.DeleteEventSourceMappingRequest = {
+        UUID: eventSourceMappingId
+    };
+    await awsWrapper.lambda.deleteEventSourceMapping(deleteParams);
+    return true;
+}
+
+export async function deleteAllEventSourceMappings(functionName: string) {
+    const eventSourceMappings = await listEventSourceMappings(functionName);
+    await Promise.all(eventSourceMappings.map(mapping => {
+        if(!mapping.UUID) {
+            throw new Error('Expected event source mapping to have a UUID');
+        }
+        return deleteEventSourceMapping(mapping.UUID);
+    }));
+    return true;
+}
+
+export async function invokeLambda(functionName: string, input: any): Promise<any> {
+    const response = await awsWrapper.lambda.invoke({
+        FunctionName: functionName,
+        InvocationType: 'RequestResponse',
+        Payload: JSON.stringify(input)
+    });
+
+    return response.Payload ? JSON.parse((response.Payload as Buffer).toString('utf8')) : undefined;
 }

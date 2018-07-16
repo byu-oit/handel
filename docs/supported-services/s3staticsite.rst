@@ -15,7 +15,11 @@ Service Limitations
 
 No CORS Support
 ~~~~~~~~~~~~~~~
-This service doesn't yet support configuring CORS support on the static site bucket.
+This service doesn't support configuring CORS support on the static site bucket. It just uses the default CORS configuration for S3 buckets:
+
+* Origin: *
+* Methods: GET
+* Headers: Authorization
 
 No Redirects Support
 ~~~~~~~~~~~~~~~~~~~~

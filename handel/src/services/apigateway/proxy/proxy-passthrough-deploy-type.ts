@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-import {S3} from 'aws-sdk';
-import {DeployContext, PreDeployContext, ServiceConfig, ServiceContext} from 'handel-extension-api';
-import { deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { S3 } from 'aws-sdk';
+import { DeployContext, PreDeployContext, ServiceConfig, ServiceContext } from 'handel-extension-api';
+import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
 import * as apigatewayCommon from '../common';
-import {APIGatewayConfig} from '../config-types';
+import { APIGatewayConfig, WarmupConfig } from '../config-types';
 
 async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGatewayConfig>, serviceName: string): Promise<S3.ManagedUpload.SendData> {
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
@@ -35,9 +35,11 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
+    const stageName = ownServiceContext.environmentName;
+
     const handlebarsParams: any = {
         description: serviceParams.description || `Handel-created API for '${stackName}'`,
-        stageName: ownServiceContext.environmentName,
+        stageName,
         s3Bucket: s3ObjectInfo.Bucket,
         s3Key: s3ObjectInfo.Key,
         apiName: stackName,
@@ -77,6 +79,11 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, serviceParams.custom_domains);
     }
 
+    const warmup: WarmupConfig = getParam(serviceParams, 'warmup', 'warmup', undefined);
+    if (warmup) {
+        handlebarsParams.warmup = apigatewayCommon.getWarmupTemplateParameters(warmup, ownServiceContext, 'ServerlessRestApi');
+    }
+
     return handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
 }
 
@@ -111,6 +118,12 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
     checkForParam(params, 'lambda_runtime', 'runtime', checkErrors);
     checkForParam(params, 'handler_function', 'handler', checkErrors);
 
+    const proxy = params.proxy!;
+
+    if (proxy.warmup) {
+        checkErrors.push(...apigatewayCommon.checkWarmupConfig(proxy.warmup));
+    }
+
     return checkErrors;
 }
 
@@ -120,6 +133,20 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
     const stackTags = tagging.getTags(ownServiceContext);
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
     const restApiUrl = apigatewayCommon.getRestApiUrl(deployedStack, ownServiceContext);
+    await maybePreWarmLambda(ownServiceContext, deployedStack);
     winston.info(`${serviceName} - Finished deploying API Gateway service. The service is available at ${restApiUrl}`);
     return new DeployContext(ownServiceContext);
+}
+
+async function maybePreWarmLambda(serviceContext: ServiceContext<APIGatewayConfig>, deployedStack: AWS.CloudFormation.Stack): Promise<void> {
+    const warmup: WarmupConfig | undefined = getParam(serviceContext.params, 'warmup', 'warmup', undefined);
+
+    if (!warmup) {
+        return;
+    }
+
+    const lambdaName = awsCalls.cloudFormation.getOutput('LambdaArn', deployedStack)!;
+    const restApiId = awsCalls.cloudFormation.getOutput('RestApiId', deployedStack)!;
+
+    await apigatewayCommon.preWarmLambda(serviceContext, warmup, lambdaName, restApiId);
 }

@@ -27,7 +27,6 @@ import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } 
 import * as yaml from 'js-yaml';
 import * as winston from 'winston';
 import * as cloudWatchEventsCalls from '../../aws/cloudwatch-events-calls';
-import { STDLIB_PREFIX } from '../stdlib';
 import {CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer} from './config-types';
 
 const SERVICE_NAME = 'CloudWatch Events';

@@ -1,10 +1,14 @@
 'use strict';
 
+var warm = false;
+
 exports.handler = function (event, context, callback) {
     //Just respond Hello World to all the paths for this example.
     var responseBody = {
-        message: "Hello 1!"
+        message: "Hello 1!",
+        warm: warm
     };
+    warm = true;
     var response = {
         statusCode: 200,
         headers: {

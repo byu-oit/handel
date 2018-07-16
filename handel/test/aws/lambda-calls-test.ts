@@ -197,13 +197,72 @@ describe('lambdaCalls', () => {
 
         it('should should complete successfully if the Event Source Mapping already exists', async () => {
             const createMappingStub = sandbox.stub(awsWrapper.lambda, 'createEventSourceMapping').rejects({
-                code: 'ResourceConflictException',
-                message: 'The event source arn (arn:aws:dynamodb:us-west-2:398230616010:table/my-table-dev-table-dynamodb/stream/2017-08-16T20:02:21.326)  and function (my-table-dev-mylambda-lambda) provided mapping already exists. Please update or delete the existing mapping with UUID 160c2db9-cbec-42be-8133-ff5337e7cac5'
+                code: 'ResourceConflictException'
             });
 
             const statement = await lambdaCalls.addLambdaEventSourceMapping('FakeFunctionName', 'FakeTableName', 'arn:aws:dynamodb:us-west-2:123456789012:table/TableName/stream/DATE', 100);
             expect(statement).to.equal(undefined);
             expect(createMappingStub.callCount).to.equal(1);
+        });
+    });
+
+    describe('listEventSourceMappings', () => {
+        it('should return all event source mappings from all pages', async () => {
+            const listMappingsStub = sandbox.stub(awsWrapper.lambda, 'listEventSourceMappings');
+            listMappingsStub.onCall(0).resolves({
+                EventSourceMappings: [{
+                    UUID: 'FakeUuid1'
+                }],
+                NextMarker: 'SomeMarker'
+            });
+            listMappingsStub.onCall(1).resolves({
+                EventSourceMappings: [{
+                    UUID: 'FakeUuid2'
+                }]
+            });
+            const mappings = await lambdaCalls.listEventSourceMappings('FakeFunction');
+            expect(listMappingsStub.callCount).to.equal(2);
+            expect(mappings.length).to.equal(2);
+            expect(mappings[0].UUID).to.equal('FakeUuid1');
+            expect(mappings[1].UUID).to.equal('FakeUuid2');
+        });
+    });
+
+    describe('deleteEventSourceMapping', () => {
+        it('should delete the given event source mapping', async () => {
+            const deleteMappingStub = sandbox.stub(awsWrapper.lambda, 'deleteEventSourceMapping').resolves({});
+            await lambdaCalls.deleteEventSourceMapping('FakeUUID');
+            expect(deleteMappingStub.callCount).to.equal(1);
+        });
+    });
+
+    describe('deleteAllEventSourceMappings', () => {
+        it('should delete all event source mappings for the function', async () => {
+            const listMappingsStub = sandbox.stub(awsWrapper.lambda, 'listEventSourceMappings').resolves({
+                EventSourceMappings: [
+                    {
+                        UUID: 'FakeUUID1'
+                    },
+                    {
+                        UUID: 'FakeUUID2'
+                    }
+                ]
+            });
+            const deleteMappingStub = sandbox.stub(awsWrapper.lambda, 'deleteEventSourceMapping').resolves({});
+            await lambdaCalls.deleteAllEventSourceMappings('FakeFunction');
+            expect(listMappingsStub.callCount).to.equal(1);
+            expect(deleteMappingStub.callCount).to.equal(2);
+        });
+    });
+
+    describe('invokeLambda', () => {
+        it('should invoke the specified lambda', async () => {
+            const invokeStub = sandbox.stub(awsWrapper.lambda, 'invoke').resolves({Payload: Buffer.from('{"foo": "bar"}', 'utf8')});
+
+            const response = await lambdaCalls.invokeLambda('test', []);
+
+            expect(response).to.deep.equal({foo: 'bar'});
+            expect(invokeStub.callCount).to.equal(1);
         });
     });
 });

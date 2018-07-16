@@ -1,0 +1,33 @@
+version: 1
+
+name: apigateway-proxy-example
+
+environments:
+  dev:
+    webapp:
+      type: apigateway
+      description: My Description
+      proxy:
+        path_to_code: ./
+        runtime: nodejs8.10
+        memory: 128
+        handler: index.handler
+        environment_variables:
+          MY_VAR_1: Hello
+        warmup: #Keep an instance of this lambda warmed-up and ready to go
+          schedule: rate(5 minutes)
+          http_paths:
+            - /ping
+            - /some-endpoint?some-arg=foo
+      tags:
+        mytag: myvalue
+      dependencies:
+      - table
+    table:
+      type: dynamodb
+      partition_key:
+        name: MyPartionKey
+        type: String
+      provisioned_throughput:
+        read_capacity_units: 2
+        write_capacity_units: 2

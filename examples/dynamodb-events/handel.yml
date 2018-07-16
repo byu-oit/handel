@@ -1,0 +1,20 @@
+version: 1
+
+name: test-dynamo-events
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+    queue:
+      type: dynamodb
+      partition_key:
+        name: test
+        type: String
+      stream_view_type: KEYS_ONLY
+      event_consumers:
+      - service_name: function
+        batch_size: 100

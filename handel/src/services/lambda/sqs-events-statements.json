@@ -1,0 +1,11 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "sqs:DeleteMessage",
+            "sqs:ChangeMessageVisibility",
+            "sqs:ReceiveMessage",
+            "sqs:GetQueueAttributes"
+        ]
+    }
+]

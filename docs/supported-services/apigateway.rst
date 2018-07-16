@@ -88,6 +88,67 @@ The Custom Domains section is defined by the following schema:
 
 See :ref:`route53zone-records` for more information on how DNS records will be created.
 
+
+.. _apigateway-lambda-warmup:
+
+Lambda Warmup
+~~~~~~~~~~~~~
+
+One of the challenges with servicing API requests with AWS Lambda is cold start times. Luckily,
+there are `well-established patterns <https://read.acloud.guru/how-to-keep-your-lambda-functions-warm-9d7e1aa6e2f0>`__
+for reducing the impact of cold starts. One of these is to use CloudWatch scheduled events to make sure that there
+is always at least one instance of a lambda function warm and ready to service requests.
+
+While the way one configures the warmup settings varies between Proxy and Swagger-based configuration, the basics are the same.
+
+Parameters
+``````````
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Required
+     - Default
+     - Description
+   * - schedule
+     - string
+     - Yes
+     -
+     - How often to send a warm up event. Either a rate or a cron expression. See `CloudWatch <https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html>`__ for valid values.
+   * - http_paths
+     - Array of strings
+     - No
+     -
+     - Can contain up to 5 entries. If specified, instead of sending a CloudWatch Event body, a simulated API Gateway `GET` event will be dispatched to each the provided paths.
+
+By default, this will send a Cloudwatch scheduled event to the Lambda on the specified schedule. The event body looks
+like this:
+
+.. code-block:: json
+
+    {
+      "version": "0",
+      "id": "53dc4d37-cffa-4f76-80c9-8b7d4a4d2eaa",
+      "detail-type": "Scheduled Event",
+      "source": "aws.events",
+      "account": "123456789012",
+      "time": "2015-10-08T16:53:06Z",
+      "region": "us-east-1",
+      "resources": [
+        "arn:aws:events:us-east-1:123456789012:rule/my-scheduled-rule"
+      ],
+      "detail": {}
+    }
+
+In many cases, it is easier to simulate an API Gateway Proxy event instead of forcing the function to be able to consume
+multiple types of events. If you set one or more values for the `http_paths` array, instead of sending the default
+scheduled event body, an API Gateway Proxy event will be sent for each listed path. A maximum of 5 different paths may
+be specified for each function. These requests will always be GET requests and will not include any form of authentication
+information or custom headers. They will include a header called 'X-Lambda-Warmup' with a value matching the specified
+path.
+
 .. _apigateway-proxy:
 
 Proxy Passthrough
@@ -109,8 +170,13 @@ The Proxy Passthrough section is defined by the following schema:
       handler: <string> # The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your ‘main’ method.
       memory: <number> # The amount of memory (in MB) to provision for the runtime. Default: 128
       timeout: <number> # The timeout to use for your Lambda function. Any functions that go over this timeout will be killed. Default: 5
+      warmup: # Optional. :ref:`apigateway-lambda-warmup`
+        schedule: rate(5 minutes)
+        http_paths:
+        - /ping
       environment_variables: # A set of key/value pairs to set as environment variables on your API.
         <STRING>: <string>
+
 .. _apigateway-swagger:
 
 Swagger Configuration
@@ -128,7 +194,7 @@ The Swagger section is defined by the following schema:
     swagger: <string> # The path to the Swagger file in your repository
 
 Lambda Swagger Extensions
-*************************
+~~~~~~~~~~~~~~~~~~~~~~~~~
 For the most part, the Swagger document you provide in the *swagger* section is just a regular Swagger document, 
 specifying the API paths you want your app to use. If you're using Lambdas to service your API Gateway resources, 
 Handel makes use of certain Swagger extensions in your Swagger document so that it can create and wire your Lambdas
@@ -161,6 +227,10 @@ Consider the following Swagger document:
           "handler": "index.handler",
           "memory": "128",
           "path_to_code": "./function1"
+          "warmup": {
+            "schedule": "rate(5 minutes)",
+            "http_paths": ["/"]
+          }
         }
       }
     }
@@ -177,6 +247,12 @@ For each item in this list, Handel will create a Lambda function for you. These 
       "handler": <string>, // The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your ‘main’ method.
       "memory": <number>, // The amount of memory (in MB) to provision for the runtime. Default: 128,
       "timeout": <number>, // The timeout to use for your Lambda function. Any functions that go over this timeout will be killed. Default: 5
+      "warmup": { // The :ref:`apigateway-lambda-warmup` configuration
+        "schedule": "rate(5 minutes)",
+        "http_paths": [
+          "<string>" // Path relative to the API Gateway root to invoke on the schedule.
+        ]
+      },
       "environment_variables": { // A set of key/value pairs to set as environment variables on your API.
         <ENV_NAME>: <env value> 
       }
@@ -259,7 +335,7 @@ functionality to have more complex transformations before sending requests to yo
 Notice that the above example has omitted the Lambda-specific properties in the integration object, such as *uri*. Handel will still create and wire the Lambdas for you.
 
 HTTP Passthrough Swagger Extensions
-***********************************
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In addition to servicing your API methods with Lambdas, you can configure API Gateway to just do an HTTP passthrough to some other HTTP endpoint, be it an AWS EC2 server or something else outside of AWS entirely.
 
 Handel supports this with another swagger extension, called *x-http-passthrough-url* that you configure on your resource methods. Here's an example:

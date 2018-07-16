@@ -100,6 +100,8 @@ If you want to use the default values, set `dead_letter_queue` to true:
 
 Example Handel Files
 --------------------
+Simple Configuration
+~~~~~~~~~~~~~~~~~~~~
 This Handel file shows a basic SQS service being configured:
 
 .. code-block:: yaml
@@ -112,14 +114,9 @@ This Handel file shows a basic SQS service being configured:
       dev:
         queue:
           type: sqs
-          queue_type: fifo
-          content_based_deduplication: true
-          delay_seconds: 2
-          max_message_size: 262140
-          message_retention_period: 345601
-          receive_message_wait_time_seconds: 3
-          visibility_timeout: 40
 
+Dead-Letter Queue
+~~~~~~~~~~~~~~~~~
 This Handel file shows an SQS service being configured with a `Dead-Letter Queue <http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html>`_:
 
 .. code-block:: yaml
@@ -148,6 +145,29 @@ This Handel file shows an SQS service being configured with a `Dead-Letter Queue
             message_retention_period: 345601
             receive_message_wait_time_seconds: 4
             visibility_timeout: 40
+  
+Lambda Events
+~~~~~~~~~~~~~
+This Handel file shows an SQS service configured with events to Lambda enabled:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: my-sqs-queue
+
+    environments:
+      dev:
+        queue:
+          type: sqs
+          event_consumers:
+          - service_name: function
+            batch_size: 10
+        function:
+          type: lambda
+          path_to_code: .
+          handler: index.handler
+          runtime: nodejs8.10
 
 Depending on this service
 -------------------------
@@ -183,7 +203,17 @@ See :ref:`environment-variable-names` for information about how the service name
 
 Events produced by this service
 -------------------------------
-The SQS service does not produce events for other Handel services.
+The SQS service produces events to the following service types:
+
+* Lambda
+
+You can configure events to Lambda using the `event_consumers` parameter in your SQS service:
+
+.. code-block:: yaml
+
+  event_consumers:
+  - service_name: <string> # Required.  The service name of the lambda function
+    batch_size: <number> # Optional. Default: 10. Allowed Values: 1-10
 
 Events consumed by this service
 -------------------------------

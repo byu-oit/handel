@@ -265,67 +265,36 @@ describe('iam calls', () => {
         });
     });
 
-    describe('attachStreamPolicy', () => {
-        it('should attach a stream policy to the existing lambda role', async () => {
-            const getPolicyStub = sandbox.stub(awsWrapper.iam, 'getPolicy').rejects({
-                code: 'NoSuchEntity'
+    describe('listAttachedPolicies', () => {
+        it('should return the list of attached policies', async () => {
+            const listPoliciesStub = sandbox.stub(awsWrapper.iam, 'listAttachedRolePolicies').resolves({
+                AttachedPolicies: [{
+                    PolicyArn: 'Fake'
+                }]
             });
-            const createPolicyStub = sandbox.stub(awsWrapper.iam, 'createPolicy').resolves({
-                Policy: {
-                    Arn: 'FakeArn'
-                }
-            });
-            const attachPolicyToRoleStub = sandbox.stub(awsWrapper.iam, 'attachRolePolicy').resolves({});
-
-            const accountConfig = await config(`${__dirname}/../test-account-config.yml`);
-            const policyStatements = [
-                {
-                    'Effect': 'Allow',
-                    'Action': [
-                        'dynamodb:DescribeStream',
-                        'dynamodb:GetRecords',
-                        'dynamodb:GetShardIterator',
-                        'dynamodb:ListStreams'
-                    ],
-                    'Resource': 'arn:aws:dynamodb:region:accountID:table/FakeTable/stream/*'
-                }
-            ];
-            const policy = await iamCalls.attachStreamPolicy('FakeRole', policyStatements, accountConfig);
-            expect(policy).to.not.equal(null);
-            expect(getPolicyStub.callCount).to.equal(1);
-            expect(createPolicyStub.callCount).to.equal(1);
-            expect(attachPolicyToRoleStub.callCount).to.equal(1);
+            const policies = await iamCalls.listAttachedPolicies('FakeRole');
+            expect(listPoliciesStub.callCount).to.equal(1);
+            expect(policies.length).to.equal(1);
+            expect(policies[0].PolicyArn).to.equal('Fake');
         });
     });
 
-    describe('detachPoliciesFromRole', () => {
-        it('should detach all policies from role', async () => {
-            const getRoleStub = sandbox.stub(awsWrapper.iam, 'getRole').resolves({
-                Role: {}
+    describe('detachPolicyFromRole', () => {
+        it('should detach the given policy from the role', async () => {
+            const detachPolicyStub = sandbox.stub(awsWrapper.iam, 'detachRolePolicy').resolves({});
+            await iamCalls.detachPolicyFromRole('FakeRole', {
+                PolicyArn: 'FakeArn',
+                PolicyName: 'FakeName'
             });
-            const listAttachedRolePoliciesStub = sandbox.stub(awsWrapper.iam, 'listAttachedRolePolicies').resolves({
-                AttachedPolicies: [
-                    {
-                        PolicyArn: 'arn:aws:iam::398230616010:policy/services/LambdaDynamodbStream-my-table-dev-mylambda-lambda',
-                    }
-                ]
-            });
-            const detachRolePolicyStub = sandbox.stub(awsWrapper.iam, 'detachRolePolicy').resolves({});
-
-            const response = await iamCalls.detachPoliciesFromRole('FakeRoleName');
-            expect(getRoleStub.callCount).to.equal(1);
-            expect(listAttachedRolePoliciesStub.callCount).to.equal(1);
-            expect(detachRolePolicyStub.callCount).to.equal(1);
-            expect(response).to.deep.equal([{}]);
+            expect(detachPolicyStub.callCount).to.equal(1);
         });
+    });
 
-        it('should return successful if the role was already deleted', async () => {
-            const getRoleStub = sandbox.stub(awsWrapper.iam, 'getRole').rejects({
-                code: 'NoSuchEntity'
-            });
-            const response = await iamCalls.detachPoliciesFromRole('FakeRoleName');
-            expect(getRoleStub.callCount).to.equal(1);
-            expect(response).to.deep.equal([]);
+    describe('deletePolicy', () => {
+        it('should delete the given policy', async () => {
+            const deletePolicyStub = sandbox.stub(awsWrapper.iam, 'deletePolicy').resolves({});
+            await iamCalls.deletePolicy('FakeArn');
+            expect(deletePolicyStub.callCount).to.equal(1);
         });
     });
 });
