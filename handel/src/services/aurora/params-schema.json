@@ -8,14 +8,71 @@
             "pattern": "aurora",
             "errorMessage": "The 'type' field must equal 'aurora'"
         },
-        
+        "engine": {
+            "type": "string",
+            "pattern": "^(mysql|postgresql)$",
+            "errorMessage": "The 'engine' field must be one of the following values: mysql, postgresql"
+        },
+        "version": {
+            "type": "string",
+            "errorMessage": "The 'version' field must be a string"
+        },
+        "database_name": {
+            "type": "string",
+            "errorMessage": "The 'database_name' field must be a string"
+        },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' field must be a string"
+        },
+        "cluster_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16,
+            "errorMessage": "The 'cluster_size' field must be an integer between 1 and 16"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' field must be a string"
+        },
+        "db_parameters": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'db_parameters' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
     },
-    "required": ["type"],
+    "required": ["type", "engine", "version", "database_name"],
     "additionalProperties": false,
     "errorMessage": {
         "additionalProperties": "Invalid/unknown property specified",
         "required": {
-            "type": "The top-level 'type' field is required"
+            "type": "The 'type' field is required",
+            "engine": "The 'engine' field is required",
+            "version": "The 'version' field is required",
+            "database_name": "The 'database_name' field is required"
         }
     }
 }

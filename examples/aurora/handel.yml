@@ -6,16 +6,10 @@ environments:
   dev:
     db:
       type: aurora
-      description: MyAuroraCluster
+      instance_type: db.t2.medium
+      cluster_size: 3
       database_name: MyDb
       engine: mysql
       version: 5.7.12
-      primary:
-        instance_type: t2.micro
-      read_replicas:
-        count: 3
-        instance_type: t2.micro
-      db_parameters:
-        some_param: value
       tags:
         some: tag

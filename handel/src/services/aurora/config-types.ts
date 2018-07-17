@@ -7,9 +7,9 @@ export interface AuroraConfig extends ServiceConfig {
     engine: AuroraEngine;
     version: string;
     database_name: string;
+    instance_type?: string;
+    cluster_size?: number;
     description?: string;
-    primary: AuroraPrimaryConfig;
-    read_replicas?: AuroraReadReplicasConfig;
     db_parameters?: AuroraDBParameters;
 }
 
@@ -22,21 +22,9 @@ export enum AuroraEngine {
     postgresql = 'postgresql'
 }
 
-export interface AuroraPrimaryConfig {
-    instance_type: string;
-    storage_type?: string;
-}
-
-export interface AuroraReadReplicasConfig {
-    count: number;
-    instance_type: string;
-    storage_type?: string;
-}
-
 export interface HandlebarsAuroraTemplate {
     description: string;
     parameterGroupFamily: string;
-    parameterGroupParams: HandlebarsAuroraParameterGroupParams;
     tags: Tags;
     databaseName: string;
     stackName: string;
@@ -45,20 +33,14 @@ export interface HandlebarsAuroraTemplate {
     engineVersion: string;
     port: number;
     dbSecurityGroupId: string;
-    primary: HandlebarsAuroraPrimary;
-    readReplicas?: HandlebarsAuroraReadReplica[];
+    instances: HandlebarsInstanceConfig[];
+    parameterGroupParams?: HandlebarsAuroraParameterGroupParams;
 }
 
 export interface HandlebarsAuroraParameterGroupParams {
     [key: string]: string;
 }
 
-export interface HandlebarsAuroraPrimary {
+export interface HandlebarsInstanceConfig {
     instanceType: string;
-    storageType: string;
-}
-
-export interface HandlebarsAuroraReadReplica {
-    instanceType: string;
-    storageType: string;
 }

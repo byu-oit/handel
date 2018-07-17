@@ -29,12 +29,11 @@ import {
 import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate } from './config-types';
+import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate, HandlebarsInstanceConfig } from './config-types';
 
 const SERVICE_NAME = 'Aurora';
 const DB_PROTOCOL = 'tcp';
 const DB_PORT = 3306;
-const DEFAULT_STORAGE_TYPE = 'standard';
 
 function getEngine(engineParam: AuroraEngine) {
     return `aurora-${engineParam}`;
@@ -59,41 +58,79 @@ function getParameterGroupFamily(engine: AuroraEngine, version: string) {
     }
 }
 
+function getInstanceType(params: AuroraConfig): string {
+    let instanceType: string;
+    if(params.instance_type) {
+        instanceType = params.instance_type;
+    } else {
+        if(params.engine === 'mysql') {
+            instanceType = 'db.t2.small'; // The smallest size MySQL Aurora supports
+        }
+        else {
+            instanceType = 'db.r4.large'; // PostgreSQL Aurora doesn't support anything smaller than this
+        }
+    }
+    return instanceType;
+}
+
+function getInstancesHandlebarsConfig(params: AuroraConfig): HandlebarsInstanceConfig[] {
+    const clusterSize = params.cluster_size || 1;
+    const instances: HandlebarsInstanceConfig[] = [];
+    for(let i = 0; i < clusterSize; i++) {
+        instances.push({
+            instanceType: getInstanceType(params)
+        });
+    }
+    return instances;
+}
+
 function getCompiledAuroraTemplate(stackName: string,
                                   ownServiceContext: ServiceContext<AuroraConfig>,
                                   ownPreDeployContext: PreDeployContext,
                                   tags: Tags) {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
+    const engine = getEngine(params.engine);
     const handlebarsParams: HandlebarsAuroraTemplate = {
         description: params.description || 'Handel-created Aurora cluster',
         parameterGroupFamily: getParameterGroupFamily(params.engine, params.version),
-        parameterGroupParams: params.db_parameters || {},
+        parameterGroupParams: params.db_parameters,
         tags,
         databaseName: params.database_name,
         stackName,
         dbSubnetGroup: accountConfig.rds_subnet_group,
-        engine: getEngine(params.engine),
+        engine,
         engineVersion: params.version,
         port: DB_PORT,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
-        primary: {
-            instanceType: params.primary.instance_type,
-            storageType: params.primary.storage_type || DEFAULT_STORAGE_TYPE
-        }
+        instances: getInstancesHandlebarsConfig(params)
     };
 
-    if(params.read_replicas) {
-        handlebarsParams.readReplicas = [];
-        for(let i = 0; i < params.read_replicas.count; i++) {
-            handlebarsParams.readReplicas.push({
-                instanceType: params.read_replicas.instance_type,
-                storageType: params.read_replicas.storage_type || DEFAULT_STORAGE_TYPE
-            });
-        }
+    return handlebars.compileTemplate(`${__dirname}/aurora-template.yml`, handlebarsParams);
+}
+
+function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
+    rdsCfStack: any) { // TODO - Better type later
+    const deployContext = new DeployContext(serviceContext);
+
+    // Inject ENV variables to talk to this database
+    const clusterEndpoint = awsCalls.cloudFormation.getOutput('ClusterEndpoint', rdsCfStack);
+    const port = awsCalls.cloudFormation.getOutput('ClusterPort', rdsCfStack);
+    const readEndpoint = awsCalls.cloudFormation.getOutput('ClusterReadEndpoint', rdsCfStack);
+    const dbName = awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
+
+    if(!clusterEndpoint || !port || !readEndpoint || !dbName) {
+        throw new Error('Expected RDS service to return address, port, and dbName');
     }
 
-    return handlebars.compileTemplate(`${__dirname}/aurora-template.yml`, handlebarsParams);
+    deployContext.addEnvironmentVariables({
+        CLUSTER_ENDPOINT: clusterEndpoint,
+        PORT: port,
+        READ_ENDPOINT: readEndpoint,
+        DATABASE_NAME: dbName
+    });
+
+    return deployContext;
 }
 
 /**
@@ -104,8 +141,7 @@ function getCompiledAuroraTemplate(stackName: string,
 
 export function check(serviceContext: ServiceContext<AuroraConfig>,
                       dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    // return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return []; // TODO - Implement check (JSON schema)
+    return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 }
 
 export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
@@ -137,8 +173,6 @@ export async function deploy(ownServiceContext: ServiceContext<AuroraConfig>,
         const dbPassword = rdsDeployersCommon.getNewDbPassword();
         const tags = tagging.getTags(ownServiceContext);
         const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext, tags);
-        console.log(compiledTemplate);
-        process.exit(0);
         const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
             DBUsername: dbUsername,
             DBPassword: dbPassword
@@ -158,11 +192,11 @@ export async function deploy(ownServiceContext: ServiceContext<AuroraConfig>,
         ]);
 
         winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
+        return getDeployContext(ownServiceContext, deployedStack);
     }
     else {
         winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, stack);
+        return getDeployContext(ownServiceContext, stack);
     }
 }
 

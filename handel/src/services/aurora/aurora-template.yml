@@ -13,26 +13,26 @@ Parameters:
     Type: String
 
 Resources:
-  ParameterGroup:
-    Type: AWS::RDS::DBClusterParameterGroup
-    Properties:
-      Description: {{description}}
-      Family: {{parameterGroupFamily}}
-      {{#if parameterGroupParams}}
-      Parameters:
-        {{#each parameterGroupParams}}
-        {{@key}}: '{{this}}'
-        {{/each}}
-      {{/if}}
-      Tags:
-      {{#if tags}}
-      {{#each tags}}
-      - Key: {{@key}}
-        Value: {{this}}
-      {{/each}}
-      {{/if}}
-      - Key: Name
-        Value: {{stackName}}
+  # ParameterGroup:
+  #   Type: AWS::RDS::DBClusterParameterGroup
+  #   Properties:
+  #     Description: {{description}}
+  #     Family: {{parameterGroupFamily}}
+  #     {{#if parameterGroupParams}}
+  #     Parameters:
+  #       {{#each parameterGroupParams}}
+  #       {{@key}}: '{{this}}'
+  #       {{/each}}
+  #     {{/if}}
+  #     Tags:
+  #     {{#if tags}}
+  #     {{#each tags}}
+  #     - Key: {{@key}}
+  #       Value: {{this}}
+  #     {{/each}}
+  #     {{/if}}
+  #     - Key: Name
+  #       Value: {{stackName}}
 
   Cluster:
     Type: AWS::RDS::DBCluster
@@ -41,7 +41,7 @@ Resources:
       MasterUserPassword: !Ref DBPassword
       DatabaseName: {{databaseName}}
       DBClusterIdentifier: {{stackName}}
-      DBClusterParameterGroupName: !Ref ParameterGroup
+      DBClusterParameterGroupName: default.aurora-mysql5.7
       DBSubnetGroupName:  {{dbSubnetGroup}}
       Engine: {{engine}}
       EngineVersion: {{engineVersion}}
@@ -58,32 +58,7 @@ Resources:
       VpcSecurityGroupIds:
       - {{dbSecurityGroupId}}
 
-  PrimaryInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      AllowMajorVersionUpgrade: true
-      AutoMinorVersionUpgrade: true
-      DBClusterIdentifier: !Ref Cluster
-      DBInstanceClass: {{primary.instanceType}}
-      DBInstanceIdentifier: {{stackName}}-primary
-      DBParameterGroupName: !Ref ParameterGroup
-      DBSubnetGroupName: {{dbSubnetGroup}}
-      Engine: {{engine}}
-      PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
-      StorageType: {{primary.storageType}}
-      Tags:
-      {{#if tags}}
-      {{#each tags}}
-      - Key: {{@key}}
-        Value: {{this}}
-      {{/each}}
-      {{/if}}
-      - Key: Name
-        Value: {{stackName}}
-      VPCSecurityGroups:
-      - {{dbSecurityGroupId}}
-
-  {{#each readReplicas}}
+  {{#each instances}}
   DatabaseReplicaInstance{{@index}}:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -91,28 +66,25 @@ Resources:
       AutoMinorVersionUpgrade: true
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{instanceType}}
-      DBInstanceIdentifier: {{../stackName}}-read{{@index}}
-      DBParameterGroupName: !Ref ParameterGroup
+      DBInstanceIdentifier: {{../stackName}}-{{@index}}
+      # DBParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName: {{../dbSubnetGroup}}
       Engine: {{../engine}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
-      StorageType: {{storageType}}
       Tags:
-      {{#if tags}}
-      {{#each tags}}
+      {{#if ../tags}}
+      {{#each ../tags}}
       - Key: {{@key}}
         Value: {{this}}
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
-      VPCSecurityGroups:
-      - {{../dbSecurityGroupId}}
+        Value: {{../stackName}}
 
   {{/each}}
 
 Outputs:
-  ClusterAddress:
+  ClusterEndpoint:
     Description: The connection endpoint of the Aurora cluster
     Value: !GetAtt Cluster.Endpoint.Address
   ClusterPort:
