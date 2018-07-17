@@ -59,7 +59,7 @@ Resources:
       - {{dbSecurityGroupId}}
 
   {{#each instances}}
-  DatabaseReplicaInstance{{@index}}:
+  DatabaseInstance{{@index}}:
     Type: AWS::RDS::DBInstance
     Properties:
       AllowMajorVersionUpgrade: true

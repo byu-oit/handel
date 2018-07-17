@@ -26,7 +26,16 @@ import {
     UnDeployContext,
     UnPreDeployContext,
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate, HandlebarsInstanceConfig } from './config-types';
