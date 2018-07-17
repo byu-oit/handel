@@ -34,6 +34,7 @@ import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate } from './config-t
 const SERVICE_NAME = 'Aurora';
 const DB_PROTOCOL = 'tcp';
 const DB_PORT = 3306;
+const DEFAULT_STORAGE_TYPE = 'standard';
 
 function getEngine(engineParam: AuroraEngine) {
     return `aurora-${engineParam}`;
@@ -78,20 +79,21 @@ function getCompiledAuroraTemplate(stackName: string,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         primary: {
             instanceType: params.primary.instance_type,
-            storageType: params.primary.storage_type || 'standard'
+            storageType: params.primary.storage_type || DEFAULT_STORAGE_TYPE
         }
     };
 
     if(params.read_replicas) {
-        handlebarsParams.readReplicas = params.read_replicas.map(replica => {
-            return {
-                instanceType: replica.instance_type,
-                storageType: replica.storage_type || 'standard'
-            };
-        });
+        handlebarsParams.readReplicas = [];
+        for(let i = 0; i < params.read_replicas.count; i++) {
+            handlebarsParams.readReplicas.push({
+                instanceType: params.read_replicas.instance_type,
+                storageType: params.read_replicas.storage_type || DEFAULT_STORAGE_TYPE
+            });
+        }
     }
 
-    return handlebars.compileTemplate(`${__dirname}/mysql-template.yml`, handlebarsParams);
+    return handlebars.compileTemplate(`${__dirname}/aurora-template.yml`, handlebarsParams);
 }
 
 /**

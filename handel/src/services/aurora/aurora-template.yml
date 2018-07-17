@@ -66,11 +66,9 @@ Resources:
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{primary.instanceType}}
       DBInstanceIdentifier: {{stackName}}-primary
-      DBName: {{databaseName}}
       DBParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName: {{dbSubnetGroup}}
       Engine: {{engine}}
-      Port: {{port}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
       StorageType: {{primary.storageType}}
       Tags:
@@ -94,11 +92,9 @@ Resources:
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{instanceType}}
       DBInstanceIdentifier: {{../stackName}}-read{{@index}}
-      DBName: {{../databaseName}}
       DBParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName: {{../dbSubnetGroup}}
       Engine: {{../engine}}
-      Port: {{../port}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
       StorageType: {{storageType}}
       Tags:
@@ -111,7 +107,8 @@ Resources:
       - Key: Name
         Value: {{stackName}}
       VPCSecurityGroups:
-      - {{dbSecurityGroupId}}
+      - {{../dbSecurityGroupId}}
+
   {{/each}}
 
 Outputs:

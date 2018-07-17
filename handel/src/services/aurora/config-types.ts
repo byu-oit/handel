@@ -9,7 +9,7 @@ export interface AuroraConfig extends ServiceConfig {
     database_name: string;
     description?: string;
     primary: AuroraPrimaryConfig;
-    read_replicas?: AuroraReadReplicaConfig[];
+    read_replicas?: AuroraReadReplicasConfig;
     db_parameters?: AuroraDBParameters;
 }
 
@@ -27,7 +27,8 @@ export interface AuroraPrimaryConfig {
     storage_type?: string;
 }
 
-export interface AuroraReadReplicaConfig {
+export interface AuroraReadReplicasConfig {
+    count: number;
     instance_type: string;
     storage_type?: string;
 }
