@@ -14,7 +14,7 @@ Parameters:
 
 Resources:
   ParameterGroup:
-    Type: AWS::RDS::DBParameterGroup
+    Type: AWS::RDS::DBClusterParameterGroup
     Properties:
       Description: {{description}}
       Family: {{parameterGroupFamily}}
@@ -72,7 +72,7 @@ Resources:
       Engine: {{engine}}
       Port: {{port}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
-      StorageType: {{storageType}}
+      StorageType: {{primary.storageType}}
       Tags:
       {{#if tags}}
       {{#each tags}}
@@ -100,7 +100,7 @@ Resources:
       Engine: {{../engine}}
       Port: {{../port}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
-      StorageType: {{../storageType}}
+      StorageType: {{storageType}}
       Tags:
       {{#if tags}}
       {{#each tags}}

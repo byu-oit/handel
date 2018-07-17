@@ -21,23 +21,75 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    Tags,
     UnBindContext,
     UnDeployContext,
-    UnPreDeployContext
+    UnPreDeployContext,
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import { AuroraConfig } from './config-types';
+import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate } from './config-types';
 
 const SERVICE_NAME = 'Aurora';
 const DB_PROTOCOL = 'tcp';
 const DB_PORT = 3306;
 
+function getEngine(engineParam: AuroraEngine) {
+    return `aurora-${engineParam}`;
+}
+
+function getParameterGroupFamily(engine: AuroraEngine, version: string) {
+    if(engine === AuroraEngine.mysql) { // MySQL
+        if (version.startsWith('5.7')) {
+            return 'aurora-mysql5.7';
+        }
+        else {
+            throw new Error('Unsupported version in Aurora MySQL');
+        }
+    }
+    else { // PostgreSQL
+        if(version.startsWith('9.6')) {
+            return 'aurora-postgresql9.6';
+        }
+        else {
+            throw new Error('Unsupported version in Aurora PostgreSQL');
+        }
+    }
+}
+
 function getCompiledAuroraTemplate(stackName: string,
                                   ownServiceContext: ServiceContext<AuroraConfig>,
-                                  ownPreDeployContext: PreDeployContext) {
-    const handlebarsParams = {};
+                                  ownPreDeployContext: PreDeployContext,
+                                  tags: Tags) {
+    const params = ownServiceContext.params;
+    const accountConfig = ownServiceContext.accountConfig;
+    const handlebarsParams: HandlebarsAuroraTemplate = {
+        description: params.description || 'Handel-created Aurora cluster',
+        parameterGroupFamily: getParameterGroupFamily(params.engine, params.version),
+        parameterGroupParams: params.db_parameters || {},
+        tags,
+        databaseName: params.database_name,
+        stackName,
+        dbSubnetGroup: accountConfig.rds_subnet_group,
+        engine: getEngine(params.engine),
+        engineVersion: params.version,
+        port: DB_PORT,
+        dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
+        primary: {
+            instanceType: params.primary.instance_type,
+            storageType: params.primary.storage_type || 'standard'
+        }
+    };
+
+    if(params.read_replicas) {
+        handlebarsParams.readReplicas = params.read_replicas.map(replica => {
+            return {
+                instanceType: replica.instance_type,
+                storageType: replica.storage_type || 'standard'
+            };
+        });
+    }
 
     return handlebars.compileTemplate(`${__dirname}/mysql-template.yml`, handlebarsParams);
 }
@@ -50,7 +102,8 @@ function getCompiledAuroraTemplate(stackName: string,
 
 export function check(serviceContext: ServiceContext<AuroraConfig>,
                       dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    // return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return []; // TODO - Implement check (JSON schema)
 }
 
 export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
@@ -80,18 +133,20 @@ export async function deploy(ownServiceContext: ServiceContext<AuroraConfig>,
     if (!stack) {
         const dbUsername = rdsDeployersCommon.getNewDbUsername();
         const dbPassword = rdsDeployersCommon.getNewDbPassword();
-        const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext);
+        const tags = tagging.getTags(ownServiceContext);
+        const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext, tags);
+        console.log(compiledTemplate);
+        process.exit(0);
         const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
             DBUsername: dbUsername,
             DBPassword: dbPassword
         });
-        const stackTags = tagging.getTags(ownServiceContext);
         winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
         const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
                                                                     compiledTemplate,
                                                                     cfParameters,
                                                                     30,
-                                                                    stackTags);
+                                                                    tags);
         winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
 
         // Add DB credentials to the Parameter Store
