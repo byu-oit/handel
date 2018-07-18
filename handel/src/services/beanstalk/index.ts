@@ -17,19 +17,23 @@
 import {
     DeployContext,
     DeployOutputType,
-    EnvironmentVariables,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
-import * as _ from 'lodash';
+import {
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
 import * as instanceAutoScaling from '../../common/instance-auto-scaling';
-import * as util from '../../common/util';
 import {
     BeanstalkServiceConfig,
     EbextensionsToInject,
@@ -250,20 +254,17 @@ async function getSystemInjectedEbExtensions(stackName: string, ownServiceContex
  */
 
 export function check(serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const params = serviceContext.params;
-
-    // TODO - Implement check method
-
-    // solution_stack required
-
-    if (params.routing && params.routing.dns_names) {
-        const badName = params.routing.dns_names.some(it => !route53.isValidHostname(it));
-        if (badName) {
-            errors.push(`${SERVICE_NAME} - 'dns_names' values must be valid hostnames`);
+    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    if(errors.length === 0) {
+        const params = serviceContext.params;
+        if (params.routing && params.routing.dns_names) {
+            const badName = params.routing.dns_names.some(it => !route53.isValidHostname(it));
+            if (badName) {
+                errors.push(`${SERVICE_NAME} - 'dns_names' values must be valid hostnames`);
+            }
         }
     }
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
