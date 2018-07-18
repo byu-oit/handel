@@ -29,6 +29,24 @@
             "pattern": "^(enabled|disabled)$",
             "errorMessage": "The 'state' parameter must be one of the following values: enabled, disabled"
         },
+        "event_consumers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "service_name": {
+                        "type": "string",
+                        "errorMessage": "The 'service_name' field must be a string"
+                    },
+                    "event_input": {
+                        "type": "string",
+                        "errorMessage": "The 'event_input' field must be a JSON string"
+                    }
+                },
+                "errorMessage": "The 'event_consumers' field must contain an array of objects with the 'service_name' and 'event_input' properties",
+                "additionalProperties": false
+            }
+        },
         "tags": {
             "type": "object",
             "description": "An arbitrary list of key/value pairs to be added as tags to the service",
