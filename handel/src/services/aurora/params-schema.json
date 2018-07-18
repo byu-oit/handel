@@ -35,19 +35,11 @@
             "type": "string",
             "errorMessage": "The 'description' field must be a string"
         },
-        "db_parameters": {
-            "type": "object",
-            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
-            "patternProperties": {
-                "^.*$": {
-                    "anyOf": [
-                        {"type": "string"},
-                        {"type": "number"}
-                    ]
-                }
-            },
-            "errorMessage": "The 'db_parameters' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
-            "additionalProperties": false
+        "cluster_parameters": {
+            "$ref": "#/definitions/db_parameters"
+        },
+        "instance_parameters": {
+            "$ref": "#/definitions/db_parameters"
         },
         "tags": {
             "type": "object",
@@ -73,6 +65,22 @@
             "engine": "The 'engine' field is required",
             "version": "The 'version' field is required",
             "database_name": "The 'database_name' field is required"
+        }
+    },
+    "definitions": {
+        "db_parameters": {
+            "type": "object",
+            "description": "A list of key/value RDS database parameters",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "Database parameters must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
         }
     }
 }

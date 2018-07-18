@@ -103,7 +103,8 @@ function getCompiledAuroraTemplate(stackName: string,
     const handlebarsParams: HandlebarsAuroraTemplate = {
         description: params.description || 'Handel-created Aurora cluster',
         parameterGroupFamily: getParameterGroupFamily(params.engine, params.version),
-        parameterGroupParams: params.db_parameters,
+        clusterParameters: params.cluster_parameters,
+        instanceParameters: params.instance_parameters,
         tags,
         databaseName: params.database_name,
         stackName,
@@ -150,7 +151,8 @@ function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
 
 export function check(serviceContext: ServiceContext<AuroraConfig>,
                       dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {

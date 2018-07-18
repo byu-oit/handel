@@ -10,7 +10,8 @@ export interface AuroraConfig extends ServiceConfig {
     instance_type?: string;
     cluster_size?: number;
     description?: string;
-    db_parameters?: AuroraDBParameters;
+    cluster_parameters?: AuroraDBParameters;
+    instance_parameters?: AuroraDBParameters;
 }
 
 export interface AuroraDBParameters {
@@ -34,7 +35,8 @@ export interface HandlebarsAuroraTemplate {
     port: number;
     dbSecurityGroupId: string;
     instances: HandlebarsInstanceConfig[];
-    parameterGroupParams?: HandlebarsAuroraParameterGroupParams;
+    clusterParameters?: HandlebarsAuroraParameterGroupParams;
+    instanceParameters?: HandlebarsAuroraParameterGroupParams;
 }
 
 export interface HandlebarsAuroraParameterGroupParams {

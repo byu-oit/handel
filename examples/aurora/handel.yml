@@ -11,5 +11,9 @@ environments:
       database_name: MyDb
       engine: mysql
       version: 5.7.12
+      cluster_parameters:
+        character_set_database: utf8mb4
+      instance_parameters:
+        autocommit: 1
       tags:
         some: tag

@@ -13,26 +13,50 @@ Parameters:
     Type: String
 
 Resources:
-  # ParameterGroup:
-  #   Type: AWS::RDS::DBClusterParameterGroup
-  #   Properties:
-  #     Description: {{description}}
-  #     Family: {{parameterGroupFamily}}
-  #     {{#if parameterGroupParams}}
-  #     Parameters:
-  #       {{#each parameterGroupParams}}
-  #       {{@key}}: '{{this}}'
-  #       {{/each}}
-  #     {{/if}}
-  #     Tags:
-  #     {{#if tags}}
-  #     {{#each tags}}
-  #     - Key: {{@key}}
-  #       Value: {{this}}
-  #     {{/each}}
-  #     {{/if}}
-  #     - Key: Name
-  #       Value: {{stackName}}
+  ClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      Parameters:
+      {{#if clusterParameters}}
+        {{#each clusterParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{else}}
+        # If no params specified, use a single param set to the default so CF won't throw an error
+        server_audit_logging: 0
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  InstanceParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      {{#if instanceParameters}}
+      Parameters:
+        {{#each instanceParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
 
   Cluster:
     Type: AWS::RDS::DBCluster
@@ -41,7 +65,7 @@ Resources:
       MasterUserPassword: !Ref DBPassword
       DatabaseName: {{databaseName}}
       DBClusterIdentifier: {{stackName}}
-      DBClusterParameterGroupName: default.aurora-mysql5.7
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
       Engine: {{engine}}
       EngineVersion: {{engineVersion}}
@@ -67,7 +91,7 @@ Resources:
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{instanceType}}
       DBInstanceIdentifier: {{../stackName}}-{{@index}}
-      # DBParameterGroupName: !Ref ParameterGroup
+      DBParameterGroupName: !Ref InstanceParameterGroup
       DBSubnetGroupName: {{../dbSubnetGroup}}
       Engine: {{../engine}}
       PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
