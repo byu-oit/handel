@@ -1,0 +1,14 @@
+version: 1
+
+name: aurora-test
+
+environments:
+  dev:
+    db:
+      type: aurora
+      cluster_size: 3
+      database_name: MyDb
+      engine: postgresql
+      version: 9.6.3
+      tags:
+        some: tag

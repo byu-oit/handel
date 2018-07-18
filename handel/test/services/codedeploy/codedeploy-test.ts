@@ -61,12 +61,7 @@ describe('codedeploy deployer', () => {
         sandbox.restore();
     });
 
-    describe('check', () => {
-        it(`should do nothing yet`, () => {
-            const errors = codedeploy.check(serviceContext);
-            expect(errors).to.deep.equal([]);
-        });
-    });
+    // At the moment, check only validates the JSON schema, so no tests here for that phase at the moment
 
     describe('preDeploy', () => {
         it('should call the predeploy common to create a security group', async () => {

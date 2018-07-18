@@ -1,0 +1,126 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Aurora RDS instance
+
+Parameters:
+  DBUsername:
+    NoEcho: true
+    Description: The username of the database
+    Type: String
+  DBPassword:
+    NoEcho: true
+    Description: The password of the database
+    Type: String
+
+Resources:
+  ClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      Parameters:
+      {{#if clusterParameters}}
+        {{#each clusterParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{else}}
+        # If no params specified, use a single param set to the default so CF won't throw an error
+        {{#if isMySQL}}
+        server_audit_logging: 0
+        {{else}}
+        autovacuum_naptime: 5
+        {{/if}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  InstanceParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      {{#if instanceParameters}}
+      Parameters:
+        {{#each instanceParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  Cluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DatabaseName: {{databaseName}}
+      DBClusterIdentifier: {{stackName}}
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      DBSubnetGroupName:  {{dbSubnetGroup}}
+      Engine: {{engine}}
+      EngineVersion: {{engineVersion}}
+      Port: {{port}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VpcSecurityGroupIds:
+      - {{dbSecurityGroupId}}
+
+  {{#each instances}}
+  DatabaseInstance{{@index}}:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: {{instanceType}}
+      DBInstanceIdentifier: {{../stackName}}-{{@index}}
+      DBParameterGroupName: !Ref InstanceParameterGroup
+      DBSubnetGroupName: {{../dbSubnetGroup}}
+      Engine: {{../engine}}
+      PubliclyAccessible: false # TODO - This won't work when deploying DBs in public subnets?
+      Tags:
+      {{#if ../tags}}
+      {{#each ../tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{../stackName}}
+
+  {{/each}}
+
+Outputs:
+  ClusterEndpoint:
+    Description: The connection endpoint of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Address
+  ClusterPort:
+    Description: The port of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Port
+  ClusterReadEndpoint:
+    Description: The read endpoint for the Aurora cluster
+    Value: !GetAtt Cluster.ReadEndpoint.Address
+  DatabaseName:
+    Description: The name of the database
+    Value: {{databaseName}}
