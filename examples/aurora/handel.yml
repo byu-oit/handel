@@ -6,14 +6,9 @@ environments:
   dev:
     db:
       type: aurora
-      instance_type: db.t2.medium
       cluster_size: 3
       database_name: MyDb
-      engine: mysql
-      version: 5.7.12
-      cluster_parameters:
-        character_set_database: utf8mb4
-      instance_parameters:
-        autocommit: 1
+      engine: postgresql
+      version: 9.6.3
       tags:
         some: tag

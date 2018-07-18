@@ -25,7 +25,11 @@ Resources:
         {{/each}}
       {{else}}
         # If no params specified, use a single param set to the default so CF won't throw an error
+        {{#if isMySQL}}
         server_audit_logging: 0
+        {{else}}
+        autovacuum_naptime: 5
+        {{/if}}
       {{/if}}
       Tags:
       {{#if tags}}

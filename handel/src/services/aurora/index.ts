@@ -113,7 +113,8 @@ function getCompiledAuroraTemplate(stackName: string,
         engineVersion: params.version,
         port: DB_PORT,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
-        instances: getInstancesHandlebarsConfig(params)
+        instances: getInstancesHandlebarsConfig(params),
+        isMySQL: params.engine === AuroraEngine.mysql ? true : false
     };
 
     return handlebars.compileTemplate(`${__dirname}/aurora-template.yml`, handlebarsParams);

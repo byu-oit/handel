@@ -35,6 +35,7 @@ export interface HandlebarsAuroraTemplate {
     port: number;
     dbSecurityGroupId: string;
     instances: HandlebarsInstanceConfig[];
+    isMySQL: boolean;
     clusterParameters?: HandlebarsAuroraParameterGroupParams;
     instanceParameters?: HandlebarsAuroraParameterGroupParams;
 }
