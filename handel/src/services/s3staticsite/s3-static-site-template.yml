@@ -71,6 +71,8 @@ Resources:
           ForwardedValues:
             Headers: # There is a default CORS config even if you don't specify a custom CORS configuration
             - Origin
+            - Access-Control-Request-Headers
+            - Access-Control-Request-Method
             QueryString: true
           {{#if cloudfront.httpsCertificateId}}
           ViewerProtocolPolicy: redirect-to-https
