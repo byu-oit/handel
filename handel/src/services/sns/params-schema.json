@@ -37,6 +37,20 @@
                 }
             }
         },
+        "event_consumers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "service_name": {
+                        "type": "string",
+                        "errorMessage": "The 'service_name' field must be a string"
+                    }
+                },
+                "errorMessage": "The 'event_consumers' field must contain an array of objects with the 'service_name' and 'event_input' properties",
+                "additionalProperties": false
+            }
+        },
         "tags": {
             "type": "object",
             "description": "An arbitrary list of key/value pairs to be added as tags to the service",
