@@ -94,9 +94,7 @@ export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependen
         deployTypeErrors = swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
     }
     else {
-        winston.warn(`Top-level proxy configuration is deprecated. You should use the 'proxy' section instead`);
-        deployTypeErrors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
-        // return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+        return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
     }
     return commonErrors.concat(deployTypeErrors);
 }

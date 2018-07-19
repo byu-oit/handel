@@ -51,31 +51,28 @@ describe('apigateway proxy deploy type', () => {
     });
 
     describe('check', () => {
-        it('should require the \'path_to_code\' param', function() {
-            this.timeout(10000);
+        it('should require the \'path_to_code\' param', () => {
             delete serviceContext.params.proxy!.path_to_code;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
         });
 
-        it('should require the \'runtime\' param', function() {
-            this.timeout(10000);
+        it('should require the \'runtime\' param', () => {
             delete serviceContext.params.proxy!.runtime;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'runtime\' parameter is required');
         });
 
-        it('should require the \'handler\' param', function() {
-            this.timeout(10000);
+        it('should require the \'handler\' param', () => {
             delete serviceContext.params.proxy!.handler;
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'handler\' parameter is required');
         });
 
-        it('should check the \'warmup\' param', function() {
+        it('should check the \'warmup\' param', () => {
             serviceContext.params.proxy!.warmup = {
                 schedule: 'rate(5 minutes)'
             };
@@ -83,7 +80,7 @@ describe('apigateway proxy deploy type', () => {
             const checkStub = sandbox.stub(common, 'checkWarmupConfig').returns([]);
 
             const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
-            expect(errors).to.be.empty;
+            expect(errors.length).to.equal(0);
 
             expect(checkStub.callCount).to.equal(1);
         });
