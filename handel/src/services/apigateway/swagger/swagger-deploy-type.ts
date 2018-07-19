@@ -256,9 +256,7 @@ function uploadDeployableArtifactsToS3(ownServiceContext: ServiceContext<APIGate
 
 export function check(ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>, serviceName: string): string[] {
     const checkErrors: string[] = [];
-
-    // TODO - Probably parse Swagger file and check it if we get troubles
-
+    // TODO - Parse swagger file and check it
     return checkErrors;
 }
 

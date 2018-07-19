@@ -93,26 +93,12 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
     return handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
 }
 
-function checkForParam(params: any, paramName: string, checkErrors: string[]) {
-    if (!params.proxy[paramName]) {
-        checkErrors.push(`'${paramName}' parameter is required`);
-    }
-}
-
 export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>, serviceName: string): string[] {
     const checkErrors: string[] = [];
-
-    const params = serviceContext.params;
-    checkForParam(params, 'path_to_code', checkErrors);
-    checkForParam(params, 'runtime', checkErrors);
-    checkForParam(params, 'handler', checkErrors);
-
-    const proxy = params.proxy!;
-
+    const proxy = serviceContext.params.proxy!;
     if (proxy.warmup) {
         checkErrors.push(...apigatewayCommon.checkWarmupConfig(proxy.warmup));
     }
-
     return checkErrors;
 }
 

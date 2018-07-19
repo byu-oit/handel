@@ -51,27 +51,7 @@ describe('apigateway proxy deploy type', () => {
     });
 
     describe('check', () => {
-        it('should require the \'path_to_code\' param', () => {
-            delete serviceContext.params.proxy!.path_to_code;
-            const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
-        });
-
-        it('should require the \'runtime\' param', () => {
-            delete serviceContext.params.proxy!.runtime;
-            const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'runtime\' parameter is required');
-        });
-
-        it('should require the \'handler\' param', () => {
-            delete serviceContext.params.proxy!.handler;
-            const errors = proxyPassthroughDeployType.check(serviceContext, [], 'API Gateway');
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'handler\' parameter is required');
-        });
-
+        // Most of the checks are just done in the JSON schema validation
         it('should check the \'warmup\' param', () => {
             serviceContext.params.proxy!.warmup = {
                 schedule: 'rate(5 minutes)'

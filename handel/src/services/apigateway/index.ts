@@ -23,7 +23,11 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { deletePhases, preDeployPhase } from 'handel-extension-support';
+import {
+    checkPhase,
+    deletePhases,
+    preDeployPhase
+ } from 'handel-extension-support';
 import * as winston from 'winston';
 import {isValidHostname} from '../../aws/route53-calls';
 import * as lifecyclesCommon from '../../common/lifecycles-common';
@@ -83,20 +87,20 @@ function checkCustomDomain(domain: CustomDomain): string[] {
 
 export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const params = serviceContext.params;
-
-    const commonErrors = checkCommon(serviceContext, dependenciesServiceContexts);
-
-    let deployTypeErrors: string[];
-    if(params.proxy) {
-        deployTypeErrors = proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
+    let errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    if(errors.length === 0) {
+        errors = errors.concat(checkCommon(serviceContext, dependenciesServiceContexts));
+        if(params.proxy) {
+            errors = errors.concat(proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+        }
+        else if(params.swagger) {
+            errors = errors.concat(swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+        }
+        else {
+            return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+        }
     }
-    else if(params.swagger) {
-        deployTypeErrors = swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME);
-    }
-    else {
-        return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
-    }
-    return commonErrors.concat(deployTypeErrors);
+    return errors;
 }
 
 export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
