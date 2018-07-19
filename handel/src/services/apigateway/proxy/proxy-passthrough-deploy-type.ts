@@ -23,9 +23,12 @@ import * as apigatewayCommon from '../common';
 import { APIGatewayConfig, WarmupConfig } from '../config-types';
 
 async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGatewayConfig>, serviceName: string): Promise<S3.ManagedUpload.SendData> {
+    if(!serviceContext.params.proxy) {
+        throw new Error('Expected proxy passthrough configuration to be present');
+    }
     const s3FileName = `apigateway-deployable-${uuid()}.zip`;
     winston.info(`${serviceName} - Uploading deployable artifact to S3: ${s3FileName}`);
-    const pathToArtifact = getParam(serviceContext.params, 'path_to_code', 'path_to_code', undefined);
+    const pathToArtifact = serviceContext.params.proxy.path_to_code;
     const s3ArtifactInfo = await deployPhase.uploadDeployableArtifactToHandelBucket(serviceContext, pathToArtifact, s3FileName);
     winston.info(`${serviceName} - Uploaded deployable artifact to S3: ${s3FileName}`);
     return s3ArtifactInfo;
@@ -33,6 +36,9 @@ async function uploadDeployableArtifactToS3(serviceContext: ServiceContext<APIGa
 
 async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContext: ServiceContext<APIGatewayConfig>, dependenciesDeployContexts: DeployContext[], s3ObjectInfo: AWS.S3.ManagedUpload.SendData, ownPreDeployContext: PreDeployContext) {
     const serviceParams = ownServiceContext.params;
+    if(!serviceParams.proxy) {
+        throw new Error('Expected proxy passthrough configuration to be present');
+    }
     const accountConfig = ownServiceContext.accountConfig;
 
     const stageName = ownServiceContext.environmentName;
@@ -43,16 +49,16 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         s3Bucket: s3ObjectInfo.Bucket,
         s3Key: s3ObjectInfo.Key,
         apiName: stackName,
-        provisionedMemory: getParam(serviceParams, 'provisioned_memory', 'memory', '128'),
-        handlerFunction: getParam(serviceParams, 'handler_function', 'handler', undefined),
-        functionTimeout: getParam(serviceParams, 'function_timeout', 'timeout', '3').toString(),
-        lambdaRuntime: getParam(serviceParams, 'lambda_runtime', 'runtime', undefined),
+        provisionedMemory: serviceParams.proxy.memory || '128',
+        handlerFunction: serviceParams.proxy.handler,
+        functionTimeout: (serviceParams.proxy.timeout || '3').toString(),
+        lambdaRuntime: serviceParams.proxy.runtime,
         policyStatements: apigatewayCommon.getPolicyStatementsForLambdaRole(ownServiceContext, dependenciesDeployContexts),
         tags: tagging.getTags(ownServiceContext)
     };
 
     // Add binary media types if specified
-    const binaryMediaTypes = getParam(serviceParams, 'binary_media_types', undefined, undefined);
+    const binaryMediaTypes = serviceParams.binary_media_types;
     if (binaryMediaTypes) {
         handlebarsParams.binaryMediaTypes = [];
         for (const type of binaryMediaTypes) {
@@ -68,7 +74,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         handlebarsParams.environment_variables = deployPhase.getEnvVarsForDeployedService(ownServiceContext, dependenciesDeployContexts, serviceParams.environment_variables);
     }
 
-    const vpc = getParam(serviceParams, 'vpc', undefined, undefined);
+    const vpc = serviceParams.vpc;
     if (vpc) {
         handlebarsParams.vpc = true;
         handlebarsParams.vpcSecurityGroupIds = apigatewayCommon.getSecurityGroups(ownPreDeployContext);
@@ -79,7 +85,7 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         handlebarsParams.customDomains = await apigatewayCommon.getCustomDomainHandlebarsParams(ownServiceContext, serviceParams.custom_domains);
     }
 
-    const warmup: WarmupConfig = getParam(serviceParams, 'warmup', 'warmup', undefined);
+    const warmup = serviceParams.proxy.warmup;
     if (warmup) {
         handlebarsParams.warmup = apigatewayCommon.getWarmupTemplateParameters(warmup, ownServiceContext, 'ServerlessRestApi');
     }
@@ -87,43 +93,12 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
     return handlebars.compileTemplate(`${__dirname}/apigateway-proxy-template.yml`, handlebarsParams);
 }
 
-function checkForParam(params: any, oldParamName: string, newParamName: string, checkErrors: string[]) {
-    if (!params[oldParamName]) {
-        if (!params.proxy || !params.proxy[newParamName]) {
-            checkErrors.push(`'${newParamName}' parameter is required`);
-        }
-    }
-    else {
-        winston.warn(`The '${oldParamName}' parameter is deprecated. Use 'proxy.${newParamName}' instead.`);
-    }
-}
-
-function getParam(params: any, oldParamName: string, newParamName: string | undefined, defaultValue: string | number | undefined) {
-    if (params[oldParamName]) {
-        return params[oldParamName];
-    }
-    else if (params.proxy && params.proxy[newParamName!]) {
-        return params.proxy[newParamName!];
-    }
-    else {
-        return defaultValue;
-    }
-}
-
 export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>, serviceName: string): string[] {
     const checkErrors: string[] = [];
-
-    const params = serviceContext.params;
-    checkForParam(params, 'path_to_code', 'path_to_code', checkErrors);
-    checkForParam(params, 'lambda_runtime', 'runtime', checkErrors);
-    checkForParam(params, 'handler_function', 'handler', checkErrors);
-
-    const proxy = params.proxy!;
-
+    const proxy = serviceContext.params.proxy!;
     if (proxy.warmup) {
         checkErrors.push(...apigatewayCommon.checkWarmupConfig(proxy.warmup));
     }
-
     return checkErrors;
 }
 
@@ -139,7 +114,10 @@ export async function deploy(stackName: string, ownServiceContext: ServiceContex
 }
 
 async function maybePreWarmLambda(serviceContext: ServiceContext<APIGatewayConfig>, deployedStack: AWS.CloudFormation.Stack): Promise<void> {
-    const warmup: WarmupConfig | undefined = getParam(serviceContext.params, 'warmup', 'warmup', undefined);
+    if(!serviceContext.params.proxy) {
+        throw new Error('Expected proxy passthrough configuration to be present');
+    }
+    const warmup: WarmupConfig | undefined = serviceContext.params.proxy.warmup;
 
     if (!warmup) {
         return;
