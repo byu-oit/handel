@@ -43,15 +43,10 @@ export function getBestMatchingHostedZone(domain: string, zones: AWS.Route53.Hos
         .pop();
 }
 
-const HOSTED_ZONE_ID_PREFIX = '/hostedzone/';
-
 export function requireBestMatchingHostedZone(domain: string, zones: AWS.Route53.HostedZone[]): AWS.Route53.HostedZone {
     const found = getBestMatchingHostedZone(domain, zones);
     if (!found) {
         throw new Error(`There is no Route53 hosted zone in this account that matches '${domain}'`);
-    }
-    if (found.Id.startsWith(HOSTED_ZONE_ID_PREFIX)) {
-        found.Id = found.Id.substring(HOSTED_ZONE_ID_PREFIX.length);
     }
     return found;
 }
