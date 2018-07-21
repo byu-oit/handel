@@ -1,0 +1,17 @@
+version: 1
+
+name: ai-service-example
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+      dependencies:
+      - aiaccess
+    aiaccess:
+      type: aiservices
+      ai_services:
+      - rekognition
