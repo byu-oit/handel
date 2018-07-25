@@ -134,13 +134,6 @@ describe('apigateway deployer', () => {
                         custom_domains: [customDomain]
                     };
                 });
-                it('should fail if missing a dns_name', async () => {
-                    customDomain.dns_name = null;
-
-                    const errors = await apigateway.check(serviceContext, []);
-                    expect(errors).to.have.lengthOf(1);
-                    expect(errors[0]).to.contain('\'dns_name\' parameter is required');
-                });
 
                 it('should fail if given an invalid dns_name', async () => {
                     customDomain.dns_name = 'totally invalid dns name';
@@ -148,14 +141,6 @@ describe('apigateway deployer', () => {
                     const errors = await apigateway.check(serviceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.contain('\'dns_name\' must be a valid DNS hostname');
-                });
-
-                it('should fail if missing an https_certificate', async () => {
-                    customDomain.https_certificate = null;
-
-                    const errors = await apigateway.check(serviceContext, []);
-                    expect(errors).to.have.lengthOf(1);
-                    expect(errors[0]).to.contain('\'https_certificate\' parameter is required');
                 });
             });
         });
