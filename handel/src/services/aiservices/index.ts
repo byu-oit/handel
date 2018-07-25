@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import * as fs from 'fs';
 import {
     DeployContext,
     DeployOutputType,

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { DeployContext, EnvironmentVariables, ServiceContext } from 'handel-extension-api';
+import { DeployContext, ServiceContext } from 'handel-extension-api';
 import { deployPhase, handlebars } from 'handel-extension-support';
 import * as uuid from 'uuid';
 import * as winston from 'winston';

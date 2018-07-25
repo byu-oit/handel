@@ -30,7 +30,6 @@ import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from '
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as rdsDeployersCommon from '../../../src/common/rds-deployers-common';
 import * as postgresql from '../../../src/services/postgresql';
 import { PostgreSQLConfig } from '../../../src/services/postgresql/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
