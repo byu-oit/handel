@@ -6,9 +6,10 @@
   "types": "dist/extension-support.d.ts",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
-    "clean": "node npm-scripts.js clean",
+    "clean": "echo Cleaning && ./node_modules/.bin/del ./dist/ && echo Finished clean",
     "compile": "echo Compiling && tsc && echo Finished compile",
-    "build": "npm run clean && npm run compile && node npm-scripts.js move-non-ts-files",
+    "copyNonTsFiles": "./node_modules/.bin/cpy '**/*' '!**/*.ts' '../dist/' --cwd=src --parents",
+    "build": "npm run clean && npm run compile && npm run copyNonTsFiles",
     "test": "./node_modules/.bin/mocha -r ts-node/register 'test/**/*.ts'",
     "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w 'test/**/*.ts'"
   },
@@ -38,7 +39,9 @@
     "@types/winston": "^2.3.7",
     "aws-sdk": "^2.188.0",
     "chai": "^4.1.2",
-    "fs-extra": "^5.0.0",
+    "cpy-cli": "^2.0.0",
+    "del-cli": "^1.1.0",
+    "make-dir-cli": "^1.0.0",
     "mocha": "^5.0.5",
     "sinon": "^4.1.3",
     "ts-node": "^3.3.0",
