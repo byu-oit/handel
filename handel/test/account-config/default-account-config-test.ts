@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { awsCalls, handlebars } from 'handel-extension-support';
+import { awsCalls } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as defaultAccountConfig from '../../src/account-config/default-account-config';

@@ -16,7 +16,6 @@
  */
 import { DeployContext, ServiceContext } from 'handel-extension-api';
 import { deployPhase, handlebars } from 'handel-extension-support';
-import * as util from '../../common/util';
 import { CodeDeployServiceConfig } from './config-types';
 
 export async function getStatementsForInstanceRole(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, dependenciesDeployContexts: DeployContext[]): Promise<any[]> {

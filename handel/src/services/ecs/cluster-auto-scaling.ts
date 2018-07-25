@@ -18,7 +18,7 @@ import * as AWS from 'aws-sdk';
 import { AccountConfig } from 'handel-extension-api';
 import { awsCalls, deployPhase, handlebars  } from 'handel-extension-support';
 import * as winston from 'winston';
-import { AutoScalingConfig, ContainerConfig, HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
+import { HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
 
 // Values are specified in MiB
 interface Ec2InstanceMemoryMap {

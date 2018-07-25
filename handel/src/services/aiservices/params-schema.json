@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'aiservices')",
+            "pattern": "aiservices",
+            "errorMessage": "The 'type' field must equal 'aiservices'"
+        },
+        "ai_services": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "errorMessage": "The 'ai_services' field must be a list of strings"
+        }
+    },
+    "required": ["type", "ai_services"],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/unknown property specified",
+        "required": {
+            "type": "The top-level 'type' field is required",
+            "ai_servies": "The 'ai_services' field is required"
+        }
+    }
+}
