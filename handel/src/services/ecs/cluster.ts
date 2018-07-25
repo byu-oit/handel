@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { AccountConfig, DeployContext } from 'handel-extension-api';
+import { DeployContext } from 'handel-extension-api';
 import { handlebars } from 'handel-extension-support';
 
 /**

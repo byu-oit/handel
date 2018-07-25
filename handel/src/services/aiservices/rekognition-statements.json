@@ -1,0 +1,47 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "rekognition:CompareFaces",
+            "rekognition:DetectFaces",
+            "rekognition:DetectLabels",
+            "rekognition:DetectModerationLabels",
+            "rekognition:DetectText",
+            "rekognition:GetCelebrityInfo",
+            "rekognition:GetCelebrityRecognition",
+            "rekognition:GetContentModeration",
+            "rekognition:GetFaceDetection",
+            "rekognition:GetLabelDetection",
+            "rekognition:GetPersonTracking",
+            "rekognition:RecognizeCelebrities",
+            "rekognition:StartCelebrityRecognition",
+            "rekognition:StartContentModeration",
+            "rekognition:StartFaceDetection",
+            "rekognition:StartLabelDetection",
+            "rekognition:StartPersonTracking"
+        ],
+        "Resource": [
+            "*"
+        ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "rekognition:CreateCollection",
+            "rekognition:DeleteCollection",
+            "rekognition:DeleteFaces",
+            "rekognition:GetFaceSearch",
+            "rekognition:IndexFaces",
+            "rekognition:ListCollections",
+            "rekognition:ListFaces",
+            "rekognition:SearchFaces",
+            "rekognition:SearchFacesByImage",
+            "rekognition:StartFaceSearch"
+        ],
+        "Resource": [
+            "arn:aws:rekognition:{{region}}:{{accountId}}:collection/{{collectionPrefix}}*"
+        ]
+    }
+]
+
+

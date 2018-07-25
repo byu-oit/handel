@@ -29,7 +29,7 @@ import {
 import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as autoscaling from './autoscaling';
-import {DynamoDBConfig, DynamoDBServiceEventConsumer} from './config-types';
+import {DynamoDBConfig} from './config-types';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',

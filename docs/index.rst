@@ -63,6 +63,7 @@ including taking care of all the tricky security bits to make the services be ab
    :caption: Supported Services
 
    supported-services/alexaskillkit
+   supported-services/aiservices
    supported-services/apiaccess
    supported-services/apigateway
    supported-services/aurora
