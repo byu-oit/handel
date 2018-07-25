@@ -54,7 +54,7 @@ name
   The <environment_name> key is a string you provide to specify the name of an environment. You can have multiple environments in your Handel application. This environment field is used in the naming of virtually all your AWS resources that Handel creates.
 
 <service_name>
-  The <environment_name> key is a string you provide to specify the name of a Handel service inside an environment. You can have multiple services in an environment. This service field is used in the naming of virtually all your AWS resources that Handel creates.
+  The <service_name> key is a string you provide to specify the name of a Handel service inside an environment. You can have multiple services in an environment. This service field is used in the naming of virtually all your AWS resources that Handel creates.
 
 dependencies
   In a given Handel service, you can use the 'dependencies' field to specify other services in your environment with which your service needs to communicate.
