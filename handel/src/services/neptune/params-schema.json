@@ -1,0 +1,70 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'neptune')",
+            "pattern": "neptune",
+            "errorMessage": "The 'type' field must equal 'neptune'"
+        },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' field must be a string"
+        },
+        "cluster_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16,
+            "errorMessage": "The 'cluster_size' field must be an integer between 1 and 16"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' field must be a string"
+        },
+        "cluster_parameters": {
+            "$ref": "#/definitions/db_parameters"
+        },
+        "instance_parameters": {
+            "$ref": "#/definitions/db_parameters"
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": ["type"],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/unknown property specified",
+        "required": {
+            "type": "The 'type' field is required"
+        }
+    },
+    "definitions": {
+        "db_parameters": {
+            "type": "object",
+            "description": "A list of key/value Neptune database parameters",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "Database parameters must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    }
+}

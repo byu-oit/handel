@@ -1,0 +1,8 @@
+version: 1
+
+name: neptune-test
+
+environments:
+  dev:
+    db:
+      type: neptune
