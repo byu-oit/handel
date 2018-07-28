@@ -4,6 +4,10 @@ Neptune
 =======
 This page contains information about using the Neptune service in Handel. This service provides a Neptune graph database cluster.
 
+.. WARNING::
+
+    This provisioner is new and should be considered in beta. It is subject to breaking changes until this beta label is removed.
+
 Service Limitations
 -------------------
 No Update Support
