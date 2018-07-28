@@ -26,7 +26,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { awsCalls, bindPhase, checkPhase, deletePhases, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import { HandlebarsInstanceConfig, HandlebarsNeptuneTemplate, NeptuneConfig } from './config-types';
 
@@ -68,22 +68,35 @@ function getCompiledTemplate(stackName: string,
 }
 
 function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
-    rdsCfStack: any) { // TODO - Better type later
+    cfStack: any) { // TODO - Better type later
+    const accountConfig = serviceContext.accountConfig;
     const deployContext = new DeployContext(serviceContext);
 
     // Inject ENV variables to talk to this database
-    const clusterEndpoint = awsCalls.cloudFormation.getOutput('ClusterEndpoint', rdsCfStack);
-    const port = awsCalls.cloudFormation.getOutput('ClusterPort', rdsCfStack);
-    const readEndpoint = awsCalls.cloudFormation.getOutput('ClusterReadEndpoint', rdsCfStack);
+    const clusterEndpoint = awsCalls.cloudFormation.getOutput('ClusterEndpoint', cfStack);
+    const port = awsCalls.cloudFormation.getOutput('ClusterPort', cfStack);
+    const readEndpoint = awsCalls.cloudFormation.getOutput('ClusterReadEndpoint', cfStack);
+    const clusterId = awsCalls.cloudFormation.getOutput('ClusterId', cfStack);
 
-    if(!clusterEndpoint || !port || !readEndpoint) {
-        throw new Error('Expected RDS service to return address, port, and dbName');
+    if(!clusterEndpoint || !port || !readEndpoint || !clusterId) {
+        throw new Error('Expected Neptune service to return addresses, port, and cluster id');
     }
 
     deployContext.addEnvironmentVariables({
         CLUSTER_ENDPOINT: clusterEndpoint,
         PORT: port,
         READ_ENDPOINT: readEndpoint
+    });
+
+    // Policy to talk to this database
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            'neptune-db:*'
+        ],
+        'Resource': [
+            `arn:aws:neptune-db:${accountConfig.region}:${accountConfig.account_id}:${clusterId}/*`
+        ]
     });
 
     return deployContext;

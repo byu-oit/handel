@@ -59,7 +59,7 @@ Resources:
       DBClusterIdentifier: {{stackName}}
       DBClusterParameterGroupName: !Ref ClusterParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
-      IamAuthEnabled: false # TODO - FIGURE OUT WHAT THIS SHOULD BE
+      IamAuthEnabled: true
       Port: {{port}}
       Tags:
       {{#if tags}}
@@ -106,3 +106,6 @@ Outputs:
   ClusterReadEndpoint:
     Description: The read endpoint for the Neptune cluster
     Value: !GetAtt Cluster.ReadEndpoint
+  ClusterId:
+    Deascription: The resource ID of the cluster
+    Value: !GetAtt Cluster.ClusterResouceId
