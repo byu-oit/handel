@@ -59,7 +59,7 @@ Resources:
       DBClusterIdentifier: {{stackName}}
       DBClusterParameterGroupName: !Ref ClusterParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
-      IamAuthEnabled: true # TODO - FIGURE OUT WHAT THIS SHOULD BE
+      IamAuthEnabled: false # TODO - FIGURE OUT WHAT THIS SHOULD BE
       Port: {{port}}
       Tags:
       {{#if tags}}

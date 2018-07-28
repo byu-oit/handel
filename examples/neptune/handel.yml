@@ -4,5 +4,24 @@ name: neptune-test
 
 environments:
   dev:
+    # Uncomment this service if you want to try Gremlin console
+    # console:
+    #   type: codedeploy
+    #   path_to_code: ./gremlin-console/
+    #   os: linux
+    #   dependencies:
+    #   - db
+    
+    # Uncomment this service if you want to try Gremlin JS in a Lambda
+    js:
+      type: apigateway
+      proxy:
+        path_to_code: ./gremlin-js
+        handler: index.handler
+        runtime: nodejs8.10
+      vpc: true
+      dependencies:
+      - db
+
     db:
       type: neptune
