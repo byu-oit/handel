@@ -44,7 +44,7 @@ export interface HandlebarsAuroraTemplate {
     parameterGroupFamily: string;
     tags: Tags;
     databaseName: string;
-    stackName: string;
+    dbName: string;
     dbSubnetGroup: string;
     engine: string;
     engineVersion: string;

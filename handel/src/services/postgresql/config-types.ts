@@ -41,7 +41,7 @@ export interface HandlebarsPostgreSQLTemplate {
     description: string;
     storageGB: number;
     instanceType: string;
-    stackName: string;
+    dbName: string;
     databaseName: string;
     dbSubnetGroup: string;
     postgresVersion: string;

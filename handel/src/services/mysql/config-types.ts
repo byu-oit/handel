@@ -41,7 +41,7 @@ export interface HandlebarsMySqlTemplate {
     description: string;
     storageGB: number;
     instanceType: string;
-    stackName: string;
+    dbName: string;
     databaseName: string;
     dbSubnetGroup: string;
     mysqlVersion: string;

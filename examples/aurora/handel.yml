@@ -1,6 +1,6 @@
 version: 1
 
-name: aurora-test
+name: Aurora-Test
 
 environments:
   dev:

@@ -39,7 +39,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
 
   InstanceParameterGroup:
     Type: AWS::RDS::DBParameterGroup
@@ -60,7 +60,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
 
   Cluster:
     Type: AWS::RDS::DBCluster
@@ -68,7 +68,7 @@ Resources:
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       DatabaseName: {{databaseName}}
-      DBClusterIdentifier: {{stackName}}
+      DBClusterIdentifier: {{dbName}}
       DBClusterParameterGroupName: !Ref ClusterParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
       Engine: {{engine}}
@@ -82,7 +82,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
       VpcSecurityGroupIds:
       - {{dbSecurityGroupId}}
 
@@ -94,7 +94,7 @@ Resources:
       AutoMinorVersionUpgrade: true
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{instanceType}}
-      DBInstanceIdentifier: {{../stackName}}-{{@index}}
+      DBInstanceIdentifier: {{../dbName}}-{{@index}}
       DBParameterGroupName: !Ref InstanceParameterGroup
       DBSubnetGroupName: {{../dbSubnetGroup}}
       Engine: {{../engine}}
@@ -107,7 +107,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{../stackName}}
+        Value: {{../dbName}}
 
   {{/each}}
 

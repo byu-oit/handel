@@ -100,6 +100,7 @@ function getCompiledAuroraTemplate(stackName: string,
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
     const engine = getEngine(params.engine);
+    const dbName = stackName.toLowerCase();
     const handlebarsParams: HandlebarsAuroraTemplate = {
         description: params.description || 'Handel-created Aurora cluster',
         parameterGroupFamily: getParameterGroupFamily(params.engine, params.version),
@@ -107,7 +108,7 @@ function getCompiledAuroraTemplate(stackName: string,
         instanceParameters: params.instance_parameters,
         tags,
         databaseName: params.database_name,
-        stackName,
+        dbName,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         engine,
         engineVersion: params.version,
@@ -152,7 +153,7 @@ function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
 
 export function check(serviceContext: ServiceContext<AuroraConfig>,
                       dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
