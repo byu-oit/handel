@@ -20,6 +20,7 @@ export interface NeptuneConfig extends ServiceConfig {
     instance_type?: string;
     cluster_size?: number;
     description?: string;
+    iam_auth_enabled?: boolean;
     cluster_parameters?: NeptuneDBParameters;
     instance_parameters?: NeptuneDBParameters;
 }
@@ -37,6 +38,7 @@ export interface HandlebarsNeptuneTemplate {
     port: number;
     dbSecurityGroupId: string;
     instances: HandlebarsInstanceConfig[];
+    iamAuthEnabled: boolean;
     clusterParameters?: HandlebarsNeptuneParameterGroupParams;
     instanceParameters?: HandlebarsNeptuneParameterGroupParams;
 }

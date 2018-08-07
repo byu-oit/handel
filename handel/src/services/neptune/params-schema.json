@@ -22,6 +22,10 @@
             "type": "string",
             "errorMessage": "The 'description' field must be a string"
         },
+        "iam_auth_enabled": {
+            "type": "boolean",
+            "errorMessage": "The 'iam_auth_enabled' field must be one of the following values: true, false"
+        },
         "cluster_parameters": {
             "$ref": "#/definitions/db_parameters"
         },

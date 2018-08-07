@@ -45,6 +45,12 @@ function getInstancesHandlebarsConfig(params: NeptuneConfig): HandlebarsInstance
     return instances;
 }
 
+function iamAuthEnabled(serviceContext: ServiceContext<NeptuneConfig>) {
+    const params = serviceContext.params;
+    // Default to true if not specified, otherwise use what the user specified
+    return params.iam_auth_enabled !== undefined ? params.iam_auth_enabled : true;
+}
+
 function getCompiledTemplate(stackName: string,
         ownServiceContext: ServiceContext<NeptuneConfig>,
         ownPreDeployContext: PreDeployContext,
@@ -61,13 +67,14 @@ function getCompiledTemplate(stackName: string,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         port: NEPTUNE_PORT,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
+        iamAuthEnabled: iamAuthEnabled(ownServiceContext),
         instances: getInstancesHandlebarsConfig(params)
     };
 
     return handlebars.compileTemplate(`${__dirname}/neptune-template.yml`, handlebarsParams);
 }
 
-function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
+function getDeployContext(serviceContext: ServiceContext<NeptuneConfig>,
     cfStack: any) { // TODO - Better type later
     const accountConfig = serviceContext.accountConfig;
     const deployContext = new DeployContext(serviceContext);
@@ -88,16 +95,18 @@ function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
         READ_ENDPOINT: readEndpoint
     });
 
-    // Policy to talk to this database
-    deployContext.policies.push({
-        'Effect': 'Allow',
-        'Action': [
-            'neptune-db:*'
-        ],
-        'Resource': [
-            `arn:aws:neptune-db:${accountConfig.region}:${accountConfig.account_id}:${clusterId}/*`
-        ]
-    });
+    // Policy to talk to this database if IAM Authentication is enabled
+    if(iamAuthEnabled(serviceContext)) {
+        deployContext.policies.push({
+            'Effect': 'Allow',
+            'Action': [
+                'neptune-db:*'
+            ],
+            'Resource': [
+                `arn:aws:neptune-db:${accountConfig.region}:${accountConfig.account_id}:${clusterId}/*`
+            ]
+        });
+    }
 
     return deployContext;
 }

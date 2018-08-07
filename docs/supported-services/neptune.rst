@@ -48,6 +48,11 @@ Parameters
      - No
      - 1
      - The number of instances (including the primary) to run in your cluster.
+   * - iam_auth_enabled
+     - boolean
+     - No
+     - true
+     - Whether your Neptune cluster should have IAM authentication enabled. NOTE: If you specify false, your Neptune instance will be writeable by anyone inside your VPC.
    * - cluster_parameters
      - map<string, string>
      - No

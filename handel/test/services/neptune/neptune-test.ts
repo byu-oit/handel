@@ -111,6 +111,10 @@ describe('neptune deployer', () => {
                 {
                     OutputKey: 'ClusterReadEndpoint',
                     OutputValue: readEndpoint
+                },
+                {
+                    OutputKey: 'ClusterId',
+                    OutputValue: 'FakeClusterId'
                 }
             ]
         };
