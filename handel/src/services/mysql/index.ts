@@ -53,12 +53,12 @@ function getCompiledMysqlTemplate(stackName: string,
     const accountConfig = ownServiceContext.accountConfig;
 
     const mysqlVersion = serviceParams.mysql_version;
-
+    const dbName = stackName.toLowerCase();
     const handlebarsParams: HandlebarsMySqlTemplate = {
         description: serviceParams.description || 'Parameter group for ' + stackName,
         storageGB: serviceParams.storage_gb || 5,
         instanceType: serviceParams.instance_type || 'db.t2.micro',
-        stackName,
+        dbName,
         databaseName: serviceParams.database_name,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         mysqlVersion,

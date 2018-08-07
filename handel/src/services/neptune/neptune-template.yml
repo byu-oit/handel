@@ -6,7 +6,7 @@ Resources:
   ClusterParameterGroup:
     Type: AWS::Neptune::DBClusterParameterGroup
     Properties:
-      Name: {{stackName}}
+      Name: {{dbName}}
       Description: {{description}}
       Family: {{parameterGroupFamily}}
       Parameters:
@@ -26,12 +26,12 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
 
   InstanceParameterGroup:
     Type: AWS::Neptune::DBParameterGroup
     Properties:
-      Name: {{stackName}}
+      Name: {{dbName}}
       Description: {{description}}
       Family: {{parameterGroupFamily}}
       Parameters:
@@ -51,12 +51,12 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
 
   Cluster:
     Type: AWS::Neptune::DBCluster
     Properties:
-      DBClusterIdentifier: {{stackName}}
+      DBClusterIdentifier: {{dbName}}
       DBClusterParameterGroupName: !Ref ClusterParameterGroup
       DBSubnetGroupName:  {{dbSubnetGroup}}
       IamAuthEnabled: {{iamAuthEnabled}}
@@ -69,7 +69,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
       VpcSecurityGroupIds:
       - {{dbSecurityGroupId}}
 
@@ -81,7 +81,7 @@ Resources:
       AutoMinorVersionUpgrade: true
       DBClusterIdentifier: !Ref Cluster
       DBInstanceClass: {{instanceType}}
-      DBInstanceIdentifier: {{../stackName}}-{{@index}}
+      DBInstanceIdentifier: {{../dbName}}-{{@index}}
       DBParameterGroupName: !Ref InstanceParameterGroup
       DBSubnetGroupName: {{../dbSubnetGroup}}
       Tags:
@@ -92,7 +92,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{../stackName}}
+        Value: {{../dbName}}
 
   {{/each}}
 

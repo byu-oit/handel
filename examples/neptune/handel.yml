@@ -1,6 +1,6 @@
 version: 1
 
-name: neptune-test
+name: Neptune-Test
 
 environments:
   dev:
@@ -13,15 +13,15 @@ environments:
     #   - db
     
     # Uncomment this service if you want to try Gremlin JS in a Lambda
-    js:
-      type: apigateway
-      proxy:
-        path_to_code: ./gremlin-js
-        handler: index.handler
-        runtime: nodejs8.10
-      vpc: true
-      dependencies:
-      - db
+    # js:
+    #   type: apigateway
+    #   proxy:
+    #     path_to_code: ./gremlin-js
+    #     handler: index.handler
+    #     runtime: nodejs8.10
+    #   vpc: true
+    #   dependencies:
+    #   - db
 
     db:
       type: neptune

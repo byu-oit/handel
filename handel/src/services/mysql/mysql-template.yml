@@ -20,7 +20,7 @@ Resources:
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: true
       DBInstanceClass: {{instanceType}}
-      DBInstanceIdentifier: {{stackName}}
+      DBInstanceIdentifier: {{dbName}}
       DBName: {{databaseName}}
       DBParameterGroupName: !Ref ParameterGroup
       DBSubnetGroupName: {{dbSubnetGroup}}
@@ -42,7 +42,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
       VPCSecurityGroups:
       - {{dbSecurityGroupId}}
   ParameterGroup:
@@ -64,7 +64,7 @@ Resources:
       {{/each}}
       {{/if}}
       - Key: Name
-        Value: {{stackName}}
+        Value: {{dbName}}
 Outputs:
   DatabaseAddress:
     Description: The address of the RDS database

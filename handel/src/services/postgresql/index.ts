@@ -56,12 +56,12 @@ async function getCompiledPostgresTemplate(stackName: string,
     const accountConfig = ownServiceContext.accountConfig;
 
     const postgresVersion = serviceParams.postgres_version;
-
+    const dbName = stackName.toLowerCase();
     const handlebarsParams: HandlebarsPostgreSQLTemplate = {
         description: serviceParams.description || 'Parameter group for ' + stackName,
         storageGB: serviceParams.storage_gb || 5,
         instanceType: serviceParams.instance_type || 'db.t2.micro',
-        stackName,
+        dbName,
         databaseName: serviceParams.database_name,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         postgresVersion,

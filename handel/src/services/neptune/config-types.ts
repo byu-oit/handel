@@ -33,7 +33,7 @@ export interface HandlebarsNeptuneTemplate {
     description: string;
     parameterGroupFamily: string;
     tags: Tags;
-    stackName: string;
+    dbName: string;
     dbSubnetGroup: string;
     port: number;
     dbSecurityGroupId: string;

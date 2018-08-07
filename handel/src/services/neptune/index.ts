@@ -57,13 +57,14 @@ function getCompiledTemplate(stackName: string,
         tags: Tags) {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
+    const dbName = stackName.toLowerCase();
     const handlebarsParams: HandlebarsNeptuneTemplate = {
         description: params.description || 'Handel-created Aurora cluster',
         parameterGroupFamily: 'neptune1',
         clusterParameters: params.cluster_parameters,
         instanceParameters: params.instance_parameters,
         tags,
-        stackName,
+        dbName,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         port: NEPTUNE_PORT,
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
