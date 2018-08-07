@@ -1,0 +1,111 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Neptune instance
+
+Resources:
+  ClusterParameterGroup:
+    Type: AWS::Neptune::DBClusterParameterGroup
+    Properties:
+      Name: {{stackName}}
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      Parameters:
+      {{#if clusterParameters}}
+        {{#each clusterParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{else}}
+        # If no params specified, use a single param set to the default so CF won't throw an error
+        neptune_enable_audit_log: 0
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  InstanceParameterGroup:
+    Type: AWS::Neptune::DBParameterGroup
+    Properties:
+      Name: {{stackName}}
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      Parameters:
+      {{#if instanceParameters}}
+        {{#each instanceParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{else}}
+        # If no params specified, use a single param set to the default so CF won't throw an error
+        neptune_query_timeout: 120000
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+
+  Cluster:
+    Type: AWS::Neptune::DBCluster
+    Properties:
+      DBClusterIdentifier: {{stackName}}
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      DBSubnetGroupName:  {{dbSubnetGroup}}
+      IamAuthEnabled: {{iamAuthEnabled}}
+      Port: {{port}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{stackName}}
+      VpcSecurityGroupIds:
+      - {{dbSecurityGroupId}}
+
+  {{#each instances}}
+  DatabaseInstance{{@index}}:
+    Type: AWS::Neptune::DBInstance
+    Properties:
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBClusterIdentifier: !Ref Cluster
+      DBInstanceClass: {{instanceType}}
+      DBInstanceIdentifier: {{../stackName}}-{{@index}}
+      DBParameterGroupName: !Ref InstanceParameterGroup
+      DBSubnetGroupName: {{../dbSubnetGroup}}
+      Tags:
+      {{#if ../tags}}
+      {{#each ../tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{../stackName}}
+
+  {{/each}}
+
+Outputs:
+  ClusterEndpoint:
+    Description: The connection endpoint of the Neptune cluster
+    Value: !GetAtt Cluster.Endpoint
+  ClusterPort:
+    Description: The port of the Neptune cluster
+    Value: !GetAtt Cluster.Port
+  ClusterReadEndpoint:
+    Description: The read endpoint for the Neptune cluster
+    Value: !GetAtt Cluster.ReadEndpoint
+  ClusterId:
+    Description: The resource ID of the cluster
+    Value: !GetAtt Cluster.ClusterResourceId

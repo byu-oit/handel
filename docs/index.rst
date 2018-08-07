@@ -79,6 +79,7 @@ including taking care of all the tricky security bits to make the services be ab
    supported-services/lambda
    supported-services/memcached
    supported-services/mysql
+   supported-services/neptune
    supported-services/postgresql
    supported-services/redis
    supported-services/route53zone
