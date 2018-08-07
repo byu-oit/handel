@@ -29,7 +29,7 @@
     "handel-extension-support": "^0.29.0",
     "inquirer": "^3.3.0",
     "js-yaml": "3.7.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "ncp": "^2.0.0",
     "pjson": "^1.0.9",
     "tmp": "0.0.33",
