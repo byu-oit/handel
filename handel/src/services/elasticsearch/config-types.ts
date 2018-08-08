@@ -20,7 +20,13 @@ export interface ElasticsearchConfig extends ServiceConfig {
     version: number;
     instance_type?: string;
     instance_count?: number;
-    tags: Tags;
+    master_node?: ElasticsearchMasterNode;
+    tags?: Tags;
+}
+
+export interface ElasticsearchMasterNode {
+    instance_type: string;
+    instance_count: number;
 }
 
 export interface HandlebarsElasticsearchTemplate {
@@ -29,4 +35,12 @@ export interface HandlebarsElasticsearchTemplate {
     tags: Tags;
     dataSubnetIds: string[];
     securityGroupId: string;
+    instanceCount: number;
+    instanceType: string;
+    dedicatedMasterNode?: HandlebarsDedicatedMasterNode;
+}
+
+export interface HandlebarsDedicatedMasterNode {
+    dedicatedMasterInstanceType: string;
+    dedicatedMasterInstanceCount: number;
 }

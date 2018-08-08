@@ -11,7 +11,14 @@ Resources:
       EBSOptions:
         EBSEnabled: {{}}
       {{/if}}
-      # TODO - ElasticSearchClusterConfig
+      ElasticsearchClusterConfig:
+        InstanceCount: {{instanceCount}}
+        InstanceType: {{instanceType}}
+        {{#if dedicatedMasterNode}}
+        DedicatedMasterEnabled: true
+        DedicatedMasterCount: {{dedicatedMasterNode.instanceCount}}
+        DedicatedMasterType: {{dedicatedMasterNode.instanceType}}
+        {{/if}}
       ElasticsearchVersion: {{elasticsearchVersion}}
       Tags:
       {{#if tags}}

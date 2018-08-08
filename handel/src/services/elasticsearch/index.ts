@@ -28,7 +28,7 @@ import {
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import { ElasticsearchConfig, HandlebarsElasticsearchTemplate } from './config-types';
+import { ElasticsearchConfig, HandlebarsElasticsearchTemplate, HandlebarsDedicatedMasterNode } from './config-types';
 
 const SERVICE_NAME = 'Elasticsearch';
 const ES_PROTOCOL = 'tcp';
@@ -48,6 +48,17 @@ function getDomainName(serviceContext: ServiceContext<ElasticsearchConfig>) {
     return `${appFragment}-${envFragement}-${serviceFragment}`;
 }
 
+function getDedicatedMasterConfig(serviceParams: ElasticsearchConfig): HandlebarsDedicatedMasterNode | undefined {
+    let masterConfig;
+    if(serviceParams.master_node) {
+        masterConfig = {
+            dedicatedMasterInstanceType: serviceParams.master_node.instance_type,
+            dedicatedMasterInstanceCount: serviceParams.master_node.instance_count
+        };
+    }
+    return masterConfig;
+}
+
 function getCompiledTemplate(ownServiceContext: ServiceContext<ElasticsearchConfig>, ownPreDeployContext: PreDeployContext, tags: Tags) {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
@@ -57,7 +68,10 @@ function getCompiledTemplate(ownServiceContext: ServiceContext<ElasticsearchConf
         elasticsearchVersion: params.version,
         tags,
         dataSubnetIds: accountConfig.data_subnets,
-        securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!
+        securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
+        instanceCount: params.instance_count || 1,
+        instanceType: params.instance_type || 't2.small.elasticsearch',
+        dedicatedMasterNode: getDedicatedMasterConfig(params)
     };
 
     return handlebars.compileTemplate(`${__dirname}/elasticsearch-template.yml`, handlebarsParams);
