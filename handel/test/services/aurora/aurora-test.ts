@@ -24,7 +24,8 @@ import {
     ServiceType,
     UnBindContext,
     UnDeployContext,
-    UnPreDeployContext
+    UnPreDeployContext,
+    ServiceConfig
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
@@ -61,16 +62,33 @@ describe('aurora deployer', () => {
     // At the moment, check only validates the JSON schema, so no tests here for that phase at the moment
 
     describe('preDeploy', () => {
-        it('should create a security group', async () => {
-            const groupId = 'FakeSgGroupId';
-            const preDeployContext = new PreDeployContext(serviceContext);
+        const groupId = 'FakeSgGroupId';
+        let preDeployContext: PreDeployContext;
+        let createSgStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
+            createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
+        });
 
+        it('should create a security group when using MySQL', async () => {
             const retPreDeployContext = await aurora.preDeploy(serviceContext);
+            expect(createSgStub.getCall(0).args[1]).to.equal(3306);
+            expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
+            expect(retPreDeployContext.securityGroups.length).to.equal(1);
+            expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
+            expect(createSgStub.callCount).to.equal(1);
+        });
+
+        it('should create a security group when using PostgreSQL', async () => {
+            serviceContext.params.engine = AuroraEngine.postgresql;
+            serviceContext.params.version = '9.6.6';
+            const retPreDeployContext = await aurora.preDeploy(serviceContext);
+            expect(createSgStub.getCall(0).args[1]).to.equal(5432);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -79,18 +97,37 @@ describe('aurora deployer', () => {
     });
 
     describe('bind', () => {
-        it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'aurora'), serviceParams, accountConfig);
-            const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
-            const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
-            const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
-                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
+        let dependencyServiceContext: ServiceContext<AuroraConfig>;
+        let dependencyPreDeployContext: PreDeployContext;
+        let dependentOfServiceContext: ServiceContext<ServiceConfig>;
+        let dependentOfPreDeployContext: PreDeployContext;
+        let bindSgStub: sinon.SinonStub;
 
+        beforeEach(() => {
+            dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'aurora'), serviceParams, accountConfig);
+            dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
+            dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
+            dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
+            bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
+                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
+        });
+
+        it('should add the source sg to its own sg as an ingress rule when using MySQL', async () => {
             const bindContext = await aurora.bind(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
+            expect(bindSgStub.getCall(0).args[5]).to.equal(3306);
+        });
+
+        it('should add the source sg to its own sg as an ingress rule when using PostgreSQL', async () => {
+            serviceContext.params.engine = AuroraEngine.postgresql;
+            serviceContext.params.version = '9.6.6';
+            const bindContext = await aurora.bind(dependencyServiceContext, dependencyPreDeployContext,
+                dependentOfServiceContext, dependentOfPreDeployContext);
+            expect(bindContext).to.be.instanceof(BindContext);
+            expect(bindSgStub.callCount).to.equal(1);
+            expect(bindSgStub.getCall(0).args[5]).to.equal(5432);
         });
     });
 
