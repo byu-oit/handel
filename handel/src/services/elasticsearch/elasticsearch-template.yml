@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created ElasticSearch cluster
+
+Resources:
+  Domain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: {{domainName}}
+      {{#if useEbsStorage}}
+      EBSOptions:
+        EBSEnabled: {{}}
+      {{/if}}
+      # TODO - ElasticSearchClusterConfig
+      ElasticsearchVersion: {{elasticsearchVersion}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{domainName}}
+      VPCOptions:
+        SecurityGroupIds:
+        - {{securityGroupId}}
+        SubnetIds:
+        {{#each dataSubnetIds}}
+        - {{this}}
+        {{/each}}
+
+Outputs:
+  DomainEndpoint:
+    Description: The connection endpoint of the Neptune cluster
+    Value: !GetAtt Domain.DomainEndpoint

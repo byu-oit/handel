@@ -1,0 +1,9 @@
+version: 1
+
+name: elasticsearch-example
+
+environments:
+  dev:
+    search:
+      type: elasticsearch
+      version: 6.2
