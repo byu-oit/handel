@@ -21,6 +21,7 @@ export interface ElasticsearchConfig extends ServiceConfig {
     instance_type?: string;
     instance_count?: number;
     master_node?: ElasticsearchMasterNode;
+    ebs?: ElasticsearchEbs;
     tags?: Tags;
 }
 
@@ -29,18 +30,29 @@ export interface ElasticsearchMasterNode {
     instance_count: number;
 }
 
+export interface ElasticsearchEbs {
+    size_gb: number;
+    provisioned_iops?: number;
+}
+
 export interface HandlebarsElasticsearchTemplate {
     domainName: string;
     elasticsearchVersion: number;
     tags: Tags;
-    dataSubnetIds: string[];
+    subnetId: string;
     securityGroupId: string;
-    instanceCount: number;
     instanceType: string;
+    instanceCount: number;
     dedicatedMasterNode?: HandlebarsDedicatedMasterNode;
+    ebs?: HandlebarsEbs;
 }
 
 export interface HandlebarsDedicatedMasterNode {
-    dedicatedMasterInstanceType: string;
-    dedicatedMasterInstanceCount: number;
+    instanceType: string;
+    instanceCount: number;
+}
+
+export interface HandlebarsEbs {
+    volumeSize: number;
+    provisionedIops?: number;
 }

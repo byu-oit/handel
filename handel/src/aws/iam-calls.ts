@@ -15,6 +15,7 @@
  *
  */
 import * as AWS from 'aws-sdk';
+import { AWSError } from 'aws-sdk';
 import * as winston from 'winston';
 import awsWrapper from './aws-wrapper';
 
@@ -260,4 +261,21 @@ export function constructPolicyDoc(policyStatements: any[]) {
         policyDocument.Statement.push(policyStatement);
     }
     return policyDocument;
+}
+
+export async function createServiceLinkedRole(serviceName: string): Promise<void> {
+    const createParams = {
+        AWSServiceName: serviceName
+    };
+    try {
+        await awsWrapper.iam.createServiceLinkedRole(createParams);
+    }
+    catch(err) {
+        if (err.code === 'InvalidInput') { // Role already created
+            return;
+        }
+        else {
+            throw new Error(`Couldn't create service-linked role for service ${serviceName}`);
+        }
+    }
 }

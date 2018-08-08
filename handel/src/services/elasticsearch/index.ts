@@ -28,7 +28,8 @@ import {
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
-import { ElasticsearchConfig, HandlebarsElasticsearchTemplate, HandlebarsDedicatedMasterNode } from './config-types';
+import * as iamCalls from '../../aws/iam-calls';
+import { ElasticsearchConfig, HandlebarsDedicatedMasterNode, HandlebarsEbs, HandlebarsElasticsearchTemplate } from './config-types';
 
 const SERVICE_NAME = 'Elasticsearch';
 const ES_PROTOCOL = 'tcp';
@@ -49,14 +50,21 @@ function getDomainName(serviceContext: ServiceContext<ElasticsearchConfig>) {
 }
 
 function getDedicatedMasterConfig(serviceParams: ElasticsearchConfig): HandlebarsDedicatedMasterNode | undefined {
-    let masterConfig;
     if(serviceParams.master_node) {
-        masterConfig = {
-            dedicatedMasterInstanceType: serviceParams.master_node.instance_type,
-            dedicatedMasterInstanceCount: serviceParams.master_node.instance_count
+        return {
+            instanceType: serviceParams.master_node.instance_type,
+            instanceCount: serviceParams.master_node.instance_count
         };
     }
-    return masterConfig;
+}
+
+function getEbsConfig(serviceParams: ElasticsearchConfig): HandlebarsEbs | undefined {
+    if(serviceParams.ebs) {
+        return {
+            volumeSize: serviceParams.ebs.size_gb,
+            provisionedIops: serviceParams.ebs.provisioned_iops
+        };
+    }
 }
 
 function getCompiledTemplate(ownServiceContext: ServiceContext<ElasticsearchConfig>, ownPreDeployContext: PreDeployContext, tags: Tags) {
@@ -67,11 +75,12 @@ function getCompiledTemplate(ownServiceContext: ServiceContext<ElasticsearchConf
         domainName,
         elasticsearchVersion: params.version,
         tags,
-        dataSubnetIds: accountConfig.data_subnets,
+        subnetId: accountConfig.data_subnets[0],
         securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         instanceCount: params.instance_count || 1,
         instanceType: params.instance_type || 't2.small.elasticsearch',
-        dedicatedMasterNode: getDedicatedMasterConfig(params)
+        dedicatedMasterNode: getDedicatedMasterConfig(params),
+        ebs: getEbsConfig(params)
     };
 
     return handlebars.compileTemplate(`${__dirname}/elasticsearch-template.yml`, handlebarsParams);
@@ -130,6 +139,7 @@ export async function deploy(ownServiceContext: ServiceContext<ElasticsearchConf
     dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
     const stackName = ownServiceContext.stackName();
     winston.info(`${SERVICE_NAME} - Deploying domain '${stackName}'`);
+    await iamCalls.createServiceLinkedRole('es.amazonaws.com');
     const stackTags = tagging.getTags(ownServiceContext);
     const compiledTemplate = await getCompiledTemplate(ownServiceContext, ownPreDeployContext, stackTags);
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);

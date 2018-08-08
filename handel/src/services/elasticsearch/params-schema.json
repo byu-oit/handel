@@ -12,6 +12,60 @@
             "type": "number",
             "errorMessage": "The 'version' field must be a number"
         },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' field must be a string"
+        },
+        "instance_count": {
+            "type": "number",
+            "errorMessage": "The 'instance_count' field must be a number"
+        },
+        "master_node": {
+            "type": "object",
+            "properties": {
+                "instance_type": {
+                    "type": "string",
+                    "errorMessage": "The 'instance_type' field must be a string"
+                },
+                "instance_count": {
+                    "type": "number",
+                    "errorMessage": "The 'instance_count' field must be a number"
+                }
+            },
+            "required": [
+                "instance_type",
+                "instance_count"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "additionalProperties": "Invalid/unknown property specified in the 'master_node' section",
+                "required": {
+                    "instance_type": "The 'instance_type' field is required in the 'master_node' section",
+                    "instance_count": "The 'instance_count' field is required in the 'master_node' section"
+                }
+            }
+        },
+        "ebs": {
+            "type": "object",
+            "properties": {
+                "size_gb": {
+                    "type": "number",
+                    "errorMessage": "The 'size_gb' field must be a number"
+                },
+                "provisioned_iops": {
+                    "type": "number",
+                    "errorMessage": "The 'provisioned_iops' field must be a number"
+                }
+            },
+            "required": [ "size_gb" ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "additionalProperties": "Invalid/unknown property specified in the 'master_node' section",
+                "required": {
+                    "size_gb": "The 'size_gb' field is required in the 'ebs' section"
+                }
+            }
+        },
         "tags": {
             "type": "object",
             "description": "An arbitrary list of key/value pairs to be added as tags to the service",
