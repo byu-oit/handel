@@ -45,7 +45,7 @@ Parameters
    * - provisioned_throughput
      - :ref:`dynamodb-provisioned-throughput`
      - No
-     - 5 for read and write
+     - 1 for read and write
      - The ProvisionedThroughput element details how much provisioned IOPS you want on your table for reads and writes.
    * - ttl_attribute
      - string
