@@ -30,6 +30,7 @@ import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-ext
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
+import * as iamCalls from '../../../src/aws/iam-calls';
 import * as elasticsearch from '../../../src/services/elasticsearch';
 import { ElasticsearchConfig } from '../../../src/services/elasticsearch/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -121,10 +122,12 @@ describe('elasticsearch deployer', () => {
         });
 
         it('should deploy the cluster', async () => {
+            const createRoleStub = sandbox.stub(iamCalls, 'createServiceLinkedRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves(deployedStack);
 
             const deployContext = await elasticsearch.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployStackStub.callCount).to.equal(1);
+            expect(createRoleStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_DOMAIN_ENDPOINT`]).to.equal(domainEndpoint);
             expect(deployContext.environmentVariables[`${envPrefix}_DOMAIN_NAME`]).to.equal(domainName);
