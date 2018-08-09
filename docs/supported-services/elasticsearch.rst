@@ -97,6 +97,12 @@ The *master_node* section is defined by the following schema:
 
     Amazon recommends using master nodes to increase cluster stability. See `Dedicated Master Nodes <https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-dedicatedmasternodes.html>`_ for their recommendations.
 
+IAM Authentication
+------------------
+Your ElasticSearch cluster requires IAM authentication to your Elasticsearch endpoint. This is done using AWS' `signature version 4 signing process <https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html>`_. Each HTTP request to Elasticsearch must include the signature headers required by AWS to validate your IAM role identity.
+
+See AWS' `Programmatic Indexing <https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-indexing-programmatic.html>`_ page for information about how perform this authentication in various languages.
+
 Example Handel File
 -------------------
 
