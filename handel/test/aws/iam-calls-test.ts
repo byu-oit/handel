@@ -297,4 +297,32 @@ describe('iam calls', () => {
             expect(deletePolicyStub.callCount).to.equal(1);
         });
     });
+
+    describe('createServiceLinkedRole', () => {
+        it('should create the policy if it doesnt exist', async () => {
+            const createRoleStub = sandbox.stub(awsWrapper.iam, 'createServiceLinkedRole').resolves({});
+            await iamCalls.createServiceLinkedRole('fakeservice.amazonaws.com');
+            expect(createRoleStub.callCount).to.equal(1);
+        });
+
+        it('should return successfully if the policy already exists', async () => {
+            const createRoleStub = sandbox.stub(awsWrapper.iam, 'createServiceLinkedRole').rejects({
+                code: 'InvalidInput'
+            });
+            await iamCalls.createServiceLinkedRole('fakeservice.amazonaws.com');
+            expect(createRoleStub.callCount).to.equal(1);
+        });
+
+        it('should throw an error on any other kind of AWS error', async () => {
+            const createRoleStub = sandbox.stub(awsWrapper.iam, 'createServiceLinkedRole').rejects({
+                code: 'OtherError'
+            });
+            try {
+                await iamCalls.createServiceLinkedRole('fakeservice.amazonaws.com');
+                expect(true).to.equal(false); // Should not get here
+            } catch(err) {
+                expect(createRoleStub.callCount).to.equal(1);
+            }
+        });
+    });
 });

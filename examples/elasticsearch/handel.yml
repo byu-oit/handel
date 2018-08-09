@@ -1,0 +1,23 @@
+version: 1
+
+name: elasticsearch-example
+
+environments:
+  dev:
+    api:
+      type: apigateway
+      proxy:
+        path_to_code: ./lambda
+        handler: index.handler
+        runtime: nodejs8.10
+        timeout: 60
+      vpc: true
+      dependencies:
+      - search
+    search:
+      type: elasticsearch
+      version: 6.2
+      instance_type: t2.small.elasticsearch
+      instance_count: 2
+      ebs:
+        size_gb: 10

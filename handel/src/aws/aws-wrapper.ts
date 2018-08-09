@@ -77,6 +77,10 @@ const awsWrapper = {
         detachRolePolicy: (params: AWS.IAM.DetachRolePolicyRequest) => {
             const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
             return iam.detachRolePolicy(params).promise();
+        },
+        createServiceLinkedRole: (params: AWS.IAM.CreateServiceLinkedRoleRequest) => {
+            const iam = new AWS.IAM({ apiVersion: '2010-05-08' });
+            return iam.createServiceLinkedRole(params).promise();
         }
     },
     s3: {

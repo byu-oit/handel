@@ -1,0 +1,55 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created ElasticSearch cluster
+
+Resources:
+  Domain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: {{domainName}}
+      EBSOptions:
+        {{#if ebs}}
+        EBSEnabled: true
+        VolumeSize: {{ebs.volumeSize}}
+        {{#if ebs.provisionedIops}}
+        VolumeType: io1
+        Iops: {{ebs.provisionedIops}}
+        {{else}}
+        VolumeType: gp2
+        {{/if}}
+        {{else}}
+        EBSEnabled: false
+        {{/if}}
+      ElasticsearchClusterConfig:
+        InstanceCount: {{instanceCount}}
+        InstanceType: {{instanceType}}
+        {{#if dedicatedMasterNode}}
+        DedicatedMasterEnabled: true
+        DedicatedMasterCount: {{dedicatedMasterNode.instanceCount}}
+        DedicatedMasterType: {{dedicatedMasterNode.instanceType}}
+        {{else}}
+        DedicatedMasterEnabled: false
+        {{/if}}
+      ElasticsearchVersion: {{elasticsearchVersion}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{domainName}}
+      VPCOptions:
+        SecurityGroupIds:
+        - {{securityGroupId}}
+        SubnetIds:
+        - {{subnetId}}
+
+Outputs:
+  DomainName:
+    Description: The name of the Elasticsearch domain
+    Value: !Ref Domain
+  DomainEndpoint:
+    Description: The connection endpoint of the Elasticsearch cluster
+    Value: !GetAtt Domain.DomainEndpoint
