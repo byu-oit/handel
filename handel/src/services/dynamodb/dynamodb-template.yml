@@ -19,7 +19,7 @@ Resources:
         KeyType: RANGE
       {{/if}}
       ProvisionedThroughput:
-        ReadCapacityUnits: {{tableWriteCapacityUnits}}
+        ReadCapacityUnits: {{tableReadCapacityUnits}}
         WriteCapacityUnits: {{tableWriteCapacityUnits}}
       {{#if globalIndexes}}
       GlobalSecondaryIndexes:
