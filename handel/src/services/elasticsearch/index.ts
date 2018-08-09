@@ -33,14 +33,7 @@ import { ElasticsearchConfig, HandlebarsDedicatedMasterNode, HandlebarsEbs, Hand
 
 const SERVICE_NAME = 'Elasticsearch';
 const ES_PROTOCOL = 'tcp';
-const ES_PORT = 8182;
-
-const INSTANCE_STORAGE_TYPES = [
-    'm3.*',
-    'r3.*',
-    'i2.*',
-    'i3.*'
-];
+const ES_PORT = 443; // ES is an HTTP API that listens on the HTTPS port
 
 function getDomainName(serviceContext: ServiceContext<ElasticsearchConfig>) {
     const appFragment = serviceContext.appName.substring(0, 10);
@@ -50,7 +43,7 @@ function getDomainName(serviceContext: ServiceContext<ElasticsearchConfig>) {
 }
 
 function getDedicatedMasterConfig(serviceParams: ElasticsearchConfig): HandlebarsDedicatedMasterNode | undefined {
-    if(serviceParams.master_node) {
+    if (serviceParams.master_node) {
         return {
             instanceType: serviceParams.master_node.instance_type,
             instanceCount: serviceParams.master_node.instance_count
@@ -59,7 +52,7 @@ function getDedicatedMasterConfig(serviceParams: ElasticsearchConfig): Handlebar
 }
 
 function getEbsConfig(serviceParams: ElasticsearchConfig): HandlebarsEbs | undefined {
-    if(serviceParams.ebs) {
+    if (serviceParams.ebs) {
         return {
             volumeSize: serviceParams.ebs.size_gb,
             provisionedIops: serviceParams.ebs.provisioned_iops
@@ -88,19 +81,31 @@ function getCompiledTemplate(ownServiceContext: ServiceContext<ElasticsearchConf
 
 function getDeployContext(serviceContext: ServiceContext<ElasticsearchConfig>,
     cfStack: any) { // TODO - Better type later
+    const accountConfig = serviceContext.accountConfig;
     const deployContext = new DeployContext(serviceContext);
 
     // Inject ENV variables to talk to this database
+    const domainName = awsCalls.cloudFormation.getOutput('DomainName', cfStack);
     const domainEndpoint = awsCalls.cloudFormation.getOutput('DomainEndpoint', cfStack);
-    if(!domainEndpoint) {
-        throw new Error('Expected Elasticsearch service to return domain endpoint');
+    if (!domainName || !domainEndpoint) {
+        throw new Error('Expected Elasticsearch service to return domain endpoint and name');
     }
 
     deployContext.addEnvironmentVariables({
-        DOMAIN_ENDPOINT: domainEndpoint
+        DOMAIN_ENDPOINT: domainEndpoint,
+        DOMAIN_NAME: domainName
     });
 
-    // TODO - Add policies
+    // Policies to allow IAM V4 authentication to talk to ElasticSearch
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            'es:ESHttp*'
+        ],
+        'Resource': [
+            `arn:aws:es:${accountConfig.region}:${accountConfig.account_id}:domain/${domainName}/*`
+        ]
+    });
 
     return deployContext;
 }

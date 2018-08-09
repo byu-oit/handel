@@ -47,6 +47,9 @@ Resources:
         - {{subnetId}}
 
 Outputs:
+  DomainName:
+    Description: The name of the Elasticsearch domain
+    Value: !Ref Domain
   DomainEndpoint:
-    Description: The connection endpoint of the Neptune cluster
+    Description: The connection endpoint of the Elasticsearch cluster
     Value: !GetAtt Domain.DomainEndpoint
