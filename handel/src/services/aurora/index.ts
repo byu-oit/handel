@@ -42,10 +42,19 @@ import { AuroraConfig, AuroraEngine, HandlebarsAuroraTemplate, HandlebarsInstanc
 
 const SERVICE_NAME = 'Aurora';
 const DB_PROTOCOL = 'tcp';
-const DB_PORT = 3306;
+const POSTGRES_PORT = 5432;
+const MYSQL_PORT = 3306;
 
 function getEngine(engineParam: AuroraEngine) {
     return `aurora-${engineParam}`;
+}
+
+function getPort(params: AuroraConfig) {
+    if(params.engine === AuroraEngine.mysql) {
+        return MYSQL_PORT;
+    } else {
+        return POSTGRES_PORT;
+    }
 }
 
 function getParameterGroupFamily(engine: AuroraEngine, version: string) {
@@ -112,7 +121,7 @@ function getCompiledAuroraTemplate(stackName: string,
         dbSubnetGroup: accountConfig.rds_subnet_group,
         engine,
         engineVersion: params.version,
-        port: DB_PORT,
+        port: getPort(params),
         dbSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         instances: getInstancesHandlebarsConfig(params),
         isMySQL: params.engine === AuroraEngine.mysql ? true : false
@@ -158,19 +167,18 @@ export function check(serviceContext: ServiceContext<AuroraConfig>,
 }
 
 export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, DB_PORT, SERVICE_NAME);
+    const dbPort = getPort(serviceContext.params);
+    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, dbPort, SERVICE_NAME);
 }
 
-export function bind(ownServiceContext: ServiceContext<AuroraConfig>,
-                     ownPreDeployContext: PreDeployContext,
-                     dependentOfServiceContext: ServiceContext<ServiceConfig>,
-                     dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+export function bind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+    const dbPort = getPort(ownServiceContext.params);
     return bindPhase.bindDependentSecurityGroup(ownServiceContext,
         ownPreDeployContext,
         dependentOfServiceContext,
         dependentOfPreDeployContext,
         DB_PROTOCOL,
-        DB_PORT,
+        dbPort,
         SERVICE_NAME);
 }
 
