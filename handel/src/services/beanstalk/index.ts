@@ -112,6 +112,10 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:launchconfiguration', 'InstanceType', instanceType));
     const ebSecurityGroup = preDeployContext.securityGroups[0].GroupId!;
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:launchconfiguration', 'SecurityGroups', ebSecurityGroup));
+    // The following lines change the Beanstalk-provided security group's SSH rule from their default of 0.0.0.0/0 to the one sepcified in the account config file
+    if(accountConfig.ssh_bastion_sg) {
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:launchconfiguration', 'SSHSourceRestriction', `tcp, 22, 22, ${accountConfig.ssh_bastion_sg}`));
+    }
 
     // Configure rolling updates
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:updatepolicy:rollingupdate', 'RollingUpdateEnabled', true));
@@ -254,7 +258,7 @@ async function getSystemInjectedEbExtensions(stackName: string, ownServiceContex
  */
 
 export function check(serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     if(errors.length === 0) {
         const params = serviceContext.params;
         if (params.routing && params.routing.dns_names) {
