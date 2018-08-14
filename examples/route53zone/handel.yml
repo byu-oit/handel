@@ -6,4 +6,5 @@ environments:
       type: route53zone
       name: mydomain.example.com
       private: true
-      tags: mytagvalue
+      tags:
+        mytagename: mytagvalue
