@@ -78,6 +78,10 @@ export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, 
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     const params = serviceContext.params;
+    
+    if (!route53.isValidHostname(params.name)) {
+    errors.push(`'name' parameter must be a valid hostname`);
+}
 
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
