@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'ses')",
+            "pattern": "ses",
+            "errorMessage": "The 'type' parameter must be a string"
+        },
+        "address": {
+            "type": "string",
+            "errorMessage": "The 'address' parameter must be a string"
+        }
+    },
+    "required": ["type", "address"],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required",
+            "address": "The address field is required"
+        }
+    }
+}
