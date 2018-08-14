@@ -24,6 +24,7 @@ import {
 import * as winston from 'winston';
 import * as sesCalls from '../../aws/ses-calls';
 import { SesServiceConfig } from './config-types';
+import { checkPhase } from 'handel-extension-support';
 
 const EMAIL_ADDRESS = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const SERVICE_NAME = 'SES';
@@ -63,13 +64,8 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
  */
 
 export function check(serviceContext: ServiceContext<SesServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-
-    if (!EMAIL_ADDRESS.test(serviceContext.params.address)) {
-        errors.push(`${SERVICE_NAME} - An address must be a valid email address`);
-    }
-
-    return errors;
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<SesServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

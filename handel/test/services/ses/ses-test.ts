@@ -58,7 +58,7 @@ describe('ses deployer', () => {
             delete serviceContext.params.address;
             const errors = ses.check(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`valid email address`);
+            expect(errors[0]).to.include(`field is required`);
         });
         it(`should require a valid email address`, () => {
             serviceContext.params.address = 'example.com';
