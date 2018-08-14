@@ -22,7 +22,7 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging, checkPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
 import {HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig} from './config-types';
@@ -75,21 +75,21 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
  */
 
 export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     const params = serviceContext.params;
 
     if (!params.name) {
-        errors.push(`${SERVICE_NAME} - 'name' parameter must be specified`);
+        errors.push(`'name' parameter must be specified`);
     } else if (!route53.isValidHostname(params.name)) {
-        errors.push(`${SERVICE_NAME} - 'name' parameter must be a valid hostname`);
+        errors.push(`'name' parameter must be a valid hostname`);
     }
 
     if (params.private && typeof params.private !== 'boolean') {
-        errors.push(`${SERVICE_NAME} - 'private' parameter must be 'true' or 'false'`);
+        errors.push(`'private' parameter must be 'true' or 'false'`);
     }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

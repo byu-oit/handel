@@ -1,0 +1,9 @@
+version: 1
+name: route53zone-test
+environments:
+  dev:
+    zone:
+      type: route53zone
+      name: mydomain.example.com
+      private: true
+      tags: mytagvalue
