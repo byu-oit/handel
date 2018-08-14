@@ -19,7 +19,7 @@
         "additionalProperties": "Invalid/Unknown property specified",
         "required": {
             "type": "The 'type' field is required",
-            "address": "The address field is required"
+            "address": "The 'address' field is required"
         }
     }
 }
