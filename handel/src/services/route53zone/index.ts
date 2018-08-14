@@ -76,12 +76,10 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
 
 export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
     const params = serviceContext.params;
-    
-    if (!route53.isValidHostname(params.name)) {
-    errors.push(`'name' parameter must be a valid hostname`);
-}
+    if (params.name && !route53.isValidHostname(params.name)) {
+        errors.push(`'name' parameter must be a valid hostname`);
+    }
 
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
