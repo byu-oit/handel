@@ -79,16 +79,6 @@ export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, 
 
     const params = serviceContext.params;
 
-    if (!params.name) {
-        errors.push(`'name' parameter must be specified`);
-    } else if (!route53.isValidHostname(params.name)) {
-        errors.push(`'name' parameter must be a valid hostname`);
-    }
-
-    if (params.private && typeof params.private !== 'boolean') {
-        errors.push(`'private' parameter must be 'true' or 'false'`);
-    }
-
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
