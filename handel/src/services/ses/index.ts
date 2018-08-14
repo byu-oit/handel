@@ -65,10 +65,6 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
 
 export function check(serviceContext: ServiceContext<SesServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-  
-    if (!EMAIL_ADDRESS.test(serviceContext.params.address)) {
-        errors.push(`An address must be a valid email address`);
-    }
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
