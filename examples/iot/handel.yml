@@ -1,0 +1,9 @@
+version: 1
+name: iot-test
+environments:
+  dev:
+    cloud:
+      type: iot
+      description: some description
+      tags:
+        mytagname: mytagvalue
