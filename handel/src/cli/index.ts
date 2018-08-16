@@ -53,7 +53,7 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
         if (envResult.status !== 'success') {
             winston.error(`Error during environment ${lifecycleName}: ${envResult.message}`);
             if (winston.level === 'debug' && envResult.error) {
-                winston.error(envResult.error.toString());
+                winston.error(envResult.error.stack!);
             }
             success = false;
         }
