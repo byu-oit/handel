@@ -89,16 +89,6 @@ export function check(serviceContext: ServiceContext<IotServiceConfig>, dependen
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     
     const serviceParams = serviceContext.params;
-    if (serviceParams.event_consumers) {
-        for (const eventConsumerConfig of serviceParams.event_consumers as IotServiceEventConsumer[]) {
-            if (!eventConsumerConfig.service_name) {
-                errors.push(`The 'service_name' parameter is required in each config in the 'event_consumers' section`);
-            }
-            if (!eventConsumerConfig.sql) {
-                errors.push(`The 'sql' parameter is required in each config in the 'event_consumers' section`);
-            }
-        }
-    }
 
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
