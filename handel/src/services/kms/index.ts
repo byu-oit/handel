@@ -90,7 +90,7 @@ function getDefaultAlias(serviceContext: ServiceContext<KmsServiceConfig>): stri
  */
 
 export function check(serviceContext: ServiceContext<KmsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     const params = serviceContext.params;
 
