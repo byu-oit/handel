@@ -58,7 +58,7 @@ describe('route53zone deployer', () => {
             delete serviceParams.name;
             const errors = route53.check(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'name\' parameter must be specified');
+            expect(errors[0]).to.contain('\'name\' field is required');
         });
 
         describe('should fail if name is not a valid DNS hostname', () => {
@@ -83,7 +83,6 @@ describe('route53zone deployer', () => {
                     expect(errors.length).to.equal(0);
                 });
             });
-
         });
 
         it('should work when there are no configuration errors', () => {
