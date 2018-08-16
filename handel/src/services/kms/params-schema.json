@@ -4,13 +4,13 @@
     "properties": {
         "type": {
             "type": "string",
-            "description": "The service type (should always be 'ses')",
-            "pattern": "ksm",
-            "errorMessage": "The 'type' field must equal 'ksm'"
+            "description": "The service type (should always be 'kms')",
+            "pattern": "kms",
+            "errorMessage": "The 'type' field must equal 'kms'"
         },
         "alias": {
             "type": "string",
-            "errorMessage": "The 'alais' parameter must be a string",
+            "errorMessage": "The 'alias' parameter must be a string"
         },
         "auto_rotate": {
             "type": "boolean",

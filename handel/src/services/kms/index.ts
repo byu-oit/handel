@@ -22,7 +22,7 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars, tagging, checkPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import {KmsServiceConfig} from './config-types';
 
