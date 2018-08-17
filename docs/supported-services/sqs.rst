@@ -34,7 +34,7 @@ Parameters
      - regular
      - The type of queue to create. Allowed values are "regular" and "fifo".
    * - delay_seconds
-     - string
+     - number
      - No
      - 0
      - The amount of time the queue delays delivery of messages.
@@ -213,7 +213,7 @@ You can configure events to Lambda using the `event_consumers` parameter in your
 
   event_consumers:
   - service_name: <string> # Required.  The service name of the lambda function
-    batch_size: <number> # Optional. Default: 10. Allowed Values: 1-10
+    batch_size: <number> # Required. Allowed Values: 1-10
 
 Events consumed by this service
 -------------------------------
