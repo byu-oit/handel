@@ -70,13 +70,6 @@ describe('sqs deployer', () => {
         sandbox.restore();
     });
 
-    describe('check', () => {
-        it('shouldnt validate anything yet', () => {
-            const errors = sqs.check(serviceContext, []);
-            expect(errors).to.deep.equal([]);
-        });
-    });
-
     describe('deploy', () => {
         const queueName = 'FakeQueue';
         const queueArn = 'FakeArn';
