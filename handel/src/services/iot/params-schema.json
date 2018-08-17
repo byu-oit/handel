@@ -1,0 +1,70 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'iot')",
+            "pattern": "iot",
+            "errorMessage": "The 'type' field must equal a 'iot'"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' field be a string"
+        },
+        "event_consumers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "service_name": {
+                        "type": "string",
+                        "errorMessage": "The 'service_name' parameter is required in each config in the 'event_consumers' section"
+                    },
+                    "sql": {
+                        "type": "string",
+                        "errorMessage": "The 'sql' parameter is required in each config in the 'event_consumers' section"
+                    }
+                },
+                "required": [
+                    "service_name",
+                    "sql"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "service_name": "The 'service_name' parameter is required",
+                        "sql": "The 'sql' parameter is required"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
+                }
+                
+            }
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+        
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required"
+        }
+    }
+}
