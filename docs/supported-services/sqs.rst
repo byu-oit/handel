@@ -34,7 +34,7 @@ Parameters
      - regular
      - The type of queue to create. Allowed values are "regular" and "fifo".
    * - delay_seconds
-     - string
+     - number
      - No
      - 0
      - The amount of time the queue delays delivery of messages.
