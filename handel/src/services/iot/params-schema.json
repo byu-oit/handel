@@ -30,13 +30,15 @@
                     "service_name",
                     "sql"
                 ],
+                "additionalProperties": false,
                 "errorMessage": {
                     "required": {
                         "service_name": "The 'service_name' parameter is required",
                         "sql": "The 'sql' parameter is required"
-                    }
-                },
-                "additionalProperties": false
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
+                }
+                
             }
         },
         "tags": {
