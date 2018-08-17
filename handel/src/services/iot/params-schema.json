@@ -26,7 +26,16 @@
                         "errorMessage": "The 'sql' parameter is required in each config in the 'event_consumers' section"
                     }
                 },
-                "errorMessage": "The 'event_consumers' field must contain an array of objects with the 'service_name' and 'event_input' properties",
+                "required": [
+                    "service_name",
+                    "sql"
+                ],
+                "errorMessage": {
+                    "required": {
+                        "service_name": "The 'service_name' parameter is required",
+                        "sql": "The 'sql' parameter is required"
+                    }
+                },
                 "additionalProperties": false
             }
         },

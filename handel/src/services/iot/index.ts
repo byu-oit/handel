@@ -23,7 +23,7 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deployPhase, handlebars, tagging, checkPhase } from 'handel-extension-support';
+import { awsCalls, checkPhase, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
