@@ -1,0 +1,10 @@
+version: 1
+name: ksm-test
+environments:
+  dev:
+    key:
+      type: kms
+      alais: examplealias3
+      auto_rotate: true
+      tags:
+        mytagname: mytagvalue
