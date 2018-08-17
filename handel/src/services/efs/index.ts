@@ -124,11 +124,6 @@ export function check(serviceContext: ServiceContext<EfsServiceConfig>, dependen
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     const params = serviceContext.params;
     const perfModeParam = params.performance_mode;
-    // if (perfModeParam) {
-    //     if (perfModeParam !== 'general_purpose' && perfModeParam !== 'max_io') {
-    //         errors.push(`${SERVICE_NAME} - 'performance_mode' parameter must be either 'general_purpose' or 'max_io'`);
-    //     }
-    // }
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
