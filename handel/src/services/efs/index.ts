@@ -32,7 +32,8 @@ import {
     deployPhase,
     handlebars,
     preDeployPhase,
-    tagging
+    tagging,
+    checkPhase
 } from 'handel-extension-support';
 import * as winston from 'winston';
 import {EfsServiceConfig} from './config-types';
@@ -120,15 +121,10 @@ async function getCompiledEfsTemplate(stackName: string, ownServiceContext: Serv
  */
 
 export function check(serviceContext: ServiceContext<EfsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     const params = serviceContext.params;
     const perfModeParam = params.performance_mode;
-    if (perfModeParam) {
-        if (perfModeParam !== 'general_purpose' && perfModeParam !== 'max_io') {
-            errors.push(`${SERVICE_NAME} - 'performance_mode' parameter must be either 'general_purpose' or 'max_io'`);
-        }
-    }
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<EfsServiceConfig>): Promise<PreDeployContext> {

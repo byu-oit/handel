@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'efs')",
+            "pattern": "^efs$",
+            "errorMessage": "The 'type' field must equal 'efs'"
+        },
+        "performance_mode": {
+            "type": "string",
+            "description": "The performance_mode (should always be 'general_purpose' or 'max_io')",
+            "pattern": "^(general_purpose|max_io)$",
+            "errorMessage": "The performance_mode' parameter must be either 'general_purpose' or 'max_io'"
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalPropperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The type field is required"
+        }
+    }
+}
