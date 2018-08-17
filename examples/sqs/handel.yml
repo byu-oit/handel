@@ -1,0 +1,22 @@
+version: 1
+name: sqs-test
+environments:
+  dev:
+    queue:
+      type: sqs
+      query_type: fifo
+      delay_seconds: 0
+      content_based_deduplication: true
+      max_message_size: 15
+      message_retention-period: 61
+      received_message_wait_time: 15
+      visibility_timeout: 10000
+      dead_letter_queue:
+        max_receive_count: 5
+        delay_seconds: 5
+        max_message_size: 5
+        message_retention_period: 5
+        receive_message_wait_time_seconds: 5
+        visibility_timeout: 5
+      tags:
+        mytagname: mytagvalue

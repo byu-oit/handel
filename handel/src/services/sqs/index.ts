@@ -26,7 +26,7 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as sqsCalls from '../../aws/sqs-calls';
 import { HandlebarsSqsTemplate, SqsServiceConfig } from './config-types';
