@@ -1,0 +1,9 @@
+version: 1
+name: efs-test
+environments:
+  dev:
+    fileSystem:
+      type: efs
+      performance_mode: general_purpose
+      tags:
+        mytagname: mytagvalue
