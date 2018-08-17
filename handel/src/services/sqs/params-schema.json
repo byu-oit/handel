@@ -5,7 +5,7 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be 'sqs')",
-            "pattern": "sqs",
+            "pattern": "^sqs$",
             "errorMessage": "The 'type' parameter must equal 'sqs'"
         },
         "query_type": {
@@ -59,18 +59,26 @@
                 },
                 "max_message_size": {
                     "type": "number",
+                    "minimum": 0,
+                    "maximum": 262144,
                     "errorMessage": "The 'max_message_size' field must be a number"
                 },
                 "message_retention_period": {
                     "type": "number",
+                    "minimum": 60,
+                    "maximum": 1209600,
                     "errorMessage": "The 'message_retention_period' field must be a number"
                 },
                 "receive_message_wait_time_seconds": {
                     "type": "number",
+                    "minimum": 0,
+                    "maximum": 20,
                     "errorMessage": "The 'receive_message_wait_time_seconds' field must be a number"
                 },
                 "visibility_timeout": {
                     "type": "number",
+                    "minimum": 0,
+                    "maximum": 43200,
                     "errorMessage": "The 'visibility_timeout' must be a number"
                 }
             }
@@ -92,12 +100,14 @@
                     }
                 },
                 "required": [
-                    "service_name"
+                    "service_name",
+                    "batch_size"
                 ],
                 "additionalProperties": false,
                 "errorMessage": {
                     "required": {
-                        "service_name": "The 'service_name' parameter is required"
+                        "service_name": "The 'service_name' parameter is required",
+                        "batch_size": "The 'batch_size' parameter is required"
                     },
                     "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
                 }
