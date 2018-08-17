@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'kms')",
+            "pattern": "kms",
+            "errorMessage": "The 'type' field must equal 'kms'"
+        },
+        "alias": {
+            "type": "string",
+            "errorMessage": "The 'alias' parameter must be a string"
+        },
+        "auto_rotate": {
+            "type": "boolean",
+            "errorMessage": "The 'auto_rotate' function must be a boolean"
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/Unknown property specified",
+        "required": {
+            "type": "The 'type' field is required"
+        }
+    }
+}
