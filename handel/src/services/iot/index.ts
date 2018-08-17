@@ -23,7 +23,7 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iotDeployersCommon from '../../common/iot-deployers-common';
 import {IotServiceConfig, IotServiceEventConsumer} from './config-types';
@@ -86,21 +86,11 @@ async function deleteTopicRule(ruleName: string) {
  */
 
 export function check(serviceContext: ServiceContext<IotServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>) {
-    const errors = [];
-
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    
     const serviceParams = serviceContext.params;
-    if (serviceParams.event_consumers) {
-        for (const eventConsumerConfig of serviceParams.event_consumers as IotServiceEventConsumer[]) {
-            if (!eventConsumerConfig.service_name) {
-                errors.push(`${SERVICE_NAME} - The 'service_name' parameter is required in each config in the 'event_consumers' section`);
-            }
-            if (!eventConsumerConfig.sql) {
-                errors.push(`${SERVICE_NAME} - The 'sql' parameter is required in each config in the 'event_consumers' section`);
-            }
-        }
-    }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<IotServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
