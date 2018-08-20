@@ -1,0 +1,111 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (shoudl always be 's3staticsite')",
+            "pattern": "^s3staticsite$",
+            "errorMessage": "The 'type' parameter must equal 's3staticsite'"
+        },
+        "path_to_code": {
+            "type": "string",
+            "errorMessage": "The 'path_to-code' field must be a string"
+        },
+        "bucket_name": {
+            "type": "string",
+            "errorMessage": "The 'bucket_name' field must be a string"
+        },
+        "versioning": {
+            "type": "string",
+            "description": "The 'versioning' field can be either enabled or disabled",
+            "pattern": "^enabled|disabled$",
+            "errorMessage": "The 'versioning' parameter must be either 'enabled' or 'disabled'"
+        },
+        "index_document": {
+            "type": "string",
+            "errorMessage": "The 'index_document' field must be a string"
+        },
+        "error_document": {
+            "type": "string",
+            "errorMessage": "The 'error_document' field must be a string"
+        },
+        "cloudfront": {
+            "type": "object",
+            "properties": {
+                "https_certificate": {
+                    "type": "string",
+                    "errorMessage": "The 'https_certificate' field must be a string"
+                },
+                "dns_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "errorMessage": "The 'dns_names' field must be a array of strings"
+                },
+                "price_class": {
+                    "type": "string",
+                    "errorMessage": "The 'private_class' field must be a string"
+                },
+                "logging": {
+                    "type": "string",
+                    "description": "The 'logging' field can be either enabled or disabled",
+                    "pattern": "^enabled|disabled$",
+                    "errorMessage": "The 'logging' parameter must be either 'enabled' or 'disabled'"
+                },
+                "min_ttl": {
+                    "anyOf": [
+                        {"type": "number"},
+                        {"type": "string"}
+                    ],
+                    "errorMessage": "The 'min_ttl' field must be a number, or a number written in 'second(s)/minute(s)/hour(s)/day(s)/year'"
+                },
+                "max_ttl": {
+                    "anyOf": [
+                        {"type": "number"},
+                        {"type": "string"}
+                    ],
+                    "errorMessage": "The 'max_ttl' field must be a number, or a number written in 'second(s)/minute(s)/hour(s)/day(s)/year'"
+                },
+                "default_ttl": {
+                    "anyOf": [
+                        {"type": "number"},
+                        {"type": "string"}
+                    ],
+                    "errorMessage": "The 'default_ttl' field must be a number, or a number written in 'second(s)/minute(s)/hour(s)/day(s)/year'"
+                }
+            },
+            "additionalProperties": false,
+            "errorMessage": {
+                "additionalProperties": "Invalid/Unknown property specified in the 'cloudfront' section"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type",
+        "path_to_code"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "path_to_code": "The 'path_to_code' parameter is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
