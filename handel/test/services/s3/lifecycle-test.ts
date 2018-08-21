@@ -57,21 +57,6 @@ describe('s3 lifecycle helper', () => {
     });
 
     describe('checkLifecycles', () => {
-        it('should require a name if specified lifecycles', () => {
-            delete serviceContext.params.lifecycles![0].name;
-            const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('You must specify name in the \'lifecycles\' section');
-        });
-
-        it('should require at least one transition', () => {
-            delete serviceContext.params.lifecycles![0].transitions;
-            const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('You must specify at least one transition or version transition in the \'lifecycles\' section');
-        });
 
         it('should require versioning enabled for version transitions', () => {
             serviceContext.params = {

@@ -1,0 +1,126 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 's3')",
+            "pattern": "^s3$",
+            "errorMessage": "The 'type' parameter must be 's3'"
+        },
+        "bucket_name": {
+            "type": "string",
+            "errorMessage": "The 'bucket_name' parameter must be a unique string"
+        },
+        "bucket_acl": {
+            "type": "string",
+            "description": "The 'bucket_acl' parameter (should be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead')",
+            "pattern": "^AuthenticatedRead|AwsExecRead|BucketOwnerRead|BucketOwnerFullControl|LogDeliveryWrite|Private|PublicRead$",
+            "errorMessage": "The 'bucket_acl' parameter must be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead'"
+        },
+        "versioning": {
+            "type": "string",
+            "description": "The 'versioning' parameter must be either 'enabled' or 'disabled'",
+            "pattern": "^enabled|disabled$",
+            "errorMessage": "The 'versioning' parameter must be either 'enabled' or 'disabled'"
+        },
+        "logging": {
+            "type": "string",
+            "description": "The 'logging' parameter must be either 'enabled' or 'disabled'",
+            "pattern": "^enabled|disabled$",
+            "errorMessage": "The 'logging' parameter must be either 'enabled' or 'disabled'"
+        },
+        "lifecycles": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "errorMessage": "The 'name' parameter must be a string"
+                },
+                "prefix": {
+                    "type": "string",
+                    "errorMessage": "The 'prefix' parameter must be a string"
+                },
+                "transistions": {
+                    "$ref": "#/definitions/transistion_params",
+                    "date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+                    },
+                    "errorMessage": {
+                        "required": {
+                            "type": "The 'type' field is required in 'transistions'"
+                        },
+                        "additionalProperties": "Invalid/Unknown property specified in 'transistions'"
+                    }
+                },
+                "version_transistions": {
+                    "$ref": "#/definitions/transistion_params",
+                    "errorMessage": {
+                        "required": {
+                            "type": "The 'type' field is required in 'version_transistions'"
+                        },
+                        "additionalProperties": "Invalid/Unknown property specified in 'version_transistions'"
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "transistions|version_transistions"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "name": "You must specify name in the 'lifecycles' section",
+                    "transistions|version_transistions": "You must specify at least one transition or version transition in the 'lifecycles' section"
+                }
+            }
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' field is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    },
+    "definitions": {
+        "transistion_params": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
+                    "pattern": "^ia|glacier|expiration$",
+                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                },
+                "days": {
+                    "type": "integer",
+                    "errorMessage": "The 'days' parameter must be an intiger"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
