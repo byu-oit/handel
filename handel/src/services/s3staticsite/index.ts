@@ -15,7 +15,7 @@
  *
  */
 import {DeployContext, DeployOutputType, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53Calls from '../../aws/route53-calls';
 import * as s3Calls from '../../aws/s3-calls';
@@ -141,31 +141,29 @@ function checkCloudfront(cloudfront: CloudFrontConfig): string[] {
     const errors = [];
 
     const logging = cloudfront.logging;
-    if (logging && logging !== 'enabled' && logging !== 'disabled') {
-        errors.push(`${SERVICE_NAME} - 'cloudfront' -  The 'logging' parameter must be either 'enabled' or 'disabled'`);
-    }
+
     const priceClass = cloudfront.price_class;
     if (priceClass) {
         const priceString = String(priceClass);
         if (priceString !== '100' && priceString !== '200' && priceString !== 'all') {
-            errors.push(`${SERVICE_NAME} - 'cloudfront' - the 'price_class' parameter must be one of '100', '200', or 'all'`);
+            errors.push(`'cloudfront' - the 'price_class' parameter must be one of '100', '200', or 'all'`);
         }
     }
     if (cloudfront.min_ttl && !isValidTTL(cloudfront.min_ttl)) {
-        errors.push(`${SERVICE_NAME} - 'cloudfront' - The 'min_ttl' parameter must be a valid TTL value`);
+        errors.push(`'cloudfront' - The 'min_ttl' parameter must be a valid TTL value`);
     }
     if (cloudfront.max_ttl && !isValidTTL(cloudfront.max_ttl)) {
-        errors.push(`${SERVICE_NAME} - 'cloudfront' - The 'max_ttl' parameter must be a valid TTL value`);
+        errors.push(`'cloudfront' - The 'max_ttl' parameter must be a valid TTL value`);
     }
     if (cloudfront.default_ttl && !isValidTTL(cloudfront.default_ttl)) {
-        errors.push(`${SERVICE_NAME} - 'cloudfront' - The 'default_ttl' parameter must be a valid TTL value`);
+        errors.push(`'cloudfront' - The 'default_ttl' parameter must be a valid TTL value`);
     }
 
     if (cloudfront.dns_names) {
         const badName = cloudfront.dns_names.some(name => !route53Calls.isValidHostname(name));
 
         if (badName) {
-            errors.push(`${SERVICE_NAME} - 'cloudfront' - The 'dns_name' parameter must be a valid DNS hostname`);
+            errors.push(`'cloudfront' - The 'dns_name' parameter must be a valid DNS hostname`);
         }
     }
 
@@ -222,23 +220,15 @@ function getDeployContext(serviceContext: ServiceContext<S3StaticSiteServiceConf
  */
 
 export function check(serviceContext: ServiceContext<S3StaticSiteServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     const serviceParams = serviceContext.params;
-
-    if (!serviceParams.path_to_code) {
-        errors.push(`${SERVICE_NAME} - The 'path_to_code' parameter is required`);
-    }
-    const versioning = serviceParams.versioning;
-    if (versioning && versioning !== 'enabled' && versioning !== 'disabled') {
-        errors.push(`${SERVICE_NAME} - The 'versioning' parameter must be either 'enabled' or 'disabled'`);
-    }
 
     if (serviceParams.cloudfront) {
         const cfErrors = checkCloudfront(serviceParams.cloudfront);
         errors.push(...cfErrors);
     }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
