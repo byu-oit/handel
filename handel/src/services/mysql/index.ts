@@ -25,7 +25,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import {HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType} from './config-types';
@@ -90,17 +90,8 @@ function getCompiledMysqlTemplate(stackName: string,
 
 export function check(serviceContext: ServiceContext<MySQLConfig>,
                       dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const serviceParams = serviceContext.params;
-
-    if (!serviceParams.database_name) {
-        errors.push(`${SERVICE_NAME} - The 'database_name' parameter is required`);
-    }
-    if (!serviceParams.mysql_version) {
-        errors.push(`${SERVICE_NAME} - The 'mysql_version' parameter is required`);
-    }
-
-    return errors;
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export function preDeploy(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
