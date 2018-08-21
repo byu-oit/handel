@@ -146,10 +146,6 @@ function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AW
 export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
-    const validAcls = ['AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private', 'PublicRead'];
-
-    const params = serviceContext.params;
-
     lifecycleSection.checkLifecycles(serviceContext, SERVICE_NAME, errors);
 
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
