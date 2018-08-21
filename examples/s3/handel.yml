@@ -1,0 +1,20 @@
+version: 1
+name: s3-test
+environments:
+  dev:
+    mybucket:
+      type: s3
+      bucket_name: myoriginal_bucketname350
+      bucket_aci: AuthenticatedRead
+      versioning: enabled
+      logging: disabled
+      lifecycles:
+        name: ia30glacier365expire720
+        prefix: prefix
+        transistions:
+          type: ia
+          days: 30
+          type: expiration
+          date: 01-12
+      tags:
+        mytagname: mytagvalue

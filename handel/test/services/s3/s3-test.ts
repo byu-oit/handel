@@ -86,6 +86,7 @@ describe('s3 deployer', () => {
             };
             const errors = s3.check(ownServiceContext, []);
             expect(errors.length).to.equal(1);
+            console.log (errors);
             expect(errors[0]).to.contain('\'bucket_acl\' parameter must be \'AuthenticatedRead\', \'AwsExecRead\', \'BucketOwnerRead\', \'BucketOwnerFullControl\', \'LogDeliveryWrite\', \'Private\' or \'PublicRead\'');
         });
 
@@ -96,6 +97,7 @@ describe('s3 deployer', () => {
                 bucket_acl: 'PublicRead'
             };
             const errors = s3.check(ownServiceContext, []);
+            console.log(errors);
             expect(errors.length).to.equal(0);
         });
 
