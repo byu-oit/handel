@@ -1,0 +1,17 @@
+version: 1
+name: postgresql-test
+environments:
+  dev:
+    database:
+      type: postgresql
+      database_name: mydb
+      postgres_version: 8.2.5
+      description: This is a description
+      instance_type: db.t2.micro
+      storage_gb: 5
+      storage_type: gp2
+      multi_az: true
+      db_parameters:
+        authentication_timeout: 600
+      tags:
+        mytagname: mytagvalue

@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'postgresql')",
+            "pattern": "^postgresql$",
+            "errorMessage": "The 'type' parameter must be 'postgresql'"
+        },
+        "database_name": {
+            "type": "string",
+            "errorMessage": "The 'database_name' parameter must be a string"
+        },
+        "postgres_version": {
+            "type": "string",
+            "errorMessage": "The 'postgres_version' parameter must be a string"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' field must be a string"
+        },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' field must be a string"
+        },
+        "storage_gb": {
+            "type": "number",
+            "errorMessage": "The 'storage-gb' field must be a number"
+        },
+        "storage_type": {
+            "type": "string",
+            "description": "The allowed values are 'standard' and 'gp2'",
+            "pattern": "^standard|gp2$",
+            "errorMessage": "The 'storage_type' field must be 'standard' or 'gp2'"
+        },
+        "multi_az": {
+            "type": "boolean",
+            "errorMessage": "The 'multi_az' field must be a boolean"
+        },
+        "db_parameters": {
+            "type": "object",
+            "description": "A list of key/value PostgreSQL parameter group pairs to configure your database.",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "Database parameters must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type",
+        "database_name",
+        "postgres_version"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "database_name": "The 'database_name' parameter is required",
+            "postgres_version": "The 'postgres_version' parameter is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}

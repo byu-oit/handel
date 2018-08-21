@@ -26,7 +26,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
+import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
