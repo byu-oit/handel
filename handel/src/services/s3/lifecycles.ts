@@ -145,16 +145,6 @@ export function checkLifecycles(serviceContext: ServiceContext<S3ServiceConfig>,
     }
 
     for (const rule of lifecycles) {
-        // Require name
-        if (!rule.name) {
-            errors.push(`${serviceName} - You must specify name in the 'lifecycles' section`);
-        }
-
-        // Require at least one 'transition'
-        if (!rule.transitions && !rule.version_transitions) {
-            errors.push(`${serviceName} - ${rule.name}: You must specify at least one transition or version transition in the 'lifecycles' section`);
-        }
-
         // Require version enabled for version__transitions
         if (rule.version_transitions && params.versioning !== 'enabled') {
             errors.push(`${serviceName} - ${rule.name}: You must enable versioning to have version transition rules`);

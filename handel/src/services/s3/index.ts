@@ -24,7 +24,7 @@ import {
     ServiceEventType,
     UnDeployContext
  } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as s3Calls from '../../aws/s3-calls';
 import * as s3DeployersCommon from '../../common/s3-deployers-common';
@@ -144,20 +144,11 @@ function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AW
  */
 
 export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const validAcls = ['AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private', 'PublicRead'];
-
-    const params = serviceContext.params;
-    if (params.versioning && (params.versioning !== 'enabled' && params.versioning !== 'disabled')) {
-        errors.push(`${SERVICE_NAME} - 'versioning' parameter must be either 'enabled' or 'disabled'`);
-    }
-    if (params.bucket_acl && (!(validAcls.indexOf(params.bucket_acl) in validAcls))) {
-        errors.push(`${SERVICE_NAME} - 'bucket_acl' parameter must be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead'`);
-    }
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     lifecycleSection.checkLifecycles(serviceContext, SERVICE_NAME, errors);
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
