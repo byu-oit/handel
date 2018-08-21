@@ -25,7 +25,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import { HandlebarsPostgreSQLTemplate, PostgreSQLConfig, PostgreSQLStorageType } from './config-types';
@@ -93,17 +93,9 @@ async function getCompiledPostgresTemplate(stackName: string,
 
 export function check(serviceContext: ServiceContext<PostgreSQLConfig>,
                       dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const serviceParams = serviceContext.params;
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
-    if (!serviceParams.database_name) {
-        errors.push(`${SERVICE_NAME} - The 'database_name' parameter is required`);
-    }
-    if (!serviceParams.postgres_version) {
-        errors.push(`${SERVICE_NAME} - The 'postgres_version' parameter is required`);
-    }
-
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export function preDeploy(serviceContext: ServiceContext<PostgreSQLConfig>): Promise<PreDeployContext> {
