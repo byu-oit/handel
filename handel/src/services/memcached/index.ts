@@ -28,6 +28,7 @@ import {
 import {
     awsCalls,
     bindPhase,
+    checkPhase,
     deletePhases,
     deployPhase,
     handlebars,
@@ -98,17 +99,8 @@ function getCompiledMemcachedTemplate(stackName: string, ownServiceContext: Serv
  */
 
 export function check(serviceContext: ServiceContext<MemcachedServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const serviceParams = serviceContext.params;
-
-    if (!serviceParams.instance_type) {
-        errors.push(`${SERVICE_NAME} - The 'instance_type' parameter is required`);
-    }
-    if (!serviceParams.memcached_version) {
-        errors.push(`${SERVICE_NAME} - The 'memcached_version' parameter is required`);
-    }
-
-    return errors;
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<MemcachedServiceConfig>): Promise<PreDeployContext> {

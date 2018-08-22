@@ -25,7 +25,7 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
 import { HandlebarsRedisTemplate, RedisServiceConfig } from './config-types';
@@ -132,22 +132,12 @@ function getCompiledRedisTemplate(stackName: string, ownServiceContext: ServiceC
  */
 
 export function check(serviceContext: ServiceContext<RedisServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     const serviceParams = serviceContext.params;
 
-    if (!serviceParams.instance_type) {
-        errors.push(`${SERVICE_NAME} - The 'instance_type' parameter is required`);
-    }
-    if (!serviceParams.redis_version) {
-        errors.push(`${SERVICE_NAME} - The 'redis_version' parameter is required`);
-    }
-
     if (serviceParams.read_replicas) {
-        if (serviceParams.read_replicas < 0 || serviceParams.read_replicas > 5) {
-            errors.push(`${SERVICE_NAME} - The 'read_replicas' parameter may only have a value of 0-5`);
-        }
         if (serviceParams.read_replicas > 0 && (serviceParams.instance_type.includes('t2') || serviceParams.instance_type.includes('t1'))) {
-            errors.push(`${SERVICE_NAME} - You may not use the 't1' and 't2' instance types when using any read replicas`);
+            errors.push(`You may not use the 't1' and 't2' instance types when using any read replicas`);
         }
     }
     // if(serviceParams.num_shards) {
@@ -159,7 +149,7 @@ export function check(serviceContext: ServiceContext<RedisServiceConfig>, depend
     //     }
     // }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<RedisServiceConfig>): Promise<PreDeployContext> {
