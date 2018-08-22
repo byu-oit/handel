@@ -46,12 +46,12 @@ Parameters
      - Handel-created function
      - The configuration description of your function
    * - memory
-     - string
+     - number
      - No
      - 128
      - The `amount of memory <http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-memorysize>`_ to allocate for your function
    * - timeout
-     - string
+     - number
      - No
      - 3
      - The timeout in seconds for your function. Max 300
