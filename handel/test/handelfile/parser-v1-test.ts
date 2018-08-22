@@ -19,7 +19,7 @@ import { DeployOutputType, ServiceEventType, ServiceRegistry } from 'handel-exte
 import { AccountConfig, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import config from '../../src/account-config/account-config';
-import { HandelCoreOptions, HandelFile } from '../../src/datatypes';
+import { ExtensionSource, HandelCoreOptions, HandelFile } from '../../src/datatypes';
 import * as parserV1 from '../../src/handelfile/parser-v1';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
@@ -316,38 +316,13 @@ describe('parser-v1', () => {
             const extensions = await parserV1.listExtensions(validHandelFile);
             expect(extensions).to.have.lengthOf(1);
             expect(extensions).to.deep.include({
+                source: ExtensionSource.NPM,
+                spec: 'foo-extension@^1.0.0',
                 prefix: 'foo',
                 name: 'foo-extension',
                 versionSpec: '^1.0.0'
             });
         });
-        it('Handles extensions without a version', async () => {
-            validHandelFile.extensions = {foo: 'foo-extension'};
 
-            const extensions = await parserV1.listExtensions(validHandelFile);
-            expect(extensions).to.have.lengthOf(1);
-            expect(extensions).to.deep.include({
-                prefix: 'foo',
-                name: 'foo-extension',
-                versionSpec: '*'
-            });
-        });
-        it('Handles extensions with a scoped package name (issue #438)', async () => {
-            const inputExtensions = validHandelFile.extensions!;
-            inputExtensions.foo = '@test-org/foo-extension@^1.0.0';
-            inputExtensions.bar = '@test-org/bar-extension';
-
-            const extensions = await parserV1.listExtensions(validHandelFile);
-            expect(extensions).to.deep.include({
-                prefix: 'foo',
-                name: '@test-org/foo-extension',
-                versionSpec: '^1.0.0'
-            });
-            expect(extensions).to.deep.include({
-                prefix: 'bar',
-                name: '@test-org/bar-extension',
-                versionSpec: '*'
-            });
-        });
     });
 });

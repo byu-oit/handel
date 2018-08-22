@@ -20,6 +20,7 @@ import { DescribeParametersRequest } from 'aws-sdk/clients/ssm';
 import constantCase = require('constant-case');
 import {
     DeployContext,
+    DeployOutputType,
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
@@ -40,9 +41,11 @@ const DEFAULT_LENGTH = 32;
 export class RandomSecretService implements ServiceDeployer {
 
     public readonly consumedDeployOutputTypes = [];
-    public readonly producedDeployOutputTypes = ['environmentVariables'];
+    public readonly producedDeployOutputTypes = [DeployOutputType.EnvironmentVariables];
     public readonly producedEventsSupportedTypes = [];
     public readonly supportsTagging = false;
+    public readonly providedEventType = null;
+    public readonly producedEventsSupportedServices = [];
 
     public check(serviceContext: ServiceContext<RandomSecretConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
         const {params} = serviceContext;

@@ -62,3 +62,76 @@ Note from the example above that when using extension services you must use the 
 .. NOTE::
 
     You can know what service types an extension contains, as well as how to configure each service type, by looking at the documentation provided by the extension.
+
+Specifying an Extension Version
+-------------------------------
+By default, Handel will grab the latest version of the specified extension from NPM. If you wish to specify a version or range of versions, you can use the syntax from the `package.json spec <https://docs.npmjs.com/files/package.json#dependencies>`_:
+
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: sns-ext-example
+
+    extensions:
+      sns: sns-handel-extension@^0.1.0
+
+    environments:
+      dev:
+        task:
+          type: sns::sns
+
+This will cause Handel to fetch the latest 0.1.x version of the sns-handel-extension. For more about how these rules work, see the documentation on `NPM's implementation of semantic versioning <https://docs.npmjs.com/misc/semver>`_
+
+Local Extensions
+----------------
+You may find yourself wanting to implement something that Handel doesn't support, but isn't widely reusable. While it is usually best to contribute an extension to the wider Handel ecosystem, there are cases where that is not appropriate.
+
+Handel leverages `NPM's support for local paths <https://docs.npmjs.com/files/package.json#local-paths>`_  allows you to create 'local extensions' - extensions which live inside of your project.
+
+You'll need to follow the guide to :ref:`writing-extensions`, and put your extension source code in a subdirectory of your project: we recommend inside of a directory called `.local-handel-extensions`, but you can name it anything you like.
+
+Let's say you've implemented an extension in `.local-handel-extensions/fancy-extension`. You can now use it like this:
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: local-extension-example
+
+    extensions:
+      fancy: file:.local-handel-extensions/fancy-extension
+
+    environments:
+      dev:
+        fancy:
+          type: fancy:superfancy
+
+.. NOTE::
+
+    Handel will ensure that all production dependencies listed in your local extension's `package.json` are installed, but will not perform any build steps for you (like transpiling from Typescript).
+
+    You will need to ensure that any such build steps are carried out before running `handel`.
+
+
+Other Extension Sources
+-----------------------
+
+Handel also supports installing extensions from GitHub, GitLab, Bitbucket, and Git repositories.
+
+The values for these sources must be prefixed by their type ("`github:`", "`gitlab:`", "`bitbucket:`", "`git:`") and follow
+the format specified in the `npm install <https://docs.npmjs.com/cli/install>`_ documentation.
+
+.. code-block:: yaml
+
+    version: 1
+
+    name: local-extension-example
+
+    extensions:
+      my-github-extension:     github:myorg/myrepo#my-optional-branch-specifier
+      my-bitbucket-extension:  bitbucket:myuser/myrepo
+      my-gitlab-extension:     gitlab:myorg/myrepo
+      my-git-extension:        git:git+https://my-server.com/my-repo.git
+
