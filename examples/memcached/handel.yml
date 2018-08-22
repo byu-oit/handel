@@ -1,0 +1,14 @@
+version: 1
+name: memcached-test
+environments:
+  dev:
+    cache:
+      type: memcached
+      instance_type: cache.m3.medium
+      memcached_version: 2.5.67
+      description: A description
+      node_count: 1
+      cache_parameters:
+        cas_disabled: 1
+      tags:
+        mytagname: mytagvalue
