@@ -1,0 +1,80 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'redis')",
+            "pattern": "^redis$",
+            "errorMessage": "The 'type' parameter must be 'redis'"
+        },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' parameter must be a string"
+        },
+        "redis_version": {
+            "type": "string",
+            "errorMessage": "The 'redis_version' parameter must be a string"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' parameter must be a string"
+        },
+        "maintenance_window": {
+            "type": "string",
+            "errorMessage": "The 'maintenance_window' parameter must be a string"
+        },
+        "read_replicas": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5,
+            "errorMessage": "The 'read_replicas' parameter may only have a value of 0-5"
+        },
+        "snapshot_window": {
+            "type": "string",
+            "errorMessage": "The 'snapshot_window' parameter must be a string"
+        },
+        "cache_parameters": {
+            "type": "object",
+            "description": "Any cache parameters you wish for your Redis cluster.",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "'Cache_parameters' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type",
+        "instance_type",
+        "redis_version"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "instance_type": "The 'instance_type' parameter is required",
+            "redis_version": "The 'redis_version' parameter is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
