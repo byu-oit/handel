@@ -1,0 +1,93 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should be 'lambda')",
+            "pattern": "^lambda$",
+            "errorMessage": "The 'type' parameter must be 'lambda'"
+        },
+        "path_to_code": {
+            "type": "string",
+            "errorMessage": "The 'path_to_code' parameter must be a string"
+        },
+        "handler": {
+            "type": "string",
+            "errorMessage": "The 'handler' parameter must be a string"
+        },
+        "runtime": {
+            "type": "string",
+            "errorMessage": "The 'runtime' parameter must be a string"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' parameter must be a string"
+        },
+        "memory": {
+            "type": "number",
+            "errorMessage": "The 'memory' parameter must be a number"
+        },
+        "timeout": {
+            "type": "number",
+            "maximum": 300,
+            "errorMessage": "The 'timeout' parameter must be a number"
+        },
+        "vpc": {
+            "type": "boolean",
+            "errorMessage": "The 'vpc' parameter must be a boolean"
+        },
+        "environment_variables": {
+            "type": "object",
+            "description": "Any environment variables you want to inject into your code.",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "'environment_variables' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "dependencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "errorMessage": "Each item in the 'dependencies' section must be a string"
+            },
+            "errorMessage": "The 'dependencies' section must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "path_to_code",
+        "handler",
+        "runtime"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "path_to_code": "The 'path_to_code' parameter is required",
+            "handler": "The 'handler' parameter is required",
+            "runtime": "The 'runtime' parameter is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
