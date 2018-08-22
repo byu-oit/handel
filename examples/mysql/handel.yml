@@ -1,0 +1,17 @@
+version: 1
+name: mysql-test
+environments:
+  dev:
+    database:
+      type: mysql
+      mysql_version: 5.6.27
+      database_name: mydb
+      description: Insert description here
+      instance_type: db.t2.micro
+      storage_gb: 5
+      storage_type: standard
+      multi_az: true
+      db_parameters:
+        autocommit: 1
+      tags:
+        mytagname: mytagvalue
