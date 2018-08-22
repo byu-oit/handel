@@ -1,6 +1,6 @@
 version: 1
 
-name: my-vpc-lambda
+name: my-vpc-lambda-test
 
 environments:
   dev:
@@ -9,4 +9,11 @@ environments:
       path_to_code: .
       handler: index.handler
       runtime: python3.6
+      description: An example description
+      memory: 128
+      timeout: 300
       vpc: true
+      environment_variables:
+        MY_ENV: myEnvValue
+      tags:
+        mytagname: mytagvalue

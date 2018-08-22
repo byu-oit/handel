@@ -30,6 +30,7 @@ import {
 } from 'handel-extension-api';
 import {
     awsCalls,
+    checkPhase,
     deletePhases,
     deployPhase,
     handlebars,
@@ -156,27 +157,18 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
  */
 
 export function check(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     const serviceParams = serviceContext.params;
-    if (!serviceParams.path_to_code) {
-        errors.push(`${SERVICE_NAME} - The 'path_to_code' parameter is required`);
-    }
-    if (!serviceParams.handler) {
-        errors.push(`${SERVICE_NAME} - The 'handler' parameter is required`);
-    }
-    if (!serviceParams.runtime) {
-        errors.push(`${SERVICE_NAME} - The 'runtime' parameter is required`);
-    }
     if (dependenciesServiceContexts) {
         dependenciesServiceContexts.forEach((dependencyServiceContext) => {
             if (dependencyServiceContext.serviceInfo.producedDeployOutputTypes.indexOf('securityGroups') !== -1 && !serviceParams.vpc) {
-                errors.push(`${SERVICE_NAME} - The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
+                errors.push(`The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
             }
         });
     }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
