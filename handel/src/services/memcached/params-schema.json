@@ -1,0 +1,70 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'memcached')",
+            "pattern": "^memcached$",
+            "errorMessage": "The 'type' parameter must be 'memcached'"
+        },
+        "instance_type": {
+            "type": "string",
+            "errorMessage": "The 'instance_type' parameter must be a string"
+        },
+        "memcached_version": {
+            "type": "string",
+            "errorMessage": "The 'memcached_version' parameter must be a string"
+        },
+        "description": {
+            "type": "string",
+            "errorMessage": "The 'description' parameter must be a string"
+        },
+        "node_count": {
+            "type": "number",
+            "errorMessage": "The 'node_count' parameter must be a number"
+        },
+        "cache_parameters": {
+            "type": "object",
+            "description": "Any cache parameters you wish for your Memcached cluster.",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "'cache-parameters' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type",
+        "instance_type",
+        "memcached_version"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "instance_type": "The 'instance_type' parameter is required",
+            "memcached_version": "The 'memcached_version' parameter is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
