@@ -30,7 +30,12 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as dynamodb from '../../../src/services/dynamodb';
-import { DynamoDBConfig, DynamoDBServiceEventConsumer, KeyDataType, StreamViewType } from '../../../src/services/dynamodb/config-types';
+import {
+    DynamoDBConfig,
+    DynamoDBServiceEventConsumer,
+    KeyDataType,
+    StreamViewType
+} from '../../../src/services/dynamodb/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
@@ -341,7 +346,7 @@ describe('dynamodb deployer', () => {
                     Outputs: [
                         {
                             OutputKey: 'TableName',
-                            OutputValue: tableName
+                            OutputValue: fullTableName
                         },
                         {
                             OutputKey: 'StreamArn',
@@ -495,12 +500,69 @@ describe('dynamodb deployer', () => {
                     dependsOn: 'IndexMyglobalRead'
                 });
             });
+
+            // https://github.com/byu-oit/handel/issues/517
+            it('should handle custom table names properly (Issue 517)', async () => {
+                const customName = 'customName';
+                const serviceConfig = serviceContext.params = clone(VALID_DYNAMODB_CONFIG);
+
+                serviceConfig.table_name = customName;
+
+                serviceConfig.provisioned_throughput!.read_capacity_units = '1-10';
+                serviceConfig.provisioned_throughput!.write_capacity_units = '2-5';
+                serviceConfig.provisioned_throughput!.write_target_utilization = 99;
+                delete serviceConfig.global_indexes![0].provisioned_throughput;
+
+                deployStackStub.returns(Promise.resolve({
+                    Outputs: [
+                        {
+                            OutputKey: 'TableName',
+                            OutputValue: customName
+                        },
+                        {
+                            OutputKey: 'StreamArn',
+                            OutputValue: 'FakeArn'
+                        }
+                    ]
+                }));
+
+                const deployContext = await dynamodb.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+                // If it was only called once, we didn't deploy the autoscaling stack
+                const autoscaleParams = templateSpy.lastCall.args[1];
+
+                expect(autoscaleParams).to.have.property('targets')
+                    .with.lengthOf(4);
+
+                const targets = autoscaleParams.targets;
+
+                expect(targets[2], 'index read target').to.deep.include({
+                    logicalIdPrefix: 'IndexMyglobalRead',
+                    min: 1,
+                    max: 10,
+                    target: 70,
+                    dimension: 'index:ReadCapacityUnits',
+                    metric: 'DynamoDBReadCapacityUtilization',
+                    resourceId: 'table/' + customName + '/index/myglobal',
+                    dependsOn: 'TableWrite'
+                });
+
+                expect(targets[3], 'index write target').to.deep.include({
+                    logicalIdPrefix: 'IndexMyglobalWrite',
+                    min: 2,
+                    max: 5,
+                    target: 99,
+                    dimension: 'index:WriteCapacityUnits',
+                    metric: 'DynamoDBWriteCapacityUtilization',
+                    resourceId: 'table/' + customName + '/index/myglobal',
+                    dependsOn: 'IndexMyglobalRead'
+                });
+            });
         });
     });
 
     describe('produceEvents', () => {
         it('should return an empty ProduceEventsContext', async () => {
-            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', new ServiceType(STDLIB_PREFIX, 'faketype'), { type: 'faketype' }, accountConfig);
+            const consumerServiceContext = new ServiceContext(appName, envName, 'fakeservice', new ServiceType(STDLIB_PREFIX, 'faketype'), {type: 'faketype'}, accountConfig);
             const eventConsumerConfig: DynamoDBServiceEventConsumer = {
                 service_name: 'fakeservice',
                 batch_size: 1
