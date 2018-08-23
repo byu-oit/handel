@@ -61,8 +61,8 @@ const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
             'MyOtherGlobalAttribute'
         ],
         provisioned_throughput: {
-            read_capacity_units: 2,
-            write_capacity_units: 2
+            read_capacity_units: '2',
+            write_capacity_units: '2'
         }
     }],
     local_indexes: [{
@@ -183,7 +183,7 @@ describe('dynamodb deployer', () => {
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'type\' field in the \'sort_key\' section is required in the \'local_indexes\' section');
         });
-
+    
         describe('table_name', () => {
             it('should validate that the name is at least 3 characters long', () => {
                 serviceParams.table_name = 'a';
@@ -215,6 +215,7 @@ describe('dynamodb deployer', () => {
                 };
 
                 const errors = dynamodb.check(serviceContext, []);
+                console.log(errors);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'read_capacity_units\' must be either a number or a numeric range');
             });
