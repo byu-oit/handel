@@ -23,7 +23,14 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import { 
+    deletePhases, 
+    checkPhase,
+    deployPhase, 
+    handlebars, 
+    preDeployPhase, 
+    tagging 
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as ecsCalls from '../../aws/ecs-calls';
@@ -113,25 +120,18 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
  */
 export function check(serviceContext: ServiceContext<FargateServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     // TODO check that all values are valid, like Cpu and Memory, logRetentionInDays possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     const params = serviceContext.params;
-    const retention = params.log_retention_in_days;
-
-    if (retention && typeof retention !== 'number') {
-        errors.push(`${SERVICE_NAME} - The 'log_retention_in_days' parameter must be a number`);
-    }
-
     const requestedCpuUnits = params.cpu_units || DEFAULT_CPU_UNITS;
     const requestedMemory = params.max_mb || DEFAULT_MAX_MB;
     if (!ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits] || !ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits].includes(requestedMemory)) {
-        errors.push(`${SERVICE_NAME} - Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
+        errors.push(`Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
     }
 
-    serviceAutoScalingSection.checkAutoScalingSection(serviceContext, SERVICE_NAME, errors);
     routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
     containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<FargateServiceConfig>) {
