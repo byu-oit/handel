@@ -73,34 +73,6 @@ export async function undeployAutoscaling(ownServiceContext: types.DynamoDBConte
     }
 }
 
-export function checkProvisionedThroughput(throughput: types.ProvisionedThroughput | undefined, errorPrefix: string) {
-    if (!throughput) {
-        return [];
-    }
-
-    const errors: string[] = [];
-
-    const read = throughput.read_capacity_units;
-    const write = throughput.write_capacity_units;
-    const readTarget = throughput.read_target_utilization;
-    const writeTarget = throughput.write_target_utilization;
-
-    if (read && !VALID_THROUGHPUT_PATTERN.test(String(read))) {
-        errors.push(`'read_capacity_units' must be either a number or a numeric range (ex: 1-100)`);
-    }
-    if (write && !VALID_THROUGHPUT_PATTERN.test(String(write))) {
-        errors.push(`'write_capacity_units' must be either a number or a numeric range (ex: 1-100)`);
-    }
-    if (readTarget && !isValidTargetUtilization(readTarget)) {
-        errors.push(`'read_target_utilization' must be a number between 0 and 100`);
-    }
-    if (writeTarget && !isValidTargetUtilization(writeTarget)) {
-        errors.push(`'write_target_utilization' must be a number between 0 and 100`);
-    }
-
-    return errors.map(it => errorPrefix + it);
-}
-
 export function getThroughputConfig(throughputConfig: types.ProvisionedThroughput | undefined,
     defaultConfig: ThroughputConfig | null): ThroughputConfig {
     const throughput = throughputConfig || {};

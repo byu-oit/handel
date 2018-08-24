@@ -56,8 +56,16 @@
                     "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                 }
             },
+            "required": [
+                "name",
+                "type"
+            ],
             "additionalProperties": false,
             "errorMessage": {
+                "required": {
+                    "name": "The 'name' field is required in the 'sort_key' section",
+                    "type": "The 'type' field is required in the 'sort_key' section"
+                },
                 "additionalProperties": "Invalid/Unknown property specified in the 'sort_key' section"
             }
         },
@@ -101,8 +109,15 @@
                     "errorMessage": "The 'write_target_utilization' parameter must be a percentage"
                 }
             },
+            "required": [
+                "read_capacity_units",
+                "write_capacity_units"
+            ],
             "additionalProperties": false,
             "errorMessage": {
+                "required": {
+                    "read_capacity_units": "The 'read_capacity_units' are required in the 'provisioned_throughput' section"
+                },
                 "additionalProperties": "Invalid/Unknown property specified in the 'provisioned_throughput' section"
             }
         },
@@ -217,17 +232,25 @@
                         "properties": {
                             "name": {
                                 "type": "string",
-                                "errorMessage": "The 'name' parameter must be a string"
+                                "errorMessage": "The 'name' parameter must be a string in the 'sort_key' section"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "The 'type' parameter may only be 'String' or 'Number'",
+                                "description": "The 'type' parameter may only be 'String' or 'Number' in the 'sort_key' section",
                                 "pattern": "^String|Number$",
-                                "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
+                                "errorMessage": "The 'type' parameter must be 'String' or 'Number' in the 'sort_key' section"
                             }
                         },
+                        "required": [
+                            "name",
+                            "type"
+                        ],
                         "additionalProperties": false,
                         "errorMessage": {
+                            "required": {
+                                "name": "The 'name' field is required in the 'sort_key' section of 'global_indexes'",
+                                "type": "The 'type' field is required in the 'sort_key' section of 'global_indexes'"
+                            },
                             "additionalProperties": "Invalid/Unknown property specified in the 'sort_key' section of 'global_indexes'"
                         }
                     },
@@ -288,7 +311,6 @@
                 "required": [
                     "name",
                     "partition_key",
-                    "sort_key",
                     "attributes_to_copy"
                 ],
                 "additionalProperties": false,
@@ -296,7 +318,6 @@
                     "required": {
                         "name": "The 'name' field is required in the 'global_indexes' section",
                         "partition_key": "The 'partition_key' section is required in the 'global_indexes' section",
-                        "sort_key": "The 'sort_key' parameter is required in the 'global_indexes' section",
                         "attributed_to_copy": "The 'attributes_to_copy' parameter is required in the 'global_indexes' section"
                     },
                     "additionalProperties": "Invalid/Unknown property specified in the 'global_indexes' section"

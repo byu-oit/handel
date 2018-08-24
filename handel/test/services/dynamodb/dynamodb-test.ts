@@ -215,7 +215,6 @@ describe('dynamodb deployer', () => {
                 };
 
                 const errors = dynamodb.check(serviceContext, []);
-                console.log(errors);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'read_capacity_units\' must be either a number or a numeric range');
             });
