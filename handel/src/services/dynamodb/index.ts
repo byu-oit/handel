@@ -30,6 +30,7 @@ import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel
 import * as winston from 'winston';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig} from './config-types';
+import { CloudFormation } from 'aws-sdk';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
@@ -73,7 +74,7 @@ function buildTableARN(tableName: string, accountConfig: AccountConfig) {
 
 function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
-    const tableName = awsCalls.cloudFormation.getOutput('TableName', cfStack);
+    const tableName = getTableNameFrom(cfStack);
     if(!tableName) {
         throw new Error('Expected to receive TableName back from DynamoDB service');
     }
@@ -101,6 +102,10 @@ function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStac
     });
 
     return deployContext;
+}
+
+function getTableNameFrom(stack: CloudFormation.Stack): string {
+    return awsCalls.cloudFormation.getOutput('TableName', stack)!;
 }
 
 function addDefinedAttribute(definedAttrs: any[], attrName: string, attrType: string) {
@@ -319,7 +324,7 @@ export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, 
 
     const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
     const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], false, 30, stackTags);
-    await autoscaling.deployAutoscaling(stackName, ownServiceContext, SERVICE_NAME, stackTags);
+    await autoscaling.deployAutoscaling(getTableNameFrom(deployedStack), ownServiceContext, SERVICE_NAME, stackTags);
     winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
     return getDeployContext(ownServiceContext, deployedStack);
 }
