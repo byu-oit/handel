@@ -248,6 +248,20 @@ const awsWrapper = {
             const sns = new AWS.SNS({apiVersion: '2010-03-31'});
             return sns.subscribe(params).promise();
         }
+    },
+    dynamodb: {
+        describeTable: (params: AWS.DynamoDB.DescribeTableInput) => {
+            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+            return dynamodb.describeTable(params).promise();
+        },
+        createTable: (params: AWS.DynamoDB.CreateTableInput) => {
+            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+            return dynamodb.createTable(params).promise();
+        },
+        putItem: (params: AWS.DynamoDB.PutItemInput) => {
+            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+            return dynamodb.putItem(params).promise();
+        }
     }
 };
 

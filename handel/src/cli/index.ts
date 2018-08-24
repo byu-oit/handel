@@ -24,6 +24,7 @@ import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
+import * as dynamodbCalls from '../aws/dynamodb-calls';
 import * as stsCalls from '../aws/sts-calls';
 import * as util from '../common/util';
 import {
@@ -47,8 +48,43 @@ function logCaughtError(msg: string, err: Error) {
     }
 }
 
-function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]): void {
+function makeSureDeploymentsLogTableExists() {
+    const handelDeploymentLogsTableName = 'handel-deployment-logs';
+    if (dynamodbCalls.getDynamoTable(handelDeploymentLogsTableName) === undefined) {
+        dynamodbCalls.createDynamoTable({
+            AttributeDefinitions: [
+                {
+                    AttributeName: 'AppName',
+                    AttributeType: 'S'
+                },
+                {
+                    AttributeName: 'DeploymentEndTime',
+                    AttributeType: 'S'
+                }
+            ],
+            KeySchema: [
+                {
+                    AttributeName: 'AppName',
+                    KeyType: 'HASH'
+                },
+                {
+                    AttributeName: 'DeploymentEndTime',
+                    KeyType: 'RANGE'
+                }
+            ],
+            ProvisionedThroughput: {
+                ReadCapacityUnits: 5,
+                WriteCapacityUnits: 5
+            },
+            TableName: handelDeploymentLogsTableName
+        });
+    }
+}
+
+function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], handelFile: HandelFile, environmentsToDeploy: string[]): void {
     let success = true;
+    const handelDeploymentLogsTableName = 'handel-deployment-logs';
+    makeSureDeploymentsLogTableExists();
     for (const envResult of envResults) {
         if (envResult.status !== 'success') {
             winston.error(`Error during environment ${lifecycleName}: ${envResult.message}`);
@@ -57,6 +93,17 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
             }
             success = false;
         }
+
+        // insert log entry into dynamo log table
+        dynamodbCalls.putItem(handelDeploymentLogsTableName, {
+            'AppName': handelFile.name,
+            'DeploymentEndTime': Date.now(),
+            'DeploymentStartTime': envResult.deploymentStartTime,
+            'EnvironmentName': envResult.environmentName,
+            'DeploymentStatus': envResult.status,
+            'DeploymentMessage': envResult.message,
+            'HandelContents': handelFile
+        });
     }
 
     if (success) {
@@ -232,7 +279,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
 
         const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry, options);
-        logFinalResult('deploy', envDeployResults);
+        logFinalResult('deploy', envDeployResults, handelFile, environmentsToDeploy);
     }
     catch (err) {
         logCaughtError('Error occurred during deploy', err);
@@ -283,7 +330,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
             const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
-            logFinalResult('delete', [envDeleteResult]);
+            logFinalResult('delete', [envDeleteResult], handelFile, [options.environment]);
         }
         else {
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
