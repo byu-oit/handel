@@ -116,7 +116,8 @@
             "additionalProperties": false,
             "errorMessage": {
                 "required": {
-                    "read_capacity_units": "The 'read_capacity_units' are required in the 'provisioned_throughput' section"
+                    "read_capacity_units": "The 'read_capacity_units' are required in the 'provisioned_throughput' section",
+                    "write_capacity_units": "The 'write_capacity_units' are required in the 'provisioned_throughput' section"
                 },
                 "additionalProperties": "Invalid/Unknown property specified in the 'provisioned_throughput' section"
             }

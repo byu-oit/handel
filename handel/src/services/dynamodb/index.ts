@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { CloudFormation } from 'aws-sdk';
 import {
     AccountConfig,
     DeployContext,
@@ -26,18 +27,17 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { 
-    awsCalls, 
-    checkPhase, 
-    deletePhases, 
-    deployPhase, 
-    handlebars, 
-    tagging 
+import {
+    awsCalls,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    tagging
 } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig} from './config-types';
-import { CloudFormation } from 'aws-sdk';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
@@ -254,7 +254,6 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
 
 export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
