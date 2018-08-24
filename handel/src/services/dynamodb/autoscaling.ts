@@ -49,14 +49,16 @@ const DEFAULT_CAPACITY_UNITS = 1;
 const DEFAULT_AUTOSCALING_TARGET_UTILIZATION = 70;
 const VALID_THROUGHPUT_PATTERN = /^(\d+)(?:-(\d+))?$/;
 
-export function deployAutoscaling(mainStackName: string,
+export function deployAutoscaling(
+    tableName: string,
     ownServiceContext: types.DynamoDBContext,
     serviceName: string,
-    stackTags: Tags): Promise<any> {
+    stackTags: Tags
+): Promise<any> {
     if (!tableOrIndexesHaveAutoscaling(ownServiceContext)) {
         return Promise.resolve();
     }
-    return getCompiledAutoscalingTemplate(mainStackName, ownServiceContext)
+    return getCompiledAutoscalingTemplate(tableName, ownServiceContext)
         .then((compiledTemplate: string) => {
             const stackName = getAutoscalingStackName(ownServiceContext);
             return deployPhase.deployCloudFormationStack(
