@@ -10,11 +10,11 @@
         },
         "max_mb": {
             "type": "integer",
-            "errorMessage": "The 'max_mb' parameter must be an intiger"
+            "errorMessage": "The 'max_mb' parameter must be an integer"
         },
         "cpu_units": {
             "type": "integer",
-            "errorMessage": "The 'cpu_units' parameter must be an intiger"
+            "errorMessage": "The 'cpu_units' parameter must be an integer"
         },
         "containers": {
             "type": "array",
@@ -33,7 +33,7 @@
                         "type": "array",
                         "items": {
                             "type": "integer",
-                            "errorMessage": "The 'port_mappings' parameter must be an intiger"
+                            "errorMessage": "The 'port_mappings' parameter must be an integer"
                         }
                     },
                     "links": {
@@ -97,11 +97,11 @@
             "properties": {
                 "min_tasks": {
                     "type": "integer",
-                    "errorMessage": "The 'min_tasks' field must be a string in the 'auto_scaling' section"
+                    "errorMessage": "The 'min_tasks' field must be a integer in the 'auto_scaling' section"
                 },
                 "max_tasks": {
                     "type": "integer",
-                    "errorMessage": "The 'max_tasks' field must be a string in the 'auto_scalng' section"
+                    "errorMessage": "The 'max_tasks' field must be a integer in the 'auto_scalng' section"
                 },
                 "scaling_policies": {
                     "type": "array",
@@ -183,7 +183,7 @@
                                     }
                                 },
                                 "required": [
-                                    "metric-name",
+                                    "metric_name",
                                     "comparison_operator",
                                     "threshold"
                                 ],
@@ -243,7 +243,7 @@
                 },
                 "https_certificate": {
                     "type": "string",
-                    "errorMessage": "The 'https-certificate' field must be a string in the 'load_balancer' section"
+                    "errorMessage": "The 'https_certificate' field must be a string in the 'load_balancer' section"
                 },
                 "dns_names": {
                     "type": "array",
@@ -281,6 +281,14 @@
             },
             "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
+        },
+        "dependencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "errorMessage": "Each item in the 'dependencies' section must be a string"
+            },
+            "errorMessage": "The 'dependencies' section must be a string"
         }
     },
     "required": [
