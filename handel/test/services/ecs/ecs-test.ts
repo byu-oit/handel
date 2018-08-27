@@ -98,12 +98,10 @@ describe('ecs deployer', () => {
     });
 
     describe('check', () => {
-        let checkAutoScalingStub: sinon.SinonStub;
         let checkLoadBalancerStub: sinon.SinonStub;
         let checkContainersStub: sinon.SinonStub;
 
         beforeEach(() => {
-            checkAutoScalingStub = sandbox.stub(ecsServiceAutoScaling, 'checkAutoScalingSection').returns([]);
             checkLoadBalancerStub = sandbox.stub(ecsRouting, 'checkLoadBalancerSection').returns([]);
             checkContainersStub = sandbox.stub(ecsContainers, 'checkContainers').returns([]);
         });

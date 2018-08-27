@@ -101,11 +101,6 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
 export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     if (params.load_balancer) {
-        // Require the load balancer listener type
-        if (!params.load_balancer.type) {
-            errors.push(`The 'type' parameter is required in the 'load_balancer' section`);
-        }
-
         // If type = https, require https_certificate
         if (params.load_balancer.type === 'https' && !params.load_balancer.https_certificate) {
             errors.push(`The 'https_certificate' parameter is required in the 'load_balancer' section when you use HTTPS`);

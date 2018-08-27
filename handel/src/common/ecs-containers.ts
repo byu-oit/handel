@@ -146,11 +146,6 @@ export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig 
     else {
         let alreadyHasOneRouting = false;
         for (const container of params.containers) {
-            // Require 'name'
-            if (!container.name) {
-                errors.push(`The 'name' parameter is required in each container in the 'containers' section`);
-            }
-
             if (container.routing) {
                 // Only allow one 'routing' section currently
                 if (alreadyHasOneRouting) {
