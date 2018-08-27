@@ -1,16 +1,16 @@
 {
   "name": "handel",
-  "version": "0.31.2",
+  "version": "0.31.4",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "./bin/handel",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
-    "clean": "echo Cleaning && ./node_modules/.bin/del ./dist/ && echo Finished clean",
+    "clean": "node npm-scripts.js clean",
     "compile": "echo Compiling && tsc && echo Finished compile",
-    "copyNonTsFiles": "echo Copying Non-TS files && ./node_modules/.bin/cpy '**/*' '!**/*.ts' '../dist/' --cwd=src --parents && echo Finished copy",
+    "copyNonTsFiles": "node npm-scripts.js copyNonTsFiles",
     "build": "npm run clean && npm run compile && npm run copyNonTsFiles",
-    "test": "./node_modules/.bin/mocha -r ts-node/register 'test/**/*.ts'",
-    "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w 'test/**/*.ts'"
+    "test": "./node_modules/.bin/mocha -r ts-node/register \"test/**/*.ts\"",
+    "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w \"test/**/*.ts\""
   },
   "bin": {
     "handel": "./bin/handel"
@@ -25,8 +25,8 @@
     "child-process-es6-promise": "^1.2.0",
     "common-tags": "^1.7.2",
     "fs-extra": "^5.0.0",
-    "handel-extension-api": "^0.31.2",
-    "handel-extension-support": "^0.31.2",
+    "handel-extension-api": "^0.31.4",
+    "handel-extension-support": "^0.31.4",
     "inquirer": "^3.3.0",
     "js-yaml": "3.7.0",
     "lodash": "^4.17.5",
