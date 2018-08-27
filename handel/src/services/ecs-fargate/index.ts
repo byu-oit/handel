@@ -23,13 +23,13 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { 
-    deletePhases, 
+import {
     checkPhase,
-    deployPhase, 
-    handlebars, 
-    preDeployPhase, 
-    tagging 
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
 } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';

@@ -112,7 +112,6 @@ describe('ecs deployer', () => {
             const errors = ecs.check(serviceContext, []);
 
             expect(errors.length).to.equal(0);
-            expect(checkAutoScalingStub.callCount).to.equal(1);
             expect(checkLoadBalancerStub.callCount).to.equal(1);
             expect(checkContainersStub.callCount).to.equal(1);
         });
@@ -122,7 +121,6 @@ describe('ecs deployer', () => {
                 serviceContext.params.logging = 'enabled';
                 const errors = ecs.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
-                expect(checkAutoScalingStub.callCount).to.equal(1);
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
             });
@@ -131,7 +129,6 @@ describe('ecs deployer', () => {
                 serviceContext.params.logging = 'disabled';
                 const errors = ecs.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
-                expect(checkAutoScalingStub.callCount).to.equal(1);
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
             });
@@ -141,7 +138,6 @@ describe('ecs deployer', () => {
                 const errors = ecs.check(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
-                expect(checkAutoScalingStub.callCount).to.equal(1);
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
             });

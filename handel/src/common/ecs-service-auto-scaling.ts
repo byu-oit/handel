@@ -81,14 +81,14 @@ export function getTemplateAutoScalingConfig(ownServiceContext: ServiceContext<E
 export function checkAutoScalingSection(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     if (!params.auto_scaling) {
-        errors.push(`${serviceName} - The 'auto_scaling' section is required`);
+        errors.push(`The 'auto_scaling' section is required`);
     }
     else {
         if (!params.auto_scaling.min_tasks) {
-            errors.push(`${serviceName} - The 'min_tasks' parameter is required in the 'auto_scaling' section`);
+            errors.push(`The 'min_tasks' parameter is required in the 'auto_scaling' section`);
         }
         if (!params.auto_scaling.max_tasks) {
-            errors.push(`${serviceName} - The 'max_tasks' parameter is required in the 'auto_scaling' section`);
+            errors.push(`The 'max_tasks' parameter is required in the 'auto_scaling' section`);
         }
     }
 }

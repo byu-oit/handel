@@ -148,13 +148,13 @@ export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig 
         for (const container of params.containers) {
             // Require 'name'
             if (!container.name) {
-                errors.push(`${serviceName} - The 'name' parameter is required in each container in the 'containers' section`);
+                errors.push(`The 'name' parameter is required in each container in the 'containers' section`);
             }
 
             if (container.routing) {
                 // Only allow one 'routing' section currently
                 if (alreadyHasOneRouting) {
-                    errors.push(`${serviceName} - You may not specify a 'routing' section in more than one container. This is due to a current limitation in ECS load balancing`);
+                    errors.push(`You may not specify a 'routing' section in more than one container. This is due to a current limitation in ECS load balancing`);
                 }
                 else {
                     alreadyHasOneRouting = true;
@@ -162,7 +162,7 @@ export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig 
 
                 // Require port_mappings if routing is specified
                 if (!container.port_mappings) {
-                    errors.push(`${serviceName} - The 'port_mappings' parameter is required when you specify the 'routing' element`);
+                    errors.push(`The 'port_mappings' parameter is required when you specify the 'routing' element`);
                 }
             }
 
