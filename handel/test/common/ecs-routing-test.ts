@@ -93,14 +93,6 @@ describe('ecs routing common module', () => {
     });
 
     describe('checkLoadBalancerSection', () => {
-        it('should require a load balancer type', () => {
-            delete serviceParams.load_balancer!.type;
-            const errors: string[] = [];
-            ecsRouting.checkLoadBalancerSection(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'type' parameter is required`);
-        });
-
         it('should require an https certificate for the https type', () => {
             delete serviceParams.load_balancer!.https_certificate;
             const errors: string[] = [];

@@ -101,20 +101,15 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
 export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
     if (params.load_balancer) {
-        // Require the load balancer listener type
-        if (!params.load_balancer.type) {
-            errors.push(`${serviceName} - The 'type' parameter is required in the 'load_balancer' section`);
-        }
-
         // If type = https, require https_certificate
         if (params.load_balancer.type === 'https' && !params.load_balancer.https_certificate) {
-            errors.push(`${serviceName} - The 'https_certificate' parameter is required in the 'load_balancer' section when you use HTTPS`);
+            errors.push(`The 'https_certificate' parameter is required in the 'load_balancer' section when you use HTTPS`);
         }
 
         if (params.load_balancer.dns_names) {
             const badName = params.load_balancer.dns_names.some(name => !route53.isValidHostname(name));
             if (badName) {
-                errors.push(`${serviceName} - The 'dns_names' values must be valid hostnames`);
+                errors.push(`The 'dns_names' values must be valid hostnames`);
             }
         }
     }

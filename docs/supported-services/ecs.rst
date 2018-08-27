@@ -141,18 +141,18 @@ The `auto_scaling` section is defined by the following schema:
       min_tasks: <integer> # Required
       max_tasks: <integer> # Required
       scaling_policies: # Optional
-      - type: <up|down>
-        adjustment:
-          type: <string> # Optional. Default: 'ChangeInCapacity'. See http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_StepScalingPolicyConfiguration.html for allowed values
+      - type: <up|down> # Required
+        adjustment: # Required
           value: <number> # Required
+          type: <string> # Optional. Default: 'ChangeInCapacity'. See http://docs.aws.amazon.com/ApplicationAutoScaling/latest/APIReference/API_StepScalingPolicyConfiguration.html for allowed values
           cooldown: <number> # Optional. Default: 300. 
-        alarm:
-          namespace: <string> # Optional. Default: 'AWS/ECS'
-          dimensions: # Optional. Default: Your ECS service dimensions
-            <string>: <string>
+        alarm: # Required
           metric_name: <string> # Required
           comparison_operator: <string> # Required. See http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-comparisonoperator for allowed values.
           threshold: <number> # Required
+          namespace: <string> # Optional. Default: 'AWS/ECS'
+          dimensions: # Optional. Default: Your ECS service dimensions
+            <string>: <string>
           period: <number> # Optional. Default: 300
           evaluation_periods: <number> # Optional. Default: 5
 

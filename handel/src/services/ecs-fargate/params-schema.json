@@ -1,0 +1,308 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'ecs-fargate')",
+            "pattern": "^ecs-fargate$",
+            "errorMessage": "The 'type' parameter must be 'ecs-fargate'"
+        },
+        "max_mb": {
+            "type": "integer",
+            "errorMessage": "The 'max_mb' parameter must be an integer"
+        },
+        "cpu_units": {
+            "type": "integer",
+            "errorMessage": "The 'cpu_units' parameter must be an integer"
+        },
+        "containers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "errorMessage": "The 'name' parameter must be a string"
+                    },
+                    "image_name": {
+                        "type": "string",
+                        "errorMessage": "The 'image_name' parameter must be a sting"
+                    },
+                    "port_mappings": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "errorMessage": "The 'port_mappings' parameter must be a list of integers"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "errorMessage": "The 'links' parameter must be a list of strings"
+                    },
+                    "routing": {
+                        "type": "object",
+                        "properties": {
+                            "base_path": {
+                                "type": "string",
+                                "errorMessage": "The 'base_path' field of the 'routing' section must be a string"
+                            },
+                            "health_check_path": {
+                                "type": "string",
+                                "errorMessage": "The 'health_check_path' field of the 'routing' section must be a string"
+                            }
+                        },
+                        "required": [
+                            "base_path"
+                        ],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                            "required": {
+                                "base_path": "The 'base_path' parameter is required in the 'routing' section"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'routing' section"
+                        }
+                    },
+                    "environment_variables": {
+                        "type": "object",
+                        "patternProperties": {
+                            "^.*$": {
+                                "anyOf": [
+                                    {"type": "string"},
+                                    {"type": "number"}
+                                ]
+                            }
+                        },
+                        "errorMessage": "The 'environmet_variables' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "name"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "name": "The 'name' parameter is required in each container in the 'containers' section"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'containers' section"
+                }
+            }
+        },
+        "auto_scaling": {
+            "type": "object",
+            "properties": {
+                "min_tasks": {
+                    "type": "integer",
+                    "errorMessage": "The 'min_tasks' field must be a integer in the 'auto_scaling' section"
+                },
+                "max_tasks": {
+                    "type": "integer",
+                    "errorMessage": "The 'max_tasks' field must be a integer in the 'auto_scalng' section"
+                },
+                "scaling_policies": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "description": "The 'type' field must be either 'up' or 'down'",
+                                "pattern": "^up|down$",
+                                "errorMessage": "The 'type' field must be 'up' or 'down' in the 'scaling_properties' section"
+                            },
+                            "adjustment": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "errorMessage": "The 'type' field must be a string in the 'adjustment' section of 'auto_scaling'"
+                                    },
+                                    "value": {
+                                        "type": "number",
+                                        "errorMessage": "The 'value' field must be a number in the 'adjustment' section of 'auto_scaling'"
+                                    },
+                                    "cooldown": {
+                                        "type": "number",
+                                        "errorMessage": "The 'cooldown' field must be a number in the 'adjustment' section of 'auto_scaling'"
+                                    }
+                                },
+                                "required": [
+                                    "value"
+                                ],
+                                "additionalProperties": false,
+                                "errorMessage": {
+                                    "required": {
+                                        "value": "The 'value' field is required in the 'adjustment' section of 'auto_scaling'"
+                                    },
+                                    "additionalProperties": "Invalid/Unknown property specified in the 'adjustment' section of 'auto_scaling'"
+                                }
+                            },
+                            "alarm": {
+                                "type": "object",
+                                "properties": {
+                                    "namespace": {
+                                        "type": "string",
+                                        "errorMessage": "The 'namespace' field must be a string in the 'scaling_properties' section"
+                                    },
+                                    "dimensions": {
+                                        "type": "object",
+                                        "patternProperties": {
+                                            "^.*$": {
+                                                "anyOf": [
+                                                    {"type": "string"},
+                                                    {"type": "number"}
+                                                ]
+                                            }
+                                        },
+                                        "errorMessage": "The 'dimensions' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+                                        "additionalProperties": false
+                                    },
+                                    "metric_name": {
+                                        "type": "string",
+                                        "errorMessage": "The 'metric_name' field must be a string in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    },
+                                    "comparison_operator": {
+                                        "type": "string",
+                                        "errorMessage": "The 'comparison_operator' field must be a string in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    },
+                                    "threshold": {
+                                        "type": "number",
+                                        "errorMessage": "The 'threshold' field must be a number in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    },
+                                    "period": {
+                                        "type": "number",
+                                        "errorMessage": "The 'period' field must be a number in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    },
+                                    "evaluation_periods": {
+                                        "type": "number",
+                                        "errorMessage": "The 'evaluation_periods' must be a number in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    }
+                                },
+                                "required": [
+                                    "metric_name",
+                                    "comparison_operator",
+                                    "threshold"
+                                ],
+                                "additionalProperties": false,
+                                "errorMessage": {
+                                    "required": {
+                                        "metric_name": "The 'metric_name' field is required in the 'alarm' section of 'scaling_policies' in 'auto_scaling'",
+                                        "comparison_operator": "The 'comparison_operator' field is required in the 'alarm' section of 'scaling_policies' in 'auto_scaling'",
+                                        "threshold": "The 'threshold' field is required in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                    },
+                                    "additionalProperties": "Invalid/Unknown property specified in the 'alarm' section of 'scaling_policies' in 'auto_scaling'"
+                                }
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "adjustmant",
+                            "alarm"
+                        ],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                            "required": {
+                                "type": "The 'type' field is required in the 'scaling_policies' section of 'auto_scaling'",
+                                "adjustment": "The 'adjustment' field is required in the 'scaling_policies' section of 'auto_scaling'",
+                                "alarm": "The 'alarm' field is required in the 'scaling_policies' section of 'auto_scaling'"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'scaling_policies' section of 'auto_scaling'"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "min_tasks",
+                "max_tasks"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "min_tasks": "The 'min_tasks' field is required in the 'auto_scaling' section",
+                    "max_tasks": "The 'max_tasks' field is required in the 'auto_scaling' section"
+                },
+                "additionalProperties": "Invalid/Unknown property specified in the 'auto_scaling' section"
+            }
+        },
+        "load_balancer": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "The accepted values are 'http' and 'https'",
+                    "pattern": "^http|https$",
+                    "errorMessage": "The 'type' field must be 'http' or 'https' in the 'load_balancer' section"
+                },
+                "timeout": {
+                    "type": "integer",
+                    "errorMessage": "The 'timeout' field must be an integer in the 'load_balancer' section"
+                },
+                "https_certificate": {
+                    "type": "string",
+                    "errorMessage": "The 'https_certificate' field must be a string in the 'load_balancer' section"
+                },
+                "dns_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "errorMessage": "The 'dns_names' field must be an array of strings in the 'load_balancer' section"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "type": "The 'type' field is required in the 'load_balancer' section"
+                },
+                "additionalProperties": "Invalid/Unknown property specified in the 'load_balancer' section"
+            }
+        },
+        "log_retention_in_days": {
+            "type": "number",
+            "errorMessage": "The 'log_retention_in_days' parameter must be a number"
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        },
+        "dependencies": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "errorMessage": "Each item in the 'dependencies' section must be a string"
+            },
+            "errorMessage": "The 'dependencies' section must be a string"
+        }
+    },
+    "required": [
+        "type",
+        "containers",
+        "auto_scaling"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' field is required",
+            "containers": "The 'containers' field is required",
+            "auto_scaling": "The 'auto_scaling' field is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
