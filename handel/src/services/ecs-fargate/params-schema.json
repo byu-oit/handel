@@ -32,16 +32,16 @@
                     "port_mappings": {
                         "type": "array",
                         "items": {
-                            "type": "integer",
-                            "errorMessage": "The 'port_mappings' parameter must be an integer"
-                        }
+                            "type": "integer"
+                        },
+                        "errorMessage": "The 'port_mappings' parameter must be a list of integers"
                     },
                     "links": {
                         "type": "array",
                         "items": {
-                            "type": "string",
-                            "errorMessage": "The 'links' parameter must be a string"
-                        }
+                            "type": "string"
+                        },
+                        "errorMessage": "The 'links' parameter must be a list of strings"
                     },
                     "routing": {
                         "type": "object",
