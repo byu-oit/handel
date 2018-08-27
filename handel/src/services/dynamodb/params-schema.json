@@ -1,0 +1,387 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'dynamodb')",
+            "pattern": "^dynamodb$",
+            "errorMesssage": "The 'type' parameter must be 'dynamodb'"
+        },
+        "table_name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[a-zA-Z0-9_\\-.]$",
+            "errorMessage": "The table_name parameter must be between 3 and 255 characters long and may only include alphanumeric characters, underscores (_), hyphens (-), and dots (.)"
+        },
+        "partition_key": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "errorMessage": "The 'name' parameter must be a string"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The 'type' parameter may only be 'String' or 'Number'",
+                    "pattern": "^String|Number$",
+                    "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "name": "The 'name' field in the 'partition_key' section is required",
+                    "type": "The 'type' field in the 'partition_key' section is required"
+                },
+                "additionalProperties": "Invalid/Unknown property specified in the 'partition_key' section"
+            }
+        },
+        "sort_key": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "errorMessage": "The 'name' parameter must be a string"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The 'type' parameter may only be 'String' or 'Number'",
+                    "pattern": "^String|Number$",
+                    "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "name": "The 'name' field is required in the 'sort_key' section",
+                    "type": "The 'type' field is required in the 'sort_key' section"
+                },
+                "additionalProperties": "Invalid/Unknown property specified in the 'sort_key' section"
+            }
+        },
+        "provisioned_throughput": {
+            "type": "object",
+            "properties": {
+                "read_capacity_units": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^(\\d+)(?:-(\\d+))?$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "errorMessage": "The 'read_capacity_units' must be either a number or a numeric range (ex: 1-100)"
+                },
+                "write_capacity_units": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^(\\d+)(?:-(\\d+))?$"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "errorMessage": "The 'write_capacity_units' must be either a number or a numeric range (ex: 1-100)"
+                },
+                "read_target_utilization": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "errorMessage": "The 'read_target_utilization' parameter must be a percentage"
+                },
+                "write_target_utilization": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "errorMessage": "The 'write_target_utilization' parameter must be a percentage"
+                }
+            },
+            "required": [
+                "read_capacity_units",
+                "write_capacity_units"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "required": {
+                    "read_capacity_units": "The 'read_capacity_units' are required in the 'provisioned_throughput' section",
+                    "write_capacity_units": "The 'write_capacity_units' are required in the 'provisioned_throughput' section"
+                },
+                "additionalProperties": "Invalid/Unknown property specified in the 'provisioned_throughput' section"
+            }
+        },
+        "ttl_attribute": {
+            "type": "string",
+            "errorMessage": "The 'ttl_attribute' parameter must be a string"
+        },
+        "local_indexes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "errorMessage": "The 'name' parameter must be a string"
+                    },
+                    "sort_key": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "errorMessage": "The 'name' parameter must be a string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "The 'type' parameter may only be 'String' or 'Number'",
+                                "pattern": "^String|Number$",
+                                "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "type"
+                        ],
+                        "errorMessage": {
+                            "required": {
+                                "name": "The 'name' field in the 'sort_key' section is required in the 'local_indexes' section",
+                                "type": "The 'type' field in the 'sort_key' section is required in the 'local_indexes' section"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'sort_key' section of 'local_indexes'"
+                        }
+                    },
+                    "attributes_to_copy": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "errorMessage": "Items of 'attributes_to_copy' must be strings"
+                        },
+                        "errorMessage": "The 'attributes_to_copy' parameter must be an array"
+                    }
+                },
+                "required": [
+                    "name",
+                    "sort_key",
+                    "attributes_to_copy"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "name": "The 'name' field is required in the 'local_indexes' section",
+                        "sort_key": "The 'sort_key' section is required in the 'local_indexes' section",
+                        "attributes_to_copy": "The 'attributes_to_copy' field is required in the 'local_indexes' section"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'local_indexes' section"
+                }
+            }
+        },
+        "stream_view_type": {
+            "type": "string",
+            "description": "The 'stream_view_type' parameter only accepts 'KEYS_ONLY', 'NEW_IMAGE', 'OLD_IMAGE', and 'NEW_AND_OLD_IMAGES'",
+            "pattern": "^KEYS_ONLY|NEW_IMAGE|OLD_IMAGE|NEW_AND_OLD_IMAGES$",
+            "errorMessage": "The 'stream_view_type' parameter must be 'KEYS_ONLY', 'NEW_IMAGE', 'OLD_IMAGE', or 'NEW_AND_OLD_IMAGES'"
+        },
+        "global_indexes": {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "errorMessage": "The 'name' parameter must be a string"
+                    },
+                    "partition_key": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "errorMessage": "The 'name' parameter must be a string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "The 'type' parameter may only be 'String' or 'Number'",
+                                "pattern": "^String|Number$",
+                                "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "type"
+                        ],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                            "required": {
+                                "name": "The 'name' field in the 'partition_key' section is required in the 'global_indexes' section",
+                                "type": "The 'type' field in the 'partition_key' section is required in the 'global_indexes' section"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'partition_key' section"
+                        }
+                    },
+                    "sort_key": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "errorMessage": "The 'name' parameter must be a string in the 'sort_key' section"
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "The 'type' parameter may only be 'String' or 'Number' in the 'sort_key' section",
+                                "pattern": "^String|Number$",
+                                "errorMessage": "The 'type' parameter must be 'String' or 'Number' in the 'sort_key' section"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "type"
+                        ],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                            "required": {
+                                "name": "The 'name' field is required in the 'sort_key' section of 'global_indexes'",
+                                "type": "The 'type' field is required in the 'sort_key' section of 'global_indexes'"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'sort_key' section of 'global_indexes'"
+                        }
+                    },
+                    "attributes_to_copy": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "errorMessage": "Items of 'attributes_to_copy' must be strings"
+                        },
+                        "errorMessage": "The 'attributes_to_copy' parameter must be an array"
+                    },
+                    "provisioned_throughput": {
+                        "type": "object",
+                        "properties": {
+                            "read_capacity_units": {
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "pattern": "^(\\d+)(?:-(\\d+))?$"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    }
+                                ],
+                                "errorMessage": "The 'read_capacity_units' must be either a number or a numeric range (ex: 1-100)"
+                            },
+                            "write_capacity_units": {
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "pattern": "^(\\d+)(?:-(\\d+))?$"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    }
+                                ],
+                                "errorMessage": "The 'write_capacity_units' must be either a number or a numeric range (ex: 1-100)"
+                            },
+                            "read_target_utilization": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "errorMessage": "The 'read_target_utilization' must be a number between 0 and 100"
+                            },
+                            "write_target_utilization": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "errorMessage": "The 'write_target_utilization' must be a number between 0 and 100"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "errorMessage": {
+                            "required": {
+                                "read_capacity_units": "The 'read_capacity_units' are required in the 'provisioned_throughput' section",
+                                "write_capacity_units": "The 'write_capacity_units' are required in the 'provisioned_throughput' section"
+                            },
+                            "additionalProperties": "Invalid/Unknown property specified in the 'provisioned_throughput' section"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "partition_key",
+                    "attributes_to_copy"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "name": "The 'name' field is required in the 'global_indexes' section",
+                        "partition_key": "The 'partition_key' section is required in the 'global_indexes' section",
+                        "attributed_to_copy": "The 'attributes_to_copy' parameter is required in the 'global_indexes' section"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'global_indexes' section"
+                }
+            }
+        },
+        "event_consumers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "service_name": {
+                        "type": "string",
+                        "description": "The service name of the lambda function",
+                        "errorMessage": "The 'service_name' parameter is required in each config in the 'event_consumers' section"
+                    },
+                    "batch_size": {
+                        "type": "number",
+                        "errorMessage": "The 'batch_size' parameter must be a number"
+                    }
+                },
+                "required": [
+                    "service_name"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "service_name": "The 'service_name' parameter is required"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
+                }
+                
+            }
+        },
+        "tags": {
+            "type": "object",
+            "description": "An arbitrary list of key/value pairs to be added as tags to the service",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "type",
+        "partition_key"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "required": {
+            "type": "The 'type' parameter is required",
+            "partition_key": "The 'partition_key' section is required"
+        },
+        "additionalProperties": "Invalid/Unknown property specified"
+    }
+}
