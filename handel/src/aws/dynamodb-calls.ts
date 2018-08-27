@@ -17,7 +17,7 @@
 import * as AWS from 'aws-sdk';
 import awsWrapper from './aws-wrapper';
 
-export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.Table|null> {
+export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.TableDescription|null> {
     const describeTableParams = {
         TableName: tableName
     };
@@ -25,8 +25,9 @@ export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.Ta
     return getResponse.Table!;
 }
 
-export async function createDynamoTable(createTableParams: AWS.DynamoDB.CreateTableInput): Promise<AWS.DynamoDB.TableDescription> {
+export async function createDynamoTable(createTableParams: AWS.DynamoDB.CreateTableInput): Promise<AWS.DynamoDB.TableDescription|undefined> {
     const createResponse = await awsWrapper.dynamodb.createTable(createTableParams);
+    console.log('here - ', createResponse);
     return createResponse.TableDescription;
 }
 
