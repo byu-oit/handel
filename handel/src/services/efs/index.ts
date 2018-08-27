@@ -28,12 +28,12 @@ import {
 import {
     awsCalls,
     bindPhase,
+    checkPhase,
     deletePhases,
     deployPhase,
     handlebars,
     preDeployPhase,
-    tagging,
-    checkPhase
+    tagging
 } from 'handel-extension-support';
 import * as winston from 'winston';
 import {EfsServiceConfig} from './config-types';
