@@ -91,11 +91,10 @@ export async function uploadStringToHandelBucket(content: string, artifactPrefix
 }
 
 export async function uploadDirectoryToHandelBucket(directoryPath: string, artifactPrefix: string, s3FileName: string, accountConfig: AccountConfig): Promise<AWS.S3.ManagedUpload.SendData> {
-    const zippedPath = `${os.tmpdir()}/${uuid()}/${s3FileName}.zip`;
+    const zippedPath = `${os.tmpdir()}/${uuid()}`;
     await util.zipDirectoryToFile(directoryPath, zippedPath);
     const s3ObjectInfo = await uploadFileToHandelBucket(zippedPath, artifactPrefix, s3FileName, accountConfig);
-    // Delete temporary file
-    fs.unlinkSync(zippedPath);
+    fs.unlinkSync(zippedPath); // Delete temporary file
     return s3ObjectInfo;
 }
 
