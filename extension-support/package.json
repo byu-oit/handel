@@ -6,9 +6,9 @@
   "types": "dist/extension-support.d.ts",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
-    "clean": "echo Cleaning && ./node_modules/.bin/del ./dist/ && echo Finished clean",
+    "clean": "node npm-scripts.js clean",
     "compile": "echo Compiling && tsc && echo Finished compile",
-    "copyNonTsFiles": "./node_modules/.bin/cpy '**/*' '!**/*.ts' '../dist/' --cwd=src --parents",
+    "copyNonTsFiles": "node npm-scripts.js copyNonTsFiles",
     "build": "npm run clean && npm run compile && npm run copyNonTsFiles",
     "test": "./node_modules/.bin/mocha -r ts-node/register 'test/**/*.ts'",
     "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w 'test/**/*.ts'"
