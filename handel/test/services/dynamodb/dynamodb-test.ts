@@ -215,52 +215,40 @@ describe('dynamodb deployer', () => {
 
         describe('provisioned_throughput', () => {
             it('should validate read_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    read_capacity_units: 'abc'
-                };
+                serviceParams.provisioned_throughput!.read_capacity_units = 'abc';
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'read_capacity_units\' must be either a number or a numeric range');
             });
             it('should allow numbers in read_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    read_capacity_units: 1
-                };
+                serviceParams.provisioned_throughput!.read_capacity_units = 1;
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
             });
             it('should allow ranges in read_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    read_capacity_units: '1-100'
-                };
+                serviceParams.provisioned_throughput!.read_capacity_units = '1-100';
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
             });
 
             it('should validate write_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    write_capacity_units: 'abc'
-                };
+                serviceParams.provisioned_throughput!.write_capacity_units = 'abc';
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'write_capacity_units\' must be either a number or a numeric range');
             });
             it('should allow numbers in write_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    write_capacity_units: 1
-                };
+                serviceParams.provisioned_throughput!.write_capacity_units = 1;
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
             });
             it('should allow ranges in write_capacity_units', () => {
-                serviceParams.provisioned_throughput = {
-                    write_capacity_units: '1-100'
-                };
+                serviceParams.provisioned_throughput!.write_capacity_units = '1-100';
 
                 const errors = dynamodb.check(serviceContext, []);
                 expect(errors.length).to.equal(0);
