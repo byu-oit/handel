@@ -1,0 +1,21 @@
+version: 1
+name: stepfunctions-test
+environments:
+  prd:
+    foo:
+      type: lambda
+      path_to_code: foo/
+      handler: lambda_function.lambda_handler
+      runtime: python3.6
+    bar:
+      type: lambda
+      path_to_code: bar/
+      handler: lambda_function.lambda_handler
+      runtime: python3.6
+    machine:
+      type: step_functions
+      definition: state_machine.yml
+      dependencies:
+      - foo
+      - bar
+    

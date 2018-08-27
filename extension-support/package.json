@@ -1,17 +1,17 @@
 {
   "name": "handel-extension-support",
-  "version": "0.31.2",
+  "version": "0.31.4",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "dist/extension-support.js",
   "types": "dist/extension-support.d.ts",
   "scripts": {
     "lint": "tslint -p tsconfig.json -t stylish",
-    "clean": "echo Cleaning && ./node_modules/.bin/del ./dist/ && echo Finished clean",
+    "clean": "node npm-scripts.js clean",
     "compile": "echo Compiling && tsc && echo Finished compile",
-    "copyNonTsFiles": "./node_modules/.bin/cpy '**/*' '!**/*.ts' '../dist/' --cwd=src --parents",
+    "copyNonTsFiles": "node npm-scripts.js copyNonTsFiles",
     "build": "npm run clean && npm run compile && npm run copyNonTsFiles",
-    "test": "./node_modules/.bin/mocha -r ts-node/register 'test/**/*.ts'",
-    "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w 'test/**/*.ts'"
+    "test": "./node_modules/.bin/mocha -r ts-node/register \"test/**/*.ts\"",
+    "watch-test": "./node_modules/.bin/mocha --watch --watch-extensions ts --reporter min -r ts-node/register -w \"test/**/*.ts\""
   },
   "author": "David Woodruff",
   "license": "Apache-2.0",
@@ -19,7 +19,7 @@
     "ajv": "^5.2.3",
     "ajv-errors": "^1.0.0",
     "archiver": "^1.3.0",
-    "handel-extension-api": "^0.31.2",
+    "handel-extension-api": "^0.31.4",
     "handlebars": "^4.0.6",
     "pascal-case": "^2.0.1",
     "uuid": "^3.0.1",
