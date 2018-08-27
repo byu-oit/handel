@@ -22,7 +22,14 @@ import {
     ServiceContext,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    tagging
+} from 'handel-extension-support';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as winston from 'winston';
@@ -39,23 +46,19 @@ const SERVICE_NAME = 'Step Functions';
 
 export function check(serviceContext: ServiceContext<StepFunctionsConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     let definition: any;
-    const errors = [];
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
     // Check that definition is a valid JSON/YAML file
-    if (!('definition' in serviceContext.params)) {
-        errors.push(`${SERVICE_NAME} - The 'definition' parameter is required.`);
-    } else if (path.extname(serviceContext.params.definition) === '.json') {
+    if ('definition' in serviceContext.params && path.extname(serviceContext.params.definition) === '.json') {
         definition = util.readJsonFileSync(serviceContext.params.definition);
         if (definition === null) {
-            errors.push(`${SERVICE_NAME} - ${serviceContext.params.definition} is not a valid JSON file.`);
+            errors.push(`${serviceContext.params.definition} is not a valid JSON file.`);
         }
-    } else if (['.yml', '.yaml'].includes(path.extname(serviceContext.params.definition))) {
+    } else if ('definition' in serviceContext.params && ['.yml', '.yaml'].includes(path.extname(serviceContext.params.definition))) {
         definition = util.readYamlFileSync(serviceContext.params.definition);
         if (definition === null) {
-            errors.push(`${SERVICE_NAME} - ${serviceContext.params.definition} is not a valid YAML file.`);
+            errors.push(`${serviceContext.params.definition} is not a valid YAML file.`);
         }
-    } else {
-        errors.push(`${SERVICE_NAME} - The 'definition' parameter must have file extension .json, .yml, or .yaml.`);
     }
     if (definition != null) {
         const start: string = definition.StartAt;
@@ -66,21 +69,21 @@ export function check(serviceContext: ServiceContext<StepFunctionsConfig>, depen
             const dependencies: string[] = dependenciesServiceContexts.map(context => context.serviceName);
             for (const key in states) {
                 if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) === -1) {
-                    errors.push(`${SERVICE_NAME} - Service '${states[key].Resource}' not found in dependencies.`);
+                    errors.push(`Service '${states[key].Resource}' not found in dependencies.`);
                 }
             }
         } else {
-            errors.push(`${SERVICE_NAME} - States must be an object.`);
+            errors.push(`States must be an object.`);
         }
         if (!startIsString) {
-            errors.push(`${SERVICE_NAME} - StartAt must be a string.`);
+            errors.push(`StartAt must be a string.`);
         }
         if (startIsString && statesIsObject && !(start in states)) {
-            errors.push(`${SERVICE_NAME} - Start state '${start}' does not exist`);
+            errors.push(`Start state '${start}' does not exist`);
         }
     }
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
