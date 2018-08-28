@@ -38,6 +38,7 @@ import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
 import * as volumesSection from '../../common/ecs-volumes';
+import * as util from '../../common/util';
 import * as asgCycling from './asg-cycling';
 import * as cluster from './cluster';
 import * as clusterAutoScalingSection from './cluster-auto-scaling';
@@ -137,7 +138,6 @@ function getShortenedClusterName(serviceContext: ServiceContext<EcsServiceConfig
  */
 export function check(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
     routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
     containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
 

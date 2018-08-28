@@ -100,6 +100,13 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
 
 export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
     const params = serviceContext.params;
+    let routingExists = false;
+    for (const container of serviceContext.params.containers) {
+        if (container.routing) {
+            routingExists = true;
+            break;
+        }
+    }
     if (params.load_balancer) {
         // If type = https, require https_certificate
         if (params.load_balancer.type === 'https' && !params.load_balancer.https_certificate) {
@@ -111,6 +118,13 @@ export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServi
             if (badName) {
                 errors.push(`The 'dns_names' values must be valid hostnames`);
             }
+        }
+        if (routingExists === false && 'load_balancer' in serviceContext.params) {
+            errors.push(`When the 'load_balancer' field is specified, the 'routing' parameter is required`);
+        }
+    } else {
+        if (routingExists === true) {
+            errors.push(`When the 'routing' field is specified, the 'load_balancer' parameter is required`);
         }
     }
 }
