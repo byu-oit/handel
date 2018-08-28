@@ -58,7 +58,7 @@ function makeSureDeploymentsLogTableExists() {
                     AttributeType: 'S'
                 },
                 {
-                    AttributeName: 'DeploymentEndTime',
+                    AttributeName: 'EnvAction',
                     AttributeType: 'S'
                 }
             ],
@@ -68,7 +68,7 @@ function makeSureDeploymentsLogTableExists() {
                     KeyType: 'HASH'
                 },
                 {
-                    AttributeName: 'DeploymentEndTime',
+                    AttributeName: 'EnvAction',
                     KeyType: 'RANGE'
                 }
             ],
@@ -95,10 +95,13 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], 
         }
 
         // insert log entry into dynamo log table
+        const endTime = Date.now();
         dynamodbCalls.putItem(handelDeploymentLogsTableName, {
             'AppName': handelFile.name,
-            'DeploymentEndTime': Date.now(),
+            'EnvAction': envResult.environmentName + ':' + lifecycleName + ':' + endTime,
+            'Lifecycle': lifecycleName,
             'DeploymentStartTime': envResult.deploymentStartTime,
+            'DeploymentEndTime': endTime,
             'EnvironmentName': envResult.environmentName,
             'DeploymentStatus': envResult.status,
             'DeploymentMessage': envResult.message,
