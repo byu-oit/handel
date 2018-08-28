@@ -25,7 +25,7 @@
                 "type": {
                     "type": "string",
                     "description": "The 'type' parameter may only be 'String' or 'Number'",
-                    "pattern": "^String|Number$",
+                    "pattern": "^[sS][tT][rR][iI][nN][gG]|[nN][uU][mM][bB][eE][rR]$",
                     "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                 }
             },
@@ -52,7 +52,7 @@
                 "type": {
                     "type": "string",
                     "description": "The 'type' parameter may only be 'String' or 'Number'",
-                    "pattern": "^String|Number$",
+                    "pattern": "^[sS][tT][rR][iI][nN][gG]|[nN][uU][mM][bB][eE][rR]$",
                     "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                 }
             },
@@ -145,7 +145,7 @@
                             "type": {
                                 "type": "string",
                                 "description": "The 'type' parameter may only be 'String' or 'Number'",
-                                "pattern": "^String|Number$",
+                                "pattern": "^[sS][tT][rR][iI][nN][gG]|[nN][uU][mM][bB][eE][rR]$",
                                 "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                             }
                         },
@@ -211,7 +211,7 @@
                             "type": {
                                 "type": "string",
                                 "description": "The 'type' parameter may only be 'String' or 'Number'",
-                                "pattern": "^String|Number$",
+                                "pattern": "^[sS][tT][rR][iI][nN][gG]|[nN][uU][mM][bB][eE][rR]$",
                                 "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                             }
                         },
@@ -238,7 +238,7 @@
                             "type": {
                                 "type": "string",
                                 "description": "The 'type' parameter may only be 'String' or 'Number' in the 'sort_key' section",
-                                "pattern": "^String|Number$",
+                                "pattern": "^[sS][tT][rR][iI][nN][gG]|[nN][uU][mM][bB][eE][rR]$",
                                 "errorMessage": "The 'type' parameter must be 'String' or 'Number' in the 'sort_key' section"
                             }
                         },
