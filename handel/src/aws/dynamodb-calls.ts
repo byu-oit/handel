@@ -17,18 +17,24 @@
 import * as AWS from 'aws-sdk';
 import awsWrapper from './aws-wrapper';
 
-export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.TableDescription|null> {
+export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.TableDescription | null> {
     const describeTableParams = {
         TableName: tableName
     };
-    const getResponse = await awsWrapper.dynamodb.describeTable(describeTableParams);
-    return getResponse.Table!;
+    try {
+        const getResponse = await awsWrapper.dynamodb.describeTable(describeTableParams);
+        return getResponse.Table!;
+    } catch (e) {
+        if (e.code === 'ResourceNotFoundException') {
+            return null;
+        }
+        throw e;
+    }
 }
 
-export async function createDynamoTable(createTableParams: AWS.DynamoDB.CreateTableInput): Promise<AWS.DynamoDB.TableDescription|undefined> {
+export async function createDynamoTable(createTableParams: AWS.DynamoDB.CreateTableInput): Promise<AWS.DynamoDB.TableDescription | null> {
     const createResponse = await awsWrapper.dynamodb.createTable(createTableParams);
-    console.log('here - ', createResponse);
-    return createResponse.TableDescription;
+    return createResponse.TableDescription!;
 }
 
 export async function putItem(tableName: string, item: any): Promise<boolean> {

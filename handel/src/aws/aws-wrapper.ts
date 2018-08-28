@@ -258,9 +258,9 @@ const awsWrapper = {
             const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
             return dynamodb.createTable(params).promise();
         },
-        putItem: (params: AWS.DynamoDB.PutItemInput) => {
-            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
-            return dynamodb.putItem(params).promise();
+        putItem: (params: AWS.DynamoDB.DocumentClient.PutItemInput) => {
+            const documentClient = new AWS.DynamoDB.DocumentClient();
+            return documentClient.put(params).promise();
         }
     }
 };

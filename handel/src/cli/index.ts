@@ -48,10 +48,11 @@ function logCaughtError(msg: string, err: Error) {
     }
 }
 
-function makeSureDeploymentsLogTableExists() {
+async function makeSureDeploymentsLogTableExists() {
     const handelDeploymentLogsTableName = 'handel-deployment-logs';
-    if (dynamodbCalls.getDynamoTable(handelDeploymentLogsTableName) === undefined) {
-        dynamodbCalls.createDynamoTable({
+    const dynamoTable = await dynamodbCalls.getDynamoTable(handelDeploymentLogsTableName);
+    if (dynamoTable === null) {
+        await dynamodbCalls.createDynamoTable({
             AttributeDefinitions: [
                 {
                     AttributeName: 'AppName',
@@ -81,10 +82,10 @@ function makeSureDeploymentsLogTableExists() {
     }
 }
 
-function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], handelFile: HandelFile, environmentsToDeploy: string[]): void {
+async function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], handelFile: HandelFile, environmentsToDeploy: string[]): Promise<void> {
     let success = true;
     const handelDeploymentLogsTableName = 'handel-deployment-logs';
-    makeSureDeploymentsLogTableExists();
+    await makeSureDeploymentsLogTableExists();
     for (const envResult of envResults) {
         if (envResult.status !== 'success') {
             winston.error(`Error during environment ${lifecycleName}: ${envResult.message}`);
@@ -96,17 +97,19 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], 
 
         // insert log entry into dynamo log table
         const endTime = Date.now();
-        dynamodbCalls.putItem(handelDeploymentLogsTableName, {
-            'AppName': handelFile.name,
-            'EnvAction': envResult.environmentName + ':' + lifecycleName + ':' + endTime,
-            'Lifecycle': lifecycleName,
-            'DeploymentStartTime': envResult.deploymentStartTime,
-            'DeploymentEndTime': endTime,
-            'EnvironmentName': envResult.environmentName,
-            'DeploymentStatus': envResult.status,
-            'DeploymentMessage': envResult.message,
-            'HandelContents': handelFile
+
+        await dynamodbCalls.putItem(handelDeploymentLogsTableName, {
+            AppName: handelFile.name,
+            EnvAction: envResult.environmentName + ':' + lifecycleName + ':' + endTime,
+            Lifecycle: lifecycleName,
+            DeploymentStartTime: envResult.deploymentStartTime,
+            DeploymentEndTime: endTime.toString(),
+            EnvironmentName: envResult.environmentName,
+            DeploymentStatus: envResult.status,
+            DeploymentMessage: envResult.message,
+            HandelContents: handelFile
         });
+        // TODO find a way to insert the GIT commit hash and/or pipeline name
     }
 
     if (success) {
@@ -271,6 +274,7 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
  * Handel CLI. It goes and deploys the requested environment(s) to AWS.
  */
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
+    console.log("here! woohoo!");
     const environmentsToDeploy = options.environments;
     try {
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
@@ -282,7 +286,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
 
         const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry, options);
-        logFinalResult('deploy', envDeployResults, handelFile, environmentsToDeploy);
+        await logFinalResult('deploy', envDeployResults, handelFile, environmentsToDeploy);
     }
     catch (err) {
         logCaughtError('Error occurred during deploy', err);
@@ -333,7 +337,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
             const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
-            logFinalResult('delete', [envDeleteResult], handelFile, [options.environment]);
+            await logFinalResult('delete', [envDeleteResult], handelFile, [options.environment]);
         }
         else {
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');
