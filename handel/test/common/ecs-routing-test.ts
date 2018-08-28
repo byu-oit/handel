@@ -41,6 +41,10 @@ describe('ecs routing common module', () => {
             containers: [
                 {
                     name: 'mycontainername',
+                    routing: {
+                        base_path: '/mypath',
+                        health_check_path: '/healthcheck'
+                    }
                 }
             ],
             load_balancer: {
@@ -99,6 +103,22 @@ describe('ecs routing common module', () => {
             ecsRouting.checkLoadBalancerSection(serviceContext, 'Fargate', errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`The 'https_certificate' parameter is required`);
+        });
+
+        it('should require routing if load_balancer is declared', () => {
+            delete serviceParams.containers[0].routing;
+            const errors: string[] = [];
+            ecsRouting.checkLoadBalancerSection(serviceContext, 'Fargate', errors);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`When the 'load_balancer' field is specified, the 'routing' parameter is required`);
+        });
+
+        it('should require load_balancer if routing is declared', () => {
+            delete serviceParams.load_balancer;
+            const errors: string[] = [];
+            ecsRouting.checkLoadBalancerSection(serviceContext, 'Fargate', errors);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.include(`When the 'routing' field is specified, the 'load_balancer' parameter is required`);
         });
 
         it('should require DNS names to be valid hostnames', () => {
