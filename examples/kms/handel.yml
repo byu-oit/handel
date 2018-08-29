@@ -4,7 +4,7 @@ environments:
   dev:
     key:
       type: kms
-      alais: examplealias3
+      alias: examplealias3
       auto_rotate: true
       tags:
         mytagname: mytagvalue
