@@ -230,7 +230,7 @@ async function confirmDelete(envName: string, forceDelete: boolean): Promise<boo
 const TAG_PARAM_PATTERN = RegExp(`^(${tagging.TAG_KEY_PATTERN})=(.{1,${tagging.TAG_VALUE_MAX_LENGTH}})$`);
 
 export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions): string[] {
-    const {accountConfig, environments, tags} = opts;
+    const { accountConfig, environments, tags } = opts;
     let errors: string[] = [];
 
     // Validate that it is either base64 decodable JSON or an account config file
@@ -257,7 +257,7 @@ export function validateDeployArgs(handelFile: HandelFile, opts: DeployOptions):
 }
 
 export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions): string[] {
-    const {accountConfig, environment} = opts;
+    const { accountConfig, environment } = opts;
     let errors: string[] = [];
 
     // Validate that it is either base64 decodable JSON or an account config file
@@ -280,7 +280,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
         await validateLoggedIn();
-        const {handelFileParser, serviceRegistry} = await init(handelFile, options);
+        const { handelFileParser, serviceRegistry } = await init(handelFile, options);
 
         // Command-line tags override handelfile tags.
         handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
@@ -300,24 +300,30 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
  * correct
  */
 export async function checkAction(handelFile: HandelFile, options: CheckOptions): Promise<void> {
-    const {handelFileParser, serviceRegistry} = await init(handelFile, options);
+    try {
+        const { handelFileParser, serviceRegistry } = await init(handelFile, options);
 
-    const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
-    let foundErrors = false;
-    for (const env in errors) {
-        if (errors.hasOwnProperty(env)) {
-            const envErrors = errors[env];
-            if (envErrors.length > 0) {
-                winston.error(`The following errors were found for env ${env}:`);
-                // tslint:disable-next-line:no-console
-                console.log('  ' + envErrors.join('\n  '));
-                foundErrors = true;
+        const errors = checkLifecycle.check(handelFile, handelFileParser, serviceRegistry, options);
+        let foundErrors = false;
+        for (const env in errors) {
+            if (errors.hasOwnProperty(env)) {
+                const envErrors = errors[env];
+                if (envErrors.length > 0) {
+                    winston.error(`The following errors were found for env ${env}:`);
+                    // tslint:disable-next-line:no-console
+                    console.log('  ' + envErrors.join('\n  '));
+                    foundErrors = true;
+                }
             }
         }
-    }
 
-    if (!foundErrors) {
-        winston.info('No errors were found when checking Handel file');
+        if (!foundErrors) {
+            winston.info('No errors were found when checking Handel file');
+        }
+    }
+    catch(err) {
+        logCaughtError('Error occurred during check', err);
+        process.exit(1);
     }
 }
 
@@ -332,7 +338,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         await validateCredentials(accountConfig);
         const environmentToDelete = options.environment;
 
-        const {handelFileParser, serviceRegistry} = await init(handelFile, options);
+        const { handelFileParser, serviceRegistry } = await init(handelFile, options);
 
         const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
@@ -363,7 +369,7 @@ async function init(handelFile: HandelFile, options: HandelCoreOptions): Promise
     winston.debug('Validating and parsing Handel file');
     await validateHandelFile(handelFileParser, handelFile, serviceRegistry);
 
-    return {handelFileParser, serviceRegistry};
+    return { handelFileParser, serviceRegistry };
 }
 
 interface HandelInit {

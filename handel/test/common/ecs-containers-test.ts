@@ -96,14 +96,6 @@ describe('ecs containers common module', () => {
             expect(errors[0]).to.include('You must specify at least one container');
         });
 
-        it('should require contains to have a name', () => {
-            delete serviceParams.containers[0].name;
-            const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'name' parameter is required`);
-        });
-
         it('should only allow one container to have routing', () => {
             serviceParams.containers[1].routing = {
                 base_path: '/'
