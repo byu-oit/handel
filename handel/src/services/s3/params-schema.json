@@ -31,81 +31,89 @@
             "errorMessage": "The 'logging' parameter must be either 'enabled' or 'disabled'"
         },
         "lifecycles": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "errorMessage": "The 'name' parameter must be a string"
-                },
-                "prefix": {
-                    "type": "string",
-                    "errorMessage": "The 'prefix' parameter must be a string"
-                },
-                "transistions": {
-                    "type": "object",
-                    "properties": {
-                        "type": {
-                            "type": "string",
-                            "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
-                            "pattern": "^ia|glacier|expiration$",
-                            "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
-                        },
-                        "days": {
-                            "type": "integer",
-                            "errorMessage": "The 'days' parameter must be an intiger"
-                        },
-                        "date": {
-                            "type": "string",
-                            "format": "date-time",
-                            "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "errorMessage": "The 'name' parameter must be a string"
+                    },
+                    "prefix": {
+                        "type": "string",
+                        "errorMessage": "The 'prefix' parameter must be a string"
+                    },
+                    "transistions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
+                                    "pattern": "^ia|glacier|expiration$",
+                                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                                },
+                                "days": {
+                                    "type": "integer",
+                                    "errorMessage": "The 'days' parameter must be an intiger"
+                                },
+                                "date": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ],
+                            "additionalProperties": false,
+                            "errorMessage": {
+                                "required": {
+                                    "type": "The 'type' field is required in 'transistions'"
+                                },
+                                "additionalProperties": "Invalid/Unknown property specified in 'transistions'"
+                            }
                         }
                     },
-                    "required": [
-                        "type"
-                    ],
-                    "additionalProperties": false,
-                    "errorMessage": {
-                        "required": {
-                            "type": "The 'type' field is required in 'transistions'"
-                        },
-                        "additionalProperties": "Invalid/Unknown property specified in 'transistions'"
+                    "version_transistions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
+                                    "pattern": "^ia|glacier|expiration$",
+                                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                                },
+                                "days": {
+                                    "type": "integer",
+                                    "errorMessage": "The 'days' parameter must be an intiger"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ],
+                            "additionalProperties": false,
+                            "errorMessage": {
+                                "required": {
+                                    "type": "The 'type' field is required in 'version_transistions'"
+                                },
+                                "additionalProperties": "Invalid/Unknown property specified in 'version_transistions'"
+                            }
+                        }
                     }
                 },
-                "version_transistions": {
-                    "type": "object",
-                    "properties": {
-                        "type": {
-                            "type": "string",
-                            "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
-                            "pattern": "^ia|glacier|expiration$",
-                            "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
-                        },
-                        "days": {
-                            "type": "integer",
-                            "errorMessage": "The 'days' parameter must be an intiger"
-                        }
+                "required": [
+                    "name"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "name": "You must specify name in the 'lifecycles' section"
                     },
-                    "required": [
-                        "type"
-                    ],
-                    "additionalProperties": false,
-                    "errorMessage": {
-                        "required": {
-                            "type": "The 'type' field is required in 'version_transistions'"
-                        },
-                        "additionalProperties": "Invalid/Unknown property specified in 'version_transistions'"
-                    }
-                }
-            },
-            "required": [
-                "name",
-                "transistions|version_transistions"
-            ],
-            "additionalProperties": false,
-            "errorMessage": {
-                "required": {
-                    "name": "You must specify name in the 'lifecycles' section",
-                    "transistions|version_transistions": "You must specify at least one transition or version transition in the 'lifecycles' section"
+                    "additionalProperties": "Invalid/Unknown property specified in 'lifecycles' section"
                 }
             }
         },
@@ -177,8 +185,12 @@
             "patternProperties": {
                 "^.*$": {
                     "anyOf": [
-                        {"type": "string"},
-                        {"type": "number"}
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        }
                     ]
                 }
             },
