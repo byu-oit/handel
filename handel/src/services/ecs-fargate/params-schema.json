@@ -264,6 +264,12 @@
                 "additionalProperties": "Invalid/Unknown property specified in the 'load_balancer' section"
             }
         },
+        "logging": {
+            "type": "string",
+            "description": "The 'logging' field can be either 'enabled' or 'disabled'",
+            "pattern": "^enabled|disabled$",
+            "errorMessage": "The 'logging' parameter must be either 'enabled' or 'disabled'"
+        },
         "log_retention_in_days": {
             "type": "number",
             "errorMessage": "The 'log_retention_in_days' parameter must be a number"

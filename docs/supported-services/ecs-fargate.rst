@@ -67,6 +67,11 @@ Parameters
      - No
      - 
      - If your task needs routing from a load balancer, this section can be used to configure the load balancer's options.
+   * - logging
+     - string
+     - No
+     - enabled
+     - Turns CloudWatch logging on or off. Must be either "enabled" or "disabled". See :ref:`ecs-fargate-logging` for more.
    * - log_retention_in_days
      - number
      - No

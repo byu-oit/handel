@@ -60,7 +60,7 @@ Parameters
    * - logging
      - string
      - No
-     - "enabled"
+     - enabled
      - Turns CloudWatch logging on or off. Must be either "enabled" or "disabled". See :ref:`ecs-logging` for more.
    * - log_retention_in_days
      - number
