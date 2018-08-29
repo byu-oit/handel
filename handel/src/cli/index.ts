@@ -274,7 +274,6 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
  * Handel CLI. It goes and deploys the requested environment(s) to AWS.
  */
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
-    console.log("here! woohoo!");
     const environmentsToDeploy = options.environments;
     try {
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
