@@ -42,12 +42,28 @@
                     "errorMessage": "The 'prefix' parameter must be a string"
                 },
                 "transistions": {
-                    "$ref": "#/definitions/transistion_params",
-                    "date": {
-                        "type": "string",
-                        "format": "date-time",
-                        "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
+                            "pattern": "^ia|glacier|expiration$",
+                            "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                        },
+                        "days": {
+                            "type": "integer",
+                            "errorMessage": "The 'days' parameter must be an intiger"
+                        },
+                        "date": {
+                            "type": "string",
+                            "format": "date-time",
+                            "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+                        }
                     },
+                    "required": [
+                        "type"
+                    ],
+                    "additionalProperties": false,
                     "errorMessage": {
                         "required": {
                             "type": "The 'type' field is required in 'transistions'"
@@ -56,7 +72,23 @@
                     }
                 },
                 "version_transistions": {
-                    "$ref": "#/definitions/transistion_params",
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
+                            "pattern": "^ia|glacier|expiration$",
+                            "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                        },
+                        "days": {
+                            "type": "integer",
+                            "errorMessage": "The 'days' parameter must be an intiger"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "additionalProperties": false,
                     "errorMessage": {
                         "required": {
                             "type": "The 'type' field is required in 'version_transistions'"
@@ -74,6 +106,68 @@
                 "required": {
                     "name": "You must specify name in the 'lifecycles' section",
                     "transistions|version_transistions": "You must specify at least one transition or version transition in the 'lifecycles' section"
+                }
+            }
+        },
+        "event_consumers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "service_name": {
+                        "type": "string",
+                        "errorMessage": "The 'service_name' parameter is required in each config in the 'event_consumers' section"
+                    },
+                    "bucket_events": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "errorMessage": "The 'bucket_events' parameter must be a list of strings"
+                    },
+                    "filters": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "pattern": "^prefix|suffix$",
+                                    "errorMessage": "The 'name' parameter must be one of the following values: 'prefix', 'suffix'"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "errorMessage": "The 'value' parameter must be a string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "name",
+                                "value"
+                            ],
+                            "errorMessage": {
+                                "required": {
+                                    "name": "The 'name' field is required in the 'filter' section of event_consumers'",
+                                    "value": "The 'value' field is required in the 'filter' section of event_consumers'"
+                                },
+                                "additionalProperties": "Invalid/Unknown property specified in the 'filters' section in 'event_consumers'"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "service_name",
+                    "bucket_events",
+                    "filters"
+                ],
+                "additionalProperties": false,
+                "errorMessage": {
+                    "required": {
+                        "service_name": "The 'service_name' parameter is required in 'event_consumers'",
+                        "bucket_events": "The 'bucket_events' parameter is required in 'event_consumers'",
+                        "filters": "The 'filters' parameter is required in 'event_consumers'"
+                    },
+                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
                 }
             }
         },
@@ -101,26 +195,5 @@
             "type": "The 'type' field is required"
         },
         "additionalProperties": "Invalid/Unknown property specified"
-    },
-    "definitions": {
-        "transistion_params": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
-                    "pattern": "^ia|glacier|expiration$",
-                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
-                },
-                "days": {
-                    "type": "integer",
-                    "errorMessage": "The 'days' parameter must be an intiger"
-                }
-            },
-            "required": [
-                "type"
-            ],
-            "additionalProperties": false
-        }
     }
 }
