@@ -23,7 +23,14 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as ec2Calls from '../../aws/ec2-calls';
 import * as route53 from '../../aws/route53-calls';
@@ -31,6 +38,7 @@ import * as containersSection from '../../common/ecs-containers';
 import * as routingSection from '../../common/ecs-routing';
 import * as serviceAutoScalingSection from '../../common/ecs-service-auto-scaling';
 import * as volumesSection from '../../common/ecs-volumes';
+import * as util from '../../common/util';
 import * as asgCycling from './asg-cycling';
 import * as cluster from './cluster';
 import * as clusterAutoScalingSection from './cluster-auto-scaling';
@@ -123,34 +131,17 @@ function getShortenedClusterName(serviceContext: ServiceContext<EcsServiceConfig
     return `${serviceContext.appName.substring(0, 21)}-${serviceContext.environmentName.substring(0, 4)}-${serviceContext.serviceName.substring(0, 9)}`;
 }
 
-function checkLogging(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
-    const params = serviceContext.params;
-
-    const logging = params.logging;
-    const retention = params.log_retention_in_days;
-
-    if (logging && !(logging === 'enabled' || logging === 'disabled')) {
-        errors.push(`${serviceName} - The 'logging' parameter must be either 'enabled' or 'disabled'`);
-    }
-    if (retention && typeof retention !== 'number') {
-        errors.push(`${serviceName} - The 'log_retention_in_days' parameter must be a number`);
-    }
-}
-
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
  *   for contract method documentation
  */
 export function check(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = [];
-
-    serviceAutoScalingSection.checkAutoScalingSection(serviceContext, SERVICE_NAME, errors);
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
     containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
-    checkLogging(serviceContext, SERVICE_NAME, errors);
 
-    return errors;
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function preDeploy(serviceContext: ServiceContext<EcsServiceConfig>) {

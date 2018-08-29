@@ -82,36 +82,4 @@ describe('ecs service auto scaling common module', () => {
             expect(autoScalingConfig.scalingEnabled).to.equal(undefined);
         });
     });
-
-    describe('checkAutoScalingSection', () => {
-        it('should require the auto_scaling section', () => {
-            delete serviceParams.auto_scaling;
-            const errors: string[] = [];
-            ecsServiceAutoScaling.checkAutoScalingSection(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'auto_scaling' section is required`);
-        });
-
-        it('should require min_tasks in the auto scaling section', () => {
-            delete serviceParams.auto_scaling.min_tasks;
-            const errors: string[] = [];
-            ecsServiceAutoScaling.checkAutoScalingSection(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'min_tasks' parameter is required`);
-        });
-
-        it('should require max_tasks in the auto scaling section', () => {
-            delete serviceParams.auto_scaling.max_tasks;
-            const errors: string[] = [];
-            ecsServiceAutoScaling.checkAutoScalingSection(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`The 'max_tasks' parameter is required`);
-        });
-
-        it('should return no errors for a proper configuration', () => {
-            const errors: string[] = [];
-            ecsServiceAutoScaling.checkAutoScalingSection(serviceContext, 'Fargate', errors);
-            expect(errors.length).to.equal(0);
-        });
-    });
 });

@@ -96,14 +96,12 @@ describe('fargate deployer', () => {
 
     describe('check', () => {
         it('should return no errors on a successful configuration', () => {
-            const checkAutoScalingStub = sandbox.stub(ecsServiceAutoScaling, 'checkAutoScalingSection').returns([]);
             const checkLoadBalancerStub = sandbox.stub(ecsRouting, 'checkLoadBalancerSection').returns([]);
             const checkContainersStub = sandbox.stub(ecsContainers, 'checkContainers').returns([]);
 
             const errors = ecsFargate.check(serviceContext, []);
 
             expect(errors.length).to.equal(0);
-            expect(checkAutoScalingStub.callCount).to.equal(1);
             expect(checkLoadBalancerStub.callCount).to.equal(1);
             expect(checkContainersStub.callCount).to.equal(1);
         });

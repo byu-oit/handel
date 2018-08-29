@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { CloudFormation } from 'aws-sdk';
 import {
     AccountConfig,
     DeployContext,
@@ -26,11 +27,17 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as autoscaling from './autoscaling';
 import {DynamoDBConfig} from './config-types';
-import { CloudFormation } from 'aws-sdk';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
@@ -239,8 +246,6 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     return handlebars.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
 }
 
-const TABLE_NAME_ALLOWED_PATTERN = /^[a-zA-Z0-9_\-.]{3,255}$/;
-
 /**
  * Service Deployer Contract Methods
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
@@ -248,72 +253,8 @@ const TABLE_NAME_ALLOWED_PATTERN = /^[a-zA-Z0-9_\-.]{3,255}$/;
  */
 
 export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = [];
-    const params = serviceContext.params;
-
-    if (params.table_name && !TABLE_NAME_ALLOWED_PATTERN.test(params.table_name)) {
-        errors.push(`${SERVICE_NAME} - The table_name parameter must be between 3 and 255 characters long and may only include alphanumeric characters, underscores (_), hyphens (-), and dots (.)`);
-    }
-
-    if (!params.partition_key) {
-        errors.push(`${SERVICE_NAME} - The 'partition_key' section is required`);
-    }
-    else {
-        if (!params.partition_key.name) {
-            errors.push(`${SERVICE_NAME} - The 'name' field in the 'partition_key' section is required`);
-        }
-        if (!params.partition_key.type) {
-            errors.push(`${SERVICE_NAME} - The 'type' field in the 'partition_key' section is required`);
-        }
-    }
-
-    // Check throughput
-    errors.push(...autoscaling.checkProvisionedThroughput(params.provisioned_throughput, `${SERVICE_NAME} - `));
-
-    // Check global indexes
-    if (params.global_indexes) {
-        for (const globalIndexConfig of params.global_indexes) {
-            if (!globalIndexConfig.name) {
-                errors.push(`${SERVICE_NAME} - The 'name' field is required in the 'global_indexes' section`);
-            }
-
-            if (!globalIndexConfig.partition_key) {
-                errors.push(`${SERVICE_NAME} - The 'partition_key' section is required in the 'global_indexes' section`);
-            }
-            else {
-                if (!globalIndexConfig.partition_key.name) {
-                    errors.push(`${SERVICE_NAME} - The 'name' field in the 'partition_key' section is required in the 'global_indexes' section`);
-                }
-                if (!globalIndexConfig.partition_key.type) {
-                    errors.push(`${SERVICE_NAME} - The 'type' field in the 'partition_key' section is required in the 'global_indexes' section`);
-                }
-            }
-            errors.push(...autoscaling.checkProvisionedThroughput(globalIndexConfig.provisioned_throughput, `${SERVICE_NAME} - global_indexes - `));
-        }
-    }
-
-    // Check local indexes
-    if (params.local_indexes) {
-        for (const localIndexConfig of params.local_indexes) {
-            if (!localIndexConfig.name) {
-                errors.push(`${SERVICE_NAME} - The 'name' field is required in the 'local_indexes' section`);
-            }
-
-            if (!localIndexConfig.sort_key) {
-                errors.push(`${SERVICE_NAME} - The 'sort_key' section is required in the 'local_indexes' section`);
-            }
-            else {
-                if (!localIndexConfig.sort_key.name) {
-                    errors.push(`${SERVICE_NAME} - The 'name' field in the 'sort_key' section is required in the 'local_indexes' section`);
-                }
-                if (!localIndexConfig.sort_key.type) {
-                    errors.push(`${SERVICE_NAME} - The 'type' field in the 'sort_key' section is required in the 'local_indexes' section`);
-                }
-            }
-        }
-    }
-
-    return errors;
+    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
 export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
