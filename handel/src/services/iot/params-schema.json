@@ -5,7 +5,7 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be 'iot')",
-            "pattern": "iot",
+            "pattern": "^iot$",
             "errorMessage": "The 'type' field must equal a 'iot'"
         },
         "description": {
