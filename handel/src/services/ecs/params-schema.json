@@ -6,7 +6,7 @@
             "type": "string",
             "description": "The service type (should always be 'ecs')",
             "pattern": "^ecs$",
-            "errorMessage": "The 'type' fiels must be 'ecs'"
+            "errorMessage": "The 'type' field must be 'ecs'"
         },
         "containers": {
             "type": "array",
@@ -200,7 +200,7 @@
                         },
                         "required": [
                             "type",
-                            "adjustmant",
+                            "adjustment",
                             "alarm"
                         ],
                         "additionalProperties": false,
