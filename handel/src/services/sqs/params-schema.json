@@ -8,11 +8,11 @@
             "pattern": "^sqs$",
             "errorMessage": "The 'type' parameter must equal 'sqs'"
         },
-        "query_type": {
+        "queue_type": {
             "type": "string",
             "description": "The type of queue can be 'regular' and 'fifo'",
             "pattern": "^regular|fifo$",
-            "errorMessage": "The 'query_type' parameter must equal 'regular' or 'fifo'"
+            "errorMessage": "The 'queue_type' parameter must equal 'regular' or 'fifo'"
         },
         "delay_seconds": {
             "type": "number",
