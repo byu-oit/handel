@@ -40,6 +40,7 @@ import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 const VALID_DYNAMODB_CONFIG: DynamoDBConfig = {
     type: 'dynamodb',
+    table_name: 'my_example-table.name',
     partition_key: {
         name: 'MyPartitionKey',
         type: KeyDataType.String
