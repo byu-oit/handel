@@ -5,7 +5,7 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be 'ses')",
-            "pattern": "ses",
+            "pattern": "^ses$",
             "errorMessage": "The 'type' parameter must equal 'ses'"
         },
         "address": {

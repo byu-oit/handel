@@ -51,35 +51,35 @@
             "properties": {
                 "max_receive_count":{
                     "type": "number",
-                    "errorMessage": "The 'max_receive_count' field must be a number"
+                    "errorMessage": "The 'max_receive_count' field must be a number in the 'dead_letter_queue' section"
                 },
                 "delay_seconds": {
                     "type": "number",
-                    "errorMessage": "The 'delay_seconds' field must be a number"
+                    "errorMessage": "The 'delay_seconds' field must be a number in the 'dead_letter_queue' section"
                 },
                 "max_message_size": {
                     "type": "number",
                     "minimum": 0,
                     "maximum": 262144,
-                    "errorMessage": "The 'max_message_size' field must be a number"
+                    "errorMessage": "The 'max_message_size' field must be a number in the 'dead_letter_queue' section"
                 },
                 "message_retention_period": {
                     "type": "number",
                     "minimum": 60,
                     "maximum": 1209600,
-                    "errorMessage": "The 'message_retention_period' field must be a number"
+                    "errorMessage": "The 'message_retention_period' field must be a number in the 'dead_letter_queue' section"
                 },
                 "receive_message_wait_time_seconds": {
                     "type": "number",
                     "minimum": 0,
                     "maximum": 20,
-                    "errorMessage": "The 'receive_message_wait_time_seconds' field must be a number"
+                    "errorMessage": "The 'receive_message_wait_time_seconds' field must be a number in the 'dead_letter_queue' section"
                 },
                 "visibility_timeout": {
                     "type": "number",
                     "minimum": 0,
                     "maximum": 43200,
-                    "errorMessage": "The 'visibility_timeout' must be a number"
+                    "errorMessage": "The 'visibility_timeout' must be a number in the 'dead_letter_queue' section"
                 }
             }
         },
@@ -134,7 +134,9 @@
     ],
     "additionalProperties": false,
     "errorMessage": {
-        "required": "The 'type' field is required",
+        "required": {
+            "type": "The 'type' field is required"
+        },
         "additionalProperties": "Invalid/Unknown property specified"
     }
 }
