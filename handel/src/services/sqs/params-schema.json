@@ -67,7 +67,7 @@
                     "type": "number",
                     "minimum": 60,
                     "maximum": 1209600,
-                    "errorMessage": "The 'message_retention_period' field must be a number"
+                    "errorMessage": "The 'message_retention_period' field must be a number between 60 and 1209600"
                 },
                 "receive_message_wait_time_seconds": {
                     "type": "number",
