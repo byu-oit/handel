@@ -52,7 +52,7 @@
                 "type": {
                     "type": "string",
                     "description": "The 'type' parameter may only be 'String' or 'Number'",
-                    "pattern": "^^String|string|Number|number$$",
+                    "pattern": "^String|string|Number|number$",
                     "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                 }
             },
@@ -211,7 +211,7 @@
                             "type": {
                                 "type": "string",
                                 "description": "The 'type' parameter may only be 'String' or 'Number'",
-                                "pattern": "^^String|string|Number|number$$",
+                                "pattern": "^String|string|Number|number$",
                                 "errorMessage": "The 'type' parameter must be 'String' or 'Number'"
                             }
                         },
@@ -238,7 +238,7 @@
                             "type": {
                                 "type": "string",
                                 "description": "The 'type' parameter may only be 'String' or 'Number' in the 'sort_key' section",
-                                "pattern": "^^String|string|Number|number$$",
+                                "pattern": "^String|string|Number|number$",
                                 "errorMessage": "The 'type' parameter must be 'String' or 'Number' in the 'sort_key' section"
                             }
                         },
