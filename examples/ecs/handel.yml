@@ -6,6 +6,14 @@ environments:
   dev:
     webapp:
       type: ecs
+      containers:
+      - name: ecstest
+        image_name: nginx:latest
+        port_mappings:
+        - 80
+        routing:
+          base_path: /
+          health_check_path: /
       auto_scaling:
         min_tasks: 1
         max_tasks: 4
@@ -19,7 +27,7 @@ environments:
             comparison_operator: GreaterThanThreshold
             threshold: 70
             period: 60
-        - type: downhand
+        - type: down
           adjustment:
             value: 1
             cooldown: 300
@@ -30,11 +38,4 @@ environments:
             period: 60
       load_balancer:
         type: http
-      containers:
-      - name: ecstest
-        image_name: nginx:latest
-        port_mappings:
-        - 80
-        routing:
-          base_path: /
-          health_check_path: /
+
