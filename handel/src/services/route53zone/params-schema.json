@@ -5,8 +5,8 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be 'route53zone')",
-            "pattern": "route53zone",
-            "errorMessage": "The 'type' parameter must be a string"
+            "pattern": "^route53zone$",
+            "errorMessage": "The 'type' parameter must equal 'route53zone'"
         },
         "name": {
             "type": "string",

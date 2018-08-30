@@ -36,7 +36,7 @@
         },
         "cache_parameters": {
             "type": "object",
-            "description": "Any cache parameters you wish for your Redis cluster.",
+            "description": "Any cache_parameters you wish for your Redis cluster.",
             "patternProperties": {
                 "^.*$": {
                     "anyOf": [

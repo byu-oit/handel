@@ -5,7 +5,7 @@
         "type": {
             "type": "string",
             "description": "The service type (should always be 'kms')",
-            "pattern": "kms",
+            "pattern": "^kms$",
             "errorMessage": "The 'type' field must equal 'kms'"
         },
         "alias": {

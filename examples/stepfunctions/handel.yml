@@ -13,7 +13,7 @@ environments:
       handler: lambda_function.lambda_handler
       runtime: python3.6
     machine:
-      type: step_functions
+      type: stepfunctions
       definition: state_machine.yml
       dependencies:
       - foo
