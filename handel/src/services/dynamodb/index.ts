@@ -41,7 +41,9 @@ import {DynamoDBConfig} from './config-types';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
-    Number: 'N'
+    string: 'S',
+    Number: 'N',
+    number: 'N'
 };
 
 const SERVICE_NAME = 'DynamoDB';
