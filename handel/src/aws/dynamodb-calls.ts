@@ -15,7 +15,11 @@
  *
  */
 import * as AWS from 'aws-sdk';
+import {HandelFile} from '../datatypes';
+import {EnvironmentResult} from '../datatypes';
 import awsWrapper from './aws-wrapper';
+
+export const handelDeploymentLogsTableName = 'handel-deployment-logs';
 
 export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.TableDescription | null> {
     const describeTableParams = {
@@ -42,6 +46,60 @@ export async function putItem(tableName: string, item: any): Promise<boolean> {
         TableName: tableName,
         Item: item
     };
-    const putResult = await awsWrapper.dynamodb.putItem(putItemParams);
-    return true;
+    try {
+        await awsWrapper.dynamodb.putItem(putItemParams);
+        return true;
+    } catch (e) {
+        // Maybe we want to log the error?
+        return false;
+    }
+}
+
+export async function makeSureDeploymentsLogTableExists(): Promise<void> {
+    const dynamoTable = await getDynamoTable(handelDeploymentLogsTableName);
+    if (dynamoTable === null) {
+        await createDynamoTable({
+            AttributeDefinitions: [
+                {
+                    AttributeName: 'AppName',
+                    AttributeType: 'S'
+                },
+                {
+                    AttributeName: 'EnvAction',
+                    AttributeType: 'S'
+                }
+            ],
+            KeySchema: [
+                {
+                    AttributeName: 'AppName',
+                    KeyType: 'HASH'
+                },
+                {
+                    AttributeName: 'EnvAction',
+                    KeyType: 'RANGE'
+                }
+            ],
+            ProvisionedThroughput: {
+                ReadCapacityUnits: 5,
+                WriteCapacityUnits: 5
+            },
+            TableName: handelDeploymentLogsTableName
+        });
+    }
+}
+
+export async function logHandelAction(lifecycleName: string, envResult: EnvironmentResult, handelFile: HandelFile): Promise<void> {
+    const endTime = Date.now();
+    await putItem(handelDeploymentLogsTableName, {
+        AppName: handelFile.name,
+        EnvAction: envResult.environmentName + ':' + lifecycleName + ':' + endTime,
+        Lifecycle: lifecycleName,
+        DeploymentStartTime: envResult.deploymentStartTime,
+        DeploymentEndTime: endTime.toString(),
+        EnvironmentName: envResult.environmentName,
+        DeploymentStatus: envResult.status,
+        DeploymentMessage: envResult.message,
+        HandelContents: handelFile
+    });
+    // TODO find a way to insert the GIT commit hash and/or pipeline name
 }
