@@ -1,5 +1,7 @@
 version: 1
+
 name: dynamodb-test
+
 environments:
   dev:
     webapp:
@@ -7,21 +9,21 @@ environments:
       table_name: exampletablename
       partition_key:
         name: partitionKeyName
-        type: number
+        type: Number
       sort_key:
         name: sortKeyName
-        type: string
+        type: String
       provisioned_throughput:
         read_capacity_units: 5
         write_capacity_units: 5
-        read_target_units: 70
+        read_target_utilization: 70
         write_target_utilization: 65
       ttl_attribute: None
       local_indexes:
       - name: localIndexName
         sort_key:
           name: sortKeyName
-          type: number
+          type: Number
         attributes_to_copy:
         - someAttributeToCopy
       stream_view_type: KEYS_ONLY
@@ -29,19 +31,16 @@ environments:
       - name: globalIndexName
         partition_key:
           name: partitionKeyName2
-          type: string
+          type: String
         sort_key: 
           name: sortKeyName2
-          type: string
+          type: String
         attributes_to_copy: 
         - exampleAttributesToCopy2
         provisioned_throughput:
           read_capacity_units: 6
           write_capacity_units: 6
-          read_target_units: 60
+          read_target_utilization: 60
           write_target_utilization: 55
-        event_consumers:
-          - service_name: function
-          batch_size: 100
-        tags:
-          mytagname: mytagvalue
+      tags:
+        mytagname: mytagvalue

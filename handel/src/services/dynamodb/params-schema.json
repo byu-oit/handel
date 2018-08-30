@@ -12,7 +12,7 @@
             "type": "string",
             "minLength": 3,
             "maxLength": 255,
-            "pattern": "^[a-zA-Z0-9_\\-.]$",
+            "pattern": "^[a-zA-Z0-9_\\-.]*$",
             "errorMessage": "The table_name parameter must be between 3 and 255 characters long and may only include alphanumeric characters, underscores (_), hyphens (-), and dots (.)"
         },
         "partition_key": {

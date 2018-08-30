@@ -1,0 +1,10 @@
+StartAt: FooState
+States:
+  FooState:
+    Type: Task
+    Resource: foo # service name
+    Next: BarState
+  BarState:
+    Type: Task
+    Resource: bar # service name
+    End: true
