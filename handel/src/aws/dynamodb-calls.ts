@@ -21,6 +21,12 @@ import awsWrapper from './aws-wrapper';
 
 export const handelDeploymentLogsTableName = 'handel-deployment-logs';
 
+async function sleepAwait(ms: number) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.TableDescription | null> {
     const describeTableParams = {
         TableName: tableName
@@ -37,8 +43,23 @@ export async function getDynamoTable(tableName: string): Promise<AWS.DynamoDB.Ta
 }
 
 export async function createDynamoTable(createTableParams: AWS.DynamoDB.CreateTableInput): Promise<AWS.DynamoDB.TableDescription | null> {
-    const createResponse = await awsWrapper.dynamodb.createTable(createTableParams);
-    return createResponse.TableDescription!;
+    try {
+        await awsWrapper.dynamodb.createTable(createTableParams);
+        // check every second if the created table is in an active status
+        for(;;) {
+            await sleepAwait(1000);
+            const table = await getDynamoTable(createTableParams.TableName);
+            if (table !== null) {
+                if ((table as AWS.DynamoDB.TableDescription).TableStatus === 'ACTIVE') {
+                    return table;
+                }
+            } else {
+                return null;
+            }
+        }
+    } catch (e) {
+        return null;
+    }
 }
 
 export async function putItem(tableName: string, item: any): Promise<boolean> {
@@ -99,7 +120,7 @@ export async function logHandelAction(lifecycleName: string, envResult: Environm
         EnvironmentName: envResult.environmentName,
         DeploymentStatus: envResult.status,
         DeploymentMessage: envResult.message,
-        HandelContents: handelFile
+        EnvironmentContents: handelFile.environments[envResult.environmentName]
     });
     // TODO find a way to insert the GIT commit hash and/or pipeline name
 }

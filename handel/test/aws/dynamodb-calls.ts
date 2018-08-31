@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import awsWrapper from '../../src/aws/aws-wrapper';
 import * as dynamoCalls from '../../src/aws/dynamodb-calls';
 
-describe('ec2-calls', () => {
+describe('dynamodb-calls', () => {
     let sandbox: sinon.SinonSandbox;
 
     beforeEach(() => {
@@ -43,7 +43,7 @@ describe('ec2-calls', () => {
 
         it('should return an object containing the table description on success', async () => {
             const describeTableStub = sandbox.stub(awsWrapper.dynamodb, 'describeTable').resolves({
-                'Table': {}
+                Table: {}
             });
             const result = await dynamoCalls.getDynamoTable('table-name');
             expect(describeTableStub.callCount).to.equal(1);
@@ -67,7 +67,26 @@ describe('ec2-calls', () => {
                             KeyType: 'HASH'
                         }
                     ],
-                    TableName: 'Test'
+                    TableName: 'Test',
+                    TableStatus: 'CREATING'
+                }
+            });
+            const describeTableStub = sandbox.stub(awsWrapper.dynamodb, 'describeTable').resolves({
+                Table: {
+                    AttributeDefinitions: [
+                        {
+                            AttributeName: 'Key',
+                            AttributeType: 'S'
+                        }
+                    ],
+                    KeySchema: [
+                        {
+                            AttributeName: 'Key',
+                            KeyType: 'HASH'
+                        }
+                    ],
+                    TableName: 'Test',
+                    TableStatus: 'ACTIVE'
                 }
             });
             const result = await dynamoCalls.createDynamoTable({
@@ -90,7 +109,9 @@ describe('ec2-calls', () => {
                 TableName: 'Test'
             });
             expect(createTableStub.callCount).to.equal(1);
+            expect(describeTableStub.callCount).to.equal(1);
             expect(result).to.not.be.an('undefined');
+            expect((result as AWS.DynamoDB.TableDescription).TableStatus).to.equal('ACTIVE');
         });
     });
 
