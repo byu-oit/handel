@@ -133,12 +133,31 @@ describe('dynamodb-calls', () => {
 
     describe('makeSureDeploymentsLogTableExists', () => {
         it('should create table if table does not exist', async () => {
-            const tableNotFoundStub = sandbox.stub(awsWrapper.dynamodb, 'describeTable').rejects({
+            const describeTableStub = sandbox.stub(awsWrapper.dynamodb, 'describeTable');
+            describeTableStub.onCall(0).rejects({
                 code: 'ResourceNotFoundException'
+            });
+            describeTableStub.onCall(1).resolves({
+                Table: {
+                    AttributeDefinitions: [
+                        {
+                            AttributeName: 'Key',
+                            AttributeType: 'S'
+                        }
+                    ],
+                    KeySchema: [
+                        {
+                            AttributeName: 'Key',
+                            KeyType: 'HASH'
+                        }
+                    ],
+                    TableName: 'Test',
+                    TableStatus: 'ACTIVE'
+                }
             });
             const createTableStub = sandbox.stub(awsWrapper.dynamodb, 'createTable').resolves({});
             const result = await dynamoCalls.makeSureDeploymentsLogTableExists();
-            expect(tableNotFoundStub.callCount).to.equal(1);
+            expect(describeTableStub.callCount).to.equal(2);
             expect(createTableStub.callCount).to.equal(1);
             expect(result).to.not.be.an('error');
         });
