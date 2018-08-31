@@ -437,6 +437,7 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
         envVars.HANDEL_ENVIRONMENT_NAME = this.environmentName;
         envVars.HANDEL_SERVICE_NAME = this.serviceName;
         envVars.HANDEL_PARAMETER_STORE_PREFIX = this.ssmApplicationPrefix();
+        envVars.HANDEL_REGION_NAME = this.accountConfig.region;
         return envVars;
     }
 

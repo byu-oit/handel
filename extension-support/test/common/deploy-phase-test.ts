@@ -211,4 +211,24 @@ describe('Deploy phase common module', () => {
             expect(storeParamStub.callCount).to.equal(1);
         });
     });
+
+    describe('Inject env vars from handel file', () => {
+        it('should inject env vars when properties are not specified', async () => {
+            const dependencyServiceContext = new ServiceContext<ServiceConfig>('fakeApp', 'fakeEnv', 'fakeService', new ServiceType('someExtension', 'dynamodb'), {type: 'dynamodb'}, accountConfig);
+            const dependencyDeployContext = new DeployContext(dependencyServiceContext);
+            dependencyDeployContext.addEnvironmentVariables({
+                TEST_DEPENDENCY_VAR: 'test_value2'
+            });
+            const dependenciesDeployContexts = [dependencyDeployContext];
+            const userProvidedEnvVars = {
+                TEST_USER_VAR: 'test_value'
+            };
+            const envVars = deployPhase.getEnvVarsForDeployedService(serviceContext, dependenciesDeployContexts, userProvidedEnvVars);
+            expect(envVars.HANDEL_REGION_NAME).to.equal('us-west-2');
+            expect(envVars.HANDEL_APP_NAME).to.equal('FakeApp');
+            expect(envVars.HANDEL_ENVIRONMENT_NAME).to.equal('FakeEnv');
+            expect(envVars.HANDEL_SERVICE_NAME).to.equal('FakeService');
+            expect(envVars.HANDEL_PARAMETER_STORE_PREFIX).to.equal('FakeApp.FakeEnv');
+        });
+    });
 });
