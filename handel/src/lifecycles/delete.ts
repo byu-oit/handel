@@ -60,8 +60,11 @@ async function unDeployAndUnBindServices(serviceRegistry: ServiceRegistry, envir
 }
 
 async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<EnvironmentDeleteResult> {
+    const startTime = Date.now();
     if (!accountConfig || !environmentContext) {
-        return new EnvironmentDeleteResult('failure', 'Invalid configuration');
+        return new EnvironmentDeleteResult(
+            !environmentContext ? 'invalid-env' : environmentContext.environmentName,
+            startTime, 'failure', 'Invalid configuration');
     }
     else {
         winston.info(`Starting delete for environment ${environmentContext.environmentName}`);
@@ -70,10 +73,10 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: 
             const deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
             const unDeployAndUnBindResults = await unDeployAndUnBindServices(serviceRegistry, environmentContext, deployOrder);
             const unPreDeployResults = await unPreDeployPhase.unPreDeployServices(serviceRegistry, environmentContext);
-            return new EnvironmentDeleteResult('success', 'Success');
+            return new EnvironmentDeleteResult(environmentContext.environmentName, startTime, 'success', 'Success');
         }
         catch (err) {
-            return new EnvironmentDeleteResult('failure', err.message, err);
+            return new EnvironmentDeleteResult(environmentContext.environmentName, startTime, 'failure', err.message, err);
         }
     }
 }
