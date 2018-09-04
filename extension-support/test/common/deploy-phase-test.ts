@@ -229,6 +229,8 @@ describe('Deploy phase common module', () => {
             expect(envVars.HANDEL_ENVIRONMENT_NAME).to.equal('FakeEnv');
             expect(envVars.HANDEL_SERVICE_NAME).to.equal('FakeService');
             expect(envVars.HANDEL_PARAMETER_STORE_PREFIX).to.equal('FakeApp.FakeEnv');
+            expect(envVars.TEST_USER_VAR).to.equal('test_value');
+            expect(envVars.FAKESERVICE_TEST_DEPENDENCY_VAR).to.equal('test_value2');
         });
     });
 });
