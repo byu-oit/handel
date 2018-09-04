@@ -102,7 +102,7 @@ describe('s3staticsite deployer', () => {
             });
         });
         describe('cloudfront.price_class', () => {
-            const valid = ['100', '200', 'all'];
+            const valid = [100, 200, 'all'];
             for (const validValue of valid) {
                 it(`should allow '${validValue}'`, () => {
                     ownServiceContext.params.cloudfront = { price_class: validValue };
@@ -115,7 +115,7 @@ describe('s3staticsite deployer', () => {
                 ownServiceContext.params.cloudfront = { price_class: 'off' };
                 const errors = s3StaticSite.check(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'price_class\' parameter must be one of \'100\', \'200\', or \'all\'');
+                expect(errors[0]).to.include('\'price_class\' parameter must be one of 100, 200, or \'all\'');
             });
         });
         describe('cloudfront TTLs', () => {
