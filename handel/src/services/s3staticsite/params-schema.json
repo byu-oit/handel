@@ -45,8 +45,20 @@
                     "errorMessage": "The 'dns_names' field must be a array of strings"
                 },
                 "price_class": {
-                    "type": "string",
-                    "errorMessage": "The 'private_class' field must be a string"
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "pattern": "^all$"
+                        },
+                        {
+                            "type": "number",
+                            "enum": [
+                                100,
+                                200
+                            ]
+                        }
+                    ],
+                    "errorMessage": "The 'price_class' parameter must be one of 100, 200, or 'all'"
                 },
                 "logging": {
                     "type": "string",

@@ -28,7 +28,7 @@ export interface S3StaticSiteServiceConfig extends ServiceConfig {
 export interface CloudFrontConfig {
     https_certificate?: string;
     dns_names?: string[];
-    price_class?: string;
+    price_class?: string|number;
     logging?: string;
     min_ttl?: string;
     max_ttl?: string;
