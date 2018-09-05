@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import * as AWS from 'aws-sdk';
 import { stripIndent } from 'common-tags';
 import * as fs from 'fs';
 import { AccountConfig, ServiceRegistry, Tags } from 'handel-extension-api';
@@ -24,6 +23,7 @@ import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as winston from 'winston';
 import config from '../account-config/account-config';
+import * as dynamodbCalls from '../aws/dynamodb-calls';
 import * as stsCalls from '../aws/sts-calls';
 import * as util from '../common/util';
 import {
@@ -47,8 +47,9 @@ function logCaughtError(msg: string, err: Error) {
     }
 }
 
-function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]): void {
+async function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[], handelFile: HandelFile): Promise<void> {
     let success = true;
+    await dynamodbCalls.makeSureDeploymentsLogTableExists();
     for (const envResult of envResults) {
         if (envResult.status !== 'success') {
             winston.error(`Error during environment ${lifecycleName}: ${envResult.message}`);
@@ -57,6 +58,8 @@ function logFinalResult(lifecycleName: string, envResults: EnvironmentResult[]):
             }
             success = false;
         }
+        // insert log entry into dynamo log table
+        await dynamodbCalls.logHandelAction(lifecycleName, envResult, handelFile);
     }
 
     if (success) {
@@ -232,7 +235,7 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
         handelFile.tags = Object.assign({}, handelFile.tags, options.tags);
 
         const envDeployResults = await deployLifecycle.deploy(accountConfig, handelFile, environmentsToDeploy, handelFileParser, serviceRegistry, options);
-        logFinalResult('deploy', envDeployResults);
+        await logFinalResult('deploy', envDeployResults, handelFile);
     }
     catch (err) {
         logCaughtError('Error occurred during deploy', err);
@@ -289,7 +292,7 @@ export async function deleteAction(handelFile: HandelFile, options: DeleteOption
         const deleteEnvConfirmed = await confirmDelete(environmentToDelete, options.yes);
         if (deleteEnvConfirmed) {
             const envDeleteResult = await deleteLifecycle.deleteEnv(accountConfig, handelFile, environmentToDelete, handelFileParser, serviceRegistry, options);
-            logFinalResult('delete', [envDeleteResult]);
+            await logFinalResult('delete', [envDeleteResult], handelFile);
         }
         else {
             winston.info('You did not type \'yes\' to confirm deletion. Will not delete environment.');

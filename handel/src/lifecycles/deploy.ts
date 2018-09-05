@@ -74,8 +74,11 @@ async function bindAndDeployServices(serviceRegistry: ServiceRegistry, environme
  * Performs the actual deploy
  */
 async function deployEnvironment(accountConfig: AccountConfig, serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext): Promise<EnvironmentDeployResult> {
+    const startTime = Date.now();
     if (!accountConfig || !environmentContext) {
-        return Promise.resolve(new EnvironmentDeployResult('failure', 'Invalid configuration'));
+        return Promise.resolve(new EnvironmentDeployResult(
+            !environmentContext ? 'invalid-env' : environmentContext.environmentName,
+            startTime, 'failure', 'Invalid configuration', ));
     }
     else {
         winston.info(`Starting deploy for environment ${environmentContext.environmentName}`);
@@ -89,14 +92,14 @@ async function deployEnvironment(accountConfig: AccountConfig, serviceRegistry: 
                 const deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
                 const bindAndDeployResults = await bindAndDeployServices(serviceRegistry, environmentContext, preDeployResults, deployOrder);
                 const eventBindingResults = await setupEventBindings(serviceRegistry, environmentContext, bindAndDeployResults.deployContexts);
-                return new EnvironmentDeployResult('success', 'Success');
+                return new EnvironmentDeployResult(environmentContext.environmentName, startTime, 'success', 'Success');
             }
             catch (err) {
-                return new EnvironmentDeployResult('failure', err.message, err);
+                return new EnvironmentDeployResult(environmentContext.environmentName, startTime, 'failure', err.message, err);
             }
         }
         else {
-            return new EnvironmentDeployResult('failure', `Errors while checking deploy spec: \n${errors.join('\n')}`);
+            return new EnvironmentDeployResult(environmentContext.environmentName, startTime, 'failure', `Errors while checking deploy spec: \n${errors.join('\n')}`);
         }
     }
 }
