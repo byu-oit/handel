@@ -67,6 +67,11 @@ Parameters
      - No
      - 0
      - Configures the log retention duration for CloudWatch logs. If set to `0`, logs are kept indefinitely.
+   * - health_check_grace_period_seconds
+     - integer
+     - No
+     - 0
+     - The period of time, in seconds, that the Amazon ECS service scheduler ignores unhealthy Elastic Load Balancing target health checks after a task has first started.
    * - tags
      - :ref:`tagging-resources`
      - No

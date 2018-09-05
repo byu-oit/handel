@@ -81,6 +81,7 @@ Resources:
       {{/if}}
       {{/each}}
       {{/if}}
+      HealthCheckGracePeriodSeconds: {{healthCheckGracePeriodSeconds}}
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: {{assignPublicIp}}

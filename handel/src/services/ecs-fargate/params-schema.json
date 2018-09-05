@@ -274,6 +274,10 @@
             "type": "number",
             "errorMessage": "The 'log_retention_in_days' parameter must be a number"
         },
+        "health_check_grace_period_seconds": {
+            "type": "integer",
+            "errorMessage": "The 'health_check_grace_period_seconds' parameter must be an integer"
+        },
         "tags": {
             "type": "object",
             "description": "An arbitrary list of key/value pairs to be added as tags to the service",

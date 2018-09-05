@@ -105,6 +105,14 @@ describe('fargate deployer', () => {
             expect(checkLoadBalancerStub.callCount).to.equal(1);
             expect(checkContainersStub.callCount).to.equal(1);
         });
+
+        it('should only take an integer in \'health_check_grace_period_seconds\'', () => {
+            serviceContext.params.health_check_grace_period_seconds = 10.57;
+            const errors = ecsFargate.check(serviceContext, []);
+
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain('The \'health_check_grace_period_seconds\' parameter must be an integer');
+        });
     });
 
     describe('preDeploy', () => {

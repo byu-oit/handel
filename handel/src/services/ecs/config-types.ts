@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import { integer } from 'aws-sdk/clients/lightsail';
 import { ServiceConfig, Tags } from 'handel-extension-api';
 import {
     AutoScalingConfig,
@@ -33,6 +34,7 @@ export interface EcsServiceConfig extends ServiceConfig {
     logging?: string;
     log_retention_in_days?: number;
     tags?: Tags;
+    health_check_grace_period_seconds?: integer;
 }
 
 export interface ClusterConfig {
@@ -67,4 +69,5 @@ export interface HandlebarsEcsTemplateConfig {
     loadBalancer?: HandlebarsEcsTemplateLoadBalancer;
     sshKeyName?: string;
     volumes?: HandlebarsEcsTemplateVolume[];
+    healthCheckGracePeriodSeconds?: integer;
 }
