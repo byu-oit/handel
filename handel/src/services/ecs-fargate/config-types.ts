@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import { integer } from 'aws-sdk/clients/lightsail';
 import { ServiceConfig, Tags } from 'handel-extension-api';
 import {
     AutoScalingConfig,
@@ -34,7 +33,6 @@ export interface FargateServiceConfig extends ServiceConfig {
     load_balancer?: LoadBalancerConfig;
     log_retention_in_days?: number;
     tags?: Tags;
-    health_check_grace_period_seconds?: integer;
 }
 
 export interface HandlebarsFargateTemplateConfig {
@@ -58,5 +56,4 @@ export interface HandlebarsFargateTemplateConfig {
     logRetentionInDays: number | null;
     loadBalancer?: HandlebarsEcsTemplateLoadBalancer;
     volumes?: HandlebarsEcsTemplateVolume[];
-    healthCheckGracePeriodSeconds?: integer;
 }

@@ -251,6 +251,10 @@
                         "type": "string"
                     },
                     "errorMessage": "The 'dns_names' field must be an array of strings in the 'load_balancer' section"
+                },
+                "health_check_grace_period": {
+                    "type": "integer",
+                    "errorMessage": "The 'health_check_grace_period' parameter must be an integer in the 'load_balancer' section"
                 }
             },
             "required": [
@@ -273,10 +277,6 @@
         "log_retention_in_days": {
             "type": "number",
             "errorMessage": "The 'log_retention_in_days' parameter must be a number"
-        },
-        "health_check_grace_period_seconds": {
-            "type": "integer",
-            "errorMessage": "The 'health_check_grace_period_seconds' parameter must be an integer"
         },
         "tags": {
             "type": "object",

@@ -76,6 +76,7 @@ export interface LoadBalancerConfig {
     timeout?: number;
     https_certificate?: string;
     dns_names: string[];
+    health_check_grace_period?: number;
 }
 
 export enum LoadBalancerConfigType {
@@ -143,6 +144,7 @@ export interface HandlebarsEcsTemplateLoadBalancer {
     httpsCertificate?: string;
     dnsNames?: HandlebarsEcsTemplateDnsName[];
     albName: string;
+    healthCheckGracePeriod?: number;
 }
 
 export interface HandlebarsEcsTemplateDnsName {

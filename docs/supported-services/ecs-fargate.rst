@@ -77,11 +77,6 @@ Parameters
      - No
      - 30
      - Configures the log retention duration for CloudWatch logs.
-   * - health_check_grace_period_seconds
-     - integer
-     - No
-     - 0
-     - The period of time, in seconds, that the Amazon ECS service scheduler ignores unhealthy Elastic Load Balancing target health checks after a task has first started.  
    * - tags
      - :ref:`tagging-resources`
      - No
@@ -194,6 +189,7 @@ The `load_balancer` section is defined by the following schema:
       https_certificate: <string> # Required if type=https. The ID of the ACM certificate to use on the load balancer.
       dns_names:
        - <string> # Optional.
+      health_check_grace_period: <integer> # Optional. The period of time, in seconds, that the Amazon ECS service scheduler ignores unhealthy Elastic Load Balancing target health checks after a task has first started.
 
 The `dns_names` section creates one or more dns names that point to this load balancer. See :ref:`route53zone-records` for more.
 

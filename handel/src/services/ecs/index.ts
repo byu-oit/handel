@@ -77,9 +77,6 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
 
             const logRetention = ownServiceContext.params.log_retention_in_days;
 
-            // Configure health check grace periods
-            const healthCheckGracePeriodSeconds = serviceParams.health_check_grace_period_seconds;
-
             const serviceRoleName = `${stackName}-service-role`;
             // Create object used for templating the CloudFormation template
             const handlebarsParams: HandlebarsEcsTemplateConfig = {
@@ -107,8 +104,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
                 logging: ownServiceContext.params.logging !== 'disabled',
                 logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
                 // Default to not set, which means infinite.
-                logRetentionInDays: logRetention !== 0 ? logRetention! : null,
-                healthCheckGracePeriodSeconds
+                logRetentionInDays: logRetention !== 0 ? logRetention! : null
             };
 
             // Configure routing if present in any of hte containers
@@ -119,11 +115,6 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
             // Add the SSH keypair if specified
             if (serviceParams.cluster && serviceParams.cluster.key_name) {
                 handlebarsParams.sshKeyName = serviceParams.cluster.key_name;
-            }
-
-            // Default health check grace period
-            if (!handlebarsParams.healthCheckGracePeriodSeconds) {
-                handlebarsParams.healthCheckGracePeriodSeconds = 0;
             }
 
             // Add volumes if present (these are consumed by one or more container mount points)

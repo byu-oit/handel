@@ -77,9 +77,6 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
     // Figure out whether the private subnets should auto-assign public IPs
     const shouldAssignPublicIp = await ec2Calls.shouldAssignPublicIp(accountConfig.private_subnets);
 
-    // Configure health check grace periods
-    const healthCheckGracePeriodSeconds = serviceParams.health_check_grace_period_seconds;
-
     // Create object used for templating the CloudFormation template
     const handlebarsParams: HandlebarsFargateTemplateConfig = {
         serviceName,
@@ -101,19 +98,13 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
         logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
         // Default to not set, which means infinite.
         logRetentionInDays: logRetention !== 0 ? logRetention! : null,
-        assignPublicIp: shouldAssignPublicIp ? 'ENABLED' : 'DISABLED',
-        healthCheckGracePeriodSeconds
+        assignPublicIp: shouldAssignPublicIp ? 'ENABLED' : 'DISABLED'
     };
 
     // Configure routing if present in any of the containers
     if (oneOrMoreTasksHasRouting) {
         const hostedZones = await route53.listHostedZones();
         handlebarsParams.loadBalancer = routingSection.getLoadBalancerConfig(serviceParams, containerConfigs, serviceName, hostedZones, accountConfig);
-    }
-
-    // Default health check grace period
-    if (!handlebarsParams.healthCheckGracePeriodSeconds) {
-        handlebarsParams.healthCheckGracePeriodSeconds = 0;
     }
 
     // Add volumes if present (these are consumed by one or more container mount points)

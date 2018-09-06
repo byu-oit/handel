@@ -38,4 +38,4 @@ environments:
             period: 60
       load_balancer:
         type: http
-
+        health_check_grace_period: 15

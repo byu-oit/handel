@@ -56,9 +56,9 @@ const VALID_ECS_CONFIG: EcsServiceConfig = {
         dns_names: [
             'myapp.byu.edu',
             'myapp.internal'
-        ]
+        ],
+        health_check_grace_period: 10,
     },
-    health_check_grace_period_seconds: 10,
     tags: {
         mytag: 'myvalue'
     },
@@ -115,12 +115,12 @@ describe('ecs deployer', () => {
             expect(checkContainersStub.callCount).to.equal(1);
         });
 
-        it('should only take an integer in \'health_check_grace_period_seconds\'', () => {
-            serviceContext.params.health_check_grace_period_seconds = 10.57;
+        it('should only take an integer in \'health_check_grace_period\'', () => {
+            serviceContext.params.load_balancer!.health_check_grace_period = 10.57;
             const errors = ecs.check(serviceContext, []);
 
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('The \'health_check_grace_period_seconds\' parameter must be an integer');
+            expect(errors[0]).to.contain('The \'health_check_grace_period\' parameter must be an integer');
         });
 
         describe('\'logging\' validation', () => {
