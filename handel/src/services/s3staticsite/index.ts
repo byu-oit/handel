@@ -140,15 +140,6 @@ function computeTTL(ttl: string | undefined, defaultValue: number): number {
 function checkCloudfront(cloudfront: CloudFrontConfig): string[] {
     const errors = [];
 
-    const logging = cloudfront.logging;
-
-    const priceClass = cloudfront.price_class;
-    if (priceClass) {
-        const priceString = String(priceClass);
-        if (priceString !== '100' && priceString !== '200' && priceString !== 'all') {
-            errors.push(`'cloudfront' - the 'price_class' parameter must be one of '100', '200', or 'all'`);
-        }
-    }
     if (cloudfront.min_ttl && !isValidTTL(cloudfront.min_ttl)) {
         errors.push(`'cloudfront' - The 'min_ttl' parameter must be a valid TTL value`);
     }

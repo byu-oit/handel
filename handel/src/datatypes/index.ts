@@ -78,19 +78,27 @@ export class EnvironmentContext {
 }
 
 export interface EnvironmentResult {
+    environmentName: string;
+    deploymentStartTime: number;
     status: string;
     message: string;
     error?: Error;
 }
 
 export class EnvironmentDeleteResult implements EnvironmentResult {
+    public environmentName: string;
+    public deploymentStartTime: number;
     public status: string;
     public message: string;
     public error: Error | undefined;
 
-    constructor(status: string,
+    constructor(environmentName: string,
+                deploymentStartTime: number,
+                status: string,
                 message: string,
                 error?: Error) {
+        this.environmentName = environmentName;
+        this.deploymentStartTime = deploymentStartTime;
         this.status = status;
         this.message = message;
         this.error = error;
@@ -98,13 +106,19 @@ export class EnvironmentDeleteResult implements EnvironmentResult {
 }
 
 export class EnvironmentDeployResult implements EnvironmentResult {
+    public environmentName: string;
+    public deploymentStartTime: number;
     public status: string;
     public message: string;
     public error: Error | undefined;
 
-    constructor(status: string,
+    constructor(environmentName: string,
+                deploymentStartTime: number,
+                status: string,
                 message: string,
                 error?: Error) {
+        this.environmentName = environmentName;
+        this.deploymentStartTime = deploymentStartTime;
         this.status = status;
         this.message = message;
         this.error = error;
