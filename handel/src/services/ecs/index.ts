@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-import { integer } from 'aws-sdk/clients/lightsail';
 import {
     DeployContext,
     DeployOutputType,
