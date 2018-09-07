@@ -533,6 +533,9 @@ Resources:
         Value: {{routingInfo.targetGroupName}}
       UnhealthyThresholdCount: 2
       VpcId: {{../vpcId}}
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: 60
   {{/if}}
   {{/each}}
   {{#each loadBalancer.dnsNames}}
