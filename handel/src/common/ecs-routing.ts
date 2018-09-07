@@ -93,7 +93,7 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
                 };
             });
         }
-        loadBalancerConfig.healthCheckGracePeriod = loadBalancer.health_check_grace_period || 0;
+        loadBalancerConfig.healthCheckGracePeriod = loadBalancer.health_check_grace_period || 15; // Default 15 seconds
     }
 
     return loadBalancerConfig;
