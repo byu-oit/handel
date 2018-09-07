@@ -224,6 +224,7 @@ Resources:
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
       DesiredCount: {{autoScaling.minTasks}}
       {{#if oneOrMoreTasksHasRouting}}
+      HealthCheckGracePeriodSeconds: {{loadBalancer.healthCheckGracePeriod}}
       LoadBalancers:
       {{#each containerConfigs}}
       {{#if routingInfo}}      

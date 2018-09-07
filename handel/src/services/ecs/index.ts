@@ -103,7 +103,7 @@ function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServi
                 logging: ownServiceContext.params.logging !== 'disabled',
                 logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
                 // Default to not set, which means infinite.
-                logRetentionInDays: logRetention !== 0 ? logRetention! : null,
+                logRetentionInDays: logRetention !== 0 ? logRetention! : null
             };
 
             // Configure routing if present in any of hte containers

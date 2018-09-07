@@ -251,6 +251,10 @@
                         "type": "string"
                     },
                     "errorMessage": "The 'dns_names' field must be an array of strings in the 'load_balancer' section"
+                },
+                "health_check_grace_period": {
+                    "type": "integer",
+                    "errorMessage": "The 'health_check_grace_period' parameter must be an integer in the 'load_balancer' section"
                 }
             },
             "required": [
