@@ -86,4 +86,4 @@ In addition to environment variables injected by services your applications cons
    * - HANDEL_PARAMETER_STORE_PREFIX
      - This is the :ref:`prefix <parameter-store-prefix>` used for secrets stored in Parameter Store.
    * - HANDEL_REGION_NAME
-     - This is the vlaue of the *<region_name>* field from your Handel file, or the current region if the region id not specified.
+     - This is the value of the *<region_name>* field from your Handel file, or the current region if the region id not specified.
