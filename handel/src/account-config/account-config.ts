@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as Ajv from 'ajv';
 import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 import { AccountConfig } from 'handel-extension-api';
@@ -24,26 +25,33 @@ import * as ec2Calls from '../aws/ec2-calls';
 import * as util from '../common/util';
 import * as defaultAccountConfig from './default-account-config';
 
-function throwValidateError(field: string) {
-    throw new Error(`'${field}' field missing in the account config file`);
-}
+// function throwValidateError(field: string) {
+//     throw new Error(`'${field}' field missing in the account config file`);
+// }
 
 // TODO - We should turn this into a json schema validation
-function validateAccountConfig(configToValidate: any) {
-    const requiredFields = [
-        'account_id',
-        'region',
-        'vpc',
-        'public_subnets',
-        'private_subnets',
-        'data_subnets'
-    ];
-
-    for (const requiredField of requiredFields) {
-        if (!configToValidate[requiredField]) {
-            throwValidateError(requiredField);
-        }
+export function validateJsonSchema(schemaPath: string, accountConfig: AccountConfig) {
+    const ajv = new Ajv({allErrors: true, jsonPointers: true});
+    require('ajv-errors')(ajv);
+    let schema;
+    try {
+        schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
     }
+    catch (e) {
+        return [`Couldn't read schema file to check the service schema`];
+    }
+    const valid = ajv.validate(schema, accountConfig);
+    if (!valid) {
+        return ajv.errors!.map(error => error.message!);
+    }
+    else {
+        return [];
+    }
+}
+
+function validateAccountConfig(configToValidate: any) {
+    const errors: string[] = validateJsonSchema(`${__dirname}/params-schema.json`, configToValidate);
+    return errors.map(error => `Account Config - ${error}`);
 }
 
 function getAbsoluteConfigFilePath(filePath: string): string {

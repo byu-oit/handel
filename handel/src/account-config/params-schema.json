@@ -1,0 +1,98 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "account_id": {
+            "type": "string",
+            "errorMessage": "The 'account_id' parameter must be a string, which contains the numeric id of your aws account"
+        },
+        "region": {
+            "type": "string",
+            "errorMessage": "The 'region' parameter must be a string"
+        },
+        "vpc": {
+            "type": "string",
+            "errorMessage": "The 'vpc' parameter must be a string"
+        },
+        "public_subnets": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "errorMessage": "The 'public_subnets' parameter must be an array of strings"
+        },
+        "private_subnets": {
+            "type": "string",
+            "errorMessage": "The 'private_subnets' parameter must be a string"
+        },
+        "data_subnets": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "errorMessage": "The 'data_subnets' parameter must be an array of strings"
+        },
+        "ssh_bastion_sg": {
+            "type": "string",
+            "errorMessage": "The 'ssh_bastion_sg' parameter must be a string"
+        },
+        "elasticache_subnet_group": {
+            "type": "string",
+            "errorMessage": "The 'elasticache_subnet_group' parameter must be a string"
+        },
+        "rds_subnet_group": {
+            "type": "string",
+            "errorMessage": "The 'rds_subnet_group' parameter must be a string"
+        },
+        "redshift_subnet_group": {
+            "type": "string",
+            "errorMessage": "The 'redshift_subnet_group' parameter must be a string"
+        },
+        "required_tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "errorMessage": "The 'required_tags' parameter must be an array of strings"
+        },
+        "handel_resource_tags": {
+            "type": "object",
+            "description": "Sets tags to be applied to any generic resources, such as lambda functions, that Handel uses internally.",
+            "patternProperties": {
+                "^.*$": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"}
+                    ]
+                }
+            },
+            "errorMessage": "The 'handel_resource_tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "account_id",
+        "region",
+        "vpc",
+        "public_subnets",
+        "private_subnets",
+        "data_subnets",
+        "elasticache_subnet_group",
+        "rds_subnet_group",
+        "redshift_subnet_group"
+    ],
+    "additionalProperties": true,
+    "errorMessage": {
+        "required": {
+            "account_id": "The 'account_id' parameter is required",
+            "region": "The 'region' parameter is required",
+            "vpc": "The 'vpc' parameter is required",
+            "public_subnets": "The 'public_subnets' parameter is required",
+            "private_subnets": "The 'private_subnets' parameter is required",
+            "data_subnets": "The 'data_subnets' parameter is required",
+            "elasticache_subnet_group": "The 'elasticache_subnet_group' parameter is required",
+            "rds_suibnet_group": "The 'rds_subnet_group' parameter is required",
+            "redshift_subnet_group": "The 'redshift_subnet_group' parameter is required"
+        }
+    }
+}
