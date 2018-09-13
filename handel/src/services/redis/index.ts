@@ -74,7 +74,7 @@ function getDefaultCacheParameterGroup(redisVersion: string): string {
         return 'default.redis2.6';
     }
     else if (redisVersion.startsWith('2.8')) {
-        return 'default.redis2.6';
+        return 'default.redis2.8';
     }
     // else if(redisVersion.startsWith('3.2') && numShards > 1) {
     //     return 'default.redis3.2.cluster.on';

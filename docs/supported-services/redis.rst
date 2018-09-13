@@ -64,7 +64,7 @@ Parameters
      - Map<string,string>
      - No
      - 
-     - Any cache parameters you wish for your Redis cluster. See `Redis Specific Parameters <http://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/ParameterGroups.Redis.html>`_ for the list of parameters you can provide.
+     - Any cache parameters you wish for your Redis cluster. See `Redis Specific Parameters <https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/ParameterGroups.Redis.html>`_ for the list of parameters you can provide.
    * - tags
      - :ref:`tagging-resources`
      - No
