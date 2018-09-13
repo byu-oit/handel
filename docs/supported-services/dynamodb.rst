@@ -160,7 +160,7 @@ The GlobalIndexes element allows you to configure global secondary indexes on yo
       sort_key: # Optional
         name: <string>
         type: <String|Number>
-      attributes_to_copy: # Required
+      attributes_to_copy: # Optional. If not specified, will default to ALL
       - <string>
       provisioned_throughput: # Optional
         read_capacity_units: <number or range> # Required
