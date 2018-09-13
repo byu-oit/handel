@@ -315,15 +315,13 @@
                 },
                 "required": [
                     "name",
-                    "partition_key",
-                    "attributes_to_copy"
+                    "partition_key"
                 ],
                 "additionalProperties": false,
                 "errorMessage": {
                     "required": {
                         "name": "The 'name' field is required in the 'global_indexes' section",
-                        "partition_key": "The 'partition_key' section is required in the 'global_indexes' section",
-                        "attributed_to_copy": "The 'attributes_to_copy' parameter is required in the 'global_indexes' section"
+                        "partition_key": "The 'partition_key' section is required in the 'global_indexes' section"
                     },
                     "additionalProperties": "Invalid/Unknown property specified in the 'global_indexes' section"
                 }
