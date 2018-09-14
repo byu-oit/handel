@@ -95,10 +95,8 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         maxInstances = serviceParams.auto_scaling.max_instances || 1;
     }
     else {
-        // TODO - serviceParams.min_instances is deprecated. Use serviceParams.auto_scaling.min_instances instead and take the old kind out at some point
-        winston.warn('You are using the min_instances and max_instances at the service level, which is deprecated. Please put them inside the \'auto_scaling\' section instead');
-        minInstances = serviceParams.min_instances || 1;
-        maxInstances = serviceParams.max_instances || 1;
+        minInstances = 1;
+        maxInstances = 1;
     }
 
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:asg', 'MinSize', minInstances));

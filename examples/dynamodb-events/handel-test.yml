@@ -35,8 +35,6 @@ environments:
         sort_key: 
           name: sortKeyName2
           type: String
-        attributes_to_copy: 
-        - exampleAttributesToCopy2
         provisioned_throughput:
           read_capacity_units: 6
           write_capacity_units: 6
