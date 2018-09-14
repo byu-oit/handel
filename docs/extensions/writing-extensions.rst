@@ -229,7 +229,7 @@ The following TypeScript interface defines the contract for a service deployer:
         /**
         * In this phase, the service should remove all bindings on preDeploy resources.
         */
-        unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
+        unBind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IUnBindContext>;
 
         /**
         * In this phase, the service should delete resources created during the deploy phase.
@@ -271,9 +271,14 @@ Delete Lifecycle
 ~~~~~~~~~~~~~~~~
 The Delete lifecycle executes the following phases in order:
 
-1. UnDeploy
-2. UnBind
-3. UnPreDeploy
+1. PreDeploy
+2. UnDeploy
+3. UnBind
+4. UnPreDeploy
+
+.. NOTE::
+
+    PreDeploy seems a little odd to execute in the Delete lifecycle, but it needs to execute so that the UnBind phase can have the data from PreDeploy passed to it that it needs.
 
 Check Lifecycle
 ~~~~~~~~~~~~~~~
