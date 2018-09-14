@@ -63,7 +63,7 @@ program.command('delete', 'Deletes the given Handel environment from your AWS ac
         true
     )
     .option('-e, --environment <name>',
-        'Environments from your Handel file to delete',
+        'Environment from your Handel file to delete',
         program.STRING,
         undefined,
         true
