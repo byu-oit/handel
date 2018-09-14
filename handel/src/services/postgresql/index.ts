@@ -160,7 +160,10 @@ export function unPreDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>)
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export function unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnBindContext> {
+export function unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
+    ownPreDeployContext: PreDeployContext,
+    dependentOfServiceContext: ServiceContext<ServiceConfig>,
+    dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

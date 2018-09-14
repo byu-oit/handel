@@ -156,7 +156,10 @@ export function unPreDeploy(ownServiceContext: ServiceContext<ElasticsearchConfi
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export function unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnBindContext> {
+export function unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>,
+    ownPreDeployContext: PreDeployContext,
+    dependentOfServiceContext: ServiceContext<ServiceConfig>,
+    dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

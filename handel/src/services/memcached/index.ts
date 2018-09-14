@@ -126,7 +126,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<MemcachedSer
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export async function unBind(ownServiceContext: ServiceContext<MemcachedServiceConfig>): Promise<UnBindContext> {
+export async function unBind(ownServiceContext: ServiceContext<MemcachedServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

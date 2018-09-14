@@ -153,7 +153,7 @@ export async function unPreDeploy(ownServiceContext: ServiceContext<EfsServiceCo
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export async function unBind(ownServiceContext: ServiceContext<EfsServiceConfig>): Promise<UnBindContext> {
+export async function unBind(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

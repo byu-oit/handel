@@ -154,7 +154,10 @@ export function unPreDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Pro
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export function unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
+export function unBind(ownServiceContext: ServiceContext<MySQLConfig>,
+    ownPreDeployContext: PreDeployContext,
+    dependentOfServiceContext: ServiceContext<ServiceConfig>,
+    dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

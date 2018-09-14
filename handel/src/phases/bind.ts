@@ -57,11 +57,10 @@ export async function bindServicesInLevel(serviceRegistry: ServiceRegistry, envi
             const dependentOfServiceContext = environmentContext.serviceContexts[dependentOfServiceName];
             const dependentOfPreDeployContext = preDeployContexts[dependentOfServiceName];
 
-            // Run bind on the service combination
+            // Run bind on the service combination (if implemented by the dependency service)
             const bindContextName = getBindContextName(toBindServiceName, dependentOfServiceName);
-            winston.debug(`Binding service ${bindContextName}`);
-
             if (serviceDeployer.bind) {
+                winston.debug(`Binding service ${bindContextName}`);
                 const bindPromise = serviceDeployer.bind(toBindServiceContext, toBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext)
                     .then(bindContext => {
                         if (!isBindContext(bindContext)) {
