@@ -5,11 +5,9 @@ environments:
     cache:
       type: redis
       instance_type: cache.m3.medium
-      redis_version: 3.2.4
+      redis_version: 4.0.10
       description: example description
-      maintenance_window: Sun:05:00-Tue:09:00
       read_replicas: 1
-      snapshot_window: 05:00-09:00
       cache_parameters:
         activerehashing: 'no'
       tags:

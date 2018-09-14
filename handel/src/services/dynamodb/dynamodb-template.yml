@@ -33,11 +33,15 @@ Resources:
           KeyType: RANGE
         {{/if}}
         Projection:
+          {{#if indexProjectionAttributes}}
           ProjectionType: INCLUDE
           NonKeyAttributes:
           {{#each indexProjectionAttributes}}
           - {{this}}
           {{/each}}
+          {{else}}
+          ProjectionType: ALL
+          {{/if}}
         ProvisionedThroughput:
           ReadCapacityUnits: {{indexReadCapacityUnits}}
           WriteCapacityUnits: {{indexWriteCapacityUnits}}

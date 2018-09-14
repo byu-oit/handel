@@ -59,7 +59,7 @@ export interface GlobalIndexConfig {
     name: string;
     partition_key: KeyDefinition;
     sort_key?: KeyDefinition;
-    attributes_to_copy: string[];
+    attributes_to_copy?: string[];
     provisioned_throughput?: ProvisionedThroughput;
 }
 
