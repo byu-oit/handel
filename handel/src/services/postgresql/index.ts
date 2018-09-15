@@ -44,8 +44,20 @@ function getParameterGroupFamily(postgresVersion: string) {
     else if (postgresVersion.startsWith('9.5')) {
         return 'postgres9.5';
     }
-    else {
+    else if (postgresVersion.startsWith('9.6')) {
         return 'postgres9.6';
+    }
+    else if (postgresVersion.startsWith('10.1')) {
+        return 'postgres10';
+    }
+    else if (postgresVersion.startsWith('10.3')) {
+        return 'postgres10';
+    }
+    else if (postgresVersion.startsWith('10.4')) {
+        return 'postgres10';
+    }
+    else {
+        throw new Error(`Attempted to generate postgress instance with unsupported version: ${postgresVersion}`);
     }
 }
 
@@ -94,6 +106,14 @@ async function getCompiledPostgresTemplate(stackName: string,
 export function check(serviceContext: ServiceContext<PostgreSQLConfig>,
                       dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+
+    try {
+        if (serviceContext.params.postgres_version) {
+            getParameterGroupFamily(serviceContext.params.postgres_version);
+        }
+    } catch (error) {
+        errors.push(error);
+    }
 
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
