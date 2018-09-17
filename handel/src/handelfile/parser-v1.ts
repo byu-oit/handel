@@ -154,6 +154,7 @@ function checkEventConsumers(handelFile: HandelFile, serviceRegistry: ServiceReg
                             // Make sure the event consumer service exists in the environment
                             if (!environmentDef[eventConsumerServiceName]) {
                                 errors.push(`You declared an event consumer '${eventConsumerServiceName}' in the service '${serviceName}' that doesn't exist`);
+                                continue;
                             }
                             const eventConsumerServiceDef = environmentDef[eventConsumerServiceName];
                             const eventConsumerServiceType = parseServiceType(eventConsumerServiceDef.type);
