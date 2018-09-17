@@ -58,7 +58,7 @@ function getLatestEcsAmiId() {
 async function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], userDataScript: string) {
     const accountConfig = ownServiceContext.accountConfig;
 
-    const results = await Promise.all([getLatestEcsAmiId(), route53.listHostedZones()])
+    const results = await Promise.all([getLatestEcsAmiId(), route53.listHostedZones()]);
     const [latestEcsAmi, hostedZones] = results;
     const serviceParams = ownServiceContext.params;
     let instanceType = DEFAULT_INSTANCE_TYPE;
@@ -76,13 +76,14 @@ async function getCompiledEcsTemplate(stackName: string, clusterName: string, ow
     const logRetention = ownServiceContext.params.log_retention_in_days;
 
     const serviceRoleName = `${stackName}-service-role`;
+    const instanceMemory = await clusterAutoScalingSection.getMemoryForInstanceType(ownServiceContext);
     // Create object used for templating the CloudFormation template
     const handlebarsParams: HandlebarsEcsTemplateConfig = {
         clusterName,
         stackName,
         instanceType,
-        minInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceType, autoScaling, containerConfigs, 'min', SERVICE_NAME),
-        maxInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceType, autoScaling, containerConfigs, 'max', SERVICE_NAME),
+        minInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceMemory, autoScaling, containerConfigs, 'min', SERVICE_NAME),
+        maxInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceMemory, autoScaling, containerConfigs, 'max', SERVICE_NAME),
         ecsSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
         amiImageId: latestEcsAmi!.ImageId!,
         userData: new Buffer(userDataScript).toString('base64'),

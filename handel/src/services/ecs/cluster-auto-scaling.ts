@@ -15,11 +15,12 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import { AccountConfig } from 'handel-extension-api';
+import { AccountConfig, ServiceContext } from 'handel-extension-api';
 import { awsCalls, deployPhase, handlebars  } from 'handel-extension-support';
 import * as winston from 'winston';
 import { getMemoryForInstance } from '../../aws/pricing-calls';
 import { HandlebarsEcsTemplateAutoScaling, HandlebarsEcsTemplateContainer } from '../../common/ecs-shared-config-types';
+import {EcsServiceConfig} from './config-types';
 
 /**
  * This function creates an account-wide Lambda for ECS cluster auto-scaling if it doesn't already exist.
@@ -83,8 +84,17 @@ export async function createDrainingLambdaIfNotExists(accountConfig: AccountConf
  *
  * This function is used for both 'min' and 'max' auto-scaling group calculations.
  */
-export async function getInstanceCountForCluster(instanceType: string, autoScaling: HandlebarsEcsTemplateAutoScaling, containerConfigs: HandlebarsEcsTemplateContainer[], calculationType: string, serviceName: string): Promise<number> {
-    const instanceMemory = await getMemoryForInstance(instanceType);
+export async function getMemoryForInstanceType(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<number> {
+    const serviceParams = ownServiceContext.params;
+    let instanceType = 't2.micro';
+    if (serviceParams.cluster && serviceParams.cluster.instance_type) {
+        instanceType = serviceParams.cluster.instance_type;
+    }
+    const instanceMemory = await getMemoryForInstance(instanceType, ownServiceContext.accountConfig.region);
+    return instanceMemory;
+}
+
+export async function getInstanceCountForCluster(instanceMemory: number, autoScaling: HandlebarsEcsTemplateAutoScaling, containerConfigs: HandlebarsEcsTemplateContainer[], calculationType: string, serviceName: string): Promise<number> {
     const maxInstanceMemoryToUse = instanceMemory * .9; // Fill up instances to 90% of capacity
 
     // Calculate the total number of tasks to fit

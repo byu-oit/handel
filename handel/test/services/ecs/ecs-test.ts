@@ -172,7 +172,7 @@ describe('ecs deployer', () => {
     describe('deploy', () => {
         let clusterAutoScalingStub: sinon.SinonStub;
         beforeEach(() => {
-            clusterAutoScalingStub = sandbox.stub(clusterAutoScaling, 'getInstanceCountForCluster').resolves(2);
+            clusterAutoScalingStub = sandbox.stub(clusterAutoScaling, 'getMemoryForInstanceType').resolves(7500);
         });
 
         function getOwnPreDeployContextForDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): PreDeployContext {
@@ -239,7 +239,7 @@ describe('ecs deployer', () => {
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
-            expect(clusterAutoScalingStub.callCount).to.equal(2);
+            expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
             expect(uploadDirStub.callCount).to.equal(2);
@@ -285,7 +285,7 @@ describe('ecs deployer', () => {
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
-            expect(clusterAutoScalingStub.callCount).to.equal(2);
+            expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
             expect(uploadDirStub.callCount).to.equal(2);

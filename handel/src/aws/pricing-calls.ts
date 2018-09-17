@@ -17,14 +17,42 @@
 
 import awsWrapper from './aws-wrapper';
 
-function convertMemoryStringToMemoryUnits(inputString: string) {
+function convertMemoryStringToMemoryUnits(inputString: string): number {
     // Converts the given GiB into the amazon units
-    const gibiBitesOfMemory = inputString.split('GiB', 1);
-    const amazonMemoryUnits = Number(gibiBitesOfMemory) * 1000;
+    const gibiBitesOfMemory = inputString.split('GiB', 1)[0];
+    const amazonMemoryUnits = Number(gibiBitesOfMemory.trim()) * 1000;
     return amazonMemoryUnits;
 }
 
-export async function getMemoryForInstance(instanceType: string): Promise<number> {
+interface AWSRegionMap {
+    [key: string]: string;
+}
+
+const AWS_REGION_MAP: AWSRegionMap = {
+    'us-west-2': 'US West (Oregon)',
+    'us-west-1': 'US West (N. California)',
+    'us-east-2': 'US East (Ohio)',
+    'es-east-1': 'US East (N. Virginia)',
+    'ap-south-1': 'Asia Pacific (Mumbai)',
+    'ap-northeast-2': 'Asia Pacific (Seoul)',
+    'ap-northeast-1': 'Asia Pacific (Tokyo)',
+    'ap-southeast-1': 'Asia Pacific (Singapore)',
+    'ap-southeast-2': 'Asia Pacific (Sydney)',
+    'ca-central-1': 'Canada (Central)',
+    'cn-north-1': 'China (Beijing)',
+    'eu-central-1': 'EU (Frankfurt)',
+    'eu-west-1': 'EU (Ireland)',
+    'eu-west-2': 'EU (London)',
+    'eu-west-3': 'EU (Paris)',
+    'sa-east-1': 'South America (São Paulo)',
+    'us-gov-west-1': 'AWS GovCloud (US)'
+};
+
+export async function getMemoryForInstance(instanceType: string, region: string): Promise<number> {
+    const regionPricingName = AWS_REGION_MAP[region];
+    if (!regionPricingName) {
+        throw new Error(`Invalid/Unknown region name specified: ${region}`);
+    }
     const getProductsParams = {
         ServiceCode: 'AmazonEC2',
         Filters: [
@@ -36,7 +64,7 @@ export async function getMemoryForInstance(instanceType: string): Promise<number
             {
                 Type: 'TERM_MATCH',
                 Field: 'location',
-                Value: 'US West (Oregon)'
+                Value: regionPricingName
             }
         ],
         MaxResults: 1
@@ -44,14 +72,14 @@ export async function getMemoryForInstance(instanceType: string): Promise<number
     try {
         const response = await awsWrapper.pricing.getProducts(getProductsParams);
         if (!response.PriceList || !response.PriceList[0]) {
-            throw new Error(`Price list does not exits for instance type specified: ${instanceType}`);
+            throw new Error(`Price list does not exist for instance type specified: ${instanceType}`);
         }
         const priceList = response.PriceList[0] as any;
         const memory: string = priceList.product.attributes.memory; // Something like '4 GiB'
-        const memoryUnits: number = convertMemoryStringToMemoryUnits(memory); // Convert '4 GiB' to 4000
+        const memoryUnits = convertMemoryStringToMemoryUnits(memory); // Convert '4 GiB' to 4000
         return memoryUnits;
     } catch (e) {
         // Maybe we want to log the error?
-        throw new Error(`Could not run code to find price list for the instance type specified: ${instanceType}`);
+        throw new Error(`Could not obtain memory information for the instance type specified: ${instanceType}`);
     }
 }
