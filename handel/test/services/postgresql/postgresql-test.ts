@@ -48,7 +48,7 @@ describe('postgresql deployer', () => {
         serviceParams = {
             type: 'postgresql',
             database_name: 'mydb',
-            postgres_version: '8.6.2'
+            postgres_version: '9.6.2'
         };
         serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'postgresql'), serviceParams, accountConfig);
     });
@@ -72,7 +72,21 @@ describe('postgresql deployer', () => {
             expect(errors[0]).to.contain(`'postgres_version' parameter is required`);
         });
 
+        it('should reject invalid postgres_version parameter', () => {
+            const invalidVersion = '8.6.2';
+            serviceContext.params.postgres_version = invalidVersion;
+            const errors = postgresql.check(serviceContext, []);
+            expect(errors.length).to.equal(1);
+            expect(errors[0]).to.contain(`Attempted to generate postgress instance with unsupported version: ${invalidVersion}`);
+        });
+
         it('should work when all required parameters are provided properly', () => {
+            const errors = postgresql.check(serviceContext, []);
+            expect(errors.length).to.equal(0);
+        });
+
+        it('should support postgres 10', () => {
+            serviceContext.params.postgres_version = '10.4';
             const errors = postgresql.check(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
