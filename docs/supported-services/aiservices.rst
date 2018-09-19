@@ -13,10 +13,6 @@ No Rekognition Streams Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This service doesn't support Rekognition's Kinesis video stream processors.
 
-No Polly Lexicon Support
-~~~~~~~~~~~~~~~~~~~~~~~~
-This service doesn't support Polly's custom lexicon feature.
-
 Parameters
 ----------
 
@@ -75,6 +71,12 @@ Polly calls can be generated from text files to form audio files. Each language 
 
 With 3000 or less characters, you can listen, download, or save immediately. For up to 100,000 characters your task must be saved to an S3 bucket.
 
+Polly also restricts lexicon use to those with a particular prefix:
+
+.. code-block:: none
+
+    <appName>-<environmentName>
+  
 If you want to use objects form a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
 
 .. _aiservices-S3-Object-Access:

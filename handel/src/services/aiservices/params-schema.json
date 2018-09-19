@@ -14,7 +14,7 @@
                 "type": "string",
                 "pattern": "^rekognition|polly$"
             },
-            "errorMessage": "The 'ai_services' field must be a list of strings"
+            "errorMessage": "The 'ai_services' field must be a list of strings, containing 'rekognition' or 'polly'"
         }
     },
     "required": [

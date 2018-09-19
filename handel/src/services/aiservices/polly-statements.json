@@ -13,5 +13,20 @@
         "Resource": [
             "*"
         ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "polly:DeleteLexicon",
+            "polly:GetLexicon",
+            "polly:ListLexicons",
+            "polly:PutLexicon",
+            "polly:Lexicon",
+            "polly:LexiconAttributes",
+            "polly:LexiconDescription"
+        ],
+        "Resource": [
+            "arn:aws:polly:{{region}}:{{accountId}}:lexicon/{{lexiconName}}*"
+        ]
     }
 ]

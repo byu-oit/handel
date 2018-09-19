@@ -50,7 +50,7 @@ describe('aiservices deployer', () => {
             serviceParams.ai_services[0] = 'fake';
             const errors = aiservices.check(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include(`'ai_services' value 'fake' is not supported`);
+            expect(errors[0]).to.include(`The 'ai_services' field must be a list of strings, containing 'rekognition' or 'polly'`);
         });
     });
 
