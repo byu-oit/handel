@@ -13,6 +13,9 @@ No Rekognition Streams Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This service doesn't support Rekognition's Kinesis video stream processors.
 
+No Polly Lexicon Support
+~~~~~~~~~~~~~~~~~~~~~~~~
+This service doesn't support Polly's custom lexicon feature.
 
 Parameters
 ----------
@@ -41,6 +44,7 @@ Supported Service Access
 The following AWS services are supported in the *aws_services* element:
 
 * :ref:`rekognition <aiservices-rekognition>`
+* :ref:`polly <aiservices-polly>`
 
 .. _aiservices-rekognition:
 
@@ -63,8 +67,19 @@ Because of this, Handel restricts your use of collections to those named with a 
   
 You may create, modify, and delete collections for any collections whose name starts with the above prefix. You may not use any other collections outside this namespace. This helps prevent other applcations in the same AWS account from accessing collections to which they are not authorized.
 
+If you want to use objects form a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+
+Polly
+-----
+Polly calls can be generated from text files to form audio files. Each language has multiple voices to choose from, which can be specified in your configuration. 
+
+With 3000 or less characters, you can listen, download, or save immediately. For up to 100,000 characters your task must be saved to an S3 bucket.
+
+If you want to use objects form a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+
+.. _aiservices-S3-Object-Access:
 S3 Object Access
-~~~~~~~~~~~~~~~~
+----------------
 If you want to use objects from S3 rather than passing in bytes directly to the API calls, you must make sure your caller has permissions to the bucket.
 
 .. IMPORTANT::

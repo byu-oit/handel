@@ -11,12 +11,16 @@
         "ai_services": {
             "type": "array",
             "items": {
-                "type": "string"
+                "type": "string",
+                "pattern": "^rekognition|polly$"
             },
             "errorMessage": "The 'ai_services' field must be a list of strings"
         }
     },
-    "required": ["type", "ai_services"],
+    "required": [
+        "type",
+        "ai_services"
+    ],
     "additionalProperties": false,
     "errorMessage": {
         "additionalProperties": "Invalid/unknown property specified",

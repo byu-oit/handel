@@ -1,0 +1,17 @@
+[
+    {
+        "Effect": "Allow",
+        "Action": [
+            "polly:DescribeVoices",
+            "polly:GetSpeechSynthesisTask",
+            "polly:ListSpeechSynthesisTask",
+            "polly:StartSpeechSynthesisTask",
+            "polly:SynthesizeSpeech",
+            "polly:SynthesisTask",
+            "polly:Voice"
+        ],
+        "Resource": [
+            "*"
+        ]
+    }
+]

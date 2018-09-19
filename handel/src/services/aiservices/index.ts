@@ -44,6 +44,11 @@ const aiServicePolicies: AIServicePolicies = {
         };
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/rekognition-statements.json`, params);
         return JSON.parse(compiledTemplate);
+    },
+    'polly': async (serviceContext: ServiceContext<AIServicesConfig>) => {
+        const params = {};
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/polly-statements.json`, params);
+        return JSON.parse(compiledTemplate);
     }
 };
 
