@@ -44,6 +44,15 @@ const aiServicePolicies: AIServicePolicies = {
         };
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/rekognition-statements.json`, params);
         return JSON.parse(compiledTemplate);
+    },
+    'polly': async (serviceContext: ServiceContext<AIServicesConfig>) => {
+        const params = {
+            region: serviceContext.accountConfig.region,
+            accountId: serviceContext.accountConfig.account_id,
+            lexiconName: `${serviceContext.appName}-${serviceContext.environmentName}`
+        };
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/polly-statements.json`, params);
+        return JSON.parse(compiledTemplate);
     }
 };
 
@@ -75,14 +84,6 @@ async function getDeployContext(serviceContext: ServiceContext<AIServicesConfig>
 
 export function check(serviceContext: ServiceContext<AIServicesConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
     const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    if(errors.length === 0) { // If no schema errors, validate that they've asked for supported services
-        const aiServices = dedupArray(serviceContext.params.ai_services);
-        for (const service of aiServices) {
-            if(!aiServicePolicies[service]) {
-                errors.push(`${SERVICE_NAME} - The 'ai_services' value '${service}' is not supported`);
-            }
-        }
-    }
     return errors.map(error => `${SERVICE_NAME} - ${error}`);
 }
 
