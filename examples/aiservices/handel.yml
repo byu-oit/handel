@@ -17,5 +17,6 @@ environments:
       type: aiservices
       ai_services:
       - rekognition
+      - polly
     bucket:
       type: s3
