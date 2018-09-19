@@ -63,7 +63,9 @@ Because of this, Handel restricts your use of collections to those named with a 
   
 You may create, modify, and delete collections for any collections whose name starts with the above prefix. You may not use any other collections outside this namespace. This helps prevent other applcations in the same AWS account from accessing collections to which they are not authorized.
 
-If you want to use objects form a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+
+.. _aiservices-polly:
 
 Polly
 -----
@@ -77,9 +79,10 @@ Polly also restricts lexicon use to those with a particular prefix:
 
     <appName>-<environmentName>
   
-If you want to use objects form a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
 
 .. _aiservices-S3-Object-Access:
+
 S3 Object Access
 ----------------
 If you want to use objects from S3 rather than passing in bytes directly to the API calls, you must make sure your caller has permissions to the bucket.
