@@ -114,7 +114,7 @@ export interface ServiceDeployer {
     /**
      * In this phase, the service should remove all bindings on preDeploy resources.
      */
-    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
+    unBind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IUnBindContext>;
 
     /**
      * In this phase, the service should delete resources created during the deploy phase.

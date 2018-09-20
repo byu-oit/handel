@@ -225,7 +225,7 @@ export function unPreDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Pr
     return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
 }
 
-export function unBind(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnBindContext> {
+export function unBind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
     return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
 }
 

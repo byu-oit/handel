@@ -15,7 +15,7 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import { ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as checkPhase from '../../src/common/check-phase';
