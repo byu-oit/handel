@@ -37,6 +37,7 @@ import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-sca
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
 import * as ecs from '../../../src/services/ecs';
 import * as asgCycling from '../../../src/services/ecs/asg-cycling';
+import * as clusterAutoScaling from '../../../src/services/ecs/cluster-auto-scaling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -44,7 +45,7 @@ const VALID_ECS_CONFIG: EcsServiceConfig = {
     type: 'ecs',
     cluster: {
         key_name: 'fakekey',
-        instance_type: 'm3.medium'
+        instance_type: 'm3.large'
     },
     auto_scaling: {
         min_tasks: 2,
@@ -169,6 +170,11 @@ describe('ecs deployer', () => {
     });
 
     describe('deploy', () => {
+        let clusterAutoScalingStub: sinon.SinonStub;
+        beforeEach(() => {
+            clusterAutoScalingStub = sandbox.stub(clusterAutoScaling, 'getMemoryForInstanceType').resolves(7500);
+        });
+
         function getOwnPreDeployContextForDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): PreDeployContext {
             const ownPreDeployContext = new PreDeployContext(ownServiceContext);
             ownPreDeployContext.securityGroups.push({
@@ -233,6 +239,7 @@ describe('ecs deployer', () => {
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
             expect(uploadDirStub.callCount).to.equal(2);
@@ -278,6 +285,7 @@ describe('ecs deployer', () => {
 
             // Run the test
             const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
             expect(uploadDirStub.callCount).to.equal(2);

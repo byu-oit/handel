@@ -262,6 +262,12 @@ const awsWrapper = {
             const documentClient = new AWS.DynamoDB.DocumentClient();
             return documentClient.put(params).promise();
         }
+    },
+    pricing: {
+        getProducts: (params: AWS.Pricing.GetProductsRequest) => {
+            const pricing = new AWS.Pricing({apiVersion: '2017-10-15', region: 'us-east-1' });
+            return pricing.getProducts(params).promise();
+        }
     }
 };
 

@@ -55,72 +55,71 @@ function getLatestEcsAmiId() {
     return ec2Calls.getLatestAmiByName('amazon', 'amazon-ecs');
 }
 
-function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], userDataScript: string) {
+async function getCompiledEcsTemplate(stackName: string, clusterName: string, ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[], userDataScript: string) {
     const accountConfig = ownServiceContext.accountConfig;
 
-    return Promise.all([getLatestEcsAmiId(), route53.listHostedZones()])
-        .then(results => {
-            const [latestEcsAmi, hostedZones] = results;
-            const serviceParams = ownServiceContext.params;
-            let instanceType = DEFAULT_INSTANCE_TYPE;
-            if (serviceParams.cluster && serviceParams.cluster.instance_type) {
-                instanceType = serviceParams.cluster.instance_type;
-            }
+    const results = await Promise.all([getLatestEcsAmiId(), route53.listHostedZones()]);
+    const [latestEcsAmi, hostedZones] = results;
+    const serviceParams = ownServiceContext.params;
+    let instanceType = DEFAULT_INSTANCE_TYPE;
+    if (serviceParams.cluster && serviceParams.cluster.instance_type) {
+        instanceType = serviceParams.cluster.instance_type;
+    }
 
-            // Configure auto-scaling
-            const autoScaling = serviceAutoScalingSection.getTemplateAutoScalingConfig(ownServiceContext, clusterName);
+    // Configure auto-scaling
+    const autoScaling = serviceAutoScalingSection.getTemplateAutoScalingConfig(ownServiceContext, clusterName);
 
-            // Configure containers in the task definition
-            const containerConfigs = containersSection.getContainersConfig(ownServiceContext, dependenciesDeployContexts, clusterName);
-            const oneOrMoreTasksHasRouting = routingSection.oneOrMoreTasksHasRouting(ownServiceContext);
+    // Configure containers in the task definition
+    const containerConfigs = containersSection.getContainersConfig(ownServiceContext, dependenciesDeployContexts, clusterName);
+    const oneOrMoreTasksHasRouting = routingSection.oneOrMoreTasksHasRouting(ownServiceContext);
 
-            const logRetention = ownServiceContext.params.log_retention_in_days;
+    const logRetention = ownServiceContext.params.log_retention_in_days;
 
-            const serviceRoleName = `${stackName}-service-role`;
-            // Create object used for templating the CloudFormation template
-            const handlebarsParams: HandlebarsEcsTemplateConfig = {
-                clusterName,
-                stackName,
-                instanceType,
-                minInstances: clusterAutoScalingSection.getInstanceCountForCluster(instanceType, autoScaling, containerConfigs, 'min', SERVICE_NAME),
-                maxInstances: clusterAutoScalingSection.getInstanceCountForCluster(instanceType, autoScaling, containerConfigs, 'max', SERVICE_NAME),
-                ecsSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
-                amiImageId: latestEcsAmi!.ImageId!,
-                userData: new Buffer(userDataScript).toString('base64'),
-                privateSubnetIds: accountConfig.private_subnets,
-                publicSubnetIds: accountConfig.public_subnets,
-                asgCooldown: '60', // This is set pretty short because we handel the instance-level auto-scaling from a Lambda that runs every minute.
-                minimumHealthyPercentDeployment: '50', // TODO - Do we need to support more than just 50?
-                vpcId: accountConfig.vpc,
-                serviceRoleName,
-                policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
-                deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
-                tags: tagging.getTags(ownServiceContext),
-                containerConfigs,
-                autoScaling,
-                oneOrMoreTasksHasRouting,
-                // This make it default to 'enabled'
-                logging: ownServiceContext.params.logging !== 'disabled',
-                logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
-                // Default to not set, which means infinite.
-                logRetentionInDays: logRetention !== 0 ? logRetention! : null
-            };
+    const serviceRoleName = `${stackName}-service-role`;
+    const instanceMemory = await clusterAutoScalingSection.getMemoryForInstanceType(ownServiceContext);
+    // Create object used for templating the CloudFormation template
+    const handlebarsParams: HandlebarsEcsTemplateConfig = {
+        clusterName,
+        stackName,
+        instanceType,
+        minInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceMemory, autoScaling, containerConfigs, 'min', SERVICE_NAME),
+        maxInstances: await clusterAutoScalingSection.getInstanceCountForCluster(instanceMemory, autoScaling, containerConfigs, 'max', SERVICE_NAME),
+        ecsSecurityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
+        amiImageId: latestEcsAmi!.ImageId!,
+        userData: new Buffer(userDataScript).toString('base64'),
+        privateSubnetIds: accountConfig.private_subnets,
+        publicSubnetIds: accountConfig.public_subnets,
+        asgCooldown: '60', // This is set pretty short because we handel the instance-level auto-scaling from a Lambda that runs every minute.
+        minimumHealthyPercentDeployment: '50', // TODO - Do we need to support more than just 50?
+        vpcId: accountConfig.vpc,
+        serviceRoleName,
+        policyStatements: getTaskRoleStatements(ownServiceContext, dependenciesDeployContexts),
+        deploymentSuffix: Math.floor(Math.random() * 10000), // ECS won't update unless something in the service changes.
+        tags: tagging.getTags(ownServiceContext),
+        containerConfigs,
+        autoScaling,
+        oneOrMoreTasksHasRouting,
+        // This make it default to 'enabled'
+        logging: ownServiceContext.params.logging !== 'disabled',
+        logGroupName: `${ownServiceContext.appName}-${ownServiceContext.environmentName}-${ownServiceContext.serviceName}`,
+        // Default to not set, which means infinite.
+        logRetentionInDays: logRetention !== 0 ? logRetention! : null
+    };
 
-            // Configure routing if present in any of hte containers
-            if (oneOrMoreTasksHasRouting) {
-                handlebarsParams.loadBalancer = routingSection.getLoadBalancerConfig(serviceParams, containerConfigs, clusterName, hostedZones, accountConfig);
-            }
+    // Configure routing if present in any of hte containers
+    if (oneOrMoreTasksHasRouting) {
+        handlebarsParams.loadBalancer = routingSection.getLoadBalancerConfig(serviceParams, containerConfigs, clusterName, hostedZones, accountConfig);
+    }
 
-            // Add the SSH keypair if specified
-            if (serviceParams.cluster && serviceParams.cluster.key_name) {
-                handlebarsParams.sshKeyName = serviceParams.cluster.key_name;
-            }
+    // Add the SSH keypair if specified
+    if (serviceParams.cluster && serviceParams.cluster.key_name) {
+        handlebarsParams.sshKeyName = serviceParams.cluster.key_name;
+    }
 
-            // Add volumes if present (these are consumed by one or more container mount points)
-            handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
+    // Add volumes if present (these are consumed by one or more container mount points)
+    handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
 
-            return handlebars.compileTemplate(`${__dirname}/ecs-service-template.yml`, handlebarsParams);
-        });
+    return handlebars.compileTemplate(`${__dirname}/ecs-service-template.yml`, handlebarsParams);
 }
 
 /**
