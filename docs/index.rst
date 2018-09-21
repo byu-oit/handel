@@ -55,6 +55,7 @@ including taking care of all the tricky security bits to make the services be ab
    handel-basics/accessing-secrets
    handel-basics/tagging
    handel-basics/deleting-an-environment
+   handel-basics/deployment-logs
 
 .. _supported-services:
 
