@@ -20,7 +20,8 @@ import {
     DeployOutputType,
     PreDeployContext,
     ServiceConfig,
-    ServiceContext
+    ServiceContext,
+    ServiceDeployer
 } from 'handel-extension-api';
 import { checkPhase } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -45,38 +46,32 @@ function getDeployContext(serviceContext: ServiceContext<APIAccessConfig>): Depl
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = false;
 
-export function check(serviceContext: ServiceContext<APIAccessConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    if(errors.length === 0) { // If no schema errors, validate that they've asked for supported services
-        const serviceParams = serviceContext.params;
-        for (const service of serviceParams.aws_services) {
-            const statementsPath = `${__dirname}/${service}-statements.json`;
-            if (!fs.existsSync(statementsPath)) {
-                errors.push(`${SERVICE_NAME} - The 'aws_service' value '${service}' is not supported`);
+    public check(serviceContext: ServiceContext<APIAccessConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        if(errors.length === 0) { // If no schema errors, validate that they've asked for supported services
+            const serviceParams = serviceContext.params;
+            for (const service of serviceParams.aws_services) {
+                const statementsPath = `${__dirname}/${service}-statements.json`;
+                if (!fs.existsSync(statementsPath)) {
+                    errors.push(`${SERVICE_NAME} - The 'aws_service' value '${service}' is not supported`);
+                }
             }
         }
+        return errors;
     }
-    return errors;
+
+    public async deploy(ownServiceContext: ServiceContext<APIAccessConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying ${SERVICE_NAME} '${stackName}'`);
+        return getDeployContext(ownServiceContext);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<APIAccessConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying ${SERVICE_NAME} '${stackName}'`);
-    return getDeployContext(ownServiceContext);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = false;

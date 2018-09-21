@@ -33,7 +33,8 @@ export async function loadStandardLib(): Promise<LoadedExtension> {
 export class StandardLibExtension implements Extension {
     public async loadHandelExtension(context: ExtensionContext) {
         for (const service of await listDefaultServices()) {
-            context.service(service.name, await import(service.path));
+            const module = await import(service.path);
+            context.service(service.name, new module.Service());
         }
     }
 }

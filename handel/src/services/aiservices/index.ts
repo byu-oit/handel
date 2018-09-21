@@ -19,7 +19,8 @@ import {
     DeployOutputType,
     PreDeployContext,
     ServiceConfig,
-    ServiceContext
+    ServiceContext,
+    ServiceDeployer
 } from 'handel-extension-api';
 import { checkPhase, handlebars } from 'handel-extension-support';
 import * as winston from 'winston';
@@ -76,29 +77,23 @@ async function getDeployContext(serviceContext: ServiceContext<AIServicesConfig>
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedEventsSupportedTypes = [];
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = false;
 
-export function check(serviceContext: ServiceContext<AIServicesConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public check(serviceContext: ServiceContext<AIServicesConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<AIServicesConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying '${stackName}'`);
+        return getDeployContext(ownServiceContext);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<AIServicesConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying '${stackName}'`);
-    return getDeployContext(ownServiceContext);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = false;

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import {DeployContext, DeployOutputType, PreDeployContext, ServiceConfig, ServiceContext, UnDeployContext} from 'handel-extension-api';
+import {DeployContext, DeployOutputType, PreDeployContext, ServiceConfig, ServiceContext, ServiceDeployer, UnDeployContext} from 'handel-extension-api';
 import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53Calls from '../../aws/route53-calls';
@@ -204,52 +204,45 @@ function getDeployContext(serviceContext: ServiceContext<S3StaticSiteServiceConf
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<S3StaticSiteServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    const serviceParams = serviceContext.params;
+    public check(serviceContext: ServiceContext<S3StaticSiteServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const serviceParams = serviceContext.params;
 
-    if (serviceParams.cloudfront) {
-        const cfErrors = checkCloudfront(serviceParams.cloudfront);
-        errors.push(...cfErrors);
+        if (serviceParams.cloudfront) {
+            const cfErrors = checkCloudfront(serviceParams.cloudfront);
+            errors.push(...cfErrors);
+        }
+
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public async deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying static website '${stackName}'`);
+        const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
+        const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 120, stackTags);
+        const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
+        // Upload files from path_to_website to S3
+        winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);
+        await s3Calls.uploadDirectory(bucketName, '', ownServiceContext.params.path_to_code);
+        winston.info(`${SERVICE_NAME} - Finished uploading code files to static site '${stackName}'`);
+        winston.info(`${SERVICE_NAME} - Finished deploying static site '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying static website '${stackName}'`);
-
-    const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
-    const compiledTemplate = await getCompiledS3Template(ownServiceContext, stackName, loggingBucketName!);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 120, stackTags);
-    const bucketName = awsCalls.cloudFormation.getOutput('BucketName', deployedStack)!;
-    // Upload files from path_to_website to S3
-    winston.info(`${SERVICE_NAME} - Uploading code files to static site '${stackName}'`);
-    await s3Calls.uploadDirectory(bucketName, '', ownServiceContext.params.path_to_code);
-    winston.info(`${SERVICE_NAME} - Finished uploading code files to static site '${stackName}'`);
-    winston.info(`${SERVICE_NAME} - Finished deploying static site '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;
