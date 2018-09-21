@@ -15,11 +15,18 @@
  *
  */
 import { expect } from 'chai';
-import {  AccountConfig, DeployContext, PreDeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as apiaccess from '../../../src/services/apiaccess';
+import { Service } from '../../../src/services/apiaccess';
 import { APIAccessConfig } from '../../../src/services/apiaccess/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -28,8 +35,10 @@ describe('apiaccess deployer', () => {
     let serviceContext: ServiceContext<APIAccessConfig>;
     let serviceParams: APIAccessConfig;
     let accountConfig: AccountConfig;
+    let apiaccess: ServiceDeployer;
 
     beforeEach(async () => {
+        apiaccess = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -52,7 +61,7 @@ describe('apiaccess deployer', () => {
         it('should return a deploy context with the given policies', async () => {
             const preDeployContext = new PreDeployContext(serviceContext);
 
-            const deployContext = await apiaccess.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await apiaccess.deploy!(serviceContext, preDeployContext, []);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies.length).to.equal(2);
         });

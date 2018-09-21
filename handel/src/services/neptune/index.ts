@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     Tags,
     UnBindContext,
     UnDeployContext,
@@ -112,80 +113,74 @@ function getDeployContext(serviceContext: ServiceContext<NeptuneConfig>,
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedEventsSupportedTypes = [];
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<NeptuneConfig>,
-    dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export function preDeploy(serviceContext: ServiceContext<NeptuneConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, NEPTUNE_PORT, SERVICE_NAME);
-}
-
-export function bind(ownServiceContext: ServiceContext<NeptuneConfig>,
-    ownPreDeployContext: PreDeployContext,
-    dependentOfServiceContext: ServiceContext<ServiceConfig>,
-    dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
-        ownPreDeployContext,
-        dependentOfServiceContext,
-        dependentOfPreDeployContext,
-        NEPTUNE_PROTOCOL,
-        NEPTUNE_PORT,
-        SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<NeptuneConfig>,
-    ownPreDeployContext: PreDeployContext,
-    dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
-
-    const stack = await awsCalls.cloudFormation.getStack(stackName);
-    if (!stack) {
-        const stackTags = tagging.getTags(ownServiceContext);
-        const compiledTemplate = await getCompiledTemplate(stackName, ownServiceContext, ownPreDeployContext, stackTags);
-        winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
-            compiledTemplate,
-            [],
-            30,
-            stackTags);
-        winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
-        winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
-        return getDeployContext(ownServiceContext, deployedStack);
+    public check(serviceContext: ServiceContext<NeptuneConfig>,
+        dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
-    else {
-        winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
-        return getDeployContext(ownServiceContext, stack);
+
+    public async preDeploy(serviceContext: ServiceContext<NeptuneConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, NEPTUNE_PORT, SERVICE_NAME);
+    }
+
+    public async bind(ownServiceContext: ServiceContext<NeptuneConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependentOfServiceContext: ServiceContext<ServiceConfig>,
+        dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+            ownPreDeployContext,
+            dependentOfServiceContext,
+            dependentOfPreDeployContext,
+            NEPTUNE_PROTOCOL,
+            NEPTUNE_PORT,
+            SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<NeptuneConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
+
+        const stack = await awsCalls.cloudFormation.getStack(stackName);
+        if (!stack) {
+            const stackTags = tagging.getTags(ownServiceContext);
+            const compiledTemplate = await getCompiledTemplate(stackName, ownServiceContext, ownPreDeployContext, stackTags);
+            winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
+            const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
+                compiledTemplate,
+                [],
+                30,
+                stackTags);
+            winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
+            winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
+            return getDeployContext(ownServiceContext, deployedStack);
+        }
+        else {
+            winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
+            return getDeployContext(ownServiceContext, stack);
+        }
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unBind(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnBindContext> {
+        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
     }
 }
-
-export function unPreDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export function unBind(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnBindContext> {
-    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

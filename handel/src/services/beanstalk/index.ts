@@ -20,6 +20,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -249,61 +250,55 @@ async function getSystemInjectedEbExtensions(stackName: string, ownServiceContex
     return ebextensions;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Scripts,
+        DeployOutputType.Policies,
+        DeployOutputType.Credentials,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    if(errors.length === 0) {
-        const params = serviceContext.params;
-        if (params.routing && params.routing.dns_names) {
-            const badName = params.routing.dns_names.some(it => !route53.isValidHostname(it));
-            if (badName) {
-                errors.push(`${SERVICE_NAME} - 'dns_names' values must be valid hostnames`);
+    public check(serviceContext: ServiceContext<BeanstalkServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        if(errors.length === 0) {
+            const params = serviceContext.params;
+            if (params.routing && params.routing.dns_names) {
+                const badName = params.routing.dns_names.some(it => !route53.isValidHostname(it));
+                if (badName) {
+                    errors.push(`${SERVICE_NAME} - 'dns_names' values must be valid hostnames`);
+                }
             }
         }
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+
+    public async preDeploy(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying Beanstalk application '${stackName}'`);
+
+        const ebextensionFiles = await getSystemInjectedEbExtensions(stackName, ownServiceContext, dependenciesDeployContexts);
+        const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
+        const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledBeanstalkTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function preDeploy(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying Beanstalk application '${stackName}'`);
-
-    const ebextensionFiles = await getSystemInjectedEbExtensions(stackName, ownServiceContext, dependenciesDeployContexts);
-    const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(ownServiceContext, ebextensionFiles);
-    const compiledBeanstalkTemplate = await getCompiledBeanstalkTemplate(stackName, ownPreDeployContext, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledBeanstalkTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying Beanstalk application '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unPreDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Scripts,
-    DeployOutputType.Policies,
-    DeployOutputType.Credentials,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;

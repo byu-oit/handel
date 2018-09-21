@@ -21,16 +21,17 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
+import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as postgresql from '../../../src/services/postgresql';
+import { Service } from '../../../src/services/postgresql';
 import { PostgreSQLConfig } from '../../../src/services/postgresql/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,8 +42,10 @@ describe('postgresql deployer', () => {
     let serviceContext: ServiceContext<PostgreSQLConfig>;
     let serviceParams: PostgreSQLConfig;
     let accountConfig: AccountConfig;
+    let postgresql: ServiceDeployer;
 
     beforeEach(async () => {
+        postgresql = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -60,14 +63,14 @@ describe('postgresql deployer', () => {
     describe('check', () => {
         it('should do require the database_name parameter', () => {
             delete serviceContext.params.database_name;
-            const errors = postgresql.check(serviceContext, []);
+            const errors = postgresql.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should require the postgres_version parameter', () => {
             delete serviceContext.params.postgres_version;
-            const errors = postgresql.check(serviceContext, []);
+            const errors = postgresql.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'postgres_version' parameter is required`);
         });
@@ -75,19 +78,19 @@ describe('postgresql deployer', () => {
         it('should reject invalid postgres_version parameter', () => {
             const invalidVersion = '8.6.2';
             serviceContext.params.postgres_version = invalidVersion;
-            const errors = postgresql.check(serviceContext, []);
+            const errors = postgresql.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`Attempted to generate postgress instance with unsupported version: ${invalidVersion}`);
         });
 
         it('should work when all required parameters are provided properly', () => {
-            const errors = postgresql.check(serviceContext, []);
+            const errors = postgresql.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
 
         it('should support postgres 10', () => {
             serviceContext.params.postgres_version = '10.4';
-            const errors = postgresql.check(serviceContext, []);
+            const errors = postgresql.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -102,7 +105,7 @@ describe('postgresql deployer', () => {
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
 
-            const retPreDeployContext = await postgresql.preDeploy(serviceContext);
+            const retPreDeployContext = await postgresql.preDeploy!(serviceContext);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -119,7 +122,7 @@ describe('postgresql deployer', () => {
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
-            const bindContext = await postgresql.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await postgresql.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -166,7 +169,7 @@ describe('postgresql deployer', () => {
             const addDbCredentialStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
                 .resolves(deployedStack);
 
-            const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await postgresql.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
             expect(addDbCredentialStub.callCount).to.equal(2);
@@ -180,7 +183,7 @@ describe('postgresql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
             const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
-            const deployContext = await postgresql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await postgresql.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -195,7 +198,7 @@ describe('postgresql deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await postgresql.unPreDeploy(serviceContext);
+            const unPreDeployContext = await postgresql.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -206,7 +209,7 @@ describe('postgresql deployer', () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await postgresql.unBind(serviceContext);
+            const unBindContext = await postgresql.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -220,7 +223,7 @@ describe('postgresql deployer', () => {
             const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore')
                 .resolves(unDeployContext);
 
-            const retUnDeployContext = await postgresql.unDeploy(serviceContext);
+            const retUnDeployContext = await postgresql.unDeploy!(serviceContext);
             expect(retUnDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
             expect(deleteParametersStub.callCount).to.equal(1);

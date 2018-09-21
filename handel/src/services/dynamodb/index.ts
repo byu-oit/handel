@@ -23,6 +23,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventConsumer,
     ServiceEventType,
     UnDeployContext
@@ -248,50 +249,42 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     return handlebars.compileTemplate(`${__dirname}/dynamodb-template.yml`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly supportsTagging = true;
+    public readonly providedEventType = ServiceEventType.DynamoDB;
+    public readonly producedEventsSupportedTypes = [
+        ServiceEventType.Lambda
+    ];
 
-export function check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
+
+        const stackTags = tagging.getTags(ownServiceContext);
+
+        const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], false, 30, stackTags);
+        await autoscaling.deployAutoscaling(getTableNameFrom(deployedStack), ownServiceContext, SERVICE_NAME, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async produceEvents(ownServiceContext: ServiceContext<DynamoDBConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>): Promise<UnDeployContext> {
+        await autoscaling.undeployAutoscaling(ownServiceContext);
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying table ${stackName}`);
-
-    const stackTags = tagging.getTags(ownServiceContext);
-
-    const compiledTemplate = await getCompiledDynamoTemplate(stackName, ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], false, 30, stackTags);
-    await autoscaling.deployAutoscaling(getTableNameFrom(deployedStack), ownServiceContext, SERVICE_NAME, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying table ${stackName}`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function produceEvents(ownServiceContext: ServiceContext<DynamoDBConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
-    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<DynamoDBConfig>): Promise<UnDeployContext> {
-    await autoscaling.undeployAutoscaling(ownServiceContext);
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const providedEventType = ServiceEventType.DynamoDB;
-
-export const producedEventsSupportedTypes = [
-    ServiceEventType.Lambda
-];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

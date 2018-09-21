@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext,
@@ -34,7 +35,7 @@ import * as lambdaCalls from '../../../src/aws/lambda-calls';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
 import {
 } from '../../../src/datatypes';
-import * as lambda from '../../../src/services/lambda';
+import { Service } from '../../../src/services/lambda';
 import { LambdaServiceConfig } from '../../../src/services/lambda/config-types';
 import * as lambdaEvents from '../../../src/services/lambda/events';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -47,8 +48,10 @@ describe('lambda deployer', () => {
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
     const lambdaServiceName = 'FakeService';
+    let lambda: ServiceDeployer;
 
     beforeEach(async () => {
+        lambda = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -72,27 +75,27 @@ describe('lambda deployer', () => {
     describe('check', () => {
         it('should require the path_to_code parameter', () => {
             delete serviceContext.params.path_to_code;
-            const errors = lambda.check(serviceContext, []);
+            const errors = lambda.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'path_to_code\' parameter is required');
         });
 
         it('should require the handler parameter', () => {
             delete serviceContext.params.handler;
-            const errors = lambda.check(serviceContext, []);
+            const errors = lambda.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'handler\' parameter is required');
         });
 
         it('should require the runtime parameter', () => {
             delete serviceContext.params.runtime;
-            const errors = lambda.check(serviceContext, []);
+            const errors = lambda.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'runtime\' parameter is required');
         });
 
         it('should work when things are configured properly', () => {
-            const errors = lambda.check(serviceContext, []);
+            const errors = lambda.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
 
@@ -115,7 +118,7 @@ describe('lambda deployer', () => {
                             producedEventsSupportedTypes: []
                         }
                     ));
-            const errors = lambda.check(serviceContext, dependenciesServiceContexts);
+            const errors = lambda.check!(serviceContext, dependenciesServiceContexts);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'vpc\' parameter is required and must be true when declaring dependencies of type');
         });
@@ -131,7 +134,7 @@ describe('lambda deployer', () => {
             });
             const preDeployCreateSecurityGroup = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await lambda.preDeploy(serviceContext);
+            const retContext = await lambda.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(preDeployCreateSecurityGroup.callCount).to.equal(1);
             expect(retContext.securityGroups.length).to.equal(1);
@@ -141,7 +144,7 @@ describe('lambda deployer', () => {
             serviceContext.params.vpc = false;
             const preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').resolves(new PreDeployContext(serviceContext));
 
-            const preDeployContext = await lambda.preDeploy(serviceContext);
+            const preDeployContext = await lambda.preDeploy!(serviceContext);
             expect(preDeployContext).to.be.instanceof(PreDeployContext);
             expect(preDeployNotRequiredStub.callCount).to.equal(1);
         });
@@ -182,7 +185,7 @@ describe('lambda deployer', () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
             const dependenciesDeployContexts = getDependenciesDeployContexts();
 
-            const deployContext = await lambda.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await lambda.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.eventOutputs!.resourceArn).to.equal(functionArn);
             expect(deployContext.eventOutputs!.resourceName).to.equal(functionName);
@@ -218,7 +221,7 @@ describe('lambda deployer', () => {
                 batch_size: 100
             };
 
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await lambda.consumeEvents!(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
             expect(consumeEventsStub.callCount).to.equal(1);
         });
@@ -238,7 +241,7 @@ describe('lambda deployer', () => {
                 batch_size: 9
             };
 
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await lambda.consumeEvents!(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
             expect(consumeEventsStub.callCount).to.equal(1);
         });
@@ -254,7 +257,7 @@ describe('lambda deployer', () => {
             const addPermissionsStub = sandbox.stub(lambdaEvents, 'addProducePermissions').resolves({});
 
             const eventConsumerConfig = { service_name: lambdaServiceName };
-            const consumeEventsContext = await lambda.consumeEvents(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await lambda.consumeEvents!(serviceContext, ownDeployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(consumeEventsContext).to.be.instanceof(ConsumeEventsContext);
             expect(addPermissionsStub.callCount).to.equal(1);
         });
@@ -264,7 +267,7 @@ describe('lambda deployer', () => {
         it('should return an empty UnPreDeploy context if vpc is false', async () => {
             const unPreDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'unPreDeployNotRequired').resolves(new UnPreDeployContext(serviceContext));
             serviceContext.params.vpc = false;
-            const unPreDeployContext = await lambda.unPreDeploy(serviceContext);
+            const unPreDeployContext = await lambda.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
         });
@@ -272,7 +275,7 @@ describe('lambda deployer', () => {
         it('should delete the security groups if vpc is true and return the unPreDeploy context', async () => {
             serviceContext.params.vpc = true;
             const unPreDeploySecurityGroup = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
-            const unPreDeployContext = await lambda.unPreDeploy(serviceContext);
+            const unPreDeployContext = await lambda.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeploySecurityGroup.callCount).to.equal(1);
         });
@@ -284,7 +287,7 @@ describe('lambda deployer', () => {
             const deleteEventSourcePoliciesStub = sandbox.stub(lambdaEvents, 'deleteEventSourcePolicies').resolves();
             const unDeployStack = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await lambda.unDeploy(serviceContext);
+            const unDeployContext = await lambda.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStack.callCount).to.equal(1);
             expect(deleteMappingsStub.callCount).to.equal(1);

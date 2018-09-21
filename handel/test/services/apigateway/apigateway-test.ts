@@ -19,6 +19,7 @@ import {
     AccountConfig,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext,
     UnPreDeployContext
@@ -28,7 +29,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as lifecyclesCommon from '../../../src/common/lifecycles-common';
-import * as apigateway from '../../../src/services/apigateway';
+import { Service } from '../../../src/services/apigateway';
 import { APIGatewayConfig } from '../../../src/services/apigateway/config-types';
 import * as proxyPassthroughDeployType from '../../../src/services/apigateway/proxy/proxy-passthrough-deploy-type';
 import * as swaggerDeployType from '../../../src/services/apigateway/swagger/swagger-deploy-type';
@@ -39,10 +40,12 @@ describe('apigateway deployer', () => {
     let serviceContext: ServiceContext<APIGatewayConfig>;
     let serviceParams: APIGatewayConfig;
     let accountConfig: AccountConfig;
+    let apigateway: ServiceDeployer;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
 
     beforeEach(async () => {
+        apigateway = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -67,7 +70,7 @@ describe('apigateway deployer', () => {
                         runtime: 'nodejs6.10'
                     }
                 };
-                const errors = await apigateway.check(serviceContext, []);
+                const errors = await apigateway.check!(serviceContext, []);
                 expect(errors.length).to.equal(0);
                 expect(checkStub.callCount).to.equal(1);
             });
@@ -82,7 +85,7 @@ describe('apigateway deployer', () => {
                     swagger: 'fakeswagger.json'
                 };
 
-                const errors = await apigateway.check(serviceContext, []);
+                const errors = await apigateway.check!(serviceContext, []);
                 expect(checkStub.callCount).to.equal(1);
                 expect(errors.length).to.equal(0);
             });
@@ -112,7 +115,7 @@ describe('apigateway deployer', () => {
                         }
                     )
                 ];
-                const errors = await apigateway.check(serviceContext, dependenciesServiceContexts);
+                const errors = await apigateway.check!(serviceContext, dependenciesServiceContexts);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'vpc\' parameter is required and must be true when declaring dependencies of type');
             });
@@ -138,7 +141,7 @@ describe('apigateway deployer', () => {
                 it('should fail if given an invalid dns_name', async () => {
                     customDomain.dns_name = 'totally invalid dns name';
 
-                    const errors = await apigateway.check(serviceContext, []);
+                    const errors = await apigateway.check!(serviceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.contain('\'dns_name\' must be a valid DNS hostname');
                 });
@@ -155,7 +158,7 @@ describe('apigateway deployer', () => {
             });
             const preDeployCreateSecurityGroup = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(response);
 
-            const preDeployContext = await apigateway.preDeploy(serviceContext);
+            const preDeployContext = await apigateway.preDeploy!(serviceContext);
             expect(preDeployContext).to.be.instanceof(PreDeployContext);
             expect(preDeployCreateSecurityGroup.callCount).to.equal(1);
             expect(preDeployContext.securityGroups.length).to.equal(1);
@@ -165,7 +168,7 @@ describe('apigateway deployer', () => {
             serviceContext.params.vpc = false;
             const preDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'preDeployNotRequired').resolves(new PreDeployContext(serviceContext));
 
-            const preDeployContext = await apigateway.preDeploy(serviceContext);
+            const preDeployContext = await apigateway.preDeploy!(serviceContext);
             expect(preDeployNotRequiredStub.callCount).to.equal(1);
             expect(preDeployContext).to.be.instanceof(PreDeployContext);
         });
@@ -176,7 +179,7 @@ describe('apigateway deployer', () => {
             it('should call the proxy deploy', async () => {
                 const deployStub = sandbox.stub(proxyPassthroughDeployType, 'deploy').resolves({});
 
-                const deployContext = await apigateway.deploy(serviceContext, new PreDeployContext(serviceContext), []);
+                const deployContext = await apigateway.deploy!(serviceContext, new PreDeployContext(serviceContext), []);
                 expect(deployContext).to.deep.equal({});
                 expect(deployStub.callCount).to.equal(1);
             });
@@ -191,7 +194,7 @@ describe('apigateway deployer', () => {
 
                 const deployStub = sandbox.stub(swaggerDeployType, 'deploy').resolves({});
 
-                const deployContext = await apigateway.deploy(serviceContext, new PreDeployContext(serviceContext), []);
+                const deployContext = await apigateway.deploy!(serviceContext, new PreDeployContext(serviceContext), []);
                 expect(deployContext).to.deep.equal({});
                 expect(deployStub.callCount).to.equal(1);
             });
@@ -202,7 +205,7 @@ describe('apigateway deployer', () => {
         it('should return an empty UnPreDeploy context if vpc is false', async () => {
             const unPreDeployNotRequiredStub = sandbox.stub(lifecyclesCommon, 'unPreDeployNotRequired').resolves(new UnPreDeployContext(serviceContext));
             serviceContext.params.vpc = false;
-            const unPreDeployContext = await apigateway.unPreDeploy(serviceContext);
+            const unPreDeployContext = await apigateway.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployNotRequiredStub.callCount).to.equal(1);
         });
@@ -210,7 +213,7 @@ describe('apigateway deployer', () => {
         it('should delete the security groups if vpc is true and return the unPreDeploy context', async () => {
             serviceContext.params.vpc = true;
             const unPreDeploySecurityGroup = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
-            const unPreDeployContext = await apigateway.unPreDeploy(serviceContext);
+            const unPreDeployContext = await apigateway.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeploySecurityGroup.callCount).to.equal(1);
         });
@@ -220,7 +223,7 @@ describe('apigateway deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await apigateway.unDeploy(serviceContext);
+            const unDeployContext = await apigateway.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

@@ -21,6 +21,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     UnDeployContext
  } from 'handel-extension-api';
@@ -137,70 +138,59 @@ function getS3EventFilters(filterList: S3ServiceEventFilterList | undefined): AW
     }
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly providedEventType = ServiceEventType.S3;
+    public readonly producedEventsSupportedTypes = [
+        ServiceEventType.Lambda,
+        ServiceEventType.SNS,
+        ServiceEventType.SQS
+    ];
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<S3ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
-    lifecycleSection.checkLifecycles(serviceContext, SERVICE_NAME, errors);
-
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying bucket '${stackName}'`);
-
-    const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
-    const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export async function produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
-    winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
-    }
-    const bucketName = ownDeployContext.eventOutputs.resourceName;
-    const consumerArn = consumerDeployContext.eventOutputs.resourceArn;
-    if(!bucketName || !consumerArn) {
-        throw new Error(`${SERVICE_NAME} - Expected bucket name and consumer ARN in deploy outputs`);
+    public check(serviceContext: ServiceContext<S3ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        lifecycleSection.checkLifecycles(serviceContext, SERVICE_NAME, errors);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    const consumerEventType = consumerDeployContext.eventOutputs.serviceEventType;
-    if(!producedEventsSupportedTypes.includes(consumerEventType)) {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerEventType}`);
+    public async deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying bucket '${stackName}'`);
+        const loggingBucketName = await s3DeployersCommon.createLoggingBucketIfNotExists(ownServiceContext.accountConfig);
+        const compiledTemplate = await getCompiledS3Template(stackName, ownServiceContext, loggingBucketName!);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying bucket '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
     }
-    const filters = getS3EventFilters(eventConsumerConfig.filters);
-    const result = await s3Calls.configureBucketNotifications(bucketName, consumerEventType, consumerArn, eventConsumerConfig.bucket_events, filters);
-    winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+
+    public async unDeploy(ownServiceContext: ServiceContext<S3ServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async produceEvents(ownServiceContext: ServiceContext<S3ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: S3ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+        if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+            throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+        }
+        const bucketName = ownDeployContext.eventOutputs.resourceName;
+        const consumerArn = consumerDeployContext.eventOutputs.resourceArn;
+        if(!bucketName || !consumerArn) {
+            throw new Error(`${SERVICE_NAME} - Expected bucket name and consumer ARN in deploy outputs`);
+        }
+
+        const consumerEventType = consumerDeployContext.eventOutputs.serviceEventType;
+        if(!this.producedEventsSupportedTypes.includes(consumerEventType)) {
+            throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerEventType}`);
+        }
+        const filters = getS3EventFilters(eventConsumerConfig.filters);
+        const result = await s3Calls.configureBucketNotifications(bucketName, consumerEventType, consumerArn, eventConsumerConfig.bucket_events, filters);
+        winston.info(`${SERVICE_NAME} - Configured production of events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+        return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+    }
 }
-
-export const providedEventType = ServiceEventType.S3;
-
-export const producedEventsSupportedTypes = [
-    ServiceEventType.Lambda,
-    ServiceEventType.SNS,
-    ServiceEventType.SQS
-];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

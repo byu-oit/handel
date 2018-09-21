@@ -20,6 +20,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -27,7 +28,7 @@ import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as route53 from '../../../src/services/route53zone';
+import { Service } from '../../../src/services/route53zone';
 import { Route53ZoneServiceConfig } from '../../../src/services/route53zone/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -38,8 +39,10 @@ describe('route53zone deployer', () => {
     let serviceContext: ServiceContext<Route53ZoneServiceConfig>;
     let serviceParams: Route53ZoneServiceConfig;
     let accountConfig: AccountConfig;
+    let route53: ServiceDeployer;
 
     beforeEach(async () => {
+        route53 = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -56,7 +59,7 @@ describe('route53zone deployer', () => {
     describe('check', () => {
         it('should require the name parameter', () => {
             delete serviceParams.name;
-            const errors = route53.check(serviceContext, []);
+            const errors = route53.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'name\' field is required');
         });
@@ -69,7 +72,7 @@ describe('route53zone deployer', () => {
                 it(`should reject '${invalid}'`, () => {
                     serviceContext.params.name = invalid;
 
-                    const errors = route53.check(serviceContext, []);
+                    const errors = route53.check!(serviceContext, []);
                     expect(errors.length).to.equal(1);
                     expect(errors[0]).to.contain('\'name\' parameter must be a valid hostname');
                 });
@@ -79,14 +82,14 @@ describe('route53zone deployer', () => {
                 it(`should accept '${valid}'`, () => {
                     serviceContext.params.name = valid;
 
-                    const errors = route53.check(serviceContext, []);
+                    const errors = route53.check!(serviceContext, []);
                     expect(errors.length).to.equal(0);
                 });
             });
         });
 
         it('should work when there are no configuration errors', () => {
-            const errors = route53.check(serviceContext, []);
+            const errors = route53.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -116,7 +119,7 @@ describe('route53zone deployer', () => {
                 }]
             });
 
-            const deployContext = await route53.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await route53.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies.length).to.equal(0);
@@ -142,7 +145,7 @@ describe('route53zone deployer', () => {
             serviceContext.params.name = dnsName;
             serviceContext.params.private = true;
 
-            const deployContext = await route53.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await route53.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -157,7 +160,7 @@ describe('route53zone deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(serviceContext)));
 
-            const unDeployContext = await route53.unDeploy(serviceContext);
+            const unDeployContext = await route53.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

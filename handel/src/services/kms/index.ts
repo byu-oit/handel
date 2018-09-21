@@ -20,9 +20,10 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging, checkPhase } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import {KmsServiceConfig} from './config-types';
 
@@ -83,52 +84,43 @@ function getDefaultAlias(serviceContext: ServiceContext<KmsServiceConfig>): stri
     return `${serviceContext.appName}/${serviceContext.environmentName}/${serviceContext.serviceName}`;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<KmsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
-    const params = serviceContext.params;
-
-    if (params.alias) {
-        const alias = params.alias;
-        if (alias.startsWith('AWS')) {
-            errors.push('\'alias\' parameter must not begin with \'AWS\'');
+    public check(serviceContext: ServiceContext<KmsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const params = serviceContext.params;
+        if (params.alias) {
+            const alias = params.alias;
+            if (alias.startsWith('AWS')) {
+                errors.push('\'alias\' parameter must not begin with \'AWS\'');
+            }
+            if (!alias.match(/^[-\/_a-z0-9]+$/i)) {
+                errors.push('\'alias\' parameter must only contain alphanumeric characters, dashes (\'-\'), underscores (\'_\'), or slashes (\'/\')');
+            }
         }
-        if (!alias.match(/^[-\/_a-z0-9]+$/i)) {
-            errors.push('\'alias\' parameter must only contain alphanumeric characters, dashes (\'-\'), underscores (\'_\'), or slashes (\'/\')');
-        }
+        return errors.map(it => `${SERVICE_NAME} - ${it}`);
     }
 
-    return errors.map(it => `${SERVICE_NAME} - ${it}`);
+    public async deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
+
+        const compiledTemplate = await getCompiledTemplate(ownServiceContext);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<KmsServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying KMS Key ${stackName}`);
-
-    const compiledTemplate = await getCompiledTemplate(ownServiceContext);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying KMS Key ${stackName}`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<KmsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

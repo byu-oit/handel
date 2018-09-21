@@ -20,6 +20,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -30,7 +31,7 @@ import config from '../../../src/account-config/account-config';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as s3Calls from '../../../src/aws/s3-calls';
 import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
-import * as s3StaticSite from '../../../src/services/s3staticsite';
+import { Service } from '../../../src/services/s3staticsite';
 import { S3StaticSiteServiceConfig } from '../../../src/services/s3staticsite/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -39,8 +40,10 @@ describe('s3staticsite deployer', () => {
     let ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>;
     let serviceParams: S3StaticSiteServiceConfig;
     let accountConfig: AccountConfig;
+    let s3StaticSite: ServiceDeployer;
 
     beforeEach(async () => {
+        s3StaticSite = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 's3staticsite',
@@ -57,13 +60,13 @@ describe('s3staticsite deployer', () => {
     describe('check', () => {
         it('should require the path_to_code parameter', () => {
             delete ownServiceContext.params.path_to_code;
-            const errors = s3StaticSite.check(ownServiceContext, []);
+            const errors = s3StaticSite.check!(ownServiceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'path_to_code\' parameter is required');
         });
 
         it('should work when all required parameters are given', () => {
-            const errors = s3StaticSite.check(ownServiceContext, []);
+            const errors = s3StaticSite.check!(ownServiceContext, []);
             expect(errors.length).to.equal(0);
         });
 
@@ -73,13 +76,13 @@ describe('s3staticsite deployer', () => {
                 it(`should allow '${validValue}'`, () => {
                     ownServiceContext.params.versioning = validValue;
 
-                    const errors = s3StaticSite.check(ownServiceContext, []);
+                    const errors = s3StaticSite.check!(ownServiceContext, []);
                     expect(errors.length).to.equal(0);
                 });
             }
             it('should reject invalid values', () => {
                 ownServiceContext.params.versioning = 'off';
-                const errors = s3StaticSite.check(ownServiceContext, []);
+                const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'versioning\' parameter must be either \'enabled\' or \'disabled\'');
             });
@@ -90,13 +93,13 @@ describe('s3staticsite deployer', () => {
                 it(`should allow '${validValue}'`, () => {
                     ownServiceContext.params.cloudfront = { logging: validValue };
 
-                    const errors = s3StaticSite.check(ownServiceContext, []);
+                    const errors = s3StaticSite.check!(ownServiceContext, []);
                     expect(errors.length).to.equal(0);
                 });
             }
             it('should reject invalid values', () => {
                 ownServiceContext.params.cloudfront = { logging: 'off' };
-                const errors = s3StaticSite.check(ownServiceContext, []);
+                const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
             });
@@ -107,13 +110,13 @@ describe('s3staticsite deployer', () => {
                 it(`should allow '${validValue}'`, () => {
                     ownServiceContext.params.cloudfront = { price_class: validValue };
 
-                    const errors = s3StaticSite.check(ownServiceContext, []);
+                    const errors = s3StaticSite.check!(ownServiceContext, []);
                     expect(errors.length).to.equal(0);
                 });
             }
             it('should reject invalid values', () => {
                 ownServiceContext.params.cloudfront = { price_class: 'off' };
-                const errors = s3StaticSite.check(ownServiceContext, []);
+                const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'price_class\' parameter must be one of 100, 200, or \'all\'');
             });
@@ -124,25 +127,25 @@ describe('s3staticsite deployer', () => {
             for (const field of ttlFields.map(it => `${it}_ttl`)) {
                 it(`should allow numbers in '${field}`, () => {
                     ownServiceContext.params.cloudfront = { [field]: 100 };
-                    const errors = s3StaticSite.check(ownServiceContext, []);
+                    const errors = s3StaticSite.check!(ownServiceContext, []);
                     expect(errors.length).to.equal(0);
                 });
                 for (const alias of aliases) {
                     it(`should allow ${alias} aliases in '${field}`, () => {
                         ownServiceContext.params.cloudfront = { [field]: `2 ${alias}` };
-                        let errors = s3StaticSite.check(ownServiceContext, []);
+                        let errors = s3StaticSite.check!(ownServiceContext, []);
                         expect(errors.length).to.equal(0);
 
                         // plural
                         ownServiceContext.params.cloudfront = { [field]: `2 ${alias}s` };
-                        errors = s3StaticSite.check(ownServiceContext, []);
+                        errors = s3StaticSite.check!(ownServiceContext, []);
                         expect(errors.length).to.equal(0);
                     });
                 }
                 it(`should reject invalid values in '${field}`, () => {
                     ownServiceContext.params.cloudfront = { [field]: 'foobar' };
 
-                    const errors = s3StaticSite.check(ownServiceContext, []);
+                    const errors = s3StaticSite.check!(ownServiceContext, []);
                     expect(errors).to.have.lengthOf(1);
                     expect(errors[0]).to.include(`'${field}' parameter must be a valid TTL value`);
                 });
@@ -152,13 +155,13 @@ describe('s3staticsite deployer', () => {
             it('should allow valid hostnames', () => {
                 ownServiceContext.params.cloudfront = { dns_names: ['valid.dns.name.com'] };
 
-                const errors = s3StaticSite.check(ownServiceContext, []);
+                const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors.length).to.equal(0);
             });
             it('should reject invalid values', () => {
                 ownServiceContext.params.cloudfront = { dns_names: ['invalid hostname', 'valid.dns.name.com'] };
 
-                const errors = s3StaticSite.check(ownServiceContext, []);
+                const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.include('\'dns_name\' parameter must be a valid DNS hostname');
             });
@@ -189,7 +192,7 @@ describe('s3staticsite deployer', () => {
             });
             const uploadDirectoryStub = sandbox.stub(s3Calls, 'uploadDirectory').resolves({});
 
-            const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+            const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies.length).to.equal(2);
@@ -233,7 +236,7 @@ describe('s3staticsite deployer', () => {
             });
 
             it('should deploy cloudfront with default parameters', async () => {
-                const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+                const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(createLoggingBucketStub.callCount).to.equal(1);
                 expect(deployStackStub.callCount).to.equal(1);
@@ -258,7 +261,7 @@ describe('s3staticsite deployer', () => {
                     Id: 'dnscom'
                 }]);
 
-                const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+                const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(createLoggingBucketStub.callCount).to.equal(1);
                 expect(deployStackStub.callCount).to.equal(1);
@@ -268,7 +271,7 @@ describe('s3staticsite deployer', () => {
             it('should allow an HTTPS cert to be configured', async () => {
                 ownServiceContext.params.cloudfront!.https_certificate = 'abc123';
 
-                const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+                const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(createLoggingBucketStub.callCount).to.equal(1);
                 expect(deployStackStub.callCount).to.equal(1);
@@ -282,7 +285,7 @@ describe('s3staticsite deployer', () => {
             it('should allow cloudfront logging to be disabled', async () => {
                 ownServiceContext.params.cloudfront!.logging = 'disabled';
 
-                const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+                const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(createLoggingBucketStub.callCount).to.equal(1);
                 expect(deployStackStub.callCount).to.equal(1);
@@ -299,7 +302,7 @@ describe('s3staticsite deployer', () => {
                 cf.default_ttl = '2 hours';
                 cf.max_ttl = '30days';
 
-                const deployContext = await s3StaticSite.deploy(ownServiceContext, ownPreDeployContext, []);
+                const deployContext = await s3StaticSite.deploy!(ownServiceContext, ownPreDeployContext, []);
                 expect(deployContext).to.be.instanceof(DeployContext);
                 expect(createLoggingBucketStub.callCount).to.equal(1);
                 expect(deployStackStub.callCount).to.equal(1);
@@ -320,7 +323,7 @@ describe('s3staticsite deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(ownServiceContext));
 
-            const unDeployContext = await s3StaticSite.unDeploy(ownServiceContext);
+            const unDeployContext = await s3StaticSite.unDeploy!(ownServiceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

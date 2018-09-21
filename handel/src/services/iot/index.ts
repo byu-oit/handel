@@ -20,6 +20,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -79,88 +80,77 @@ async function deleteTopicRule(ruleName: string) {
     }
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly providedEventType = ServiceEventType.IoT;
+    public readonly producedEventsSupportedTypes = [
+        ServiceEventType.Lambda
+    ];
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<IotServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>) {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    
-    const serviceParams = serviceContext.params;
-
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<IotServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    winston.debug(`${SERVICE_NAME} - Deploy not currently required for the IoT service`);
-    const stackName = ownServiceContext.stackName();
-    return getDeployContext(stackName, ownServiceContext); // Empty deploy
-}
-
-export async function produceEvents(ownServiceContext: ServiceContext<IotServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: IotServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
-    winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+    public check(serviceContext: ServiceContext<IotServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>) {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    // Create topic rule
-    const consumerType = consumerServiceContext.serviceType;
-    const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
-    const sql = eventConsumerConfig.sql;
-    const ruleDisabled = eventConsumerConfig.rule_disabled;
-    const actions = [];
-    if (consumerDeployContext.eventOutputs.serviceEventType === ServiceEventType.Lambda) {
-        actions.push({
-            Lambda: {
-                FunctionArn: consumerDeployContext.eventOutputs.resourceArn
-            }
-        });
-    }
-    else {
-        throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
+    public async deploy(ownServiceContext: ServiceContext<IotServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        winston.debug(`${SERVICE_NAME} - Deploy not currently required for the IoT service`);
+        const stackName = ownServiceContext.stackName();
+        return getDeployContext(stackName, ownServiceContext); // Empty deploy
     }
 
-    const stackTags = tagging.getTags(ownServiceContext);
-    const serviceParams = ownServiceContext.params;
-    const stackName = getStackNameFromRuleName(ruleName);
-    const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;
-    const compiledTemplate = await getCompiledTopicRuleTemplate(description, ruleName, sql, ruleDisabled, actions);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
-    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext> {
-    winston.info(`${SERVICE_NAME} - Undeploying events production from '${ownServiceContext.serviceName}'`);
-    const deletePromises = [];
-
-    // Delete all topic rules created by produce events
-    const serviceParams = ownServiceContext.params;
-    if (serviceParams.event_consumers) {
-        for (const eventConsumerConfig of serviceParams.event_consumers) {
-            const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
-            winston.info(`${SERVICE_NAME} - Deleting topic rule '${ruleName}'`);
-            deletePromises.push(deleteTopicRule(ruleName));
+    public async produceEvents(ownServiceContext: ServiceContext<IotServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: IotServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        winston.info(`${SERVICE_NAME} - Producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+        if(!ownDeployContext.eventOutputs || !consumerDeployContext.eventOutputs) {
+            throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
         }
+
+        // Create topic rule
+        const consumerType = consumerServiceContext.serviceType;
+        const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
+        const sql = eventConsumerConfig.sql;
+        const ruleDisabled = eventConsumerConfig.rule_disabled;
+        const actions = [];
+        if (consumerDeployContext.eventOutputs.serviceEventType === ServiceEventType.Lambda) {
+            actions.push({
+                Lambda: {
+                    FunctionArn: consumerDeployContext.eventOutputs.resourceArn
+                }
+            });
+        }
+        else {
+            throw new Error(`${SERVICE_NAME} - Unsupported event consumer type given: ${consumerType}`);
+        }
+
+        const stackTags = tagging.getTags(ownServiceContext);
+        const serviceParams = ownServiceContext.params;
+        const stackName = getStackNameFromRuleName(ruleName);
+        const description = serviceParams.description || 'AWS IoT rule created by Handel for ' + stackName;
+        const compiledTemplate = await getCompiledTopicRuleTemplate(description, ruleName, sql, ruleDisabled, actions);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished producing events from '${ownServiceContext.serviceName}' for consumer '${consumerServiceContext.serviceName}'`);
+        return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
     }
 
-    return Promise.all(deletePromises)
-        .then(() => {
-            winston.info(`${SERVICE_NAME} - Finished undeploying events production from '${ownServiceContext.serviceName}'`);
-            return new UnDeployContext(ownServiceContext);
-        });
+    public async unDeploy(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext> {
+        winston.info(`${SERVICE_NAME} - Undeploying events production from '${ownServiceContext.serviceName}'`);
+        const deletePromises = [];
+
+        // Delete all topic rules created by produce events
+        const serviceParams = ownServiceContext.params;
+        if (serviceParams.event_consumers) {
+            for (const eventConsumerConfig of serviceParams.event_consumers) {
+                const ruleName = iotDeployersCommon.getTopicRuleName(ownServiceContext, eventConsumerConfig);
+                winston.info(`${SERVICE_NAME} - Deleting topic rule '${ruleName}'`);
+                deletePromises.push(deleteTopicRule(ruleName));
+            }
+        }
+
+        return Promise.all(deletePromises)
+            .then(() => {
+                winston.info(`${SERVICE_NAME} - Finished undeploying events production from '${ownServiceContext.serviceName}'`);
+                return new UnDeployContext(ownServiceContext);
+            });
+    }
 }
-
-export const providedEventType = ServiceEventType.IoT;
-
-export const producedEventsSupportedTypes = [
-    ServiceEventType.Lambda
-];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

@@ -23,6 +23,7 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventConsumer,
     ServiceEventType,
     UnDeployContext,
@@ -150,97 +151,87 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly providedEventType = ServiceEventType.Lambda;
+    public readonly producedEventsSupportedTypes = [];
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
-    const serviceParams = serviceContext.params;
-    if (dependenciesServiceContexts) {
-        dependenciesServiceContexts.forEach((dependencyServiceContext) => {
-            if (dependencyServiceContext.serviceInfo.producedDeployOutputTypes.indexOf('securityGroups') !== -1 && !serviceParams.vpc) {
-                errors.push(`The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
-            }
-        });
+    public check(serviceContext: ServiceContext<LambdaServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const serviceParams = serviceContext.params;
+        if (dependenciesServiceContexts) {
+            dependenciesServiceContexts.forEach((dependencyServiceContext) => {
+                if (dependencyServiceContext.serviceInfo.producedDeployOutputTypes.indexOf('securityGroups') !== -1 && !serviceParams.vpc) {
+                    errors.push(`The 'vpc' parameter is required and must be true when declaring dependencies of type ${dependencyServiceContext.serviceType}`);
+                }
+            });
+        }
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public async preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
+        if (serviceContext.params.vpc) {
+            return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
+        const securityGroups: string[] = [];
+        if (ownPreDeployContext.securityGroups) {
+            ownPreDeployContext.securityGroups.forEach((secGroup) => {
+                securityGroups.push(secGroup.GroupId!);
+            });
+        }
+        const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
+        const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledLambdaTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
+        if(!producerDeployContext.eventOutputs) {
+            throw new Error(`${SERVICE_NAME} - The producer must return event outputs from their deploy`);
+        }
+        const consumerServiceType = producerDeployContext.eventOutputs.serviceEventType;
+        if (consumerServiceType === ServiceEventType.DynamoDB) {
+            await lambdaEvents.consumeDynamoEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
+        }
+        else if (consumerServiceType === ServiceEventType.SQS) {
+            await lambdaEvents.consumeSqsEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
+        }
+        else {
+            await lambdaEvents.addProducePermissions(ownServiceContext, ownDeployContext, producerDeployContext);
+        }
+        winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
+        return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
+        if (ownServiceContext.params.vpc) {
+            return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
+        }
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
+        await lambdaCalls.deleteAllEventSourceMappings(ownServiceContext.stackName()); // Delete all event source mappings (if any)
+        await lambdaEvents.deleteEventSourcePolicies(ownServiceContext.stackName()); // Detach and delete policies for event source mappings (if any)
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
-    if (serviceContext.params.vpc) {
-        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
-    } else {
-        return lifecyclesCommon.preDeployNotRequired(serviceContext);
-    }
-}
-
-export async function deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
-    const securityGroups: string[] = [];
-    if (ownPreDeployContext.securityGroups) {
-        ownPreDeployContext.securityGroups.forEach((secGroup) => {
-            securityGroups.push(secGroup.GroupId!);
-        });
-    }
-    const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext);
-    const compiledLambdaTemplate = await getCompiledLambdaTemplate(stackName, ownServiceContext, dependenciesDeployContexts, s3ArtifactInfo, securityGroups);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledLambdaTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function consumeEvents(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ProduceEventsContext> {
-    winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    if(!producerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - The producer must return event outputs from their deploy`);
-    }
-    const consumerServiceType = producerDeployContext.eventOutputs.serviceEventType;
-    if (consumerServiceType === ServiceEventType.DynamoDB) {
-        await lambdaEvents.consumeDynamoEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
-    }
-    else if (consumerServiceType === ServiceEventType.SQS) {
-        await lambdaEvents.consumeSqsEvents(ownServiceContext, ownDeployContext, eventConsumerConfig as LambdaEventSourceConfig, producerServiceContext, producerDeployContext);
-    }
-    else {
-        await lambdaEvents.addProducePermissions(ownServiceContext, ownDeployContext, producerDeployContext);
-    }
-    winston.info(`${SERVICE_NAME} - Allowed consuming events from ${producerServiceContext.serviceName} for ${ownServiceContext.serviceName}`);
-    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
-}
-
-export async function unPreDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnPreDeployContext> {
-    if (ownServiceContext.params.vpc) {
-        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-    } else {
-        return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
-    }
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<LambdaServiceConfig>): Promise<UnDeployContext> {
-    await lambdaCalls.deleteAllEventSourceMappings(ownServiceContext.stackName()); // Delete all event source mappings (if any)
-    await lambdaEvents.deleteEventSourcePolicies(ownServiceContext.stackName()); // Detach and delete policies for event source mappings (if any)
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const providedEventType = ServiceEventType.Lambda;
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;

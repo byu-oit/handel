@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
@@ -31,7 +32,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as iamCalls from '../../../src/aws/iam-calls';
-import * as elasticsearch from '../../../src/services/elasticsearch';
+import { Service } from '../../../src/services/elasticsearch';
 import { ElasticsearchConfig } from '../../../src/services/elasticsearch/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -42,8 +43,10 @@ describe('elasticsearch deployer', () => {
     let serviceContext: ServiceContext<ElasticsearchConfig>;
     let serviceParams: ElasticsearchConfig;
     let accountConfig: AccountConfig;
+    let elasticsearch: ServiceDeployer;
 
     beforeEach(async () => {
+        elasticsearch = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -69,7 +72,7 @@ describe('elasticsearch deployer', () => {
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
 
-            const retPreDeployContext = await elasticsearch.preDeploy(serviceContext);
+            const retPreDeployContext = await elasticsearch.preDeploy!(serviceContext);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -86,7 +89,7 @@ describe('elasticsearch deployer', () => {
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
-            const bindContext = await elasticsearch.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await elasticsearch.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -125,7 +128,7 @@ describe('elasticsearch deployer', () => {
             const createRoleStub = sandbox.stub(iamCalls, 'createServiceLinkedRole').resolves({});
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves(deployedStack);
 
-            const deployContext = await elasticsearch.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await elasticsearch.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployStackStub.callCount).to.equal(1);
             expect(createRoleStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -139,7 +142,7 @@ describe('elasticsearch deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await elasticsearch.unPreDeploy(serviceContext);
+            const unPreDeployContext = await elasticsearch.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -150,7 +153,7 @@ describe('elasticsearch deployer', () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await elasticsearch.unBind(serviceContext);
+            const unBindContext = await elasticsearch.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -161,7 +164,7 @@ describe('elasticsearch deployer', () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await elasticsearch.unDeploy(serviceContext);
+            const unDeployContext = await elasticsearch.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });
