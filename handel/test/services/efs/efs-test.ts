@@ -21,16 +21,22 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
+import {
+    bindPhase,
+    deletePhases,
+    deployPhase,
+    preDeployPhase
+} from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as efs from '../../../src/services/efs';
+import { Service } from '../../../src/services/efs';
 import { EfsPerformanceMode, EfsServiceConfig } from '../../../src/services/efs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,8 +47,10 @@ describe('efs deployer', () => {
     let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
+    let efs: ServiceDeployer;
 
     beforeEach(async () => {
+        efs = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -59,12 +67,12 @@ describe('efs deployer', () => {
         it('should require either max_io or general_purpose for the performance_mode parameter', () => {
             // No errors expected
             serviceContext.params.performance_mode = EfsPerformanceMode.GENERAL_PURPOSE;
-            let errors = efs.check(serviceContext, []);
+            let errors = efs.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
 
             // No errors expected
             serviceContext.params.performance_mode = EfsPerformanceMode.MAX_IO;
-            errors = efs.check(serviceContext, []);
+            errors = efs.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -78,7 +86,7 @@ describe('efs deployer', () => {
             });
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await efs.preDeploy(serviceContext);
+            const retContext = await efs.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -92,7 +100,7 @@ describe('efs deployer', () => {
 
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
-            const bindContext = await efs.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
+            const bindContext = await efs.bind!(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
         });
@@ -114,7 +122,7 @@ describe('efs deployer', () => {
                 }]
             });
 
-            const deployContext = await efs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await efs.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.scripts.length).to.equal(1);
@@ -125,7 +133,7 @@ describe('efs deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await efs.unPreDeploy(serviceContext);
+            const unPreDeployContext = await efs.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -135,7 +143,7 @@ describe('efs deployer', () => {
         it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await efs.unBind(serviceContext);
+            const unBindContext = await efs.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -145,7 +153,7 @@ describe('efs deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await efs.unDeploy(serviceContext);
+            const unDeployContext = await efs.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

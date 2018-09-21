@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
@@ -30,7 +31,7 @@ import { awsCalls, bindPhase, deletePhases, preDeployPhase } from 'handel-extens
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as neptune from '../../../src/services/neptune';
+import { Service } from '../../../src/services/neptune';
 import { NeptuneConfig } from '../../../src/services/neptune/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,8 +42,10 @@ describe('neptune deployer', () => {
     let serviceContext: ServiceContext<NeptuneConfig>;
     let serviceParams: NeptuneConfig;
     let accountConfig: AccountConfig;
+    let neptune: ServiceDeployer;
 
     beforeEach(async () => {
+        neptune = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -67,7 +70,7 @@ describe('neptune deployer', () => {
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
 
-            const retPreDeployContext = await neptune.preDeploy(serviceContext);
+            const retPreDeployContext = await neptune.preDeploy!(serviceContext);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -84,7 +87,7 @@ describe('neptune deployer', () => {
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
-            const bindContext = await neptune.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await neptune.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -133,7 +136,7 @@ describe('neptune deployer', () => {
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
 
-            const deployContext = await neptune.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await neptune.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -146,7 +149,7 @@ describe('neptune deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
             const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
-            const deployContext = await neptune.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await neptune.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -161,7 +164,7 @@ describe('neptune deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await neptune.unPreDeploy(serviceContext);
+            const unPreDeployContext = await neptune.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -172,7 +175,7 @@ describe('neptune deployer', () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await neptune.unBind(serviceContext);
+            const unBindContext = await neptune.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -183,7 +186,7 @@ describe('neptune deployer', () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await neptune.unDeploy(serviceContext);
+            const unDeployContext = await neptune.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

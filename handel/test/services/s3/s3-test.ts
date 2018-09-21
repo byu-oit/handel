@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext
@@ -31,7 +32,7 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as s3Calls from '../../../src/aws/s3-calls';
 import * as s3DeployersCommon from '../../../src/common/s3-deployers-common';
-import * as s3 from '../../../src/services/s3';
+import { Service } from '../../../src/services/s3';
 import { S3ServiceConfig, S3ServiceEventConsumer } from '../../../src/services/s3/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -42,8 +43,10 @@ describe('s3 deployer', () => {
     let ownServiceContext: ServiceContext<S3ServiceConfig>;
     let serviceParams: S3ServiceConfig;
     let accountConfig: AccountConfig;
+    let s3: ServiceDeployer;
 
     beforeEach(async () => {
+        s3 = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 's3'
@@ -63,7 +66,7 @@ describe('s3 deployer', () => {
                 bucket_name: 'somename',
                 versioning: 'othervalue'
             };
-            const errors = s3.check(ownServiceContext, []);
+            const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'versioning\' parameter must be either \'enabled\' or \'disabled\'');
         });
@@ -74,7 +77,7 @@ describe('s3 deployer', () => {
                 bucket_name: 'somename',
                 versioning: 'enabled'
             };
-            const errors = s3.check(ownServiceContext, []);
+            const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(0);
         });
 
@@ -84,7 +87,7 @@ describe('s3 deployer', () => {
                 bucket_name: 'somename',
                 bucket_acl: 'PublicReadWrite'
             };
-            const errors = s3.check(ownServiceContext, []);
+            const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'bucket_acl\' parameter must be \'AuthenticatedRead\', \'AwsExecRead\', \'BucketOwnerRead\', \'BucketOwnerFullControl\', \'LogDeliveryWrite\', \'Private\' or \'PublicRead\'');
         });
@@ -95,7 +98,7 @@ describe('s3 deployer', () => {
                 bucket_name: 'somename',
                 bucket_acl: 'PublicRead'
             };
-            const errors = s3.check(ownServiceContext, []);
+            const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -121,7 +124,7 @@ describe('s3 deployer', () => {
                 }]
             }));
 
-            const deployContext = await s3.deploy(ownServiceContext, preDeployContext, []);
+            const deployContext = await s3.deploy!(ownServiceContext, preDeployContext, []);
             expect(createLoggingBucketStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -181,7 +184,7 @@ describe('s3 deployer', () => {
 
                 const configureBucketNotificationsStub = sandbox.stub(s3Calls, 'configureBucketNotifications').resolves({});
 
-                const produceEventsContext = await s3.produceEvents(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await s3.produceEvents!(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
                 expect(configureBucketNotificationsStub.callCount).to.equal(1);
                 expect(configureBucketNotificationsStub.getCall(0).args).to.deep.equal([
                     bucketName,
@@ -204,7 +207,7 @@ describe('s3 deployer', () => {
             };
 
             try {
-                const produceEventsContext = await s3.produceEvents(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await s3.produceEvents!(ownServiceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
                 expect(true).to.equal(false); // SHould not get here
             }
             catch(err) {
@@ -223,7 +226,7 @@ describe('s3 deployer', () => {
 
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(new UnDeployContext(ownServiceContext)));
 
-            const unDeployContext = await s3.unDeploy(ownServiceContext);
+            const unDeployContext = await s3.unDeploy!(ownServiceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

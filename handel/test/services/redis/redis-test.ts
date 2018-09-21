@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
@@ -30,7 +31,7 @@ import { bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-ext
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as redis from '../../../src/services/redis';
+import { Service } from '../../../src/services/redis';
 import { RedisServiceConfig } from '../../../src/services/redis/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,8 +42,10 @@ describe('redis deployer', () => {
     let serviceContext: ServiceContext<RedisServiceConfig>;
     let serviceParams: RedisServiceConfig;
     let accountConfig: AccountConfig;
+    let redis: ServiceDeployer;
 
     beforeEach(async () => {
+        redis = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -60,14 +63,14 @@ describe('redis deployer', () => {
     describe('check', () => {
         it('should do require the instance_type parameter', () => {
             delete serviceContext.params.instance_type;
-            const errors = redis.check(serviceContext, []);
+            const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'instance_type' parameter is required`);
         });
 
         it('should require the redis_version parameter', () => {
             delete serviceContext.params.redis_version;
-            const errors = redis.check(serviceContext, []);
+            const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'redis_version' parameter is required`);
         });
@@ -75,7 +78,7 @@ describe('redis deployer', () => {
         it('should fail if the read_replicas parameter is not between 0-5', () => {
             serviceContext.params.instance_type = 'cache.m3.medium';
             serviceContext.params.read_replicas = 6;
-            const errors = redis.check(serviceContext, []);
+            const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'read_replicas' parameter may only have a value of 0-5`);
         });
@@ -83,13 +86,13 @@ describe('redis deployer', () => {
         it('should fail if the instance_type is a t* class when using replication', () => {
             serviceContext.params.read_replicas = 5;
             serviceContext.params.instance_type = 'cache.t2.micro';
-            const errors = redis.check(serviceContext, []);
+            const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`You may not use the 't1' and 't2' instance types when using any read replicas`);
         });
 
         it('should work when all parameters are provided properly', () => {
-            const errors = redis.check(serviceContext, []);
+            const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -103,7 +106,7 @@ describe('redis deployer', () => {
             });
             const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await redis.preDeploy(serviceContext);
+            const retContext = await redis.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -116,7 +119,7 @@ describe('redis deployer', () => {
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOfService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
-            const bindContext = await redis.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
+            const bindContext = await redis.bind!(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
         });
@@ -147,7 +150,7 @@ describe('redis deployer', () => {
                 ]
             });
 
-            const deployContext = await redis.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await redis.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
@@ -159,7 +162,7 @@ describe('redis deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await redis.unPreDeploy(serviceContext);
+            const unPreDeployContext = await redis.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -169,7 +172,7 @@ describe('redis deployer', () => {
         it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await redis.unBind(serviceContext);
+            const unBindContext = await redis.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -179,7 +182,7 @@ describe('redis deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await redis.unDeploy(serviceContext);
+            const unDeployContext = await redis.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });
