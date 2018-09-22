@@ -56,11 +56,24 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
     return ec2Calls.getSecurityGroupById(groupId!, accountConfig.vpc);
 }
 
-export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
+export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string): Promise<PreDeployContext> {
     const sgName = serviceContext.stackName();
-
     const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext, getTags(serviceContext));
+    if(!securityGroup) {
+        throw new Error(`Did not get back security group '${sgName}' after creating it`);
+    }
     const preDeployContext = new PreDeployContext(serviceContext);
-    preDeployContext.securityGroups.push(securityGroup!);
+    preDeployContext.securityGroups.push(securityGroup);
+    return preDeployContext;
+}
+
+export async function getSecurityGroup(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext> {
+    const sgName = serviceContext.stackName();
+    const accountConfig = serviceContext.accountConfig;
+    const securityGroup = await ec2Calls.getSecurityGroup(sgName, accountConfig.vpc);
+    const preDeployContext = new PreDeployContext(serviceContext);
+    if(securityGroup) {
+        preDeployContext.securityGroups.push(securityGroup);
+    }
     return preDeployContext;
 }

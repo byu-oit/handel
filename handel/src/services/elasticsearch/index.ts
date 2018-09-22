@@ -27,7 +27,16 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iamCalls from '../../aws/iam-calls';
 import { ElasticsearchConfig, HandlebarsDedicatedMasterNode, HandlebarsEbs, HandlebarsElasticsearchTemplate } from './config-types';
@@ -131,6 +140,10 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, ES_PORT, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<ElasticsearchConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async bind(ownServiceContext: ServiceContext<ElasticsearchConfig>,
         ownPreDeployContext: PreDeployContext,
         dependentOfServiceContext: ServiceContext<ServiceConfig>,
@@ -161,7 +174,7 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnBindContext> {
+    public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
         return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
     }
 

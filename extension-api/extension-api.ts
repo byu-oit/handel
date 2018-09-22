@@ -41,7 +41,7 @@ export interface ServiceDeployer {
     supportsTagging: boolean; // If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
 
     // ------------------------------------------------
-    // Phase types that hte provisioner supports
+    // Phase types that the provisioner supports
     // ------------------------------------------------
     /**
      * Checks the given service configuration in the user's Handel file for required parameters and correctness.
@@ -58,8 +58,17 @@ export interface ServiceDeployer {
      * Implement this phase if you'll be creating security groups for any of your resources
      *
      * Example AWS services that woulod need to implement this phase include Beanstalk and RDS
+     *
+     * NOTE: If you implement preDeploy, you must implement getPreDeployContext as well
      */
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
+
+    /**
+     * Get the PreDeploy context information without running preDeploy
+     *
+     * Return null if preDeploy has not been executed yet
+     */
+    getPreDeployContext?(serviceContext: ServiceContext<ServiceConfig>): Promise<IPreDeployContext>;
 
     /**
      * Bind two resources from the preDeploy phase together by performing some wiring action on them. An example
@@ -83,8 +92,17 @@ export interface ServiceDeployer {
      * created for your service.
      *
      * All this service's dependencies are guaranteed to be deployed before this phase gets called
+     *
+     * NOTE: If you implement deploy, you must implement getDeployContext as well
      */
     deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
+
+    /**
+     * Get the DeployContext information without running deploy
+     *
+     * Return null if deploy has not been executed yet
+     */
+    getDeployContext?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
 
     /**
      * In this phase, this service should make any changes necessary to allow it to consume events from the given source
@@ -114,7 +132,7 @@ export interface ServiceDeployer {
     /**
      * In this phase, the service should remove all bindings on preDeploy resources.
      */
-    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
+    unBind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IUnBindContext>;
 
     /**
      * In this phase, the service should delete resources created during the deploy phase.

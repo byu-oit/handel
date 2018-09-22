@@ -185,6 +185,14 @@ export class Service implements ServiceDeployer {
         }
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
+        if (serviceContext.params.vpc) {
+            return preDeployPhase.getSecurityGroup(serviceContext);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
     public async deploy(ownServiceContext: ServiceContext<LambdaServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
         const stackName = ownServiceContext.stackName();
         winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);

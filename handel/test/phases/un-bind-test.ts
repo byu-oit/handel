@@ -15,17 +15,29 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, DeployOutputType, ServiceContext, ServiceType, UnBindContext } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployOutputType,
+    PreDeployContext,
+    ServiceContext,
+    ServiceType,
+    UnBindContext
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../src/account-config/account-config';
-import { DeployOrder, EnvironmentContext, } from '../../src/datatypes';
+import {
+    DeployOrder,
+    EnvironmentContext,
+    PreDeployContexts
+} from '../../src/datatypes';
 import * as unBindPhase from '../../src/phases/un-bind';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
 import FakeServiceRegistry from '../service-registry/fake-service-registry';
 
 describe('unBind', () => {
     let sandbox: sinon.SinonSandbox;
+    let preDeployContexts: PreDeployContexts;
     let accountConfig: AccountConfig;
 
     beforeEach(async () => {
@@ -69,6 +81,11 @@ describe('unBind', () => {
             const serviceContextA = new ServiceContext(appName, environmentName, serviceNameA, new ServiceType(STDLIB_PREFIX, serviceTypeA), paramsA, accountConfig);
             environmentContext.serviceContexts[serviceNameA] = serviceContextA;
 
+            // Construct PreDeployContexts
+            preDeployContexts = {};
+            preDeployContexts[serviceNameA] = new PreDeployContext(serviceContextA);
+            preDeployContexts[serviceNameB] = new PreDeployContext(serviceContextB);
+
             // Set deploy order
             deployOrder = [
                 [serviceNameB],
@@ -108,8 +125,8 @@ describe('unBind', () => {
                 }
             });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
-            expect(unBindContexts.B).to.be.instanceof(UnBindContext);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, levelToUnBind);
+            expect(unBindContexts['A->B']).to.be.instanceof(UnBindContext);
         });
 
         it('should return emtpy unbind contexts for services that dont implement unbind', async () => {
@@ -141,8 +158,8 @@ describe('unBind', () => {
                 }
             });
 
-            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, levelToUnBind);
-            expect(unBindContexts.B).to.be.instanceof(UnBindContext);
+            const unBindContexts = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, levelToUnBind);
+            expect(unBindContexts['A->B']).to.be.instanceof(UnBindContext);
         });
     });
 });
