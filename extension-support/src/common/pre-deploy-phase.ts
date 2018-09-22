@@ -68,11 +68,19 @@ export async function preDeployCreateSecurityGroup(serviceContext: ServiceContex
 }
 
 export async function getSecurityGroup(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext> {
-    const sgName = serviceContext.stackName();
-    const accountConfig = serviceContext.accountConfig;
-    const securityGroup = await ec2Calls.getSecurityGroup(sgName, accountConfig.vpc);
     const preDeployContext = new PreDeployContext(serviceContext);
-    if(securityGroup) {
+    const accountConfig = serviceContext.accountConfig;
+    const sgName = serviceContext.stackName();
+    const stack = await cloudformationCalls.getStack(sgName);
+    if(stack) {
+        const groupId = cloudformationCalls.getOutput('GroupId', stack);
+        if(!groupId) {
+            throw new Error('CloudFormation stack didnt return security group id');
+        }
+        const securityGroup = await ec2Calls.getSecurityGroupById(groupId, accountConfig.vpc);
+        if(!securityGroup) {
+            throw new Error('Could not find security group referenced in CloudFormation stack');
+        }
         preDeployContext.securityGroups.push(securityGroup);
     }
     return preDeployContext;

@@ -84,4 +84,32 @@ describe('PreDeploy Phase Common module', () => {
             expect(getSecurityGroupByIdStub.callCount).to.equal(1);
         });
     });
+
+    describe('getSecurityGroup', () => {
+        it('should return the security group in the PreDeployContext when it exists', async () => {
+            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves({
+                Outputs: [{
+                    OutputKey: 'GroupId',
+                    OutputValue: 'SomeId'
+                }]
+            });
+            const getSecurityGroupByIdStub = sandbox.stub(ec2Calls, 'getSecurityGroupById').resolves({});
+
+            const preDeployContext = await preDeployPhase.getSecurityGroup(serviceContext);
+            expect(preDeployContext).to.be.instanceOf(PreDeployContext);
+            expect(preDeployContext.securityGroups.length).to.equal(1);
+            expect(preDeployContext.securityGroups[0]).to.deep.equal({});
+            expect(getStackStub.callCount).to.equal(1);
+            expect(getSecurityGroupByIdStub.callCount).to.equal(1);
+        });
+
+        it('should return an emtpy PreDeployContext when the security group doesnt exist', async () => {
+            const getStackStub = sandbox.stub(cloudformationCalls, 'getStack').resolves(null);
+
+            const preDeployContext = await preDeployPhase.getSecurityGroup(serviceContext);
+            expect(preDeployContext).to.be.instanceOf(PreDeployContext);
+            expect(preDeployContext.securityGroups.length).to.equal(0);
+            expect(getStackStub.callCount).to.equal(1);
+        });
+    });
 });

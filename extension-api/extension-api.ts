@@ -92,17 +92,8 @@ export interface ServiceDeployer {
      * created for your service.
      *
      * All this service's dependencies are guaranteed to be deployed before this phase gets called
-     *
-     * NOTE: If you implement deploy, you must implement getDeployContext as well
      */
     deploy?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
-
-    /**
-     * Get the DeployContext information without running deploy
-     *
-     * Return null if deploy has not been executed yet
-     */
-    getDeployContext?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependenciesDeployContexts: IDeployContext[]): Promise<IDeployContext>;
 
     /**
      * In this phase, this service should make any changes necessary to allow it to consume events from the given source
