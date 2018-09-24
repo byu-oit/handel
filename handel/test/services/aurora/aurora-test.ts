@@ -20,18 +20,19 @@ import {
     BindContext,
     DeployContext,
     PreDeployContext,
+    ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
-    UnPreDeployContext,
-    ServiceConfig
+    UnPreDeployContext
 } from 'handel-extension-api';
 import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as aurora from '../../../src/services/aurora';
+import { Service } from '../../../src/services/aurora';
 import { AuroraConfig, AuroraEngine } from '../../../src/services/aurora/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -42,8 +43,10 @@ describe('aurora deployer', () => {
     let serviceContext: ServiceContext<AuroraConfig>;
     let serviceParams: AuroraConfig;
     let accountConfig: AccountConfig;
+    let aurora: ServiceDeployer;
 
     beforeEach(async () => {
+        aurora = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -76,7 +79,7 @@ describe('aurora deployer', () => {
         });
 
         it('should create a security group when using MySQL', async () => {
-            const retPreDeployContext = await aurora.preDeploy(serviceContext);
+            const retPreDeployContext = await aurora.preDeploy!(serviceContext);
             expect(createSgStub.getCall(0).args[1]).to.equal(3306);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
@@ -87,7 +90,7 @@ describe('aurora deployer', () => {
         it('should create a security group when using PostgreSQL', async () => {
             serviceContext.params.engine = AuroraEngine.postgresql;
             serviceContext.params.version = '9.6.6';
-            const retPreDeployContext = await aurora.preDeploy(serviceContext);
+            const retPreDeployContext = await aurora.preDeploy!(serviceContext);
             expect(createSgStub.getCall(0).args[1]).to.equal(5432);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
@@ -113,7 +116,7 @@ describe('aurora deployer', () => {
         });
 
         it('should add the source sg to its own sg as an ingress rule when using MySQL', async () => {
-            const bindContext = await aurora.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await aurora.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -123,7 +126,7 @@ describe('aurora deployer', () => {
         it('should add the source sg to its own sg as an ingress rule when using PostgreSQL', async () => {
             serviceContext.params.engine = AuroraEngine.postgresql;
             serviceContext.params.version = '9.6.6';
-            const bindContext = await aurora.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await aurora.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -176,7 +179,7 @@ describe('aurora deployer', () => {
             const addCredentialsStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
                 .resolves(deployedStack);
 
-            const deployContext = await aurora.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await aurora.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
             expect(addCredentialsStub.callCount).to.equal(2);
@@ -191,7 +194,7 @@ describe('aurora deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
             const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
-            const deployContext = await aurora.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await aurora.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -207,7 +210,7 @@ describe('aurora deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await aurora.unPreDeploy(serviceContext);
+            const unPreDeployContext = await aurora.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -218,7 +221,7 @@ describe('aurora deployer', () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await aurora.unBind(serviceContext);
+            const unBindContext = await aurora.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -230,7 +233,7 @@ describe('aurora deployer', () => {
                 .resolves(new UnDeployContext(serviceContext));
             const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore').resolves({});
 
-            const unDeployContext = await aurora.unDeploy(serviceContext);
+            const unDeployContext = await aurora.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
             expect(deleteParametersStub.callCount).to.equal(1);

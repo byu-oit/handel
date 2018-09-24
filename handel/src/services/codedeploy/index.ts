@@ -19,6 +19,7 @@ import {
     DeployOutputType,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     Tags,
     UnDeployContext,
     UnPreDeployContext
@@ -68,62 +69,56 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
     return handlebars.compileTemplate(`${__dirname}/codedeploy-asg-template.handlebars`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedEventsSupportedTypes = [];
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Scripts,
+        DeployOutputType.Policies,
+        DeployOutputType.Credentials,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<CodeDeployServiceConfig>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export async function preDeploy(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
-
-    const stackTags = tagging.getTags(ownServiceContext);
-    const existingStack = await awsCalls.cloudFormation.getStack(stackName);
-    const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
-    const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
-    const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
-    const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
-    const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, s3ArtifactInfo, amiToDeploy);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, codeDeployTemplate, [], true, 30, stackTags);
-
-    // If we need to roll the instances (calculated prior to deploy) do so now
-    if(shouldRollInstances) {
-        winston.info('Change necessitated new EC2 instances. Rolling auto-scaling group to get new instances...');
-        await asgLaunchConfig.rollInstances(ownServiceContext, deployedStack);
+    public check(serviceContext: ServiceContext<CodeDeployServiceConfig>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
-    return new DeployContext(ownServiceContext);
+    public async preDeploy(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);
+
+        const stackTags = tagging.getTags(ownServiceContext);
+        const existingStack = await awsCalls.cloudFormation.getStack(stackName);
+        const amiToDeploy = await asgLaunchConfig.getCodeDeployAmi();
+        const shouldRollInstances = await asgLaunchConfig.shouldRollInstances(ownServiceContext, amiToDeploy, existingStack);
+        const userDataScript = await asgLaunchConfig.getUserDataScript(ownServiceContext, dependenciesDeployContexts);
+        const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifactToS3(ownServiceContext, dependenciesDeployContexts, SERVICE_NAME);
+        const codeDeployTemplate = await getCompiledCodeDeployTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, stackTags, userDataScript, s3ArtifactInfo, amiToDeploy);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, codeDeployTemplate, [], true, 30, stackTags);
+
+        // If we need to roll the instances (calculated prior to deploy) do so now
+        if(shouldRollInstances) {
+            winston.info('Change necessitated new EC2 instances. Rolling auto-scaling group to get new instances...');
+            await asgLaunchConfig.rollInstances(ownServiceContext, deployedStack);
+        }
+
+        winston.info(`${SERVICE_NAME} - Finished deploying application '${stackName}'`);
+        return new DeployContext(ownServiceContext);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function unPreDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Scripts,
-    DeployOutputType.Policies,
-    DeployOutputType.Credentials,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;

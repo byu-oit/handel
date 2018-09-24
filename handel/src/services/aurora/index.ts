@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     Tags,
     UnBindContext,
     UnDeployContext,
@@ -50,7 +51,7 @@ function getEngine(engineParam: AuroraEngine) {
 }
 
 function getPort(params: AuroraConfig) {
-    if(params.engine === AuroraEngine.mysql) {
+    if (params.engine === AuroraEngine.mysql) {
         return MYSQL_PORT;
     } else {
         return POSTGRES_PORT;
@@ -58,7 +59,7 @@ function getPort(params: AuroraConfig) {
 }
 
 function getParameterGroupFamily(engine: AuroraEngine, version: string) {
-    if(engine === AuroraEngine.mysql) { // MySQL
+    if (engine === AuroraEngine.mysql) { // MySQL
         if (version.startsWith('5.7')) {
             return 'aurora-mysql5.7';
         }
@@ -67,7 +68,7 @@ function getParameterGroupFamily(engine: AuroraEngine, version: string) {
         }
     }
     else { // PostgreSQL
-        if(version.startsWith('9.6')) {
+        if (version.startsWith('9.6')) {
             return 'aurora-postgresql9.6';
         }
         else {
@@ -78,10 +79,10 @@ function getParameterGroupFamily(engine: AuroraEngine, version: string) {
 
 function getInstanceType(params: AuroraConfig): string {
     let instanceType: string;
-    if(params.instance_type) {
+    if (params.instance_type) {
         instanceType = params.instance_type;
     } else {
-        if(params.engine === 'mysql') {
+        if (params.engine === 'mysql') {
             instanceType = 'db.t2.small'; // The smallest size MySQL Aurora supports
         }
         else {
@@ -94,7 +95,7 @@ function getInstanceType(params: AuroraConfig): string {
 function getInstancesHandlebarsConfig(params: AuroraConfig): HandlebarsInstanceConfig[] {
     const clusterSize = params.cluster_size || 1;
     const instances: HandlebarsInstanceConfig[] = [];
-    for(let i = 0; i < clusterSize; i++) {
+    for (let i = 0; i < clusterSize; i++) {
         instances.push({
             instanceType: getInstanceType(params)
         });
@@ -103,9 +104,9 @@ function getInstancesHandlebarsConfig(params: AuroraConfig): HandlebarsInstanceC
 }
 
 function getCompiledAuroraTemplate(stackName: string,
-                                  ownServiceContext: ServiceContext<AuroraConfig>,
-                                  ownPreDeployContext: PreDeployContext,
-                                  tags: Tags) {
+    ownServiceContext: ServiceContext<AuroraConfig>,
+    ownPreDeployContext: PreDeployContext,
+    tags: Tags) {
     const params = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
     const engine = getEngine(params.engine);
@@ -140,7 +141,7 @@ function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
     const readEndpoint = awsCalls.cloudFormation.getOutput('ClusterReadEndpoint', rdsCfStack);
     const dbName = awsCalls.cloudFormation.getOutput('DatabaseName', rdsCfStack);
 
-    if(!clusterEndpoint || !port || !readEndpoint || !dbName) {
+    if (!clusterEndpoint || !port || !readEndpoint || !dbName) {
         throw new Error('Expected RDS service to return address, port, and dbName');
     }
 
@@ -159,89 +160,87 @@ function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
  * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
  *   for contract method documentation
  */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<AuroraConfig>,
-                      dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export function preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
-    const dbPort = getPort(serviceContext.params);
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, dbPort, SERVICE_NAME);
-}
-
-export function bind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    const dbPort = getPort(ownServiceContext.params);
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
-        ownPreDeployContext,
-        dependentOfServiceContext,
-        dependentOfPreDeployContext,
-        DB_PROTOCOL,
-        dbPort,
-        SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<AuroraConfig>,
-                             ownPreDeployContext: PreDeployContext,
-                             dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
-
-    const stack = await awsCalls.cloudFormation.getStack(stackName);
-    if (!stack) {
-        const dbUsername = rdsDeployersCommon.getNewDbUsername();
-        const dbPassword = rdsDeployersCommon.getNewDbPassword();
-        const tags = tagging.getTags(ownServiceContext);
-        const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext, tags);
-        const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
-            DBUsername: dbUsername,
-            DBPassword: dbPassword
-        });
-        winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
-                                                                    compiledTemplate,
-                                                                    cfParameters,
-                                                                    30,
-                                                                    tags);
-        winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
-
-        // Add DB credentials to the Parameter Store
-        await Promise.all([
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
-        ]);
-
-        winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
-        return getDeployContext(ownServiceContext, deployedStack);
+    public check(serviceContext: ServiceContext<AuroraConfig>, dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
-    else {
-        winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
-        return getDeployContext(ownServiceContext, stack);
+
+    public async preDeploy(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
+        const dbPort = getPort(serviceContext.params);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, dbPort, SERVICE_NAME);
+    }
+
+    public async bind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+        const dbPort = getPort(ownServiceContext.params);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+            ownPreDeployContext,
+            dependentOfServiceContext,
+            dependentOfPreDeployContext,
+            DB_PROTOCOL,
+            dbPort,
+            SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<AuroraConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
+
+        const stack = await awsCalls.cloudFormation.getStack(stackName);
+        if (!stack) {
+            const dbUsername = rdsDeployersCommon.getNewDbUsername();
+            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const tags = tagging.getTags(ownServiceContext);
+            const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext, tags);
+            const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
+                DBUsername: dbUsername,
+                DBPassword: dbPassword
+            });
+            winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
+            const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
+                compiledTemplate,
+                cfParameters,
+                30,
+                tags);
+            winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
+
+            // Add DB credentials to the Parameter Store
+            await Promise.all([
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
+            ]);
+
+            winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
+            return getDeployContext(ownServiceContext, deployedStack);
+        }
+        else {
+            winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
+            return getDeployContext(ownServiceContext, stack);
+        }
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unBind(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnBindContext> {
+        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnDeployContext> {
+        const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+        await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
+        return unDeployContext;
     }
 }
-
-export function unPreDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export function unBind(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnBindContext> {
-    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnDeployContext> {
-    const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-    await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
-    return unDeployContext;
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

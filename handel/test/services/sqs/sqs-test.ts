@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext
@@ -30,7 +31,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sqsCalls from '../../../src/aws/sqs-calls';
-import * as sqs from '../../../src/services/sqs';
+import { Service } from '../../../src/services/sqs';
 import { SqsServiceConfig } from '../../../src/services/sqs/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -43,8 +44,10 @@ describe('sqs deployer', () => {
     const envName = 'FakeEnv';
     const serviceName = 'FakeService'; // FIXME: deadLetter versions?
     const serviceType = 'sqs';
+    let sqs: ServiceDeployer;
 
     beforeEach(async () => {
+        sqs = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 'sqs',
@@ -110,7 +113,7 @@ describe('sqs deployer', () => {
                 ]
             });
 
-            const deployContext = await sqs.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await sqs.deploy!(serviceContext, ownPreDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -158,7 +161,7 @@ describe('sqs deployer', () => {
             const addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').resolves({});
 
             const eventConsumerConfig = { service_name: serviceName };
-            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await sqs.consumeEvents!(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSqsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -175,7 +178,7 @@ describe('sqs deployer', () => {
             const addSqsPermissionStub = sandbox.stub(sqsCalls, 'addSqsPermissionIfNotExists').resolves({});
 
             const eventConsumerConfig = { service_name: serviceName };
-            const consumeEventsContext = await sqs.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await sqs.consumeEvents!(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSqsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -185,7 +188,7 @@ describe('sqs deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await sqs.unDeploy(serviceContext);
+            const unDeployContext = await sqs.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

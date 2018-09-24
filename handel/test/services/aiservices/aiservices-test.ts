@@ -15,11 +15,18 @@
  *
  */
 import { expect } from 'chai';
-import {  AccountConfig, DeployContext, PreDeployContext, ServiceContext, ServiceType } from 'handel-extension-api';
+import {
+    AccountConfig,
+    DeployContext,
+    PreDeployContext,
+    ServiceContext,
+    ServiceDeployer,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as aiservices from '../../../src/services/aiservices';
+import { Service } from '../../../src/services/aiservices';
 import { AIServicesConfig } from '../../../src/services/aiservices/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -28,8 +35,10 @@ describe('aiservices deployer', () => {
     let serviceContext: ServiceContext<AIServicesConfig>;
     let serviceParams: AIServicesConfig;
     let accountConfig: AccountConfig;
+    let aiservices: ServiceDeployer;
 
     beforeEach(async () => {
+        aiservices = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -48,7 +57,7 @@ describe('aiservices deployer', () => {
     describe('check', () => {
         it('should not allow invaid or unsupported ai services', () => {
             serviceParams.ai_services[0] = 'fake';
-            const errors = aiservices.check(serviceContext, []);
+            const errors = aiservices.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`The 'ai_services' field must be a list of strings, containing 'rekognition' or 'polly'`);
         });
@@ -57,7 +66,7 @@ describe('aiservices deployer', () => {
     describe('deploy', () => {
         it('should return a deploy context with the given policies', async () => {
             const preDeployContext = new PreDeployContext(serviceContext);
-            const deployContext = await aiservices.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await aiservices.deploy!(serviceContext, preDeployContext, []);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies.length).to.equal(2);
         });

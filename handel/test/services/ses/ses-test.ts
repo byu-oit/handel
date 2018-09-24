@@ -20,13 +20,14 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as sesCalls from '../../../src/aws/ses-calls';
-import * as ses from '../../../src/services/ses';
+import { Service } from '../../../src/services/ses';
 import { SesServiceConfig } from '../../../src/services/ses/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -38,8 +39,10 @@ describe('ses deployer', () => {
     const app = `FakeApp`;
     const env = `FakeEnv`;
     const service = 'FakeService';
+    let ses: ServiceDeployer;
 
     beforeEach(async () => {
+        ses = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 'ses',
@@ -56,18 +59,18 @@ describe('ses deployer', () => {
     describe('check', () => {
         it(`should require an address`, () => {
             delete serviceContext.params.address;
-            const errors = ses.check(serviceContext, []);
+            const errors = ses.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`field is required`);
         });
         it(`should require a valid email address`, () => {
             serviceContext.params.address = 'example.com';
-            const errors = ses.check(serviceContext, []);
+            const errors = ses.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`valid email address`);
         });
         it(`should pass with a valid address`, () => {
-            const errors = ses.check(serviceContext, []);
+            const errors = ses.check!(serviceContext, []);
             expect(errors).to.deep.equal([]);
         });
     });
@@ -80,7 +83,7 @@ describe('ses deployer', () => {
 
             const verifyStub = sandbox.stub(sesCalls, 'verifyEmailAddress').returns(Promise.resolve());
 
-            const deployContext = await ses.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await ses.deploy!(serviceContext, ownPreDeployContext, []);
             expect(verifyStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
 
