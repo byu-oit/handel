@@ -53,6 +53,11 @@ const aiServicePolicies: AIServicePolicies = {
         };
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/polly-statements.json`, params);
         return JSON.parse(compiledTemplate);
+    },
+    'comprehend': async (serviceContext: ServiceContext<AIServicesConfig>) => {
+        const params = {};
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/comprehend-statements.json`, params);
+        return JSON.parse(compiledTemplate);
     }
 };
 
