@@ -2,35 +2,7 @@
     {
         "Effect": "Allow",
         "Action": [
-            "comprehend:BatchDetectDominantLanguage",
-            "comprehend:BatchDetectEntities",
-            "comprehend:BatchDetectKeyPhrases",
-            "comprehend:BatchDetectSentiment",
-            "comprehend:BatchDetectSyntax",
-            "comprehend:DescribeGominantLanguageDetectionJob",
-            "comprehend:DescribeEntitiesDetectionJob",
-            "comprehend:DescribeKeyPhrasesDetectionJob",
-            "comprehend:DescribeSentimentDetectionJob",
-            "comprehend:DescribeTopicsDetectionJob",
-            "comprehend:DetectDominantLanguage",
-            "comprehend:DetectEntities",
-            "comprehend:DetectKeyPhrases",
-            "comprehend:DetectSentiment",
-            "comprehend:DetectSyntax",
-            "comprehend:ListDominantLanguageDetectionJobs",
-            "comprehend:ListEntitiesDetectionJobs",
-            "comprehend:ListKeyPhrasesDetectionJobs",
-            "comprehend:ListSentimentDetectionJobs",
-            "comprehend:ListTopicsDectectionJobs",
-            "comprehend:StartDominantLanguageDetectionJob",
-            "comprehend:StartEntitiesDetectionJob",
-            "comprehend:StartKeyPhrasesDetectionJob",
-            "comprehend:StartSentimentDetectionJob",
-            "comprehend:StartTopicsDetectionJob",
-            "comprehend:StopDominantLanguageDetectionJob",
-            "comprehend:StopEntitiesDetectionJob",
-            "comprehend:StopKeyPhrasesDetectionJob",
-            "comprehend:StopSentimentDetectionJob"
+            "comprehend:*"
         ],
         "Resource": [
             "*"
