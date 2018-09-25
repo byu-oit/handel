@@ -24,6 +24,15 @@
 
 import * as AWS from 'aws-sdk';
 
+// Note: I don't like doing this, but because we have two versions of the aws-sdk in Handel (one from this package and one from the handel package)
+//    I don't know what else to do to configure these options globally at the moment
+AWS.config.update({
+    maxRetries: 10,
+    retryDelayOptions: {
+        base: 300
+    }
+});
+
 const awsWrapper = {
     cloudFormation: {
         describeStacks: (params: AWS.CloudFormation.DescribeStacksInput) => {
