@@ -21,11 +21,17 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext,
     UnPreDeployContext,
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
+import {
+    awsCalls,
+    deletePhases,
+    deployPhase,
+    preDeployPhase
+} from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
@@ -33,9 +39,8 @@ import * as ec2Calls from '../../../src/aws/ec2-calls';
 import * as route53calls from '../../../src/aws/route53-calls';
 import * as ecsContainers from '../../../src/common/ecs-containers';
 import * as ecsRouting from '../../../src/common/ecs-routing';
-import * as ecsServiceAutoScaling from '../../../src/common/ecs-service-auto-scaling';
 import { LoadBalancerConfigType } from '../../../src/common/ecs-shared-config-types';
-import * as ecs from '../../../src/services/ecs';
+import { Service } from '../../../src/services/ecs';
 import * as asgCycling from '../../../src/services/ecs/asg-cycling';
 import * as clusterAutoScaling from '../../../src/services/ecs/cluster-auto-scaling';
 import { EcsServiceConfig } from '../../../src/services/ecs/config-types';
@@ -87,8 +92,10 @@ describe('ecs deployer', () => {
     let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
+    let ecs: ServiceDeployer;
 
     beforeEach(async () => {
+        ecs = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = clone(VALID_ECS_CONFIG);
@@ -109,7 +116,7 @@ describe('ecs deployer', () => {
         });
 
         it('should return no errors on a successful configuration', () => {
-            const errors = ecs.check(serviceContext, []);
+            const errors = ecs.check!(serviceContext, []);
 
             expect(errors.length).to.equal(0);
             expect(checkLoadBalancerStub.callCount).to.equal(1);
@@ -118,7 +125,7 @@ describe('ecs deployer', () => {
 
         it('should only take an integer in \'health_check_grace_period\'', () => {
             serviceContext.params.load_balancer!.health_check_grace_period = 10.57;
-            const errors = ecs.check(serviceContext, []);
+            const errors = ecs.check!(serviceContext, []);
 
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('The \'health_check_grace_period\' parameter must be an integer');
@@ -127,7 +134,7 @@ describe('ecs deployer', () => {
         describe('\'logging\' validation', () => {
             it('should allow \'enabled\'', () => {
                 serviceContext.params.logging = 'enabled';
-                const errors = ecs.check(serviceContext, []);
+                const errors = ecs.check!(serviceContext, []);
                 expect(errors.length).to.equal(0);
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
@@ -135,7 +142,7 @@ describe('ecs deployer', () => {
 
             it('should allow \'disabled\'', () => {
                 serviceContext.params.logging = 'disabled';
-                const errors = ecs.check(serviceContext, []);
+                const errors = ecs.check!(serviceContext, []);
                 expect(errors.length).to.equal(0);
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
@@ -143,7 +150,7 @@ describe('ecs deployer', () => {
 
             it('should reject anything else', () => {
                 serviceContext.params.logging = 'something else';
-                const errors = ecs.check(serviceContext, []);
+                const errors = ecs.check!(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
@@ -161,7 +168,7 @@ describe('ecs deployer', () => {
             });
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await ecs.preDeploy(serviceContext);
+            const retContext = await ecs.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -238,7 +245,7 @@ describe('ecs deployer', () => {
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
-            const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await ecs.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
@@ -284,7 +291,7 @@ describe('ecs deployer', () => {
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
-            const deployContext = await ecs.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await ecs.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
@@ -311,7 +318,7 @@ describe('ecs deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await ecs.unPreDeploy(serviceContext);
+            const unPreDeployContext = await ecs.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -321,7 +328,7 @@ describe('ecs deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await ecs.unDeploy(serviceContext);
+            const unDeployContext = await ecs.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

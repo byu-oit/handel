@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
@@ -28,7 +29,7 @@ import {
 import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
-import {HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType} from './config-types';
+import { HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType } from './config-types';
 
 const SERVICE_NAME = 'MySQL';
 const MYSQL_PORT = 3306;
@@ -47,8 +48,8 @@ function getParameterGroupFamily(mysqlVersion: string) {
 }
 
 function getCompiledMysqlTemplate(stackName: string,
-                                  ownServiceContext: ServiceContext<MySQLConfig>,
-                                  ownPreDeployContext: PreDeployContext) {
+    ownServiceContext: ServiceContext<MySQLConfig>,
+    ownPreDeployContext: PreDeployContext) {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -82,95 +83,89 @@ function getCompiledMysqlTemplate(stackName: string,
     return handlebars.compileTemplate(`${__dirname}/mysql-template.yml`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<MySQLConfig>,
-                      dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export function preDeploy(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
-}
-
-export function bind(ownServiceContext: ServiceContext<MySQLConfig>,
-                     ownPreDeployContext: PreDeployContext,
-                     dependentOfServiceContext: ServiceContext<ServiceConfig>,
-                     dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
-        ownPreDeployContext,
-        dependentOfServiceContext,
-        dependentOfPreDeployContext,
-        MYSQL_PROTOCOL,
-        MYSQL_PORT,
-        SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<MySQLConfig>,
-                             ownPreDeployContext: PreDeployContext,
-                             dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
-
-    const stack = await awsCalls.cloudFormation.getStack(stackName);
-    if (!stack) {
-        const dbUsername = rdsDeployersCommon.getNewDbUsername();
-        const dbPassword = rdsDeployersCommon.getNewDbPassword();
-        const compiledTemplate = await getCompiledMysqlTemplate(stackName, ownServiceContext, ownPreDeployContext);
-        const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
-            DBUsername: dbUsername,
-            DBPassword: dbPassword
-        });
-        const stackTags = tagging.getTags(ownServiceContext);
-        winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
-                                                                    compiledTemplate,
-                                                                    cfParameters,
-                                                                    30,
-                                                                    stackTags);
-        winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
-
-        // Add DB credentials to the Parameter Store
-        await Promise.all([
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
-        ]);
-
-        winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
+    public check(serviceContext: ServiceContext<MySQLConfig>,
+        dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
-    else {
-        winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, stack);
+
+    public async preDeploy(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
+    }
+
+    public async bind(ownServiceContext: ServiceContext<MySQLConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependentOfServiceContext: ServiceContext<ServiceConfig>,
+        dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+            ownPreDeployContext,
+            dependentOfServiceContext,
+            dependentOfPreDeployContext,
+            MYSQL_PROTOCOL,
+            MYSQL_PORT,
+            SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<MySQLConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
+
+        const stack = await awsCalls.cloudFormation.getStack(stackName);
+        if (!stack) {
+            const dbUsername = rdsDeployersCommon.getNewDbUsername();
+            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const compiledTemplate = await getCompiledMysqlTemplate(stackName, ownServiceContext, ownPreDeployContext);
+            const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
+                DBUsername: dbUsername,
+                DBPassword: dbPassword
+            });
+            const stackTags = tagging.getTags(ownServiceContext);
+            winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
+            const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
+                compiledTemplate,
+                cfParameters,
+                30,
+                stackTags);
+            winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}`);
+
+            // Add DB credentials to the Parameter Store
+            await Promise.all([
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
+            ]);
+
+            winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
+            return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
+        }
+        else {
+            winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
+            return rdsDeployersCommon.getDeployContext(ownServiceContext, stack);
+        }
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
+        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {
+        const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+        await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
+        return unDeployContext;
     }
 }
-
-export function unPreDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export function unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
-    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {
-    const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-    await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
-    return unDeployContext;
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

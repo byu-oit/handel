@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
@@ -31,7 +32,7 @@ import { deletePhases, deployPhase, preDeployPhase } from 'handel-extension-supp
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as memcached from '../../../src/services/memcached';
+import { Service } from '../../../src/services/memcached';
 import { MemcachedServiceConfig } from '../../../src/services/memcached/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -42,8 +43,10 @@ describe('memcached deployer', () => {
     let serviceContext: ServiceContext<MemcachedServiceConfig>;
     let serviceParams: MemcachedServiceConfig;
     let accountConfig: AccountConfig;
+    let memcached: ServiceDeployer;
 
     beforeEach(async () => {
+        memcached = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -61,20 +64,20 @@ describe('memcached deployer', () => {
     describe('check', () => {
         it('should do require the instance_type parameter', () => {
             delete serviceContext.params.instance_type;
-            const errors = memcached.check(serviceContext, []);
+            const errors = memcached.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'instance_type' parameter is required`);
         });
 
         it('should require the memcached_version parameter', () => {
             delete serviceContext.params.memcached_version;
-            const errors = memcached.check(serviceContext, []);
+            const errors = memcached.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'memcached_version' parameter is required`);
         });
 
         it('should return ok when all required parameters are given', () => {
-            const errors = memcached.check(serviceContext, []);
+            const errors = memcached.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -88,7 +91,7 @@ describe('memcached deployer', () => {
             });
             const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await memcached.preDeploy(serviceContext);
+            const retContext = await memcached.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -101,7 +104,7 @@ describe('memcached deployer', () => {
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'DependentOFService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup').resolves(new BindContext(serviceContext, dependentOfServiceContext));
 
-            const bindContext = await memcached.bind(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
+            const bindContext = await memcached.bind!(serviceContext, new PreDeployContext(serviceContext), dependentOfServiceContext, new PreDeployContext(dependentOfServiceContext));
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
         });
@@ -137,7 +140,7 @@ describe('memcached deployer', () => {
                 ]
             });
 
-            const deployContext = await memcached.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await memcached.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_ADDRESS`]).to.equal(cacheAddress);
@@ -149,7 +152,7 @@ describe('memcached deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await memcached.unPreDeploy(serviceContext);
+            const unPreDeployContext = await memcached.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -159,7 +162,7 @@ describe('memcached deployer', () => {
         it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await memcached.unBind(serviceContext);
+            const unBindContext = await memcached.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -169,7 +172,7 @@ describe('memcached deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await memcached.unDeploy(serviceContext);
+            const unDeployContext = await memcached.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

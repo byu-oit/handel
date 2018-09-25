@@ -22,11 +22,19 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventConsumer,
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as sqsCalls from '../../aws/sqs-calls';
 import { HandlebarsSqsTemplate, SqsServiceConfig } from './config-types';
@@ -193,69 +201,59 @@ function getPolicyStatementForSqsEventConsumption(queueArn: string, producerArn:
     };
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly providedEventType = ServiceEventType.SQS;
+    public readonly producedEventsSupportedTypes = [
+        ServiceEventType.Lambda
+    ];
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<SqsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
-
-    const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, sqsTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
-    winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
-    if (!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
-        throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
-    }
-    const producerEventType = producerDeployContext.eventOutputs.serviceEventType;
-
-    const queueUrl = ownDeployContext.eventOutputs.resourceName;
-    const queueArn = ownDeployContext.eventOutputs.resourceArn;
-    const producerArn = producerDeployContext.eventOutputs.resourceArn;
-    if (!queueUrl || !queueArn || !producerArn) {
-        throw new Error(`${SERVICE_NAME} - Expected to receive queue URL, queue ARN, and producer ARN from event outputs`);
+    public check(serviceContext: ServiceContext<SqsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    const policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
+    public async deploy(ownServiceContext: ServiceContext<SqsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying queue '${stackName}'`);
+        const sqsTemplate = await getCompiledSqsTemplate(stackName, ownServiceContext);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, sqsTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying queue '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
 
-    // Add SQS permission
-    await sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement);
-    winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
-    return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
+    public async consumeEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, producerServiceContext: ServiceContext<ServiceConfig>, producerDeployContext: DeployContext): Promise<ConsumeEventsContext> {
+        winston.info(`${SERVICE_NAME} - Consuming events from service '${producerServiceContext.serviceName}' for service '${ownServiceContext.serviceName}'`);
+        if (!ownDeployContext.eventOutputs || !producerDeployContext.eventOutputs) {
+            throw new Error(`${SERVICE_NAME} - Both the consumer and producer must return event outputs from their deploy`);
+        }
+        const producerEventType = producerDeployContext.eventOutputs.serviceEventType;
+        const queueUrl = ownDeployContext.eventOutputs.resourceName;
+        const queueArn = ownDeployContext.eventOutputs.resourceArn;
+        const producerArn = producerDeployContext.eventOutputs.resourceArn;
+        if (!queueUrl || !queueArn || !producerArn) {
+            throw new Error(`${SERVICE_NAME} - Expected to receive queue URL, queue ARN, and producer ARN from event outputs`);
+        }
+
+        const policyStatement = getPolicyStatementForSqsEventConsumption(queueArn, producerArn);
+
+        // Add SQS permission
+        await sqsCalls.addSqsPermissionIfNotExists(queueUrl, queueArn, producerArn, policyStatement);
+        winston.info(`${SERVICE_NAME} - Allowed consuming events from '${producerServiceContext.serviceName}' for '${ownServiceContext.serviceName}'`);
+        return new ConsumeEventsContext(ownServiceContext, producerServiceContext);
+    }
+
+    public async produceEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function produceEvents(ownServiceContext: ServiceContext<SqsServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
-    return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<SqsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const providedEventType = ServiceEventType.SQS;
-
-export const producedEventsSupportedTypes = [
-    ServiceEventType.Lambda
-];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

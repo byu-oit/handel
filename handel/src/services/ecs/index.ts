@@ -20,6 +20,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -130,57 +131,51 @@ function getShortenedClusterName(serviceContext: ServiceContext<EcsServiceConfig
     return `${serviceContext.appName.substring(0, 21)}-${serviceContext.environmentName.substring(0, 4)}-${serviceContext.serviceName.substring(0, 9)}`;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
-export function check(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
-    containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Scripts,
+        DeployOutputType.Policies,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public check(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
+        containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async preDeploy(serviceContext: ServiceContext<EcsServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying service '${stackName}'`);
+
+        const clusterName = getShortenedClusterName(ownServiceContext);
+        const instancesToCycle = await asgCycling.getInstancesToCycle(ownServiceContext, DEFAULT_INSTANCE_TYPE);
+        await clusterAutoScalingSection.createAutoScalingLambdaIfNotExists(ownServiceContext.accountConfig);
+        await clusterAutoScalingSection.createDrainingLambdaIfNotExists(ownServiceContext.accountConfig);
+        const userDataScript = await cluster.getUserDataScript(clusterName, dependenciesDeployContexts);
+        const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        await asgCycling.cycleInstances(instancesToCycle);
+        winston.info(`${SERVICE_NAME} - Finished deploying service '${stackName}'`);
+        return new DeployContext(ownServiceContext);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function preDeploy(serviceContext: ServiceContext<EcsServiceConfig>) {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying service '${stackName}'`);
-
-    const clusterName = getShortenedClusterName(ownServiceContext);
-    const instancesToCycle = await asgCycling.getInstancesToCycle(ownServiceContext, DEFAULT_INSTANCE_TYPE);
-    await clusterAutoScalingSection.createAutoScalingLambdaIfNotExists(ownServiceContext.accountConfig);
-    await clusterAutoScalingSection.createDrainingLambdaIfNotExists(ownServiceContext.accountConfig);
-    const userDataScript = await cluster.getUserDataScript(clusterName, dependenciesDeployContexts);
-    const compiledTemplate = await getCompiledEcsTemplate(stackName, clusterName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, userDataScript);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    await asgCycling.cycleInstances(instancesToCycle);
-    winston.info(`${SERVICE_NAME} - Finished deploying service '${stackName}'`);
-    return new DeployContext(ownServiceContext);
-}
-
-export async function unPreDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<EcsServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Scripts,
-    DeployOutputType.Policies,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;

@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     Tags,
     UnBindContext,
     UnDeployContext,
@@ -110,67 +111,61 @@ function getDeployContext(serviceContext: ServiceContext<ElasticsearchConfig>,
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<ElasticsearchConfig>,
-    dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public check(serviceContext: ServiceContext<ElasticsearchConfig>,
+        dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async preDeploy(serviceContext: ServiceContext<ElasticsearchConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, ES_PORT, SERVICE_NAME);
+    }
+
+    public async bind(ownServiceContext: ServiceContext<ElasticsearchConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependentOfServiceContext: ServiceContext<ServiceConfig>,
+        dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+            ownPreDeployContext,
+            dependentOfServiceContext,
+            dependentOfPreDeployContext,
+            ES_PROTOCOL,
+            ES_PORT,
+            SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<ElasticsearchConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying domain '${stackName}'`);
+        await iamCalls.createServiceLinkedRole('es.amazonaws.com');
+        const stackTags = tagging.getTags(ownServiceContext);
+        const compiledTemplate = await getCompiledTemplate(ownServiceContext, ownPreDeployContext, stackTags);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying domain '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnBindContext> {
+        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export function preDeploy(serviceContext: ServiceContext<ElasticsearchConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, ES_PORT, SERVICE_NAME);
-}
-
-export function bind(ownServiceContext: ServiceContext<ElasticsearchConfig>,
-    ownPreDeployContext: PreDeployContext,
-    dependentOfServiceContext: ServiceContext<ServiceConfig>,
-    dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
-        ownPreDeployContext,
-        dependentOfServiceContext,
-        dependentOfPreDeployContext,
-        ES_PROTOCOL,
-        ES_PORT,
-        SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<ElasticsearchConfig>,
-    ownPreDeployContext: PreDeployContext,
-    dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying domain '${stackName}'`);
-    await iamCalls.createServiceLinkedRole('es.amazonaws.com');
-    const stackTags = tagging.getTags(ownServiceContext);
-    const compiledTemplate = await getCompiledTemplate(ownServiceContext, ownPreDeployContext, stackTags);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying domain '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export function unPreDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export function unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnBindContext> {
-    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

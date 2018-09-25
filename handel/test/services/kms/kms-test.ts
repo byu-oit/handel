@@ -20,6 +20,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
@@ -27,7 +28,7 @@ import { deletePhases, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as kms from '../../../src/services/kms';
+import { Service } from '../../../src/services/kms';
 import { KmsServiceConfig } from '../../../src/services/kms/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -38,8 +39,10 @@ describe('kms deployer', () => {
     let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
+    let kms: ServiceDeployer;
 
     beforeEach(async () => {
+        kms = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -61,7 +64,7 @@ describe('kms deployer', () => {
         describe('alias name', () => {
             it('should not allow keys starting with "AWS"', () => {
                 serviceContext.params.alias = 'AWS-mykey';
-                const errors = kms.check(serviceContext, []);
+                const errors = kms.check!(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
                 expect(errors[0]).to.contain('\'alias\' parameter must not begin with \'AWS\'');
             });
@@ -72,7 +75,7 @@ describe('kms deployer', () => {
                 badChars.forEach(bad => {
                     it(`should reject '${bad}'`, () => {
                         serviceContext.params.alias = bad;
-                        const errors = kms.check(serviceContext, []);
+                        const errors = kms.check!(serviceContext, []);
                         expect(errors).to.have.lengthOf(1);
                         expect(errors[0]).to.contain('\'alias\' parameter must only contain alphanumeric characters, dashes (\'-\'), underscores (\'_\'), or slashes (\'/\')');
                     });
@@ -81,7 +84,7 @@ describe('kms deployer', () => {
         });
 
         it('should work when there are no configuration errors', () => {
-            const errors = kms.check(serviceContext, []);
+            const errors = kms.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
 
@@ -115,7 +118,7 @@ describe('kms deployer', () => {
                 }]
             });
 
-            const deployContext = await kms.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await kms.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.policies).to.have.lengthOf(1);
@@ -146,7 +149,7 @@ describe('kms deployer', () => {
 
             const preDeployContext = new PreDeployContext(serviceContext);
 
-            const deployContext = await kms.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await kms.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
             expect(deployStackStub.firstCall.args[2]).to.contain('AliasName: ' + aliasToUse);
@@ -178,7 +181,7 @@ describe('kms deployer', () => {
 
             const preDeployContext = new PreDeployContext(serviceContext);
 
-            const deployContext = await kms.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await kms.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
 
             expect(deployStackStub.firstCall.args[2]).to.contain('EnableKeyRotation: true');
@@ -190,7 +193,7 @@ describe('kms deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await kms.unDeploy(serviceContext);
+            const unDeployContext = await kms.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

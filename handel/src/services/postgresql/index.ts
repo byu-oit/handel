@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnBindContext,
     UnDeployContext,
     UnPreDeployContext
@@ -62,8 +63,8 @@ function getParameterGroupFamily(postgresVersion: string) {
 }
 
 async function getCompiledPostgresTemplate(stackName: string,
-                                     ownServiceContext: ServiceContext<PostgreSQLConfig>,
-                                     ownPreDeployContext: PreDeployContext): Promise<string> {
+    ownServiceContext: ServiceContext<PostgreSQLConfig>,
+    ownPreDeployContext: PreDeployContext): Promise<string> {
     const serviceParams = ownServiceContext.params;
     const accountConfig = ownServiceContext.accountConfig;
 
@@ -97,106 +98,100 @@ async function getCompiledPostgresTemplate(stackName: string,
     return handlebars.compileTemplate(`${__dirname}/postgresql-template.yml`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<PostgreSQLConfig>,
-                      dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+    public check(serviceContext: ServiceContext<PostgreSQLConfig>,
+        dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
-    try {
-        if (serviceContext.params.postgres_version) {
-            getParameterGroupFamily(serviceContext.params.postgres_version);
+        try {
+            if (serviceContext.params.postgres_version) {
+                getParameterGroupFamily(serviceContext.params.postgres_version);
+            }
+        } catch (error) {
+            errors.push(error);
         }
-    } catch (error) {
-        errors.push(error);
+
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export function preDeploy(serviceContext: ServiceContext<PostgreSQLConfig>): Promise<PreDeployContext> {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, POSTGRES_PORT, SERVICE_NAME);
-}
-
-export function bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
-                     ownPreDeployContext: PreDeployContext,
-                     dependentOfServiceContext: ServiceContext<ServiceConfig>,
-                     dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-    return bindPhase.bindDependentSecurityGroup(ownServiceContext,
-        ownPreDeployContext,
-        dependentOfServiceContext,
-        dependentOfPreDeployContext,
-        POSTGRES_PROTOCOL,
-        POSTGRES_PORT,
-        SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>,
-                             ownPreDeployContext: PreDeployContext,
-                             dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
-
-    const stack = await awsCalls.cloudFormation.getStack(stackName);
-    if (!stack) {
-        const dbUsername = rdsDeployersCommon.getNewDbUsername();
-        const dbPassword = rdsDeployersCommon.getNewDbPassword();
-        const compiledTemplate = await getCompiledPostgresTemplate(stackName,
-                                                                   ownServiceContext,
-                                                                   ownPreDeployContext);
-        const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
-            DBUsername: dbUsername,
-            DBPassword: dbPassword
-        });
-        const stackTags = tagging.getTags(ownServiceContext);
-        winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
-        const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
-                                                                    compiledTemplate,
-                                                                    cfParameters,
-                                                                    30,
-                                                                    stackTags);
-        winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}'`);
-
-        // Add DB credentials to the Parameter Store
-        await Promise.all([
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
-        ]);
-
-        winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
+    public async preDeploy(serviceContext: ServiceContext<PostgreSQLConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, POSTGRES_PORT, SERVICE_NAME);
     }
-    else {
-        winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
-        return rdsDeployersCommon.getDeployContext(ownServiceContext, stack);
+
+    public async bind(ownServiceContext: ServiceContext<PostgreSQLConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependentOfServiceContext: ServiceContext<ServiceConfig>,
+        dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext,
+            ownPreDeployContext,
+            dependentOfServiceContext,
+            dependentOfPreDeployContext,
+            POSTGRES_PROTOCOL,
+            POSTGRES_PORT,
+            SERVICE_NAME);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>,
+        ownPreDeployContext: PreDeployContext,
+        dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying database '${stackName}'`);
+
+        const stack = await awsCalls.cloudFormation.getStack(stackName);
+        if (!stack) {
+            const dbUsername = rdsDeployersCommon.getNewDbUsername();
+            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const compiledTemplate = await getCompiledPostgresTemplate(stackName,
+                ownServiceContext,
+                ownPreDeployContext);
+            const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
+                DBUsername: dbUsername,
+                DBPassword: dbPassword
+            });
+            const stackTags = tagging.getTags(ownServiceContext);
+            winston.debug(`${SERVICE_NAME} - Creating CloudFormation stack '${stackName}'`);
+            const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
+                compiledTemplate,
+                cfParameters,
+                30,
+                stackTags);
+            winston.debug(`${SERVICE_NAME} - Finished creating CloudFormation stack '${stackName}'`);
+
+            // Add DB credentials to the Parameter Store
+            await Promise.all([
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_username', dbUsername),
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'db_password', dbPassword)
+            ]);
+
+            winston.info(`${SERVICE_NAME} - Finished deploying database '${stackName}'`);
+            return rdsDeployersCommon.getDeployContext(ownServiceContext, deployedStack);
+        }
+        else {
+            winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
+            return rdsDeployersCommon.getDeployContext(ownServiceContext, stack);
+        }
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnBindContext> {
+        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnDeployContext> {
+        const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+        await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
+        return unDeployContext;
     }
 }
-
-export function unPreDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export function unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnBindContext> {
-    return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnDeployContext> {
-    const unDeployContext = await deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-    await deletePhases.deleteServiceItemsFromSSMParameterStore(ownServiceContext, ['db_username', 'db_password']);
-    return unDeployContext;
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

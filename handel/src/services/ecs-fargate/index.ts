@@ -20,6 +20,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -113,59 +114,54 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
     return handlebars.compileTemplate(`${__dirname}/ecs-fargate-template.yml`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
-export function check(serviceContext: ServiceContext<FargateServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    // TODO check that all values are valid, like Cpu and Memory, logRetentionInDays possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    const params = serviceContext.params;
-    const requestedCpuUnits = params.cpu_units || DEFAULT_CPU_UNITS;
-    const requestedMemory = params.max_mb || DEFAULT_MAX_MB;
-    if (!ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits] || !ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits].includes(requestedMemory)) {
-        errors.push(`Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
+
+    public check(serviceContext: ServiceContext<FargateServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        // TODO check that all values are valid, like Cpu and Memory, logRetentionInDays possible values at http://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const params = serviceContext.params;
+        const requestedCpuUnits = params.cpu_units || DEFAULT_CPU_UNITS;
+        const requestedMemory = params.max_mb || DEFAULT_MAX_MB;
+        if (!ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits] || !ALLOWED_FARGATE_MEMORY_FOR_CPU[requestedCpuUnits].includes(requestedMemory)) {
+            errors.push(`Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
+        }
+
+        routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
+        containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
+
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
-    containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
+    public async preDeploy(serviceContext: ServiceContext<FargateServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    }
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public async deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying ECS Fargate Service '${stackName}'`);
+
+        await ecsCalls.createDefaultClusterIfNotExists();
+        const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledFargateTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
+        return new DeployContext(ownServiceContext);
+    }
+
+    public async unPreDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>): Promise<UnPreDeployContext> {
+        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function preDeploy(serviceContext: ServiceContext<FargateServiceConfig>) {
-    return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying ECS Fargate Service '${stackName}'`);
-
-    await ecsCalls.createDefaultClusterIfNotExists();
-    const compiledFargateTemplate = await getCompiledEcsFargateTemplate(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledFargateTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying ECS Fargate Service '${stackName}'`);
-    return new DeployContext(ownServiceContext);
-}
-
-export async function unPreDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>): Promise<UnPreDeployContext> {
-    return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<FargateServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;
