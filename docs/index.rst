@@ -55,6 +55,7 @@ including taking care of all the tricky security bits to make the services be ab
    handel-basics/accessing-secrets
    handel-basics/tagging
    handel-basics/deleting-an-environment
+   handel-basics/using-extensions
 
 .. _supported-services:
 
@@ -95,7 +96,7 @@ including taking care of all the tricky security bits to make the services be ab
 
 .. toctree::
    :maxdepth: 1
-   :caption: Extensions
+   :caption: Advanced
 
-   extensions/using-extensions
-   extensions/writing-extensions
+   advanced/deployment-logs
+   advanced/writing-extensions
