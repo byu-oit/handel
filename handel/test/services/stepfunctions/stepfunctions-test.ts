@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext
@@ -31,7 +32,7 @@ import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as util from '../../../src/common/util';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
-import * as stepfunctions from '../../../src/services/stepfunctions';
+import { Service } from '../../../src/services/stepfunctions';
 import { StepFunctionsConfig } from '../../../src/services/stepfunctions/config-types';
 
 describe('stepfunctions deployer', () => {
@@ -41,8 +42,10 @@ describe('stepfunctions deployer', () => {
     let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
+    let stepfunctions: ServiceDeployer;
 
     beforeEach(async () => {
+        stepfunctions = new Service();
         sandbox = sinon.sandbox.create();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
@@ -79,14 +82,14 @@ describe('stepfunctions deployer', () => {
 
         it('should require the definition parameter', () => {
             delete serviceContext.params.definition;
-            const errors = stepfunctions.check(serviceContext, []);
+            const errors = stepfunctions.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('\'definition\' parameter is required');
         });
 
         it('should require the definition file to be JSON or YAML', () => {
             serviceContext.params.definition = 'state_machine';
-            const errors = stepfunctions.check(serviceContext, []);
+            const errors = stepfunctions.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('file extension');
         });
@@ -95,14 +98,14 @@ describe('stepfunctions deployer', () => {
             serviceContext.params.definition = 'state_machine.json';
             serviceContext.params.dependencies = ['only-lambda'];
             sandbox.stub(util, 'readJsonFileSync').returns(getSimpleMachine());
-            const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
+            const errors = stepfunctions.check!(serviceContext, getSimpleDependencies());
             expect(errors.length).to.equal(0);
         });
 
         it('should require JSON definition to be valid JSON', () => {
             serviceContext.params.definition = 'state_machine.json';
             sandbox.stub(util, 'readJsonFileSync').returns(null);
-            const errors = stepfunctions.check(serviceContext, []);
+            const errors = stepfunctions.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('valid JSON');
         });
@@ -111,14 +114,14 @@ describe('stepfunctions deployer', () => {
             serviceContext.params.definition = 'state_machine.yml';
             serviceContext.params.dependencies = ['only-lambda'];
             sandbox.stub(util, 'readYamlFileSync').returns(getSimpleMachine());
-            const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
+            const errors = stepfunctions.check!(serviceContext, getSimpleDependencies());
             expect(errors.length).to.equal(0);
         });
 
         it('should require YAML definition to be valid YAML', () => {
             serviceContext.params.definition = 'state_machine.yml';
             sandbox.stub(util, 'readYamlFileSync').returns(null);
-            const errors = stepfunctions.check(serviceContext, []);
+            const errors = stepfunctions.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('valid YAML');
         });
@@ -128,7 +131,7 @@ describe('stepfunctions deployer', () => {
             delete definition.States.OnlyState;
             serviceContext.params.definition = 'state_machine.yml';
             sandbox.stub(util, 'readYamlFileSync').returns(definition);
-            const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
+            const errors = stepfunctions.check!(serviceContext, getSimpleDependencies());
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('does not exist');
         });
@@ -138,7 +141,7 @@ describe('stepfunctions deployer', () => {
             dependencies[0].serviceName = 'fake-lambda';
             serviceContext.params.definition = 'state_machine.yml';
             sandbox.stub(util, 'readYamlFileSync').returns(getSimpleMachine());
-            const errors = stepfunctions.check(serviceContext, dependencies);
+            const errors = stepfunctions.check!(serviceContext, dependencies);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('not found in dependencies');
         });
@@ -148,7 +151,7 @@ describe('stepfunctions deployer', () => {
             machine.OtherState = {Type: 'Succeed'};
             serviceContext.params.definition = 'state_machine.yml';
             sandbox.stub(util, 'readYamlFileSync').returns(machine);
-            const errors = stepfunctions.check(serviceContext, getSimpleDependencies());
+            const errors = stepfunctions.check!(serviceContext, getSimpleDependencies());
             expect(errors.length).to.equal(0);
         });
     });
@@ -205,7 +208,7 @@ describe('stepfunctions deployer', () => {
                 }
             });
             const dependenciesDeployContexts = getDependenciesDeployContexts();
-            const deployContext = await stepfunctions.deploy(serviceContext, new PreDeployContext(serviceContext), dependenciesDeployContexts);
+            const deployContext = await stepfunctions.deploy!(serviceContext, new PreDeployContext(serviceContext), dependenciesDeployContexts);
             const prefix = serviceContext.serviceName.toUpperCase();
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${prefix}_STATE_MACHINE_ARN`]).to.equal(stateMachineArn);
@@ -222,7 +225,7 @@ describe('stepfunctions deployer', () => {
         it('should delete the stack', async () => {
             const unDeployStack = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await stepfunctions.unDeploy(serviceContext);
+            const unDeployContext = await stepfunctions.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStack.callCount).to.equal(1);
         });

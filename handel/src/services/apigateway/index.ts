@@ -20,6 +20,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
@@ -79,69 +80,63 @@ function checkCustomDomain(domain: CustomDomain): string[] {
     return errors;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.Policies,
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.SecurityGroups
+    ];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const params = serviceContext.params;
-    let errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    if(errors.length === 0) {
-        errors = errors.concat(checkCommon(serviceContext, dependenciesServiceContexts));
-        if(params.proxy) {
-            errors = errors.concat(proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+    public check(serviceContext: ServiceContext<APIGatewayConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const params = serviceContext.params;
+        let errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        if(errors.length === 0) {
+            errors = errors.concat(checkCommon(serviceContext, dependenciesServiceContexts));
+            if(params.proxy) {
+                errors = errors.concat(proxyPassthroughDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+            }
+            else if(params.swagger) {
+                errors = errors.concat(swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+            }
+            else {
+                return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+            }
         }
-        else if(params.swagger) {
-            errors = errors.concat(swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
+        return errors;
+    }
+
+    public async preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
+        if(serviceContext.params.vpc) {
+            return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
+        if(ownServiceContext.params.swagger) {
+            return swaggerDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
         }
         else {
-            return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+            return proxyPassthroughDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
         }
     }
-    return errors;
-}
 
-export function preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
-    if(serviceContext.params.vpc) {
-        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
-    } else {
-        return lifecyclesCommon.preDeployNotRequired(serviceContext);
+    public async unPreDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnPreDeployContext> {
+        if(ownServiceContext.params.vpc) {
+            return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
+        }
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
     }
 }
-
-export function deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
-    if(ownServiceContext.params.swagger) {
-        return swaggerDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
-    }
-    else {
-        return proxyPassthroughDeployType.deploy(stackName, ownServiceContext, ownPreDeployContext, dependenciesDeployContexts, SERVICE_NAME);
-    }
-}
-
-export function unPreDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnPreDeployContext> {
-    if(ownServiceContext.params.vpc) {
-        return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
-    } else {
-        return lifecyclesCommon.unPreDeployNotRequired(ownServiceContext);
-    }
-}
-
-export function unDeploy(ownServiceContext: ServiceContext<APIGatewayConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [
-    DeployOutputType.Policies,
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.SecurityGroups
-];
-
-export const supportsTagging = true;

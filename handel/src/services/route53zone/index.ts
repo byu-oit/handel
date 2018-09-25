@@ -20,9 +20,10 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, handlebars, tagging, checkPhase } from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as route53 from '../../aws/route53-calls';
 import {HandlebarsRoute53ZoneTemplate, Route53ZoneServiceConfig} from './config-types';
@@ -68,43 +69,35 @@ function getCompiledRoute53Template(ownServiceContext: ServiceContext<Route53Zon
     return handlebars.compileTemplate(`${__dirname}/route53zone-template.yml`, handlebarsParams);
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = true;
 
-export function check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    const params = serviceContext.params;
-    if (params.name && !route53.isValidHostname(params.name)) {
-        errors.push(`'name' parameter must be a valid hostname`);
+    public check(serviceContext: ServiceContext<Route53ZoneServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const params = serviceContext.params;
+        if (params.name && !route53.isValidHostname(params.name)) {
+            errors.push(`'name' parameter must be a valid hostname`);
+        }
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
     }
 
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public async deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
+        const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Deploying Route53 Zone ${stackName}`);
-
-    const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = true;

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceEventConsumer, ServiceEventType } from 'handel-extension-api';
+import { DeployContext, PreDeployContext, ProduceEventsContext, ServiceConfig, ServiceContext, ServiceDeployer, ServiceEventConsumer, ServiceEventType } from 'handel-extension-api';
 import * as winston from 'winston';
 
 const SERVICE_NAME = 'Alexa Skill Kit';
@@ -28,34 +28,26 @@ function getDeployContext(ownServiceContext: ServiceContext<ServiceConfig>): Dep
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly providedEventType = ServiceEventType.AlexaSkillKit;
+    public readonly producedEventsSupportedTypes = [
+        ServiceEventType.Lambda
+    ];
+    public readonly supportsTagging = false;
 
-export function check(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    return [];
+    public check(serviceContext: ServiceContext<ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        return [];
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        winston.debug(`${SERVICE_NAME} - Deploy not currently required for the Alexa Skill Kit service`);
+        return getDeployContext(ownServiceContext);
+    }
+
+    public async produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext): Promise<ProduceEventsContext> {
+        winston.info(`${SERVICE_NAME} - No events to produce from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
+        return new ProduceEventsContext(ownServiceContext, consumerServiceContext);
+    }
 }
-
-export function deploy(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]) {
-    winston.debug(`${SERVICE_NAME} - Deploy not currently required for the Alexa Skill Kit service`);
-    return Promise.resolve(getDeployContext(ownServiceContext));
-}
-
-export function produceEvents(ownServiceContext: ServiceContext<ServiceConfig>, ownDeployContext: DeployContext, eventConsumerConfig: ServiceEventConsumer, consumerServiceContext: ServiceContext<ServiceConfig>, consumerDeployContext: DeployContext) {
-    winston.info(`${SERVICE_NAME} - No events to produce from '${ownServiceContext.serviceName}' for consumer ${consumerServiceContext.serviceName}`);
-    return Promise.resolve(new ProduceEventsContext(ownServiceContext, consumerServiceContext));
-}
-
-export const providedEventType = ServiceEventType.AlexaSkillKit;
-
-export const producedEventsSupportedTypes = [
-    ServiceEventType.Lambda
-];
-
-export const producedDeployOutputTypes = [];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = false;

@@ -20,6 +20,7 @@ import {
     PreDeployContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     UnDeployContext
 } from 'handel-extension-api';
 import {
@@ -37,68 +38,6 @@ import * as util from '../../common/util';
 import { HandlebarsStepFunctionsTemplate, StepFunctionsConfig } from './config-types';
 
 const SERVICE_NAME = 'Step Functions';
-
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
-
-export function check(serviceContext: ServiceContext<StepFunctionsConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    let definition: any;
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-
-    // Check that definition is a valid JSON/YAML file
-    if ('definition' in serviceContext.params && path.extname(serviceContext.params.definition) === '.json') {
-        definition = util.readJsonFileSync(serviceContext.params.definition);
-        if (definition === null) {
-            errors.push(`${serviceContext.params.definition} is not a valid JSON file.`);
-        }
-    } else if ('definition' in serviceContext.params && ['.yml', '.yaml'].includes(path.extname(serviceContext.params.definition))) {
-        definition = util.readYamlFileSync(serviceContext.params.definition);
-        if (definition === null) {
-            errors.push(`${serviceContext.params.definition} is not a valid YAML file.`);
-        }
-    }
-    if (definition != null) {
-        const start: string = definition.StartAt;
-        const states: any = definition.States;
-        const startIsString = typeof start === 'string';
-        const statesIsObject = states instanceof Object;
-        if (statesIsObject) {
-            const dependencies: string[] = dependenciesServiceContexts.map(context => context.serviceName);
-            for (const key in states) {
-                if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) === -1) {
-                    errors.push(`Service '${states[key].Resource}' not found in dependencies.`);
-                }
-            }
-        } else {
-            errors.push(`States must be an object.`);
-        }
-        if (!startIsString) {
-            errors.push(`StartAt must be a string.`);
-        }
-        if (startIsString && statesIsObject && !(start in states)) {
-            errors.push(`Start state '${start}' does not exist`);
-        }
-    }
-
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
-}
-
-export async function deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const stackName = ownServiceContext.stackName();
-    winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
-    const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
-    const stackTags = tagging.getTags(ownServiceContext);
-    const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledStepFunctionsTemplate, [], true, 30, stackTags);
-    winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
-    return getDeployContext(ownServiceContext, deployedStack);
-}
-
-export async function unDeploy(ownServiceContext: ServiceContext<StepFunctionsConfig>): Promise<UnDeployContext> {
-    return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
-}
 
 function generateDefinitionString(filename: string, dependenciesDeployContexts: DeployContext[]): string {
     const readFile = path.extname(filename) === '.json' ? util.readJsonFileSync : util.readYamlFileSync;
@@ -154,16 +93,72 @@ function getDeployContext(serviceContext: ServiceContext<StepFunctionsConfig>, c
     return deployContext;
 }
 
-export const producedEventsSupportedTypes = [];
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = false;
 
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
+    public check(serviceContext: ServiceContext<StepFunctionsConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        let definition: any;
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
 
-export const consumedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
+        // Check that definition is a valid JSON/YAML file
+        if ('definition' in serviceContext.params && path.extname(serviceContext.params.definition) === '.json') {
+            definition = util.readJsonFileSync(serviceContext.params.definition);
+            if (definition === null) {
+                errors.push(`${serviceContext.params.definition} is not a valid JSON file.`);
+            }
+        } else if ('definition' in serviceContext.params && ['.yml', '.yaml'].includes(path.extname(serviceContext.params.definition))) {
+            definition = util.readYamlFileSync(serviceContext.params.definition);
+            if (definition === null) {
+                errors.push(`${serviceContext.params.definition} is not a valid YAML file.`);
+            }
+        }
+        if (definition != null) {
+            const start: string = definition.StartAt;
+            const states: any = definition.States;
+            const startIsString = typeof start === 'string';
+            const statesIsObject = states instanceof Object;
+            if (statesIsObject) {
+                const dependencies: string[] = dependenciesServiceContexts.map(context => context.serviceName);
+                for (const key in states) {
+                    if (states.hasOwnProperty(key) && states[key].hasOwnProperty('Resource') && dependencies.indexOf(states[key].Resource) === -1) {
+                        errors.push(`Service '${states[key].Resource}' not found in dependencies.`);
+                    }
+                }
+            } else {
+                errors.push(`States must be an object.`);
+            }
+            if (!startIsString) {
+                errors.push(`StartAt must be a string.`);
+            }
+            if (startIsString && statesIsObject && !(start in states)) {
+                errors.push(`Start state '${start}' does not exist`);
+            }
+        }
 
-export const supportsTagging = false;
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<StepFunctionsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const stackName = ownServiceContext.stackName();
+        winston.info(`${SERVICE_NAME} - Executing Deploy on '${stackName}'`);
+        const compiledStepFunctionsTemplate = await getCompiledStepFunctionsTemplate(stackName, ownServiceContext, dependenciesDeployContexts);
+        const stackTags = tagging.getTags(ownServiceContext);
+        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledStepFunctionsTemplate, [], true, 30, stackTags);
+        winston.info(`${SERVICE_NAME} - Finished deploying '${stackName}'`);
+        return getDeployContext(ownServiceContext, deployedStack);
+    }
+
+    public async unDeploy(ownServiceContext: ServiceContext<StepFunctionsConfig>): Promise<UnDeployContext> {
+        return deletePhases.unDeployService(ownServiceContext, SERVICE_NAME);
+    }
+}

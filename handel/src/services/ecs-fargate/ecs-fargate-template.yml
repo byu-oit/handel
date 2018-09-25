@@ -80,8 +80,8 @@ Resources:
           Ref: AlbTargetGroup{{logicalId name}}
       {{/if}}
       {{/each}}
-      {{/if}}
       HealthCheckGracePeriodSeconds: {{loadBalancer.healthCheckGracePeriod}}
+      {{/if}}
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: {{assignPublicIp}}

@@ -20,16 +20,22 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
+import {
+    awsCalls,
+    deletePhases,
+    deployPhase,
+    preDeployPhase
+} from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as ec2Calls from '../../../src/aws/ec2-calls';
-import * as codedeploy from '../../../src/services/codedeploy';
+import { Service } from '../../../src/services/codedeploy';
 import * as alb from '../../../src/services/codedeploy/alb';
 import * as asgLaunchConfig from '../../../src/services/codedeploy/asg-launchconfig';
 import { CodeDeployServiceConfig } from '../../../src/services/codedeploy/config-types';
@@ -45,8 +51,10 @@ describe('codedeploy deployer', () => {
     const app = `FakeApp`;
     const env = `FakeEnv`;
     const service = 'FakeService';
+    let codedeploy: ServiceDeployer;
 
     beforeEach(async () => {
+        codedeploy = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 'codedeploy',
@@ -72,7 +80,7 @@ describe('codedeploy deployer', () => {
             });
             const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await codedeploy.preDeploy(serviceContext);
+            const retContext = await codedeploy.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -104,7 +112,7 @@ describe('codedeploy deployer', () => {
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
             const rollInstancesStub = sandbox.stub(asgLaunchConfig, 'rollInstances').resolves();
 
-            const deployContext = await codedeploy.deploy(serviceContext, preDeployContext, dependenciesDeployContexts);
+            const deployContext = await codedeploy.deploy!(serviceContext, preDeployContext, dependenciesDeployContexts);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(1);
             expect(shouldRollInstancesStub.callCount).to.equal(1);
@@ -123,7 +131,7 @@ describe('codedeploy deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await codedeploy.unPreDeploy(serviceContext);
+            const unPreDeployContext = await codedeploy.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -133,7 +141,7 @@ describe('codedeploy deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await codedeploy.unDeploy(serviceContext);
+            const unDeployContext = await codedeploy.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

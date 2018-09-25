@@ -19,14 +19,14 @@ import {
     DeployOutputType,
     PreDeployContext,
     ServiceConfig,
-    ServiceContext
+    ServiceContext,
+    ServiceDeployer
 } from 'handel-extension-api';
+import { checkPhase } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as sesCalls from '../../aws/ses-calls';
 import { SesServiceConfig } from './config-types';
-import { checkPhase } from 'handel-extension-support';
 
-const EMAIL_ADDRESS = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const SERVICE_NAME = 'SES';
 
 function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): DeployContext {
@@ -57,33 +57,26 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
     return deployContext;
 }
 
-/**
- * Service Deployer Contract Methods
- * See https://github.com/byu-oit-appdev/handel/wiki/Creating-a-New-Service-Deployer#service-deployer-contract
- *   for contract method documentation
- */
+export class Service implements ServiceDeployer {
+    public readonly producedDeployOutputTypes = [
+        DeployOutputType.EnvironmentVariables,
+        DeployOutputType.Policies
+    ];
+    public readonly consumedDeployOutputTypes = [];
+    public readonly producedEventsSupportedTypes = [];
+    public readonly providedEventType = null;
+    public readonly supportsTagging = false;
 
-export function check(serviceContext: ServiceContext<SesServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-    const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-    return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    public check(serviceContext: ServiceContext<SesServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
+        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+    }
+
+    public async deploy(ownServiceContext: ServiceContext<SesServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
+        const address = ownServiceContext.params.address;
+        winston.info(`${SERVICE_NAME} - Deploying email address ${address}`);
+        await sesCalls.verifyEmailAddress(address);
+        winston.info(`${SERVICE_NAME} - Finished deploying email address ${address}`);
+        return getDeployContext(ownServiceContext);
+    }
 }
-
-export async function deploy(ownServiceContext: ServiceContext<SesServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
-    const address = ownServiceContext.params.address;
-    winston.info(`${SERVICE_NAME} - Deploying email address ${address}`);
-
-    await sesCalls.verifyEmailAddress(address);
-    winston.info(`${SERVICE_NAME} - Finished deploying email address ${address}`);
-    return getDeployContext(ownServiceContext);
-}
-
-export const producedEventsSupportedTypes = [];
-
-export const producedDeployOutputTypes = [
-    DeployOutputType.EnvironmentVariables,
-    DeployOutputType.Policies
-];
-
-export const consumedDeployOutputTypes = [];
-
-export const supportsTagging = false;

@@ -21,6 +21,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnBindContext,
     UnDeployContext,
@@ -30,7 +31,7 @@ import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from '
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as mysql from '../../../src/services/mysql';
+import { Service } from '../../../src/services/mysql';
 import { MySQLConfig } from '../../../src/services/mysql/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,8 +42,10 @@ describe('mysql deployer', () => {
     let serviceContext: ServiceContext<MySQLConfig>;
     let serviceParams: MySQLConfig;
     let accountConfig: AccountConfig;
+    let mysql: ServiceDeployer;
 
     beforeEach(async () => {
+        mysql = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -60,20 +63,20 @@ describe('mysql deployer', () => {
     describe('check', () => {
         it('should require the database_name parameter', () => {
             delete serviceContext.params.database_name;
-            const errors = mysql.check(serviceContext, []);
+            const errors = mysql.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'database_name' parameter is required`);
         });
 
         it('should require the mysql_version parameter', () => {
             delete serviceContext.params.mysql_version;
-            const errors = mysql.check(serviceContext, []);
+            const errors = mysql.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain(`'mysql_version' parameter is required`);
         });
 
         it('should work when all required parameters are provided properly', () => {
-            const errors = mysql.check(serviceContext, []);
+            const errors = mysql.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -88,7 +91,7 @@ describe('mysql deployer', () => {
             const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
 
-            const retPreDeployContext = await mysql.preDeploy(serviceContext);
+            const retPreDeployContext = await mysql.preDeploy!(serviceContext);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -105,7 +108,7 @@ describe('mysql deployer', () => {
             const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
                 .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
 
-            const bindContext = await mysql.bind(dependencyServiceContext, dependencyPreDeployContext,
+            const bindContext = await mysql.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
@@ -152,7 +155,7 @@ describe('mysql deployer', () => {
             const addCredentialsStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
                 .resolves(deployedStack);
 
-            const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await mysql.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
             expect(addCredentialsStub.callCount).to.equal(2);
@@ -166,7 +169,7 @@ describe('mysql deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
             const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
-            const deployContext = await mysql.deploy(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await mysql.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
             expect(deployContext).to.be.instanceof(DeployContext);
@@ -181,7 +184,7 @@ describe('mysql deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await mysql.unPreDeploy(serviceContext);
+            const unPreDeployContext = await mysql.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -192,7 +195,7 @@ describe('mysql deployer', () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups')
                 .resolves(new UnBindContext(serviceContext));
 
-            const unBindContext = await mysql.unBind(serviceContext);
+            const unBindContext = await mysql.unBind!(serviceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -204,7 +207,7 @@ describe('mysql deployer', () => {
                 .resolves(new UnDeployContext(serviceContext));
             const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore').resolves({});
 
-            const unDeployContext = await mysql.unDeploy(serviceContext);
+            const unDeployContext = await mysql.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
             expect(deleteParametersStub.callCount).to.equal(1);

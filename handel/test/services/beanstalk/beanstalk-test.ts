@@ -20,6 +20,7 @@ import {
     DeployContext,
     PreDeployContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceType,
     UnDeployContext,
     UnPreDeployContext
@@ -31,7 +32,7 @@ import config from '../../../src/account-config/account-config';
 import * as route53 from '../../../src/aws/route53-calls';
 import * as instanceAutoScaling from '../../../src/common/instance-auto-scaling';
 import { InstanceScalingPolicyType } from '../../../src/datatypes';
-import * as  beanstalk from '../../../src/services/beanstalk';
+import { Service } from '../../../src/services/beanstalk';
 import { BeanstalkRoutingType, BeanstalkServiceConfig } from '../../../src/services/beanstalk/config-types';
 import * as deployableArtifact from '../../../src/services/beanstalk/deployable-artifact';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
@@ -41,8 +42,10 @@ describe('beanstalk deployer', () => {
     let serviceContext: ServiceContext<BeanstalkServiceConfig>;
     let serviceParams: BeanstalkServiceConfig;
     let accountConfig: AccountConfig;
+    let beanstalk: ServiceDeployer;
 
     beforeEach(async () => {
+        beanstalk = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -94,7 +97,7 @@ describe('beanstalk deployer', () => {
 
     describe('check', () => {
         it('should check parameters for correctness', () => {
-            const errors = beanstalk.check(serviceContext, []);
+            const errors = beanstalk.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
 
@@ -103,7 +106,7 @@ describe('beanstalk deployer', () => {
                 type: BeanstalkRoutingType.HTTP,
                 dns_names: ['invalid hostname']
             };
-            const errors = beanstalk.check(serviceContext, []);
+            const errors = beanstalk.check!(serviceContext, []);
 
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('\'dns_names\' values must be valid hostnames');
@@ -119,7 +122,7 @@ describe('beanstalk deployer', () => {
             });
             const preDeployCreateSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup').resolves(preDeployContext);
 
-            const retContext = await beanstalk.preDeploy(serviceContext);
+            const retContext = await beanstalk.preDeploy!(serviceContext);
             expect(retContext).to.be.instanceof(PreDeployContext);
             expect(retContext.securityGroups.length).to.equal(1);
             expect(retContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -147,7 +150,7 @@ describe('beanstalk deployer', () => {
             const sgGroupId = 'FakeSgId';
             const ownPreDeployContext = getPreDeployContext(serviceContext, sgGroupId);
 
-            const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await beanstalk.deploy!(serviceContext, ownPreDeployContext, []);
             expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(deployStackStub.callCount).to.equal(1);
@@ -181,7 +184,7 @@ describe('beanstalk deployer', () => {
                 ]
             };
 
-            const deployContext = await beanstalk.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await beanstalk.deploy!(serviceContext, ownPreDeployContext, []);
             expect(getScalingPoliciesStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.callCount).to.equal(1);
             expect(prepareAndUploadDeployableArtifactStub.firstCall.args[1]).to.have.property('02dns-names.config');
@@ -194,7 +197,7 @@ describe('beanstalk deployer', () => {
         it('should delete the security group', async () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup').resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await beanstalk.unPreDeploy(serviceContext);
+            const unPreDeployContext = await beanstalk.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -204,7 +207,7 @@ describe('beanstalk deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await beanstalk.unDeploy(serviceContext);
+            const unDeployContext = await beanstalk.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });

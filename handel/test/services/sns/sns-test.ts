@@ -22,6 +22,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventConsumer,
     ServiceEventType,
     ServiceType,
@@ -32,7 +33,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as snsCalls from '../../../src/aws/sns-calls';
-import * as sns from '../../../src/services/sns';
+import { Service } from '../../../src/services/sns';
 import { SnsServiceConfig } from '../../../src/services/sns/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -45,8 +46,10 @@ describe('sns deployer', () => {
     const envName = 'FakeEnv';
     const serviceName = 'FakeService';
     const serviceType = 'sns';
+    let sns: ServiceDeployer;
 
     beforeEach(async () => {
+        sns = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: serviceType,
@@ -84,7 +87,7 @@ describe('sns deployer', () => {
                 ]
             }));
 
-            const deployContext = await sns.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await sns.deploy!(serviceContext, ownPreDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
 
@@ -123,7 +126,7 @@ describe('sns deployer', () => {
 
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
-            const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await sns.produceEvents!(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(subscribeToTopicStub.callCount).to.equal(1);
         });
@@ -147,7 +150,7 @@ describe('sns deployer', () => {
             const subscribeToTopicStub = sandbox.stub(snsCalls, 'subscribeToTopic').resolves({});
 
             try {
-                const produceEventsContext = await sns.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+                const produceEventsContext = await sns.produceEvents!(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
                 expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
                 expect(true).to.equal(false);
             }
@@ -181,7 +184,7 @@ describe('sns deployer', () => {
             const addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').resolves({});
 
             const eventConsumerConfig = { service_name: serviceName };
-            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await sns.consumeEvents!(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSnsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -198,7 +201,7 @@ describe('sns deployer', () => {
             const addSnsPermissionStub = sandbox.stub(snsCalls, 'addSnsPermissionIfNotExists').resolves({});
 
             const eventConsumerConfig = { service_name: serviceName };
-            const consumeEventsContext = await sns.consumeEvents(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
+            const consumeEventsContext = await sns.consumeEvents!(serviceContext, deployContext, eventConsumerConfig, producerServiceContext, producerDeployContext);
             expect(addSnsPermissionStub.callCount).to.equal(1);
             expect(consumeEventsContext).to.be.instanceOf(ConsumeEventsContext);
         });
@@ -208,7 +211,7 @@ describe('sns deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').resolves(new UnDeployContext(serviceContext));
 
-            const unDeployContext = await sns.unDeploy(serviceContext);
+            const unDeployContext = await sns.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
         });
