@@ -22,20 +22,23 @@ import {
     ProduceEventsContext,
     ServiceConfig,
     ServiceContext,
+    ServiceDeployer,
     ServiceType
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import * as alexaSkillKit from '../../../src/services/alexaskillkit';
+import { Service } from '../../../src/services/alexaskillkit';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
 describe('alexaskillkit deployer', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
     let accountConfig: AccountConfig;
+    let alexaSkillKit: ServiceDeployer;
 
     beforeEach(async () => {
+        alexaSkillKit = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceContext = new ServiceContext('Fakepp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'alexaskillkit'), {type: 'alexaskillkit'}, accountConfig);
@@ -47,7 +50,7 @@ describe('alexaskillkit deployer', () => {
 
     describe('check', () => {
         it('should return no errors', () => {
-            const errors = alexaSkillKit.check(serviceContext, []);
+            const errors = alexaSkillKit.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -55,7 +58,7 @@ describe('alexaskillkit deployer', () => {
     describe('deploy', () => {
         it('should return an empty deploy context', async () => {
             const ownPreDeployContext = new PreDeployContext(serviceContext);
-            const deployContext = await alexaSkillKit.deploy(serviceContext, ownPreDeployContext, []);
+            const deployContext = await alexaSkillKit.deploy!(serviceContext, ownPreDeployContext, []);
             expect(deployContext).to.be.instanceof(DeployContext);
         });
     });
@@ -68,7 +71,7 @@ describe('alexaskillkit deployer', () => {
             const eventConfigConsumer = {
                 service_name: 'FakeService2'
             };
-            const produceEventsContext = await alexaSkillKit.produceEvents(serviceContext, ownDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await alexaSkillKit.produceEvents!(serviceContext, ownDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
         });
     });

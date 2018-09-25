@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext
@@ -30,7 +31,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import * as cloudWatchEventsCalls from '../../../src/aws/cloudwatch-events-calls';
-import * as cloudWatchEvent from '../../../src/services/cloudwatchevent';
+import { Service } from '../../../src/services/cloudwatchevent';
 import { CloudWatchEventsConfig, CloudWatchEventsServiceEventConsumer } from '../../../src/services/cloudwatchevent/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -41,7 +42,10 @@ describe('cloudwatchevent deployer', () => {
     let accountConfig: AccountConfig;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
+    let cloudWatchEvent: ServiceDeployer;
+
     beforeEach(async () => {
+        cloudWatchEvent = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -56,7 +60,7 @@ describe('cloudwatchevent deployer', () => {
 
     describe('check', () => {
         it('should require the schedule or event_pattern parameter to be present', () => {
-            const errors = cloudWatchEvent.check(serviceContext, []);
+            const errors = cloudWatchEvent.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify at least one of the \'schedule\' or \'event_pattern\' parameters');
         });
@@ -66,7 +70,7 @@ describe('cloudwatchevent deployer', () => {
                 type: 'cloudwatchevents',
                 schedule: 'rate(1 minute)'
             };
-            const errors = cloudWatchEvent.check(serviceContext, []);
+            const errors = cloudWatchEvent.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
@@ -87,7 +91,7 @@ describe('cloudwatchevent deployer', () => {
                 }]
             }));
 
-            const deployContext = await cloudWatchEvent.deploy(serviceContext, preDeployContext, []);
+            const deployContext = await cloudWatchEvent.deploy!(serviceContext, preDeployContext, []);
             expect(deployStackStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.eventOutputs!.resourcePrincipal).to.equal('events.amazonaws.com');
@@ -129,7 +133,7 @@ describe('cloudwatchevent deployer', () => {
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await cloudWatchEvent.produceEvents!(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(addTargetStub.callCount).to.equal(1);
         });
@@ -162,7 +166,7 @@ describe('cloudwatchevent deployer', () => {
 
             const addTargetStub = sandbox.stub(cloudWatchEventsCalls, 'addTarget').returns(Promise.resolve('FakeTargetId'));
 
-            const produceEventsContext = await cloudWatchEvent.produceEvents(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await cloudWatchEvent.produceEvents!(serviceContext, producerDeployContext, eventConfigConsumer, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(addTargetStub.callCount).to.equal(1);
         });
@@ -174,7 +178,7 @@ describe('cloudwatchevent deployer', () => {
             const removeTargetsStub = sandbox.stub(cloudWatchEventsCalls, 'removeAllTargets').returns(Promise.resolve(true));
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService').returns(Promise.resolve(true));
 
-            const unDeployContext = await cloudWatchEvent.unDeploy(serviceContext);
+            const unDeployContext = await cloudWatchEvent.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(getRuleStub.callCount).to.equal(1);
             expect(removeTargetsStub.callCount).to.equal(1);

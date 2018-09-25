@@ -21,6 +21,7 @@ import {
     PreDeployContext,
     ProduceEventsContext,
     ServiceContext,
+    ServiceDeployer,
     ServiceEventType,
     ServiceType,
     UnDeployContext
@@ -29,10 +30,7 @@ import { awsCalls, deployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import {
-
-} from '../../../src/datatypes';
-import * as iot from '../../../src/services/iot';
+import { Service } from '../../../src/services/iot';
 import { IotServiceConfig, IotServiceEventConsumer } from '../../../src/services/iot/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
@@ -43,8 +41,10 @@ describe('iot deployer', () => {
     const envName = 'FakeEnv';
     let serviceContext: ServiceContext<IotServiceConfig>;
     let serviceParams: IotServiceConfig;
+    let iot: ServiceDeployer;
 
     beforeEach(async () => {
+        iot = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
@@ -64,27 +64,27 @@ describe('iot deployer', () => {
     describe('check', () => {
         it('should return an error when the service_name param is not specified in event_consumers', () => {
             delete serviceContext.params.event_consumers[0].service_name;
-            const errors = iot.check(serviceContext, []);
+            const errors = iot.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'service_name\' parameter is required');
         });
 
         it('should return an error when the sql parameter is not specified in the event_consumers seciton', () => {
             delete serviceContext.params.event_consumers[0].sql;
-            const errors = iot.check(serviceContext, []);
+            const errors = iot.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('The \'sql\' parameter is required');
         });
 
         it('should return no errors when configured properly', () => {
-            const errors = iot.check(serviceContext, []);
+            const errors = iot.check!(serviceContext, []);
             expect(errors.length).to.equal(0);
         });
     });
 
     describe('deploy', () => {
         it('should return an empty deploy context', async () => {
-            const deployContext = await iot.deploy(serviceContext, new PreDeployContext(serviceContext), []);
+            const deployContext = await iot.deploy!(serviceContext, new PreDeployContext(serviceContext), []);
             expect(deployContext).to.be.instanceof(DeployContext);
         });
     });
@@ -133,7 +133,7 @@ describe('iot deployer', () => {
                 ]
             }));
 
-            const produceEventsContext = await iot.produceEvents(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
+            const produceEventsContext = await iot.produceEvents!(serviceContext, ownDeployContext, eventConsumerConfig, consumerServiceContext, consumerDeployContext);
             expect(produceEventsContext).to.be.instanceof(ProduceEventsContext);
             expect(deployStackStub.callCount).to.equal(1);
         });
@@ -158,7 +158,7 @@ describe('iot deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').returns(Promise.resolve({}));
             const deleteStackStub = sandbox.stub(awsCalls.cloudFormation, 'deleteStack').returns(Promise.resolve({}));
 
-            const unDeployContext = await iot.unDeploy(serviceContext);
+            const unDeployContext = await iot.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(getStackStub.callCount).to.equal(2);
             expect(deleteStackStub.callCount).to.equal(2);
