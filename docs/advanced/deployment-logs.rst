@@ -9,7 +9,7 @@ Log Entry Structure
 After every deployment and every deletion for each environment, Handel will put an entry into the `handel-deployment-logs` DynamoDB table.
 
 .. list-table::
-:header-rows: 1
+    :header-rows: 1
 
     * - Field
       - Key
@@ -53,7 +53,9 @@ After every deployment and every deletion for each environment, Handel will put 
       - A JSON representation of the environment's Handel services that were deployed or deleted
 
 Here's an example deployment entry:
+
 .. code-block:: json
+
     {
         "AppName": "test-app",
         "EnvAction": "dev:deploy:1536357426736"
