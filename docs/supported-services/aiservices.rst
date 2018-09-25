@@ -41,6 +41,7 @@ The following AWS services are supported in the *aws_services* element:
 
 * :ref:`rekognition <aiservices-rekognition>`
 * :ref:`polly <aiservices-polly>`
+* :ref:`comprehend <aiservices-comprehend>`
 
 .. _aiservices-rekognition:
 
@@ -79,6 +80,16 @@ Polly also restricts lexicon use to those with a particular prefix:
 
     <appName>-<environmentName>
   
+If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+
+.. _aiservices-comprehend:
+
+Comprehend
+----------
+AWS Comprehend examines text to perform a variety of functions. It can detect the dominant language of a document, entities, key phrases, sentiments (if a document is posative, negative, neutral, or mixed), syntax, and topic modeling.
+
+There are no restrictions on the comprehend service.
+
 If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
 
 .. _aiservices-S3-Object-Access:
