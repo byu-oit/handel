@@ -19,5 +19,6 @@ environments:
       - rekognition
       - polly
       - comprehend
+      - translate #translate is having an error and not deploying with the rest of the apigateway
     bucket:
       type: s3

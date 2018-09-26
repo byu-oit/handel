@@ -42,6 +42,7 @@ The following AWS services are supported in the *aws_services* element:
 * :ref:`rekognition <aiservices-rekognition>`
 * :ref:`polly <aiservices-polly>`
 * :ref:`comprehend <aiservices-comprehend>`
+* :ref:`translate <aiservices-translate>`
 
 .. _aiservices-rekognition:
 
@@ -91,6 +92,38 @@ AWS Comprehend examines text to perform a variety of functions. It can detect th
 There are no restrictions on the comprehend service.
 
 If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
+
+.. _aiservices-translate:
+
+Translate
+---------
+Amazon Translate translates documents from the following twelve languages into English, and from English into these languages:
+
+Arabic
+
+Chinese (Simplified)
+
+Chinese (Traditional)
+
+Czech
+
+French
+
+German
+
+Italian
+
+Japanese
+
+Portuguese
+
+Russian
+
+Spanish
+
+Turkish
+
+AWS Translate does not currently have support for S3 or file uploads.
 
 .. _aiservices-S3-Object-Access:
 
