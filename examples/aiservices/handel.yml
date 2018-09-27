@@ -19,5 +19,6 @@ environments:
       - rekognition
       - polly
       - comprehend
+      - translate
     bucket:
       type: s3
