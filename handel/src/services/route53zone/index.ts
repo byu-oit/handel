@@ -84,7 +84,7 @@ export class Service implements ServiceDeployer {
         if (params.name && !route53.isValidHostname(params.name)) {
             errors.push(`'name' parameter must be a valid hostname`);
         }
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<Route53ZoneServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

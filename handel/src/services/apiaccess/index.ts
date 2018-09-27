@@ -62,7 +62,7 @@ export class Service implements ServiceDeployer {
             for (const service of serviceParams.aws_services) {
                 const statementsPath = `${__dirname}/${service}-statements.json`;
                 if (!fs.existsSync(statementsPath)) {
-                    errors.push(`${SERVICE_NAME} - The 'aws_service' value '${service}' is not supported`);
+                    errors.push(`The 'aws_service' value '${service}' is not supported`);
                 }
             }
         }

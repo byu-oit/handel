@@ -104,7 +104,8 @@ describe('check', () => {
             const environmentContext = getEnvironmentContext();
 
             const checkResults = await checkPhase.checkServices(serviceRegistry, environmentContext);
-            expect(checkResults).to.deep.equal(ecsErrors);
+            expect(checkResults.length).to.equal(1);
+            expect(checkResults[0]).to.include(ecsErrors[0]);
         });
 
         it('should enforce required tags from the account config file', async () => {
