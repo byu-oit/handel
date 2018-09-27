@@ -20,5 +20,6 @@ environments:
       - polly
       - comprehend
       - translate
+      - transcribe
     bucket:
       type: s3
