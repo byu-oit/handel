@@ -15,7 +15,13 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, BindContext, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import {
+    BindContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as ec2Calls from '../../src/aws/ec2-calls';

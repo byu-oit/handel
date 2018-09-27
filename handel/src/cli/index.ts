@@ -258,7 +258,7 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
             if (errors.hasOwnProperty(env)) {
                 const envErrors = errors[env];
                 if (envErrors.length > 0) {
-                    winston.error(`The following errors were found for env ${env}:`);
+                    winston.error(`The following errors were found in your Handel file for environment '${env}':`);
                     // tslint:disable-next-line:no-console
                     console.log('  ' + envErrors.join('\n  '));
                     foundErrors = true;

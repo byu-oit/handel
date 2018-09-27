@@ -154,8 +154,8 @@ export class Service implements ServiceDeployer {
 
     public check(serviceContext: ServiceContext<S3ServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
         const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        lifecycleSection.checkLifecycles(serviceContext, SERVICE_NAME, errors);
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        lifecycleSection.checkLifecycles(serviceContext, errors);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<S3ServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

@@ -78,7 +78,7 @@ describe('s3 lifecycle helper', () => {
                 ]
             };
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must enable versioning to have version transition rules');
         });
@@ -86,7 +86,7 @@ describe('s3 lifecycle helper', () => {
         it('should be valid type', () => {
             serviceContext.params.lifecycles![0].transitions![0].type = 'standard';
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify transition type of');
         });
@@ -94,7 +94,7 @@ describe('s3 lifecycle helper', () => {
         it('should be greater that 30 days if ia type', () => {
             serviceContext.params.lifecycles![0].transitions![0].days = 7;
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('Infrequent access has a minimum age of 30 days');
         });
@@ -123,7 +123,7 @@ describe('s3 lifecycle helper', () => {
                 ]
             };
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify only either days or dates in transitions rules');
         });
@@ -147,7 +147,7 @@ describe('s3 lifecycle helper', () => {
                 ]
             };
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify one of either days or dates in transitions rules');
         });
@@ -172,7 +172,7 @@ describe('s3 lifecycle helper', () => {
                 ]
             };
             const errors: string[] = [];
-            s3Lifecycle.checkLifecycles(serviceContext, 'FakeService', errors);
+            s3Lifecycle.checkLifecycles(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.contain('You must specify only days in version transitions rules');
         });

@@ -174,7 +174,7 @@ export class Service implements ServiceDeployer {
                 }
             });
         }
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {

@@ -12,4 +12,4 @@ environments:
       type: s3staticsite
       path_to_code: ./site/
       index_document: index.html
-      error_document: error.html
+      error_ducument: error.html

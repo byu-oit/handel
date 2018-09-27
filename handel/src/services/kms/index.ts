@@ -106,7 +106,7 @@ export class Service implements ServiceDeployer {
                 errors.push('\'alias\' parameter must only contain alphanumeric characters, dashes (\'-\'), underscores (\'_\'), or slashes (\'/\')');
             }
         }
-        return errors.map(it => `${SERVICE_NAME} - ${it}`);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<KmsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

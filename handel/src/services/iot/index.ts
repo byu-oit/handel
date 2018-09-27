@@ -90,8 +90,7 @@ export class Service implements ServiceDeployer {
     public readonly supportsTagging = true;
 
     public check(serviceContext: ServiceContext<IotServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>) {
-        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     }
 
     public async deploy(ownServiceContext: ServiceContext<IotServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
