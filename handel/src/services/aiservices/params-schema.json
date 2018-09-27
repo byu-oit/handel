@@ -12,9 +12,9 @@
             "type": "array",
             "items": {
                 "type": "string",
-                "pattern": "^rekognition|polly|comprehend|translate$"
+                "pattern": "^rekognition|polly|comprehend|translate|transcribe$"
             },
-            "errorMessage": "The 'ai_services' field must be a list of strings, containing 'rekognition', 'comprehend', 'translate', or 'polly'"
+            "errorMessage": "The 'ai_services' field must be a list of strings, containing 'rekognition', 'comprehend', 'translate', 'transcribe', or 'polly'"
         }
     },
     "required": [
