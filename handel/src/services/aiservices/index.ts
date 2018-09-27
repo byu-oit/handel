@@ -64,6 +64,11 @@ const aiServicePolicies: AIServicePolicies = {
         const params = {};
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/translate-statements.json`, params);
         return JSON.parse(compiledTemplate);
+    },
+    'transcribe': async (serviceContext: ServiceContext<AIServicesConfig>) => {
+        const params = {};
+        const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/transcribe-statements.json`, params);
+        return JSON.parse(compiledTemplate);
     }
 };
 

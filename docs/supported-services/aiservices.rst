@@ -43,6 +43,7 @@ The following AWS services are supported in the *aws_services* element:
 * :ref:`polly <aiservices-polly>`
 * :ref:`comprehend <aiservices-comprehend>`
 * :ref:`translate <aiservices-translate>`
+* :ref:`transcribe <aiservices-transcribe>`
 
 .. _aiservices-rekognition:
 
@@ -93,7 +94,7 @@ There are no restrictions on the comprehend service.
 
 If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
 
-.. aiservices-translate:
+.. _aiservices-translate:
 
 Translate
 ---------
@@ -124,6 +125,21 @@ Spanish
 Turkish
 
 AWS Translate does not currently have support for S3 or file uploads
+
+.. _aiservices-transcribe
+
+Transcribe
+----------
+AWS Transcribe recognizes speech in audio files, and turns that into text. It pulls an audio file from a S3 bucket, and thus you will need :ref:`S3 Object Access <aiservices-S3-Object-Access>`. The output text file will be stored in the same S3 bucket. When these are delivered, they may contain customer content.
+
+A file must be iin one of the following formats:
+
+MP3
+MP4
+FLAC
+WAV
+
+Your file must also be less than two hours in length. For best results us FLAC or WAV.
 
 .. _aiservices-S3-Object-Access:
 
