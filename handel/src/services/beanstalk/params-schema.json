@@ -6,23 +6,23 @@
             "type": "string",
             "description": "The service type (should always be 'beanstalk')",
             "pattern": "^beanstalk$",
-            "errorMessage": "The field must be 'beanstalk'"
+            "errorMessage": "Must be 'beanstalk'"
         },
         "path_to_code": {
             "type": "string",
-            "errorMessage": "The parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "solution_stack": {
             "type": "string",
-            "errorMessage": "The parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The paramter must be a string"
+            "errorMessage": "Must be a string"
         },
         "key_name": {
             "type": "string",
-            "errorMessage": "The parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "auto_scaling": {
             "type": "object",
@@ -30,12 +30,12 @@
                 "min_instances": {
                     "type": "number",
                     "minimum": 1,
-                    "errorMessage": "The field must be a number >= 1"
+                    "errorMessage": "Must be a number >= 1"
                 },
                 "max_instances": {
                     "type": "number",
                     "minimum": 1,
-                    "errorMessage": "The field must be a number >= 1"
+                    "errorMessage": "Must be a number >= 1"
                 },
                 "scaling_policies": {
                     "type": "array",
@@ -50,15 +50,15 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
-                                        "errorMessage": "The field must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "value": {
                                         "type": "number",
-                                        "errorMessage": "The field must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "cooldown": {
                                         "type": "number",
-                                        "errorMessage": "The field must be a number"
+                                        "errorMessage": "Must be a number"
                                     }
                                 },
                                 "additionalProperties": false,
@@ -77,35 +77,35 @@
                                 "properties": {
                                     "namespace": {
                                         "type": "string",
-                                        "errorMessage": "The field must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "dimensions": {
                                         "type": "object",
-                                        "errorMessage": "The field must be a set of key/value pairs"
+                                        "errorMessage": "Must be a set of key/value pairs"
                                     },
                                     "metric_name": {
                                         "type": "string",
-                                        "errorMessage": "The field must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "statistic": {
                                         "type": "string",
-                                        "errorMessage": "The field must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "comparison_operator": {
                                         "type": "string",
-                                        "errorMessage": "The field must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "threshold": {
                                         "type": "number",
-                                        "errorMessage": "The field must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "period": {
                                         "type": "number",
-                                        "errorMessage": "The field must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "evaluation_periods": {
                                         "type": "number",
-                                        "errorMessage": "The field must be a number"
+                                        "errorMessage": "Must be a number"
                                     }
                                 },
                                 "additionalProperties": false,
@@ -154,11 +154,11 @@
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "health_check_url": {
             "type": "string",
-            "errorMessage": "The parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "routing": {
             "type": "object",
@@ -167,20 +167,20 @@
                     "type": "string",
                     "description": "Whether to use HTTP or HTTPS for the routing listener",
                     "pattern": "^(http|https)$",
-                    "errorMessage": "The field must be one of the values: http, https"
+                    "errorMessage": "Must be one of the values: http, https"
                 },
                 "https_certificate": {
                     "type": "string",
                     "description": "The certificate ID from AWS Certificate Manager",
-                    "errorMessage": "The field must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "dns_names": {
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "errorMessage": "The items in the field must be a string"
+                        "errorMessage": "The items must be a string"
                     },
-                    "errorMessage": "The field must be an array of strings"
+                    "errorMessage": "Must be an array of strings"
                 }
             },
             "additionalProperties": false,
@@ -206,7 +206,7 @@
                     ]
                 }
             },
-            "errorMessage": "The field must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -220,7 +220,7 @@
                     ]
                 }
             },
-            "errorMessage": "The element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "dependencies": {
@@ -229,7 +229,7 @@
                 "type": "string",
                 "errorMessage": "Each item in the section must be a string"
             },
-            "errorMessage": "The section must be a string"
+            "errorMessage": "Must be a string"
         }
     },
     "required": [
