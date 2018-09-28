@@ -6,23 +6,23 @@
             "type": "string",
             "description": "The service type (should always be 'memcached')",
             "pattern": "^memcached$",
-            "errorMessage": "The 'type' parameter must be 'memcached'"
+            "errorMessage": "Must be 'memcached'"
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "memcached_version": {
             "type": "string",
-            "errorMessage": "The 'memcached_version' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "node_count": {
             "type": "number",
-            "errorMessage": "The 'node_count' parameter must be a number"
+            "errorMessage": "Must be a number"
         },
         "cache_parameters": {
             "type": "object",
@@ -35,7 +35,7 @@
                     ]
                 }
             },
-            "errorMessage": "'cache-parameters' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -49,7 +49,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

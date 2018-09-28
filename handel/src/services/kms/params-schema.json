@@ -6,15 +6,15 @@
             "type": "string",
             "description": "The service type (should always be 'kms')",
             "pattern": "^kms$",
-            "errorMessage": "The 'type' field must equal 'kms'"
+            "errorMessage": "Must equal 'kms'"
         },
         "alias": {
             "type": "string",
-            "errorMessage": "The 'alias' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "auto_rotate": {
             "type": "boolean",
-            "errorMessage": "The 'auto_rotate' function must be a boolean"
+            "errorMessage": "Must be a boolean"
         },
         "tags": {
             "type": "object",
@@ -27,7 +27,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

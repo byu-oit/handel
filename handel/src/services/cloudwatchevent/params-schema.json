@@ -6,28 +6,28 @@
             "type": "string",
             "description": "The service type (should always be 'cloudwatchevent')",
             "pattern": "cloudwatchevent",
-            "errorMessage": "The 'type' field must equal 'cloudwatchevent'"
+            "errorMessage": "Must equal 'cloudwatchevent'"
         },
         "description": {
             "type": "string",
             "description": "The event description",
-            "errorMessage": "The 'description' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "schedule": {
             "type": "string",
             "description": "The cron or rate string specifying the schedule on which to fire the event",
-            "errorMessage": "The 'schedule' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "event_pattern": {
             "type": "string",
             "description": "The list of event patterns on which to fire the event",
-            "errorMessage": "The 'event_pattern' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "state": {
             "type": "string",
             "description": "What state the rule should be in",
             "pattern": "^(enabled|disabled)$",
-            "errorMessage": "The 'state' parameter must be one of the following values: enabled, disabled"
+            "errorMessage": "Must be one of the following values: enabled, disabled"
         },
         "event_consumers": {
             "type": "array",
@@ -36,14 +36,14 @@
                 "properties": {
                     "service_name": {
                         "type": "string",
-                        "errorMessage": "The 'service_name' field must be a string"
+                        "errorMessage": "Must be a string"
                     },
                     "event_input": {
                         "type": "string",
-                        "errorMessage": "The 'event_input' field must be a JSON string"
+                        "errorMessage": "Must be a JSON string"
                     }
                 },
-                "errorMessage": "The 'event_consumers' field must contain an array of objects with the 'service_name' and 'event_input' properties",
+                "errorMessage": "Must contain an array of objects with the 'service_name' and 'event_input' properties",
                 "additionalProperties": false
             }
         },
@@ -58,7 +58,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

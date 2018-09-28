@@ -6,7 +6,7 @@
             "type": "string",
             "description": "The service type (should always be 'aiservices')",
             "pattern": "aiservices",
-            "errorMessage": "The 'type' field must equal 'aiservices'"
+            "errorMessage": "Must equal 'aiservices'"
         },
         "ai_services": {
             "type": "array",
@@ -14,7 +14,7 @@
                 "type": "string",
                 "pattern": "^rekognition|polly|comprehend|translate|transcribe$"
             },
-            "errorMessage": "The 'ai_services' field must be a list of strings, containing 'rekognition', 'comprehend', 'translate', 'transcribe', or 'polly'"
+            "errorMessage": "Must be a list of strings, containing 'rekognition', 'comprehend', 'translate', 'transcribe', or 'polly'"
         }
     },
     "required": [

@@ -6,44 +6,44 @@
             "type": "string",
             "description": "The service type (should always be 'apigateway')",
             "pattern": "^apigateway$",
-            "errorMessage": "The 'type' field must equal 'apigateway'"
+            "errorMessage": "Must equal 'apigateway'"
         },
         "proxy": {
             "type": "object",
             "properties": {
                 "path_to_code": {
                     "type": "string",
-                    "errorMessage": "The 'path_to_code' parameter must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "runtime": {
                     "type": "string",
-                    "errorMessage": "The 'runtime' parameter must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "handler": {
                     "type": "string",
-                    "errorMessage": "The 'handler' parameter must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "memory": {
                     "type": "integer",
-                    "errorMessage": "The 'memory' parameter must be a number"
+                    "errorMessage": "Must be a number"
                 },
                 "timeout": {
                     "type": "integer",
-                    "errorMessage": "The 'timeout' parameter must be a number"
+                    "errorMessage": "Must be a number"
                 },
                 "warmup": {
                     "type": "object",
                     "properties": {
                         "schedule": {
                             "type": "string",
-                            "errorMessage": "The 'schedule' parameter must be a string"
+                            "errorMessage": "Must be a string"
                         },
                         "http_paths": {
                             "type": "array",
                             "items": {
                                 "type": "string"
                             },
-                            "errorMessage": "The 'http_paths' parameter must be a list of strings"
+                            "errorMessage": "Must be a list of strings"
                         }
                     },
                     "additionalProperties": false,
@@ -52,10 +52,10 @@
                         "http_paths"
                     ],
                     "errorMessage": {
-                        "additionalProperties": "Invalid/unknown property specified in the 'warmup' section",
+                        "additionalProperties": "Invalid/unknown property specified",
                         "required": {
-                            "schedule": "The 'schedule' field is required in the 'warmup' section",
-                            "http_paths": "The 'http_paths' field is required in the 'warmup' section"
+                            "schedule": "The 'schedule' field is required",
+                            "http_paths": "The 'http_paths' field is required"
                         }
                     }
                 },
@@ -70,7 +70,7 @@
                             ]
                         }
                     },
-                    "errorMessage": "The 'environment_variables' field must contain 1 or more simple key/value pairs where the values are strings or numbers",
+                    "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
                     "additionalProperties": false
                 }
             },
@@ -83,30 +83,30 @@
             "errorMessage": {
                 "additionalProperties": "Invalid/unknown property specified in 'proxy' section",
                 "required": {
-                    "path_to_code": "The 'path_to_code' field is required in the 'proxy' section",
-                    "runtime": "The 'runtime' field is required in the 'proxy' section",
-                    "handler": "The 'handler' field is required in the 'proxy' section"
+                    "path_to_code": "The 'path_to_code' field is required",
+                    "runtime": "The 'runtime' field is required",
+                    "handler": "The 'handler' field is required"
                 } 
             }
         },
         "swagger": {
             "type": "string",
-            "errorMessage": "The 'swagger' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "binary_media_types": {
             "type": "array",
             "items": {
                 "type": "string"
             },
-            "errorMessage": "The 'binary_media_types' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "vpc": {
             "type": "boolean",
-            "errorMessage": "The 'vpc' parameter must be a boolean true/false value"
+            "errorMessage": "Must be a boolean true/false value"
         },
         "custom_domains": {
             "type": "array",
@@ -115,11 +115,11 @@
                 "properties": {
                     "dns_name": {
                         "type": "string",
-                        "errorMessage": "The 'dns_name' parameter must be a string"
+                        "errorMessage": "Must be a string"
                     },
                     "https_certificate": {
                         "type": "string",
-                        "errorMessage": "The 'https_certificate' parameter must be a string"
+                        "errorMessage": "Must be a string"
                     }
                 },
                 "additionalProperties": false,
@@ -128,10 +128,10 @@
                     "https_certificate"
                 ],
                 "errorMessage": {
-                    "additionalProperties": "Unknown/invalid property specified in the 'custom_domains' section",
+                    "additionalProperties": "Unknown/invalid property specified",
                     "required": {
-                        "dns_name": "The 'dns_name' property is required in the 'custom_domains' section",
-                        "https_certificate": "The 'https_certificate' property is required in the 'custom_domains' section"
+                        "dns_name": "The 'dns_name' property is required",
+                        "https_certificate": "The 'https_certificate' property is required"
                     }
                 }
             }
@@ -147,16 +147,16 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "dependencies": {
             "type": "array",
             "items": {
                 "type": "string",
-                "errorMessage": "Each item in the 'dependencies' section must be a string"
+                "errorMessage": "Each item must be a string"
             },
-            "errorMessage": "The 'dependencies' section must be a string"
+            "errorMessage": "Must be an array of strings"
         }
     },
     "required": [
