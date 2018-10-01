@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "description": "The service type (should always be 'amazonmq')",
+            "pattern": "amazonmq",
+            "errorMessage": "The 'type' field must equal 'amazonmq'"
+        },
+        "instance_type": {
+            "type": "string",
+            "description": "The EC2 instance type to use for the queue",
+            "errorMessage": "The 'instance_type' field must be a string"
+        },
+        "multi_az": {
+            "type": "boolean",
+            "errorMessage": "The 'multi_az' field must be a boolean"
+        }
+    },
+    "required": [
+        "type"
+    ],
+    "additionalProperties": false,
+    "errorMessage": {
+        "additionalProperties": "Invalid/unknown property specified",
+        "required": {
+            "type": "The top-level 'type' field is required"
+        }
+    }
+}

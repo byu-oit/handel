@@ -1,0 +1,9 @@
+version: 1
+
+name: amazonmq-test
+
+environments:
+  dev:
+    queue:
+      type: amazonmq
+      instance_type: mq.m5.large

@@ -1,0 +1,47 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created AmazonMQ Broker
+
+Parameters:
+  BrokerUsername:
+    NoEcho: true
+    Description: The username of the broker
+    Type: String
+  BrokerPassword:
+    NoEcho: true
+    Description: The password of the broker
+    Type: String
+
+Resources:
+  Broker:
+    Type: "AWS::AmazonMQ::Broker"
+    Properties:
+      AutoMinorVersionUpgrade: true
+      BrokerName: {{brokerName}}
+      Users: 
+      - ConsoleAccess: true
+        Username: !Ref BrokerUsername
+        Password: !Ref BrokerPassword
+      # TODO - Add configuration later
+      {{#if subnetId2}}
+      DeploymentMode: ACTIVE_STANDBY_MULTI_AZ
+      {{else}}
+      DeploymentMode: SINGLE_INSTANCE
+      {{/if}}
+      EngineType: {{engineType}}
+      EngineVersion: {{engineVersion}}
+      HostInstanceType: {{instanceType}}
+      # TODO - Figure out logs
+      PubliclyAccessible: false              
+      SecurityGroups: 
+      - {{securityGroupId}}
+      SubnetIds:
+      - {{subnetId1}}
+      {{#if subnetId2}}
+      - {{subnetId2}}
+      {{/if}}
+
+Outputs:
+  BrokerId:
+    Description: The ID of the AmazonMQ Broker
+    Value: !Ref Broker  
