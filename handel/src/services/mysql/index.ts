@@ -26,7 +26,16 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as rdsDeployersCommon from '../../common/rds-deployers-common';
 import { HandlebarsMySqlTemplate, MySQLConfig, MySQLStorageType } from './config-types';
@@ -103,6 +112,10 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, MYSQL_PORT, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<MySQLConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async bind(ownServiceContext: ServiceContext<MySQLConfig>,
         ownPreDeployContext: PreDeployContext,
         dependentOfServiceContext: ServiceContext<ServiceConfig>,
@@ -159,7 +172,7 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnBindContext> {
+    public async unBind(ownServiceContext: ServiceContext<MySQLConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
         return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
     }
 

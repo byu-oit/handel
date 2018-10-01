@@ -142,8 +142,12 @@ describe('efs deployer', () => {
     describe('unBind', () => {
         it('should unbind the security group', async () => {
             const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
+            const dependencyPreDeployContext = new PreDeployContext(serviceContext);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
+            const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
 
-            const unBindContext = await efs.unBind!(serviceContext);
+
+            const unBindContext = await efs.unBind!(serviceContext, dependencyPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
