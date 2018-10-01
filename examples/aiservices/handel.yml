@@ -18,5 +18,8 @@ environments:
       ai_services:
       - rekognition
       - polly
+      - comprehend
+      - translate
+      - transcribe
     bucket:
       type: s3

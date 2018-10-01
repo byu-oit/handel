@@ -61,7 +61,10 @@ function getAbsoluteConfigFilePath(filePath: string): string {
 function configureAwsSdk(region: string): void {
     process.env.AWS_REGION = region;
     AWS.config.update({
-        maxRetries: 10
+        maxRetries: 10,
+        retryDelayOptions: {
+            base: 300
+        }
     });
 }
 
