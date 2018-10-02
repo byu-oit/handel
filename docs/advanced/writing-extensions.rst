@@ -183,7 +183,7 @@ The following TypeScript interface defines the contract for a service deployer:
         *
         * Return null if preDeploy has not been executed yet
         */
-        getPreDeployContext?(serviceContext: ServiceContext<ServiceConfig>): Promise<IPreDeployContext | null>;
+        getPreDeployContext?(serviceContext: ServiceContext<ServiceConfig>): Promise<IPreDeployContext>;
 
         /**
         * Bind two resources from the preDeploy phase together by performing some wiring action on them. An example

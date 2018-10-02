@@ -142,7 +142,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async bind(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, EFS_SG_PROTOCOL, EFS_PORT, SERVICE_NAME);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, EFS_SG_PROTOCOL, EFS_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -163,7 +163,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<EfsServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, EFS_SG_PROTOCOL, EFS_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<EfsServiceConfig>): Promise<UnDeployContext> {

@@ -67,7 +67,7 @@ export async function unBindServicesInLevel(serviceRegistry: ServiceRegistry, en
                 unBindPromises.push(unBindPromise);
             }
             else { // If unbind not implemented by deployer, return an empty unbind context
-                const unBindPromise = lifecyclesCommon.unBindNotRequired(toUnBindServiceContext)
+                const unBindPromise = lifecyclesCommon.unBindNotRequired(toUnBindServiceContext, dependentOfServiceContext)
                     .then(unBindContext => {
                         unBindContexts[unBindContextName] = unBindContext;
                     });

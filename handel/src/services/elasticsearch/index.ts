@@ -153,8 +153,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             ES_PROTOCOL,
-            ES_PORT,
-            SERVICE_NAME);
+            ES_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<ElasticsearchConfig>,
@@ -175,7 +174,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, ES_PROTOCOL, ES_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnDeployContext> {

@@ -380,15 +380,15 @@ export function isUnDeployContext(obj: any | IUnDeployContext): obj is IUnDeploy
     return !!obj && hasAppServiceInfo(obj);
 }
 
-export interface IUnBindContext extends HasAppServiceInfo {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: ServiceType;
+export interface IUnBindContext {
+    dependencyServiceContext: ServiceContext<ServiceConfig>;
+    dependentOfServiceContext: ServiceContext<ServiceConfig>;
 }
 
 export function isUnBindContext(obj: any | IUnBindContext): obj is IUnBindContext {
-    return !!obj && hasAppServiceInfo(obj);
+    return !!obj
+        && isServiceContext(obj.dependencyServiceContext)
+        && isServiceContext(obj.dependentOfServiceContext);
 }
 
 export interface IUnPreDeployContext {
@@ -580,16 +580,14 @@ export class UnDeployContext implements IUnDeployContext {
 }
 
 export class UnBindContext implements IUnBindContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: ServiceType;
+    public dependencyServiceContext: ServiceContext<ServiceConfig>;
+    public dependentOfServiceContext: ServiceContext<ServiceConfig>;
 
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
+    constructor(dependencyServiceContext: ServiceContext<ServiceConfig>,
+                dependentOfServiceContext: ServiceContext<ServiceConfig>) {
+        this.dependencyServiceContext = dependencyServiceContext;
+        this.dependentOfServiceContext = dependentOfServiceContext;
+        // Should anything else go here?
     }
 }
 

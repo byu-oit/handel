@@ -55,39 +55,71 @@ describe('ec2-calls', () => {
             });
 
             const sg = await ec2Calls.getSecurityGroup(groupName, 'vpc-11111111');
+            expect(describeSecurityGroupsStub.callCount).to.equal(1);
             expect(sg).to.equal(null);
         });
     });
 
-    describe('removeAllIngressFromSg', () => {
-        it('should revoke all ingreess on the security group', async () => {
+    describe('getSecurityGroupById', () => {
+        it('should return the security group when found', async () => {
+            const groupId = 'FakeId';
             const describeSecurityGroupsStub = sandbox.stub(awsWrapper.ec2, 'describeSecurityGroups').resolves({
-                SecurityGroups: [{
-                    GroupId: 'FakeId',
-                    IpPermissions: [{
-                        IpProtocol: 'tcp',
-                        FromPort: 0,
-                        ToPort: 1024,
-                        UserIdGroupPairs: []
-                    }]
-                }]
+                SecurityGroups: [
+                    {
+                        GroupId: groupId
+                    }
+                ]
             });
-            const revokeIngressStub = sandbox.stub(awsWrapper.ec2, 'revokeSecurityGroupIngress').resolves({});
 
-            const success = await ec2Calls.removeAllIngressFromSg('FakeGroup', 'FakeVpcId');
-            expect(success).to.equal(true);
+            const sg = await ec2Calls.getSecurityGroupById(groupId, 'vpc-11111111');
             expect(describeSecurityGroupsStub.callCount).to.equal(1);
-            expect(revokeIngressStub.callCount).to.equal(1);
+            expect(sg).to.not.equal(null);
+            expect(sg!.GroupId).to.equal(groupId);
         });
 
-        it('should return true if the security group has already been deleted', async () => {
+        it('should return null when the security group is not found', async () => {
+            const groupName = 'FakeGroup';
             const describeSecurityGroupsStub = sandbox.stub(awsWrapper.ec2, 'describeSecurityGroups').resolves({
                 SecurityGroups: []
             });
 
-            const success = await ec2Calls.removeAllIngressFromSg('FakeGroup', 'FakeVpc');
-            expect(success).to.equal(true);
+            const sg = await ec2Calls.getSecurityGroupById(groupName, 'vpc-11111111');
             expect(describeSecurityGroupsStub.callCount).to.equal(1);
+            expect(sg).to.equal(null);
+        });
+    });
+
+    describe('removeIngressFromSg', () => {
+        const sourceSg = {
+            GroupId: 'SourceSg'
+        };
+        const destSg = {
+            GroupId: 'DestSg',
+            IpPermissions: [{
+                FromPort: 0,
+                ToPort: 65535,
+                IpProtocol: 'tcp',
+                UserIdGroupPairs: [{
+                    GroupId: 'SourceSg'
+                }]
+            }]
+        };
+
+        it('should remove the rule if it exists', async () => {
+            const revokeIngressStub = sandbox.stub(awsWrapper.ec2, 'revokeSecurityGroupIngress').resolves({});
+
+            const success = await ec2Calls.removeIngressFromSg(sourceSg, destSg, 'tcp', 0, 65535, 'fakeVpcId');
+            expect(revokeIngressStub.callCount).to.equal(1);
+            expect(success).to.equal(true);
+        });
+
+        it('should return successfully if the rule has already been removed', async () => {
+            const otherSourceSg = {
+                GroupId: 'OtherSg',
+                IpPermissions: []
+            };
+            const success = await ec2Calls.removeIngressFromSg(otherSourceSg, destSg, 'tcp', 0, 65535, 'fakeVpcId');
+            expect(success).to.equal(true);
         });
     });
 

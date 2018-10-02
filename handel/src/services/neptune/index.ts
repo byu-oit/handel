@@ -154,8 +154,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             NEPTUNE_PROTOCOL,
-            NEPTUNE_PORT,
-            SERVICE_NAME);
+            NEPTUNE_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<NeptuneConfig>,
@@ -189,7 +188,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<NeptuneConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, NEPTUNE_PROTOCOL, NEPTUNE_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnDeployContext> {

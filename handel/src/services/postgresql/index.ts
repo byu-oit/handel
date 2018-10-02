@@ -149,8 +149,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             POSTGRES_PROTOCOL,
-            POSTGRES_PORT,
-            SERVICE_NAME);
+            POSTGRES_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<PostgreSQLConfig>,
@@ -199,7 +198,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<PostgreSQLConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, POSTGRES_PROTOCOL, POSTGRES_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<PostgreSQLConfig>): Promise<UnDeployContext> {

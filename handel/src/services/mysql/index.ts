@@ -125,8 +125,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             MYSQL_PROTOCOL,
-            MYSQL_PORT,
-            SERVICE_NAME);
+            MYSQL_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<MySQLConfig>,
@@ -173,7 +172,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<MySQLConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, MYSQL_PROTOCOL, MYSQL_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<MySQLConfig>): Promise<UnDeployContext> {

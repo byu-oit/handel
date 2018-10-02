@@ -187,7 +187,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async bind(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT, SERVICE_NAME);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -205,7 +205,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnDeployContext> {

@@ -148,11 +148,10 @@ describe('Datatypes Module', () => {
     describe('UnBindContext', () => {
         it('should be able to be constructed from a ServiceContext', () => {
             const serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
-            const unBindContext = new UnBindContext(serviceContext);
-            expect(unBindContext.appName).to.equal(serviceContext.appName);
-            expect(unBindContext.environmentName).to.equal(serviceContext.environmentName);
-            expect(unBindContext.serviceName).to.equal(serviceContext.serviceName);
-            expect(unBindContext.serviceType).to.equal(serviceContext.serviceType);
+            const dependentOfServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService2', new ServiceType(STDLIB_PREFIX, 'FakeType2'), {type: 'FakeType2'}, accountConfig);
+            const unBindContext = new UnBindContext(serviceContext, dependentOfServiceContext);
+            expect(unBindContext.dependencyServiceContext.appName).to.equal(serviceContext.appName);
+            expect(unBindContext.dependentOfServiceContext.appName).to.equal(dependentOfServiceContext.appName);
         });
     });
 

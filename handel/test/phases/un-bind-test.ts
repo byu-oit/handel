@@ -118,8 +118,8 @@ describe('unBind', () => {
                         DeployOutputType.EnvironmentVariables
                     ],
                     consumedDeployOutputTypes: [],
-                    unBind: (toUnBindServiceContext) => {
-                        return Promise.resolve(new UnBindContext(toUnBindServiceContext));
+                    unBind: (toUnBindServiceContext, toUnBindPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext) => {
+                        return Promise.resolve(new UnBindContext(toUnBindServiceContext, dependentOfServiceContext));
                     },
                     supportsTagging: true,
                 }
