@@ -37,9 +37,9 @@ export async function unPreDeployNotRequired(ownServiceContext: ServiceContext<S
     return new UnPreDeployContext(ownServiceContext);
 }
 
-export async function unBindNotRequired(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnBindContext> {
+export async function unBindNotRequired(ownServiceContext: ServiceContext<ServiceConfig>, dependentOfServiceContext: ServiceContext<ServiceConfig>): Promise<UnBindContext> {
     winston.debug(`${ownServiceContext.serviceType} - UnBind is not required for this service`);
-    return new UnBindContext(ownServiceContext);
+    return new UnBindContext(ownServiceContext, dependentOfServiceContext);
 }
 
 export async function unDeployNotRequired(ownServiceContext: ServiceContext<ServiceConfig>): Promise<UnDeployContext> {

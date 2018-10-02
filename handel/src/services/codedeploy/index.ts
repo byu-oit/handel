@@ -90,6 +90,10 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
         const stackName = ownServiceContext.stackName();
         winston.info(`${SERVICE_NAME} - Deploying application '${stackName}'`);

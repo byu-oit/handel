@@ -27,7 +27,15 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import { HandlebarsInstanceConfig, HandlebarsNeptuneTemplate, NeptuneConfig } from './config-types';
 
@@ -132,6 +140,10 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, NEPTUNE_PORT, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<NeptuneConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async bind(ownServiceContext: ServiceContext<NeptuneConfig>,
         ownPreDeployContext: PreDeployContext,
         dependentOfServiceContext: ServiceContext<ServiceConfig>,
@@ -141,8 +153,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             NEPTUNE_PROTOCOL,
-            NEPTUNE_PORT,
-            SERVICE_NAME);
+            NEPTUNE_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<NeptuneConfig>,
@@ -175,8 +186,8 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    public async unBind(ownServiceContext: ServiceContext<NeptuneConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, NEPTUNE_PROTOCOL, NEPTUNE_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<NeptuneConfig>): Promise<UnDeployContext> {

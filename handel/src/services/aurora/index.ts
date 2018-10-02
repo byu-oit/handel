@@ -179,6 +179,10 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, dbPort, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<AuroraConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async bind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
         const dbPort = getPort(ownServiceContext.params);
         return bindPhase.bindDependentSecurityGroup(ownServiceContext,
@@ -186,8 +190,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             DB_PROTOCOL,
-            dbPort,
-            SERVICE_NAME);
+            dbPort);
     }
 
     public async deploy(ownServiceContext: ServiceContext<AuroraConfig>,
@@ -233,8 +236,9 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    public async unBind(ownServiceContext: ServiceContext<AuroraConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
+        const dbPort = getPort(ownServiceContext.params);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, DB_PROTOCOL, dbPort);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<AuroraConfig>): Promise<UnDeployContext> {

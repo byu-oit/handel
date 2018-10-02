@@ -117,6 +117,14 @@ export class Service implements ServiceDeployer {
         }
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
+        if(serviceContext.params.vpc) {
+            return preDeployPhase.getSecurityGroup(serviceContext);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
     public async deploy(ownServiceContext: ServiceContext<APIGatewayConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
         const stackName = ownServiceContext.stackName();
         winston.info(`${SERVICE_NAME} - Deploying API Gateway service '${stackName}'`);
