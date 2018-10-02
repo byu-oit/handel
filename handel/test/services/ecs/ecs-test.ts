@@ -128,7 +128,7 @@ describe('ecs deployer', () => {
             const errors = ecs.check!(serviceContext, []);
 
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('The \'health_check_grace_period\' parameter must be an integer');
+            expect(errors[0]).to.contain('Must be an integer');
         });
 
         describe('\'logging\' validation', () => {
@@ -152,7 +152,7 @@ describe('ecs deployer', () => {
                 serviceContext.params.logging = 'something else';
                 const errors = ecs.check!(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.contain('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
+                expect(errors[0]).to.contain('Must be either \'enabled\' or \'disabled\'');
                 expect(checkLoadBalancerStub.callCount).to.equal(1);
                 expect(checkContainersStub.callCount).to.equal(1);
             });

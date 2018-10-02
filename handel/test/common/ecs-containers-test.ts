@@ -91,7 +91,7 @@ describe('ecs containers common module', () => {
         it('should return an error when no containers are specified', () => {
             serviceParams.containers = [];
             const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
+            ecsContainers.checkContainers(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include('You must specify at least one container');
         });
@@ -104,7 +104,7 @@ describe('ecs containers common module', () => {
                 5000
             ];
             const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
+            ecsContainers.checkContainers(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`You may not specify a 'routing' section in more than one container.`);
         });
@@ -112,7 +112,7 @@ describe('ecs containers common module', () => {
         it('should require port_mappings if routing is specified', () => {
             delete serviceParams.containers[0].port_mappings;
             const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
+            ecsContainers.checkContainers(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`The 'port_mappings' parameter is required`);
         });
@@ -120,14 +120,14 @@ describe('ecs containers common module', () => {
         it('should require container links to be valid', () => {
             serviceParams.containers = [ serviceParams.containers[0] ];
             const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
+            ecsContainers.checkContainers(serviceContext, errors);
             expect(errors.length).to.equal(1);
             expect(errors[0]).to.include(`You specified a link`);
         });
 
         it('should return no errors for a proper configuration', () => {
             const errors: string[] = [];
-            ecsContainers.checkContainers(serviceContext, 'Fargate', errors);
+            ecsContainers.checkContainers(serviceContext, errors);
             expect(errors.length).to.equal(0);
         });
     });

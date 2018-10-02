@@ -6,21 +6,21 @@
             "type": "string",
             "description": "The service type (should be 'stepfunctions')",
             "pattern": "^stepfunctions$",
-            "errorMessage": "The 'type' parameter must be 'stepfunctions'"
+            "errorMessage": "Must be 'stepfunctions'"
         },
         "definition": {
             "type": "string",
             "description": "The 'definition' must be a .yml, .yaml, or .json file",
             "pattern": "\\.json|\\.yml|\\.yaml$",
-            "errorMessage": "The 'definition' parameter must have file extension .json, .yml, or .yaml."
+            "errorMessage": "Must have file extension .json, .yml, or .yaml."
         },
         "dependencies": {
             "type": "array",
             "items": {
                 "type": "string",
-                "errorMessage": "Each item in the 'dependencies' section must be a string"
+                "errorMessage": "Each item must be a string"
             },
-            "errorMessage": "The 'dependencies' section must be a string"
+            "errorMessage": "Must be a string"
         }
     },
     "required": [

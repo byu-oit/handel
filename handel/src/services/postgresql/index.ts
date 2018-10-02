@@ -126,10 +126,10 @@ export class Service implements ServiceDeployer {
                 getParameterGroupFamily(serviceContext.params.postgres_version);
             }
         } catch (error) {
-            errors.push(error);
+            errors.push(error.message);
         }
 
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<PostgreSQLConfig>): Promise<PreDeployContext> {

@@ -223,7 +223,7 @@ export class Service implements ServiceDeployer {
             errors.push(...cfErrors);
         }
 
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

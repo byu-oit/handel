@@ -19,11 +19,11 @@
                 "properties": {
                     "service_name": {
                         "type": "string",
-                        "errorMessage": "The 'service_name' parameter is required in each config in the 'event_consumers' section"
+                        "errorMessage": "Must be a string"
                     },
                     "sql": {
                         "type": "string",
-                        "errorMessage": "The 'sql' parameter is required in each config in the 'event_consumers' section"
+                        "errorMessage": "Must be a string"
                     }
                 },
                 "required": [
@@ -33,10 +33,10 @@
                 "additionalProperties": false,
                 "errorMessage": {
                     "required": {
-                        "service_name": "The 'service_name' parameter is required",
-                        "sql": "The 'sql' parameter is required"
+                        "service_name": "The 'service_name' parameter is required in each config",
+                        "sql": "The 'sql' parameter is required in each config"
                     },
-                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
+                    "additionalProperties": "Invalid/Unknown property specified"
                 }
                 
             }
@@ -52,7 +52,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
         

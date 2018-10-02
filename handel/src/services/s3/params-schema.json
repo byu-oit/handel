@@ -6,29 +6,29 @@
             "type": "string",
             "description": "The service type (should always be 's3')",
             "pattern": "^s3$",
-            "errorMessage": "The 'type' parameter must be 's3'"
+            "errorMessage": "Must be 's3'"
         },
         "bucket_name": {
             "type": "string",
-            "errorMessage": "The 'bucket_name' parameter must be a unique string"
+            "errorMessage": "Must be a unique string"
         },
         "bucket_acl": {
             "type": "string",
             "description": "The 'bucket_acl' parameter (should be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead')",
             "pattern": "^AuthenticatedRead|AwsExecRead|BucketOwnerRead|BucketOwnerFullControl|LogDeliveryWrite|Private|PublicRead$",
-            "errorMessage": "The 'bucket_acl' parameter must be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead'"
+            "errorMessage": "Must be 'AuthenticatedRead', 'AwsExecRead', 'BucketOwnerRead', 'BucketOwnerFullControl', 'LogDeliveryWrite', 'Private' or 'PublicRead'"
         },
         "versioning": {
             "type": "string",
             "description": "The 'versioning' parameter must be either 'enabled' or 'disabled'",
             "pattern": "^enabled|disabled$",
-            "errorMessage": "The 'versioning' parameter must be either 'enabled' or 'disabled'"
+            "errorMessage": "Must be either 'enabled' or 'disabled'"
         },
         "logging": {
             "type": "string",
             "description": "The 'logging' parameter must be either 'enabled' or 'disabled'",
             "pattern": "^enabled|disabled$",
-            "errorMessage": "The 'logging' parameter must be either 'enabled' or 'disabled'"
+            "errorMessage": "Must be either 'enabled' or 'disabled'"
         },
         "lifecycles": {
             "type": "array",
@@ -37,11 +37,11 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "errorMessage": "The 'name' parameter must be a string"
+                        "errorMessage": "Must be a string"
                     },
                     "prefix": {
                         "type": "string",
-                        "errorMessage": "The 'prefix' parameter must be a string"
+                        "errorMessage": "Must be a string"
                     },
                     "transistions": {
                         "type": "array",
@@ -52,16 +52,16 @@
                                     "type": "string",
                                     "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
                                     "pattern": "^ia|glacier|expiration$",
-                                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                                    "errorMessage": "Must be 'ia', 'glacier', or 'expiration'"
                                 },
                                 "days": {
                                     "type": "integer",
-                                    "errorMessage": "The 'days' parameter must be an intiger"
+                                    "errorMessage": "Must be an intiger"
                                 },
                                 "date": {
                                     "type": "string",
                                     "format": "date-time",
-                                    "errorMessage": "The 'date' parameter must be a date in ISO 8061 format"
+                                    "errorMessage": "Must be a date in ISO 8061 format"
                                 }
                             },
                             "required": [
@@ -70,9 +70,9 @@
                             "additionalProperties": false,
                             "errorMessage": {
                                 "required": {
-                                    "type": "The 'type' field is required in 'transistions'"
+                                    "type": "The 'type' field is required'"
                                 },
-                                "additionalProperties": "Invalid/Unknown property specified in 'transistions'"
+                                "additionalProperties": "Invalid/Unknown property specified"
                             }
                         }
                     },
@@ -85,11 +85,11 @@
                                     "type": "string",
                                     "description": "Type of transition must be one of ia(Standard Infrequent Access), glacier, expiration (deletion)",
                                     "pattern": "^ia|glacier|expiration$",
-                                    "errorMessage": "The 'type' parameter must be 'ia', 'glacier', or 'expiration'"
+                                    "errorMessage": "Must be 'ia', 'glacier', or 'expiration'"
                                 },
                                 "days": {
                                     "type": "integer",
-                                    "errorMessage": "The 'days' parameter must be an intiger"
+                                    "errorMessage": "Must be an intiger"
                                 }
                             },
                             "required": [
@@ -98,9 +98,9 @@
                             "additionalProperties": false,
                             "errorMessage": {
                                 "required": {
-                                    "type": "The 'type' field is required in 'version_transistions'"
+                                    "type": "The 'type' field is required"
                                 },
-                                "additionalProperties": "Invalid/Unknown property specified in 'version_transistions'"
+                                "additionalProperties": "Invalid/Unknown property specified"
                             }
                         }
                     }
@@ -111,9 +111,9 @@
                 "additionalProperties": false,
                 "errorMessage": {
                     "required": {
-                        "name": "You must specify name in the 'lifecycles' section"
+                        "name": "The 'name' field is required"
                     },
-                    "additionalProperties": "Invalid/Unknown property specified in 'lifecycles' section"
+                    "additionalProperties": "Invalid/Unknown property specified"
                 }
             }
         },
@@ -124,14 +124,14 @@
                 "properties": {
                     "service_name": {
                         "type": "string",
-                        "errorMessage": "The 'service_name' parameter is required in each config in the 'event_consumers' section"
+                        "errorMessage": "The 'service_name' parameter is required in each config"
                     },
                     "bucket_events": {
                         "type": "array",
                         "items": {
                             "type": "string"
                         },
-                        "errorMessage": "The 'bucket_events' parameter must be a list of strings"
+                        "errorMessage": "Must be a list of strings"
                     },
                     "filters": {
                         "type": "array",
@@ -141,11 +141,11 @@
                                 "name": {
                                     "type": "string",
                                     "pattern": "^prefix|suffix$",
-                                    "errorMessage": "The 'name' parameter must be one of the following values: 'prefix', 'suffix'"
+                                    "errorMessage": "Must be one of the following values: 'prefix', 'suffix'"
                                 },
                                 "value": {
                                     "type": "string",
-                                    "errorMessage": "The 'value' parameter must be a string"
+                                    "errorMessage": "Must be a string"
                                 }
                             },
                             "additionalProperties": false,
@@ -155,10 +155,10 @@
                             ],
                             "errorMessage": {
                                 "required": {
-                                    "name": "The 'name' field is required in the 'filter' section of event_consumers'",
-                                    "value": "The 'value' field is required in the 'filter' section of event_consumers'"
+                                    "name": "The 'name' field is required",
+                                    "value": "The 'value' field is required"
                                 },
-                                "additionalProperties": "Invalid/Unknown property specified in the 'filters' section in 'event_consumers'"
+                                "additionalProperties": "Invalid/Unknown property specified"
                             }
                         }
                     }
@@ -171,11 +171,11 @@
                 "additionalProperties": false,
                 "errorMessage": {
                     "required": {
-                        "service_name": "The 'service_name' parameter is required in 'event_consumers'",
-                        "bucket_events": "The 'bucket_events' parameter is required in 'event_consumers'",
-                        "filters": "The 'filters' parameter is required in 'event_consumers'"
+                        "service_name": "The 'service_name' parameter is required",
+                        "bucket_events": "The 'bucket_events' parameter is required",
+                        "filters": "The 'filters' parameter is required"
                     },
-                    "additionalProperties": "Invalid/Unknown property specified in the 'event_consumers' section"
+                    "additionalProperties": "Invalid/Unknown property specified"
                 }
             }
         },
@@ -194,7 +194,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

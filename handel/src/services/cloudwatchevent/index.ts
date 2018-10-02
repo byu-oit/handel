@@ -90,7 +90,7 @@ export class Service implements ServiceDeployer {
                 errors.push(`You must specify at least one of the 'schedule' or 'event_pattern' parameters`);
             }
         }
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<CloudWatchEventsConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

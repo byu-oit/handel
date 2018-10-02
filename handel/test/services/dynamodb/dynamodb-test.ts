@@ -132,70 +132,70 @@ describe('dynamodb deployer', () => {
             delete serviceParams.partition_key.name;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'name\' field in the \'partition_key\' section is required');
+            expect(errors[0]).to.include('The \'name\' field is required');
         });
 
         it('should require a type field in the partition_key', () => {
             delete serviceParams.partition_key.type;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'type\' field in the \'partition_key\' section is required');
+            expect(errors[0]).to.include('The \'type\' field is required');
         });
 
         it('should require a name field for each global index', () => {
             delete serviceParams.global_indexes![0].name;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'name\' field is required in the \'global_indexes\' section');
+            expect(errors[0]).to.include('The \'name\' field is required');
         });
 
         it('should require the partition_key section in global indexes', () => {
             delete serviceParams.global_indexes![0].partition_key;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'partition_key\' section is required in the \'global_indexes\' section');
+            expect(errors[0]).to.include('The \'partition_key\' section is required');
         });
 
         it('should require the name field in the partition_key for global indexes', () => {
             delete serviceParams.global_indexes![0].partition_key.name;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'name\' field in the \'partition_key\' section is required in the \'global_indexes\' section');
+            expect(errors[0]).to.include('The \'name\' field is required');
         });
 
         it('should require the type field in the partition_key section for global indexes', () => {
             delete serviceParams.global_indexes![0].partition_key.type;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'type\' field in the \'partition_key\' section is required in the \'global_indexes\' section');
+            expect(errors[0]).to.include('The \'type\' field is required');
         });
 
         it('should require a name field for each local index', () => {
             delete serviceParams.local_indexes![0].name;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'name\' field is required in the \'local_indexes\' section');
+            expect(errors[0]).to.include('The \'name\' field is required');
         });
 
         it('should require the sort_key section in local indexes', () => {
             delete serviceParams.local_indexes![0].sort_key;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'sort_key\' section is required in the \'local_indexes\' section');
+            expect(errors[0]).to.include('The \'sort_key\' section is required');
         });
 
         it('should require the name field in the sort_key for local indexes', () => {
             delete serviceParams.local_indexes![0].sort_key.name;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'name\' field in the \'sort_key\' section is required in the \'local_indexes\' section');
+            expect(errors[0]).to.include('The \'name\' field is required');
         });
 
         it('should require the type field in the sort_key section for local indexes', () => {
             delete serviceParams.local_indexes![0].sort_key.type;
             const errors = dynamodb.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.include('The \'type\' field in the \'sort_key\' section is required in the \'local_indexes\' section');
+            expect(errors[0]).to.include('The \'type\' field is required');
         });
 
         describe('table_name', () => {
@@ -228,7 +228,7 @@ describe('dynamodb deployer', () => {
 
                 const errors = dynamodb.check!(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'read_capacity_units\' must be either a number or a numeric range');
+                expect(errors[0]).to.include('Must be either a number or a numeric range');
             });
             it('should allow numbers in read_capacity_units', () => {
                 serviceParams.provisioned_throughput!.read_capacity_units = 1;
@@ -248,7 +248,7 @@ describe('dynamodb deployer', () => {
 
                 const errors = dynamodb.check!(serviceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'write_capacity_units\' must be either a number or a numeric range');
+                expect(errors[0]).to.include('Must be either a number or a numeric range');
             });
             it('should allow numbers in write_capacity_units', () => {
                 serviceParams.provisioned_throughput!.write_capacity_units = 1;

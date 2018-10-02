@@ -99,7 +99,7 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
     return loadBalancerConfig;
 }
 
-export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServiceConfig>, serviceName: string, errors: string[]) {
+export function checkLoadBalancerSection(serviceContext: ServiceContext<EcsServiceConfig>, errors: string[]) {
     const params = serviceContext.params;
     let routingExists = false;
     for (const container of serviceContext.params.containers) {

@@ -6,15 +6,15 @@
             "type": "string",
             "description": "The service type (should always be 'route53zone')",
             "pattern": "^route53zone$",
-            "errorMessage": "The 'type' parameter must equal 'route53zone'"
+            "errorMessage": "Must equal 'route53zone'"
         },
         "name": {
             "type": "string",
-            "errorMessage": "The 'name' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "private": {
             "type": "boolean",
-            "errorMessage": "The 'private' parameter must be a boolean"
+            "errorMessage": "Must be a boolean"
         },
         "tags": {
             "type": "object",
@@ -27,7 +27,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
         

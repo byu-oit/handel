@@ -103,7 +103,7 @@ export class Service implements ServiceDeployer {
                 errors = errors.concat(swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
             }
             else {
-                return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+                return [`You must specify either the 'proxy' or 'swagger' section`];
             }
         }
         return errors;

@@ -49,22 +49,22 @@ function getTransitions(transitions: S3LifecycleTransition[]): HandlebarsS3Lifec
     return parsedTransitions;
 }
 
-function validateTransitionsType(serviceName: string, ruleName: string, transitions: S3LifecycleTransition[], errors: string[]): void {
+function validateTransitionsType(ruleName: string, transitions: S3LifecycleTransition[], errors: string[]): void {
     const validTypes = ['ia', 'glacier', 'expiration'];
     for (const transition of transitions) {
         // Require valid types
         if (!validTypes.includes(transition.type)) {
-            errors.push(`${serviceName} - ${ruleName}: You must specify transition type of ${validTypes.join(', ')}`);
+            errors.push(`${ruleName}: You must specify transition type of ${validTypes.join(', ')}`);
         }
 
         // Require type ia and days > 30
         if (transition.type === 'ia' && transition.days && transition.days < 30) {
-            errors.push(`${serviceName} - ${ruleName}: Infrequent access has a minimum age of 30 days`);
+            errors.push(`${ruleName}: Infrequent access has a minimum age of 30 days`);
         }
     }
 }
 
-function validateTransitionsDayDate(serviceName: string, ruleName: string, transitions: S3LifecycleTransition[], errors: string[]): void {
+function validateTransitionsDayDate(ruleName: string, transitions: S3LifecycleTransition[], errors: string[]): void {
     let day = false;
     let date = false;
     for (const transition of transitions) {
@@ -77,12 +77,12 @@ function validateTransitionsDayDate(serviceName: string, ruleName: string, trans
         }
         // required day or dates key
         if (!day && !date) {
-            errors.push(`${serviceName} - ${ruleName}: You must specify one of either days or dates in transitions rules`);
+            errors.push(`${ruleName}: You must specify one of either days or dates in transitions rules`);
         }
     }
     // Require consistent days vs dates
     if (day && date) {
-        errors.push(`${serviceName} - ${ruleName}: You must specify only either days or dates in transitions rules`);
+        errors.push(`${ruleName}: You must specify only either days or dates in transitions rules`);
     }
 }
 
@@ -135,7 +135,7 @@ export function getLifecycleConfig(ownServiceContext: ServiceContext<S3ServiceCo
  * "lifecycles" section in the Handel service configuration
  * RFE: Require expiration to be older than other rules
  */
-export function checkLifecycles(serviceContext: ServiceContext<S3ServiceConfig>, serviceName: string, errors: string[]) {
+export function checkLifecycles(serviceContext: ServiceContext<S3ServiceConfig>, errors: string[]) {
     const params = serviceContext.params;
     const lifecycles = params.lifecycles;
 
@@ -147,20 +147,20 @@ export function checkLifecycles(serviceContext: ServiceContext<S3ServiceConfig>,
     for (const rule of lifecycles) {
         // Require version enabled for version__transitions
         if (rule.version_transitions && params.versioning !== 'enabled') {
-            errors.push(`${serviceName} - ${rule.name}: You must enable versioning to have version transition rules`);
+            errors.push(`${rule.name}: You must enable versioning to have version transition rules`);
         }
 
         if (rule.transitions) {
-            validateTransitionsType(serviceName, rule.name, rule.transitions, errors);
-            validateTransitionsDayDate(serviceName, rule.name, rule.transitions, errors);
+            validateTransitionsType(rule.name, rule.transitions, errors);
+            validateTransitionsDayDate(rule.name, rule.transitions, errors);
         }
 
         if (rule.version_transitions) {
-            validateTransitionsType(serviceName, rule.name, rule.version_transitions, errors);
+            validateTransitionsType(rule.name, rule.version_transitions, errors);
             for (const transition of rule.version_transitions) {
                 // require version_transitions to only have days
                 if (!transition.days) {
-                    errors.push(`${serviceName} - ${rule.name}: You must specify only days in version transitions rules`);
+                    errors.push(`${rule.name}: You must specify only days in version transitions rules`);
                 }
             }
         }

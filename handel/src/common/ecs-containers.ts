@@ -32,12 +32,12 @@ function serviceDefinitionHasContainer(serviceParams: EcsServiceConfig, containe
     return false;
 }
 
-function checkLinks(serviceContext: ServiceContext<EcsServiceConfig>, container: ContainerConfig, serviceName: string, errors: string[]) {
+function checkLinks(serviceContext: ServiceContext<EcsServiceConfig>, container: ContainerConfig, errors: string[]) {
     const params = serviceContext.params;
     if (container.links) {
         for (const link of container.links) {
             if (!serviceDefinitionHasContainer(params, link)) {
-                errors.push(`${serviceName} - You specified a link '${link}' in the container '${container.name}', but the container '${link}' does not exist`);
+                errors.push(`You specified a link '${link}' in the container '${container.name}', but the container '${link}' does not exist`);
             }
         }
     }
@@ -137,11 +137,11 @@ export function getContainersConfig(ownServiceContext: ServiceContext<EcsService
  * This function is called by the "check" lifecycle phase to check the information in the
  * "containers" section in the Handel service configuration
  */
-export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, serviceName: string, errors: string[]) {
+export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig | FargateServiceConfig>, errors: string[]) {
     const params = serviceContext.params;
     // Require at least one container definition
     if (!params.containers || params.containers.length === 0) {
-        errors.push(`${serviceName} - You must specify at least one container in the 'containers' section`);
+        errors.push(`You must specify at least one container in the 'containers' section`);
     }
     else {
         let alreadyHasOneRouting = false;
@@ -161,7 +161,7 @@ export function checkContainers(serviceContext: ServiceContext<EcsServiceConfig 
                 }
             }
 
-            checkLinks(serviceContext, container, serviceName, errors);
+            checkLinks(serviceContext, container, errors);
         }
     }
 }

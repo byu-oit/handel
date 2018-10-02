@@ -6,30 +6,30 @@
             "type": "string",
             "description": "The service type (should always be 'elasticsearch')",
             "pattern": "elasticsearch",
-            "errorMessage": "The 'type' field must equal 'elasticsearch'"
+            "errorMessage": "Must equal 'elasticsearch'"
         },
         "version": {
             "type": "number",
-            "errorMessage": "The 'version' field must be a number"
+            "errorMessage": "Must be a number"
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "instance_count": {
             "type": "number",
-            "errorMessage": "The 'instance_count' field must be a number"
+            "errorMessage": "Must be a number"
         },
         "master_node": {
             "type": "object",
             "properties": {
                 "instance_type": {
                     "type": "string",
-                    "errorMessage": "The 'instance_type' field must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "instance_count": {
                     "type": "number",
-                    "errorMessage": "The 'instance_count' field must be a number"
+                    "errorMessage": "Must be a number"
                 }
             },
             "required": [
@@ -38,10 +38,10 @@
             ],
             "additionalProperties": false,
             "errorMessage": {
-                "additionalProperties": "Invalid/unknown property specified in the 'master_node' section",
+                "additionalProperties": "Invalid/unknown property specified",
                 "required": {
-                    "instance_type": "The 'instance_type' field is required in the 'master_node' section",
-                    "instance_count": "The 'instance_count' field is required in the 'master_node' section"
+                    "instance_type": "The 'instance_type' field is required",
+                    "instance_count": "The 'instance_count' field is required"
                 }
             }
         },
@@ -50,19 +50,19 @@
             "properties": {
                 "size_gb": {
                     "type": "number",
-                    "errorMessage": "The 'size_gb' field must be a number"
+                    "errorMessage": "Must be a number"
                 },
                 "provisioned_iops": {
                     "type": "number",
-                    "errorMessage": "The 'provisioned_iops' field must be a number"
+                    "errorMessage": "Must be a number"
                 }
             },
             "required": [ "size_gb" ],
             "additionalProperties": false,
             "errorMessage": {
-                "additionalProperties": "Invalid/unknown property specified in the 'master_node' section",
+                "additionalProperties": "Invalid/unknown property specified",
                 "required": {
-                    "size_gb": "The 'size_gb' field is required in the 'ebs' section"
+                    "size_gb": "The 'size_gb' field is required"
                 }
             }
         },
@@ -77,7 +77,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

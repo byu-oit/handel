@@ -127,10 +127,7 @@ export class Service implements ServiceDeployer {
     public readonly supportsTagging = true;
 
     public check(serviceContext: ServiceContext<EfsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        const params = serviceContext.params;
-        const perfModeParam = params.performance_mode;
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     }
 
     public async preDeploy(serviceContext: ServiceContext<EfsServiceConfig>): Promise<PreDeployContext> {

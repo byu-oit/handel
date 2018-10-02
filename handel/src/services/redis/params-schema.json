@@ -6,33 +6,33 @@
             "type": "string",
             "description": "The service type (should always be 'redis')",
             "pattern": "^redis$",
-            "errorMessage": "The 'type' parameter must be 'redis'"
+            "errorMessage": "Must be 'redis'"
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "redis_version": {
             "type": "string",
-            "errorMessage": "The 'redis_version' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "maintenance_window": {
             "type": "string",
-            "errorMessage": "The 'maintenance_window' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "read_replicas": {
             "type": "number",
             "minimum": 0,
             "maximum": 5,
-            "errorMessage": "The 'read_replicas' parameter may only have a value of 0-5"
+            "errorMessage": "May only have a value of 0-5"
         },
         "snapshot_window": {
             "type": "string",
-            "errorMessage": "The 'snapshot_window' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "cache_parameters": {
             "type": "object",
@@ -45,7 +45,7 @@
                     ]
                 }
             },
-            "errorMessage": "'Cache_parameters' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -59,7 +59,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

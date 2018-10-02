@@ -84,7 +84,7 @@ describe('s3staticsite deployer', () => {
                 ownServiceContext.params.versioning = 'off';
                 const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'versioning\' parameter must be either \'enabled\' or \'disabled\'');
+                expect(errors[0]).to.include('Must be either \'enabled\' or \'disabled\'');
             });
         });
         describe('cloudfront.logging', () => {
@@ -101,7 +101,7 @@ describe('s3staticsite deployer', () => {
                 ownServiceContext.params.cloudfront = { logging: 'off' };
                 const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'logging\' parameter must be either \'enabled\' or \'disabled\'');
+                expect(errors[0]).to.include('Must be either \'enabled\' or \'disabled\'');
             });
         });
         describe('cloudfront.price_class', () => {
@@ -118,7 +118,7 @@ describe('s3staticsite deployer', () => {
                 ownServiceContext.params.cloudfront = { price_class: 'off' };
                 const errors = s3StaticSite.check!(ownServiceContext, []);
                 expect(errors).to.have.lengthOf(1);
-                expect(errors[0]).to.include('\'price_class\' parameter must be one of 100, 200, or \'all\'');
+                expect(errors[0]).to.include('Must be one of 100, 200, or \'all\'');
             });
         });
         describe('cloudfront TTLs', () => {

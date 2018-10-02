@@ -20,7 +20,6 @@ import { AccountConfig } from 'handel-extension-api';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 import * as winston from 'winston';
-import * as ec2Calls from '../aws/ec2-calls';
 import * as util from '../common/util';
 import * as defaultAccountConfig from './default-account-config';
 

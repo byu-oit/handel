@@ -80,7 +80,7 @@ describe('redis deployer', () => {
             serviceContext.params.read_replicas = 6;
             const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'read_replicas' parameter may only have a value of 0-5`);
+            expect(errors[0]).to.contain(`May only have a value of 0-5`);
         });
 
         it('should fail if the instance_type is a t* class when using replication', () => {
