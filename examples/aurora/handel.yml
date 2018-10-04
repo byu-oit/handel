@@ -2,13 +2,20 @@ version: 1
 
 name: Aurora-Test
 
+tags:
+  data-sensitivity: public
+  team: Handel Testing
+
 environments:
   dev:
     db:
-      type: aurora
-      cluster_size: 3
+      type: aurora-serverless
+#      cluster_size: 3
       database_name: MyDb
-      engine: postgresql
-      version: 9.6.3
+      engine: mysql
+      version: 5.6.10a
+      scaling:
+        min_capacity: 2
+        max_capacity: 16
       tags:
         some: tag
