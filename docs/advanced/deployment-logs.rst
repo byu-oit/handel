@@ -47,6 +47,10 @@ After every deployment and every deletion for each environment, Handel will put 
       -
       - String
       - Success or failure message
+    * - ApplicationTags
+      -
+      - JSON Object
+      - A JSON representation of the application tags applied to each resource in the handel file
     * - EnvironmentContents
       -
       - JSON Object
@@ -65,6 +69,7 @@ Here's an example deployment entry:
         "DeploymentEndTime": 1536357426736,
         "DeploymentStatus": "success",
         "DeploymentMessage": "Success",
+        "ApplicationTags": {},
         "EnvironmentContents": {
             "my-lambda": {
                 "type": "lambda",
