@@ -98,6 +98,11 @@ The `cloudfront` section is defined by the following schema:
      - No
      -
      - The ID of an Amazon Certificate Manager certificate to use for this site
+   * - minimum_https_protocol
+     - string
+     - No
+     - 'TLSv1.2_2018'
+     - The minimum allowed HTTPS protocol version. Valid values are listed in the `Cloudfront API Docs <https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html>`_.
    * - dns_names
      - List<string>
      - No

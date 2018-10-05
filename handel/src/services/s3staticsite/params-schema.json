@@ -86,6 +86,10 @@
                         {"type": "string"}
                     ],
                     "errorMessage": "Must be a number, or a number written in 'second(s)/minute(s)/hour(s)/day(s)/year'"
+                },
+                "minimum_https_protocol": {
+                    "type": "string",
+                    "errorMessage": "Must be a string"
                 }
             },
             "additionalProperties": false,

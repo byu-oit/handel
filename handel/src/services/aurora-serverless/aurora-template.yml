@@ -1,0 +1,85 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Handel-created Aurora RDS instance
+
+Parameters:
+  DBUsername:
+    NoEcho: true
+    Description: The username of the database
+    Type: String
+  DBPassword:
+    NoEcho: true
+    Description: The password of the database
+    Type: String
+
+Resources:
+  ClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: {{description}}
+      Family: {{parameterGroupFamily}}
+      Parameters:
+      {{#if clusterParameters}}
+        {{#each clusterParameters}}
+        {{@key}}: '{{this}}'
+        {{/each}}
+      {{else}}
+        # If no params specified, use a single param set to the default so CF won't throw an error
+        server_audit_logging: 0
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{dbName}}
+
+  Cluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DatabaseName: {{databaseName}}
+      DBClusterIdentifier: {{dbName}}
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      DBSubnetGroupName:  {{dbSubnetGroup}}
+      Engine: {{engine}}
+      EngineMode: 'serverless'
+      EngineVersion: {{engineVersion}}
+      Port: {{port}}
+      {{#if scaling}}
+      ScalingConfiguration:
+        AutoPause: {{scaling.autoPause}}
+        SecondsUntilAutoPause: {{scaling.secondsUntilAutoPause}}
+        MaxCapacity: {{scaling.maxCapacity}}
+        MinCapacity: {{scaling.minCapacity}}
+      {{/if}}
+      Tags:
+      {{#if tags}}
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
+      - Key: Name
+        Value: {{dbName}}
+      VpcSecurityGroupIds:
+      - {{dbSecurityGroupId}}
+
+Outputs:
+  ClusterEndpoint:
+    Description: The connection endpoint of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Address
+  ClusterPort:
+    Description: The port of the Aurora cluster
+    Value: !GetAtt Cluster.Endpoint.Port
+  ClusterReadEndpoint:
+    Description: The read endpoint for the Aurora cluster
+    # Aurora serverless doesn't differentiate between read and write
+    Value: !GetAtt Cluster.Endpoint.Address
+  DatabaseName:
+    Description: The name of the database
+    Value: {{databaseName}}
