@@ -21,6 +21,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid';
 import * as winston from 'winston';
+import * as zipUtil from '../../../../extension-support/src/util/util';
 import * as util from '../../common/util';
 import { BeanstalkServiceConfig, EbextensionsToInject } from './config-types';
 import * as ebextensions from './ebextensions';
@@ -29,6 +30,12 @@ async function zipDir(dirPath: string): Promise<string> {
   const zippedPath = `${os.tmpdir()}/${uuid()}.zip`;
   await esUtil.zipDirectoryToFile(dirPath, zippedPath);
   return zippedPath;
+}
+
+async function unzipDir(filePath: string): Promise<string> {
+  const unzippedPath = `${os.tmpdir()}/${uuid()}`;
+  await zipUtil.unzipFileToDirectory(filePath, unzippedPath);
+  return unzippedPath;
 }
 
 function replaceTagsInDockerRunFile(fileName: string, tempDirPath: string, ownServiceContext: ServiceContext<ServiceConfig>, accountConfig: AccountConfig) {
@@ -129,13 +136,19 @@ async function prepareAndUploadFile(ownServiceContext: ServiceContext<ServiceCon
 }
 
 async function prepareAndUploadWar(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {
-  // NOTE: THIS CAN BE HANDLED EXACTLY THE SAME WAY AS JAR AND ZIP
 
-  // Copy WAR to new temp one
-  // Open up WAR (unzip), inject ebextensions
-  // Re-zip dir to new temp WAR
-  // Delete temp war
-  throw new Error('Not Implemented');
+  const absArtifactPath = path.resolve(pathToArtifact);
+  // Open up WAR, inject ebextensions (if any)
+  const unzipPath = await unzipDir(absArtifactPath);
+  ebextensions.addEbextensionsToDir(ebextensionsToInject, unzipPath);
+  // Upload temp WAR
+  const fileToUpload = await zipDir(unzipPath);
+  const fileExtension = 'war';
+  const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext, fileToUpload, fileExtension);
+  // Delete temp WAR
+  fs.unlinkSync(fileToUpload); // Delete temp WAR file and temp dir
+  util.deleteFolderRecursive(unzipPath); // Delete the whole temp folder
+  return s3ArtifactInfo;
 }
 
 function prepareAndUploadJar(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {
@@ -144,14 +157,20 @@ function prepareAndUploadJar(ownServiceContext: ServiceContext<ServiceConfig>, p
   return prepareAndUploadFile(ownServiceContext, pathToArtifact, ebextensionsToInject, fileName);
 }
 
-function prepareAndUploadZip(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {
-  // NOTE: THIS CAN BE HANDLED EXACTLY THE SAME WAY AS JAR AND WAR
+async function prepareAndUploadZip(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {
 
-  // Copy zip to temp one
+  const absArtifactPath = path.resolve(pathToArtifact);
   // Open up zip, inject ebextensions (if any)
+  const unzipPath = await unzipDir(absArtifactPath);
+  ebextensions.addEbextensionsToDir(ebextensionsToInject, unzipPath);
   // Upload temp zip
+  const fileToUpload = await zipDir(unzipPath);
+  const fileExtension = 'zip';
+  const s3ArtifactInfo = await uploadDeployableArtifactToS3(ownServiceContext, fileToUpload, fileExtension);
   // Delete temp zip
-  throw new Error('Not Implemented');
+  fs.unlinkSync(fileToUpload); // Delete temp zip file and temp dir
+  util.deleteFolderRecursive(unzipPath); // Delete the whole temp folder
+  return s3ArtifactInfo;
 }
 
 function prepareAndUploadDockerrun(ownServiceContext: ServiceContext<ServiceConfig>, pathToArtifact: string, ebextensionsToInject: EbextensionsToInject): Promise<AWS.S3.ManagedUpload.SendData> {

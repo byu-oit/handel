@@ -77,20 +77,20 @@ describe('deployable artifact module', () => {
             expect(copyDirectoryStub.callCount).to.equal(1);
         });
 
-        it('should return a not implemented error for a WAR', async () => {
-            serviceContext.params.path_to_code = './mysubdir/test.war';
+        // it('should return a not implemented error for a WAR', async () => {
+        //     serviceContext.params.path_to_code = './mysubdir/test.war';
 
-            const lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: () => false });
+        //     const lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: () => false });
 
-            try {
-                const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, {});
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(lstatStub.callCount).to.equal(1);
-                expect(err.message).to.equal('Not Implemented');
-            }
-        });
+        //     try {
+        //         const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, {});
+        //         expect(true).to.equal(false); // Should not get here
+        //     }
+        //     catch (err) {
+        //         expect(lstatStub.callCount).to.equal(1);
+        //         expect(err.message).to.equal('Not Implemented');
+        //     }
+        // });
 
         // TODO - Broken by switching to TS. I think this is a ts-node issue
         // it('should prepare and upload a JAR', async () => {
@@ -127,21 +127,6 @@ describe('deployable artifact module', () => {
         //     expect(uploadFileStub.callCount).to.equal(1);
         //     expect(unlinkStub.callCount).to.equal(1);
         // });
-
-        it('should return a not implemented error with a ZIP', async () => {
-            serviceContext.params.path_to_code = './mysubdir/test.zip';
-
-            const lstatStub = sandbox.stub(fs, 'lstatSync').returns({ isDirectory: () => false });
-
-            try {
-                const s3ArtifactInfo = await deployableArtifact.prepareAndUploadDeployableArtifact(serviceContext, {});
-                expect(true).to.equal(false); // Should not get here
-            }
-            catch (err) {
-                expect(lstatStub.callCount).to.equal(1);
-                expect(err.message).to.equal('Not Implemented');
-            }
-        });
 
         // TODO - Broken by switching to TS. I think this is a ts-node issue
         // it('should prepare and upload a Dockerrun.aws.json file', async () => {

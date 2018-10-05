@@ -15,6 +15,7 @@
  *
  */
 import * as archiver from 'archiver';
+import * as extractZip from 'extract-zip';
 import * as fs from 'fs';
 import pascalCase = require('pascal-case');
 
@@ -47,6 +48,20 @@ export function zipDirectoryToFile(directoryPath: string, filePath: string) {
         });
         output.on('error', (err) => {
             reject(err);
+        });
+    });
+}
+
+export function unzipFileToDirectory(filePath: string, directoryPath: string) {
+    return new Promise((resolve, reject) => {
+        if (!fs.existsSync(filePath)) {
+            return reject(new Error(`File path to be unzipped does not exist: ${filePath}`));
+        }
+        extractZip(filePath, { dir: directoryPath }, (err: any) => {
+            if (err) {
+                return reject(new Error(`Unzippiing ${filePath} was unsuccessful: ${err}`));
+            }
+            return resolve();
         });
     });
 }
