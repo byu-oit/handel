@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  */
+import randomString = require('crypto-random-string');
 import { DeployContext, ServiceConfig, ServiceContext, UnDeployContext } from 'handel-extension-api';
 import { awsCalls } from 'handel-extension-support';
-import * as uuid from 'uuid';
 
 export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
                                  rdsCfStack: any) { // TODO - Better type later
@@ -41,13 +41,9 @@ export function getDeployContext(serviceContext: ServiceContext<ServiceConfig>,
 }
 
 export function getNewDbUsername() {
-    // This is a really hacky username generator that matches all the requirements of the different engines
-    // Someone should really put a better way for generating these in here...
-    return 'h' + uuid().replace(/-/gi, '').substring(0, 15);
+    return 'h' + randomString(15);
 }
 
 export function getNewDbPassword() {
-    // This is a really hacky password generator that matches all the requirements of the different engines
-    // Someone should really put a better way for generating these in here...
-    return uuid().substring(0, 30);
+    return randomString(30);
 }
