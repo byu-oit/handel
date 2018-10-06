@@ -26,7 +26,16 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as elasticacheDeployersCommon from '../../common/elasticache-deployers-common';
 import { HandlebarsRedisTemplate, RedisServiceConfig } from './config-types';
@@ -166,15 +175,19 @@ export class Service implements ServiceDeployer {
         //     }
         // }
 
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<RedisServiceConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     }
 
+    public async getPreDeployContext(serviceContext: ServiceContext<RedisServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
+
     public async bind(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT, SERVICE_NAME);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -191,8 +204,8 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    public async unBind(ownServiceContext: ServiceContext<RedisServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, REDIS_SG_PROTOCOL, REDIS_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<RedisServiceConfig>): Promise<UnDeployContext> {

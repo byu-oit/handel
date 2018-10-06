@@ -68,33 +68,25 @@ export async function getSecurityGroupById(groupId: string, vpcId: string): Prom
     }
 }
 
-/**
- * Removes all ingress rules from the given security group. It really does remove
- * ALL of them, so be careful where you use this!
- */
-export async function removeAllIngressFromSg(sgName: string, vpcId: string): Promise<boolean> {
-    const securityGroup = await getSecurityGroup(sgName, vpcId);
-    if (securityGroup) {
-        const ipPermissionsToRevoke = [];
-        for (const ipPermission of securityGroup.IpPermissions!) {
-            ipPermissionsToRevoke.push({
-                IpProtocol: ipPermission.IpProtocol,
-                FromPort: ipPermission.FromPort,
-                ToPort: ipPermission.ToPort,
-                UserIdGroupPairs: ipPermission.UserIdGroupPairs
-            });
-        }
-
-        const revokeParam = {
-            GroupId: securityGroup.GroupId,
-            IpPermissions: ipPermissionsToRevoke
+export async function removeIngressFromSg(sourceSg: AWS.EC2.SecurityGroup, ownSg: AWS.EC2.SecurityGroup, protocol: string, fromPort: number, toPort: number, vpcId: string): Promise<boolean> {
+   if(ingressRuleExists(ownSg, fromPort, toPort, protocol, sourceSg)) {
+        const revokeParams = {
+            GroupId: ownSg.GroupId,
+            IpPermissions: [{
+                IpProtocol: protocol,
+                FromPort: fromPort,
+                ToPort: toPort,
+                UserIdGroupPairs: [
+                    {
+                        GroupId: sourceSg.GroupId,
+                        VpcId: vpcId
+                    }
+                ]
+            }]
         };
-        await awsWrapper.ec2.revokeSecurityGroupIngress(revokeParam);
-        return true;
-    }
-    else {
-        return true; // Sg has already been deleted
-    }
+       await awsWrapper.ec2.revokeSecurityGroupIngress(revokeParams);
+   }
+   return true;
 }
 
 /**

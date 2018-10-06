@@ -6,36 +6,36 @@
             "type": "string",
             "description": "The service type (should be 'lambda')",
             "pattern": "^lambda$",
-            "errorMessage": "The 'type' parameter must be 'lambda'"
+            "errorMessage": "Must be 'lambda'"
         },
         "path_to_code": {
             "type": "string",
-            "errorMessage": "The 'path_to_code' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "handler": {
             "type": "string",
-            "errorMessage": "The 'handler' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "runtime": {
             "type": "string",
-            "errorMessage": "The 'runtime' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "memory": {
             "type": "number",
-            "errorMessage": "The 'memory' parameter must be a number"
+            "errorMessage": "Must be a number"
         },
         "timeout": {
             "type": "number",
             "maximum": 300,
-            "errorMessage": "The 'timeout' parameter must be a number"
+            "errorMessage": "Must be a number"
         },
         "vpc": {
             "type": "boolean",
-            "errorMessage": "The 'vpc' parameter must be a boolean"
+            "errorMessage": "Must be a boolean"
         },
         "environment_variables": {
             "type": "object",
@@ -48,7 +48,7 @@
                     ]
                 }
             },
-            "errorMessage": "'environment_variables' must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -62,16 +62,16 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "dependencies": {
             "type": "array",
             "items": {
                 "type": "string",
-                "errorMessage": "Each item in the 'dependencies' section must be a string"
+                "errorMessage": "Each item must be a string"
             },
-            "errorMessage": "The 'dependencies' section must be a string"
+            "errorMessage": "Must be an array of strings"
         }
     },
     "required": [

@@ -6,37 +6,37 @@
             "type": "string",
             "description": "The service type (should always be 'postgresql')",
             "pattern": "^postgresql$",
-            "errorMessage": "The 'type' parameter must be 'postgresql'"
+            "errorMessage": "Must be 'postgresql'"
         },
         "database_name": {
             "type": "string",
-            "errorMessage": "The 'database_name' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "postgres_version": {
             "type": "string",
-            "errorMessage": "The 'postgres_version' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "storage_gb": {
             "type": "number",
-            "errorMessage": "The 'storage-gb' field must be a number"
+            "errorMessage": "Must be a number"
         },
         "storage_type": {
             "type": "string",
             "description": "The allowed values are 'standard' and 'gp2'",
             "pattern": "^standard|gp2$",
-            "errorMessage": "The 'storage_type' field must be 'standard' or 'gp2'"
+            "errorMessage": "Must be 'standard' or 'gp2'"
         },
         "multi_az": {
             "type": "boolean",
-            "errorMessage": "The 'multi_az' field must be a boolean"
+            "errorMessage": "Must be a boolean"
         },
         "db_parameters": {
             "type": "object",
@@ -49,7 +49,7 @@
                     ]
                 }
             },
-            "errorMessage": "Database parameters must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -63,7 +63,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

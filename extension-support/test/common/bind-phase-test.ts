@@ -15,7 +15,13 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, BindContext, PreDeployContext, ServiceConfig, ServiceContext, ServiceType } from 'handel-extension-api';
+import {
+    BindContext,
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    ServiceType
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as ec2Calls from '../../src/aws/ec2-calls';
@@ -53,7 +59,7 @@ describe('bind phases common module', () => {
 
             const addIngressRuleToSgIfNotExistsStub = sandbox.stub(ec2Calls, 'addIngressRuleToSgIfNotExists').returns(Promise.resolve({}));
 
-            const bindContext = await bindPhase.bindDependentSecurityGroup(serviceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22, 'FakeService');
+            const bindContext = await bindPhase.bindDependentSecurityGroup(serviceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, 'tcp', 22);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(addIngressRuleToSgIfNotExistsStub.callCount).to.equal(1);
         });

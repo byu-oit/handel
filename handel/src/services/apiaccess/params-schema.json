@@ -6,19 +6,19 @@
             "type": "string",
             "description": "The service type (should always be 'apiaccess')",
             "pattern": "apiaccess",
-            "errorMessage": "The 'type' field must equal 'apiaccess'"
+            "errorMessage": "Must equal 'apiaccess'"
         },
         "aws_services": {
             "type": "array",
             "description": "The list of services to which consuming dependencies will be granted read-only access",
-            "errorMessage": "The 'aws_services' property must contain a list of one or more strings",
+            "errorMessage": "Must contain a list of one or more strings",
             "items": { "type": "string" }
         }
     },
     "required": ["type", "aws_services"],
     "additionalProperties": false,
     "errorMessage": {
-        "additionalProperties": "Invalid/unknown property specified in API Access service type",
+        "additionalProperties": "Invalid/unknown property specified",
         "required": {
             "type": "The top-level 'type' field is required",
             "aws_services": "The top-level 'aws_services' field is required"

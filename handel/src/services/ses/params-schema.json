@@ -6,12 +6,12 @@
             "type": "string",
             "description": "The service type (should always be 'ses')",
             "pattern": "^ses$",
-            "errorMessage": "The 'type' parameter must equal 'ses'"
+            "errorMessage": "Must equal 'ses'"
         },
         "address": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$",
-            "errorMessage": "The 'address' parameter must be a string and a valid email address"
+            "errorMessage": "Must be a string and a valid email address"
         }
     },
     "required": ["type", "address"],

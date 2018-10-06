@@ -68,7 +68,7 @@ describe('s3 deployer', () => {
             };
             const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'versioning\' parameter must be either \'enabled\' or \'disabled\'');
+            expect(errors[0]).to.contain('Must be either \'enabled\' or \'disabled\'');
         });
 
         it('should work when there are no configuration errors', () => {
@@ -89,7 +89,7 @@ describe('s3 deployer', () => {
             };
             const errors = s3.check!(ownServiceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('\'bucket_acl\' parameter must be \'AuthenticatedRead\', \'AwsExecRead\', \'BucketOwnerRead\', \'BucketOwnerFullControl\', \'LogDeliveryWrite\', \'Private\' or \'PublicRead\'');
+            expect(errors[0]).to.contain('Must be \'AuthenticatedRead\', \'AwsExecRead\', \'BucketOwnerRead\', \'BucketOwnerFullControl\', \'LogDeliveryWrite\', \'Private\' or \'PublicRead\'');
         });
 
         it('should work with valid bucket_acl', () => {

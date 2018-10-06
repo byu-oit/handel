@@ -51,6 +51,8 @@ const TTL_UNITS: TtlUnits = {
 };
 const TTL_REGEX = new RegExp(`^(\\d+)(?:(?: )*(${Object.keys(TTL_UNITS).join('|')})(?:s)?)?$`);
 
+const DEFAULT_HTTPS_MINIMUM_PROTOCOL = 'TLSv1.2_2018';
+
 async function getCompiledS3Template(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, stackName: string, loggingBucketName: string): Promise<string> {
     const serviceParams = ownServiceContext.params;
 
@@ -89,6 +91,7 @@ async function getCloudfrontTemplateParameters(ownServiceContext: ServiceContext
         defaultTTL: computeTTL(cf.default_ttl, TTL_UNITS.day),
         priceClass: computePriceClass(cf.price_class, 'all'),
         httpsCertificateId: cf.https_certificate,
+        minimumHttpsProtocol: cf.minimum_https_protocol || DEFAULT_HTTPS_MINIMUM_PROTOCOL
     };
 
     const dnsNames = cf.dns_names;
@@ -223,7 +226,7 @@ export class Service implements ServiceDeployer {
             errors.push(...cfErrors);
         }
 
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<S3StaticSiteServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

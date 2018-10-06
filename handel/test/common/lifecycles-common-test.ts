@@ -37,6 +37,8 @@ describe('lifecycles common module', () => {
     let sandbox: sinon.SinonSandbox;
     let accountConfig: AccountConfig;
     let serviceContext: ServiceContext<ServiceConfig>;
+    const appName = 'FakeApp';
+    const envName = 'FakeEnv';
 
     beforeEach(async () => {
         sandbox = sinon.sandbox.create();
@@ -57,8 +59,6 @@ describe('lifecycles common module', () => {
 
     describe('bindNotRequired', () => {
         it('should return an empty bind context', async () => {
-            const appName = 'FakeApp';
-            const envName = 'FakeEnv';
             const ownServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'efs'), {type: 'efs'}, accountConfig);
             const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
 
@@ -83,7 +83,8 @@ describe('lifecycles common module', () => {
 
     describe('unBindNotRequired', () => {
         it('should return an emtpy UnBindContext', async () => {
-            const unBindContext = await lifecyclesCommon.unBindNotRequired(serviceContext);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeDependentService', new ServiceType(STDLIB_PREFIX, 'ecs'), {type: 'ecs'}, accountConfig);
+            const unBindContext = await lifecyclesCommon.unBindNotRequired(serviceContext, dependentOfServiceContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
         });
     });

@@ -80,7 +80,7 @@ describe('redis deployer', () => {
             serviceContext.params.read_replicas = 6;
             const errors = redis.check!(serviceContext, []);
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain(`'read_replicas' parameter may only have a value of 0-5`);
+            expect(errors[0]).to.contain(`May only have a value of 0-5`);
         });
 
         it('should fail if the instance_type is a t* class when using replication', () => {
@@ -170,9 +170,12 @@ describe('redis deployer', () => {
 
     describe('unBind', () => {
         it('should unbind the security group', async () => {
-            const unBindStub = sandbox.stub(deletePhases, 'unBindSecurityGroups').resolves(new UnBindContext(serviceContext));
+            const dependencyPreDeployContext = new PreDeployContext(serviceContext);
+            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
+            const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
+            const unBindStub = sandbox.stub(deletePhases, 'unBindService').resolves(new UnBindContext(serviceContext, dependentOfServiceContext));
 
-            const unBindContext = await redis.unBind!(serviceContext);
+            const unBindContext = await redis.unBind!(serviceContext, dependencyPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });

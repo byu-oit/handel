@@ -6,25 +6,25 @@
             "type": "string",
             "description": "The service type (should always be 'neptune')",
             "pattern": "neptune",
-            "errorMessage": "The 'type' field must equal 'neptune'"
+            "errorMessage": "Must equal 'neptune'"
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "cluster_size": {
             "type": "integer",
             "minimum": 1,
             "maximum": 16,
-            "errorMessage": "The 'cluster_size' field must be an integer between 1 and 16"
+            "errorMessage": "Must be an integer between 1 and 16"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "iam_auth_enabled": {
             "type": "boolean",
-            "errorMessage": "The 'iam_auth_enabled' field must be one of the following values: true, false"
+            "errorMessage": "Must be one of the following values: true, false"
         },
         "cluster_parameters": {
             "$ref": "#/definitions/db_parameters"
@@ -43,7 +43,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },
@@ -67,7 +67,7 @@
                     ]
                 }
             },
-            "errorMessage": "Database parameters must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     }

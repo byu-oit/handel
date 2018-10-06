@@ -270,15 +270,19 @@ export class Service implements ServiceDeployer {
             if (params.routing && params.routing.dns_names) {
                 const badName = params.routing.dns_names.some(it => !route53.isValidHostname(it));
                 if (badName) {
-                    errors.push(`${SERVICE_NAME} - 'dns_names' values must be valid hostnames`);
+                    errors.push(`'dns_names' values must be valid hostnames`);
                 }
             }
         }
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<BeanstalkServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
     }
 
     public async deploy(ownServiceContext: ServiceContext<BeanstalkServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

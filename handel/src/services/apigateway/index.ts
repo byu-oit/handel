@@ -103,7 +103,7 @@ export class Service implements ServiceDeployer {
                 errors = errors.concat(swaggerDeployType.check(serviceContext, dependenciesServiceContexts, SERVICE_NAME));
             }
             else {
-                return [`${SERVICE_NAME} - You must specify either the 'proxy' or 'swagger' section`];
+                return [`You must specify either the 'proxy' or 'swagger' section`];
             }
         }
         return errors;
@@ -112,6 +112,14 @@ export class Service implements ServiceDeployer {
     public async preDeploy(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
         if(serviceContext.params.vpc) {
             return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<APIGatewayConfig>): Promise<PreDeployContext> {
+        if(serviceContext.params.vpc) {
+            return preDeployPhase.getSecurityGroup(serviceContext);
         } else {
             return lifecyclesCommon.preDeployNotRequired(serviceContext);
         }

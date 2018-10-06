@@ -145,13 +145,17 @@ export class Service implements ServiceDeployer {
 
     public check(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
         const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
-        containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        routingSection.checkLoadBalancerSection(serviceContext, errors);
+        containersSection.checkContainers(serviceContext, errors);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<EcsServiceConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<EcsServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
     }
 
     public async deploy(ownServiceContext: ServiceContext<EcsServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

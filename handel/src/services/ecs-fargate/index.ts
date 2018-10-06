@@ -135,14 +135,18 @@ export class Service implements ServiceDeployer {
             errors.push(`Invalid memory/cpu combination. You requested '${requestedCpuUnits}' CPU Units and '${requestedMemory}MB' memory.`);
         }
 
-        routingSection.checkLoadBalancerSection(serviceContext, SERVICE_NAME, errors);
-        containersSection.checkContainers(serviceContext, SERVICE_NAME, errors);
+        routingSection.checkLoadBalancerSection(serviceContext, errors);
+        containersSection.checkContainers(serviceContext, errors);
 
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<FargateServiceConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<FargateServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
     }
 
     public async deploy(ownServiceContext: ServiceContext<FargateServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

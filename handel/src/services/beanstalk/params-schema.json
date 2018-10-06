@@ -6,23 +6,23 @@
             "type": "string",
             "description": "The service type (should always be 'beanstalk')",
             "pattern": "^beanstalk$",
-            "errorMessage": "The 'type' field must equal 'beanstalk'"
+            "errorMessage": "Must be 'beanstalk'"
         },
         "path_to_code": {
             "type": "string",
-            "errorMessage": "The 'path_to_code' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "solution_stack": {
             "type": "string",
-            "errorMessage": "The 'solution_stack' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "description": {
             "type": "string",
-            "errorMessage": "The 'description' paramter must be a string"
+            "errorMessage": "Must be a string"
         },
         "key_name": {
             "type": "string",
-            "errorMessage": "The 'key_name' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "auto_scaling": {
             "type": "object",
@@ -30,12 +30,12 @@
                 "min_instances": {
                     "type": "number",
                     "minimum": 1,
-                    "errorMessage": "The 'min_instances' field must be a number >= 1"
+                    "errorMessage": "Must be a number >= 1"
                 },
                 "max_instances": {
                     "type": "number",
                     "minimum": 1,
-                    "errorMessage": "The 'max_instances' field must be a number >= 1"
+                    "errorMessage": "Must be a number >= 1"
                 },
                 "scaling_policies": {
                     "type": "array",
@@ -50,15 +50,15 @@
                                 "properties": {
                                     "type": {
                                         "type": "string",
-                                        "errorMessage": "The 'type' field in the 'scaling_policies' section must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "value": {
                                         "type": "number",
-                                        "errorMessage": "The 'value' field in the 'scaling_policies' section must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "cooldown": {
                                         "type": "number",
-                                        "errorMessage": "The 'cooldown' field in the 'scaling_policies' section must be a number"
+                                        "errorMessage": "Must be a number"
                                     }
                                 },
                                 "additionalProperties": false,
@@ -66,9 +66,9 @@
                                     "value"
                                 ],
                                 "errorMessage": {
-                                    "additionalProperties": "Invalid/unknown property specified in the 'adjustment' section",
+                                    "additionalProperties": "Invalid/unknown property specified",
                                     "required": {
-                                        "value": "The 'value' field is required in the 'adjustment' section"
+                                        "value": "The 'value' field is required"
                                     }
                                 }
                             },
@@ -77,35 +77,35 @@
                                 "properties": {
                                     "namespace": {
                                         "type": "string",
-                                        "errorMessage": "The 'namespace' field in the 'alarm' section must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "dimensions": {
                                         "type": "object",
-                                        "errorMessage": "The 'dimensions' field in the 'alarm' section must be a set of key/value pairs"
+                                        "errorMessage": "Must be a set of key/value pairs"
                                     },
                                     "metric_name": {
                                         "type": "string",
-                                        "errorMessage": "The 'metric_name' field in the 'alarm' section must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "statistic": {
                                         "type": "string",
-                                        "errorMessage": "The 'statistic' field in the 'alarm' section must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "comparison_operator": {
                                         "type": "string",
-                                        "errorMessage": "The 'comparison_operator' field in the 'alarm' section must be a string"
+                                        "errorMessage": "Must be a string"
                                     },
                                     "threshold": {
                                         "type": "number",
-                                        "errorMessage": "The 'threshold' field in the 'alarm' section must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "period": {
                                         "type": "number",
-                                        "errorMessage": "The 'period' field in the 'alarm' section must be a number"
+                                        "errorMessage": "Must be a number"
                                     },
                                     "evaluation_periods": {
                                         "type": "number",
-                                        "errorMessage": "The 'evaluation_periods' field in the 'alarm' section must be a number"
+                                        "errorMessage": "Must be a number"
                                     }
                                 },
                                 "additionalProperties": false,
@@ -114,10 +114,10 @@
                                     "threshold"
                                 ],
                                 "errorMessage": {
-                                    "additionalProperties": "Invalid/unknown property specified in the 'alarm' section",
+                                    "additionalProperties": "Invalid/unknown property specified",
                                     "required": {
-                                        "metric_name": "The 'metric_name' field is required in the 'alarm' section",
-                                        "threshold": "The 'threshold' field is required in the 'alarm' section"
+                                        "metric_name": "The 'metric_name' field is required",
+                                        "threshold": "The 'threshold' field is required"
                                     }
                                 }
                             }
@@ -129,11 +129,11 @@
                             "alarm"
                         ],
                         "errorMessage": {
-                            "additionalProperties": "Invalid/unknown property specified in the 'scaling_policies' section",
+                            "additionalProperties": "Invalid/unknown property specified",
                             "required": {
-                                "type": "The 'type' field is required in the 'scaling_policies' section",
-                                "adjustment": "The 'adjustment' field is required in the 'scaling_policies' section",
-                                "alarm": "The 'alarm' field is required in the 'scaling_policies' section"
+                                "type": "The 'type' field is required",
+                                "adjustment": "The 'adjustment' field is required",
+                                "alarm": "The 'alarm' field is required"
                             }
                         }
                     }
@@ -145,20 +145,20 @@
             ],
             "additionalProperties": false,
             "errorMessage": {
-                "additionalProperties": "Invalid/unknown property specified in the 'auto_scaling' section",
+                "additionalProperties": "Invalid/unknown property specified",
                 "required": {
-                    "min_instances": "The 'min_instances' field is required in the 'auto_scaling' section",
-                    "max_instances": "The 'max_instances' field is required in the 'auto_scaling' section"
+                    "min_instances": "The 'min_instances' field is required",
+                    "max_instances": "The 'max_instances' field is required"
                 }
             }
         },
         "instance_type": {
             "type": "string",
-            "errorMessage": "The 'instance_type' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "health_check_url": {
             "type": "string",
-            "errorMessage": "The 'health_check_url' parameter must be a string"
+            "errorMessage": "Must be a string"
         },
         "routing": {
             "type": "object",
@@ -167,20 +167,20 @@
                     "type": "string",
                     "description": "Whether to use HTTP or HTTPS for the routing listener",
                     "pattern": "^(http|https)$",
-                    "errorMessage": "The 'type' field in the 'routing' section must be one of the values: http, https"
+                    "errorMessage": "Must be one of the values: http, https"
                 },
                 "https_certificate": {
                     "type": "string",
                     "description": "The certificate ID from AWS Certificate Manager",
-                    "errorMessage": "The 'https_certificate' field must be a string"
+                    "errorMessage": "Must be a string"
                 },
                 "dns_names": {
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "errorMessage": "The items in the 'dns_names' field must be a string"
+                        "errorMessage": "The items must be a string"
                     },
-                    "errorMessage": "The 'dns_names' field must be an array of strings"
+                    "errorMessage": "Must be an array of strings"
                 }
             },
             "additionalProperties": false,
@@ -188,10 +188,10 @@
                 "type"
             ],
             "errorMessage": {
-                "type": "The 'routing' section should be an object containing at least the 'type' field",
-                "additionalProperties": "Invalid/unknown property specified in the 'routing' section",
+                "type": "The section should be an object containing at least the 'type' field",
+                "additionalProperties": "Invalid/unknown property specified",
                 "required": {
-                    "type": "The 'type' parameter must be specified in the 'routing' section"
+                    "type": "The 'type' parameter is required"
                 }
             }
         },
@@ -206,7 +206,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'environment_variables' field must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "tags": {
@@ -220,16 +220,16 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         },
         "dependencies": {
             "type": "array",
             "items": {
                 "type": "string",
-                "errorMessage": "Each item in the 'dependencies' section must be a string"
+                "errorMessage": "Each item in the section must be a string"
             },
-            "errorMessage": "The 'dependencies' section must be a string"
+            "errorMessage": "Must be a string"
         }
     },
     "required": [

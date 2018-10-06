@@ -14,17 +14,18 @@
  * limitations under the License.
  *
  */
-import { AccountConfig, ServiceConfig, ServiceContext, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import {
+    PreDeployContext,
+    ServiceConfig,
+    ServiceContext,
+    UnBindContext,
+    UnDeployContext,
+    UnPreDeployContext
+} from 'handel-extension-api';
 import * as cloudformationCalls from '../aws/cloudformation-calls';
 import * as ec2Calls from '../aws/ec2-calls';
 import * as s3Calls from '../aws/s3-calls';
 import * as ssmCalls from '../aws/ssm-calls';
-
-async function unBindAllOnSg(stackName: string, accountConfig: AccountConfig) {
-    const sgName = `${stackName}-sg`;
-    await ec2Calls.removeAllIngressFromSg(sgName, accountConfig.vpc);
-    return true;
-}
 
 async function deleteSecurityGroupForService(stackName: string) {
     const sgName = `${stackName}-sg`;
@@ -59,16 +60,17 @@ export async function unDeployService(serviceContext: ServiceContext<ServiceConf
 
 export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
     const sgName = ownServiceContext.stackName();
-
-    const success = await deleteSecurityGroupForService(sgName);
+    await deleteSecurityGroupForService(sgName);
     return new UnPreDeployContext(ownServiceContext);
 }
 
-export async function unBindSecurityGroups(ownServiceContext: ServiceContext<ServiceConfig>, serviceName: string) {
-    const sgName = ownServiceContext.stackName();
-
-    const success = await unBindAllOnSg(sgName, ownServiceContext.accountConfig);
-    return new UnBindContext(ownServiceContext);
+export async function unBindService(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext, protocol: string, port: number): Promise<UnBindContext> {
+    if(ownPreDeployContext.securityGroups.length > 0 && dependentOfPreDeployContext.securityGroups.length > 0) { // Only try to remove ingress if it hasn't been deleted yet
+        const ownSg = ownPreDeployContext.securityGroups[0];
+        const sourceSg = dependentOfPreDeployContext.securityGroups[0];
+        await ec2Calls.removeIngressFromSg(sourceSg, ownSg, protocol, port, port, ownServiceContext.accountConfig.vpc);
+    }
+    return new UnBindContext(ownServiceContext, dependentOfServiceContext);
 }
 
 export async function deleteServiceItemsFromSSMParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, paramsToDelete: string[]): Promise<boolean> {

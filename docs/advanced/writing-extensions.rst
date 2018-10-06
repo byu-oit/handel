@@ -172,9 +172,18 @@ The following TypeScript interface defines the contract for a service deployer:
         *
         * Implement this phase if you'll be creating security groups for any of your resources
         *
-        * Example AWS services that woulod need to implement this phase include Beanstalk and RDS
+        * Example AWS services that would need to implement this phase include Beanstalk and RDS.
+        *
+        * NOTE: If you implement preDeploy, you must implement getPreDeployContext as well
         */
         preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
+
+        /**
+        * Get the PreDeploy context information without running preDeploy
+        *
+        * Return null if preDeploy has not been executed yet
+        */
+        getPreDeployContext?(serviceContext: ServiceContext<ServiceConfig>): Promise<IPreDeployContext>;
 
         /**
         * Bind two resources from the preDeploy phase together by performing some wiring action on them. An example

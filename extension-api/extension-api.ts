@@ -41,7 +41,7 @@ export interface ServiceDeployer {
     supportsTagging: boolean; // If true, indicates that a deployer supports tagging its resources. This is used to enforce tagging rules.
 
     // ------------------------------------------------
-    // Phase types that hte provisioner supports
+    // Phase types that the provisioner supports
     // ------------------------------------------------
     /**
      * Checks the given service configuration in the user's Handel file for required parameters and correctness.
@@ -58,8 +58,17 @@ export interface ServiceDeployer {
      * Implement this phase if you'll be creating security groups for any of your resources
      *
      * Example AWS services that woulod need to implement this phase include Beanstalk and RDS
+     *
+     * NOTE: If you implement preDeploy, you must implement getPreDeployContext as well
      */
     preDeploy?(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext>;
+
+    /**
+     * Get the PreDeploy context information without running preDeploy
+     *
+     * Return null if preDeploy has not been executed yet
+     */
+    getPreDeployContext?(serviceContext: ServiceContext<ServiceConfig>): Promise<IPreDeployContext>;
 
     /**
      * Bind two resources from the preDeploy phase together by performing some wiring action on them. An example
@@ -114,7 +123,7 @@ export interface ServiceDeployer {
     /**
      * In this phase, the service should remove all bindings on preDeploy resources.
      */
-    unBind?(ownServiceContext: ServiceContext<ServiceConfig>): Promise<IUnBindContext>;
+    unBind?(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: IPreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: IPreDeployContext): Promise<IUnBindContext>;
 
     /**
      * In this phase, the service should delete resources created during the deploy phase.
@@ -371,15 +380,15 @@ export function isUnDeployContext(obj: any | IUnDeployContext): obj is IUnDeploy
     return !!obj && hasAppServiceInfo(obj);
 }
 
-export interface IUnBindContext extends HasAppServiceInfo {
-    appName: string;
-    environmentName: string;
-    serviceName: string;
-    serviceType: ServiceType;
+export interface IUnBindContext {
+    dependencyServiceContext: ServiceContext<ServiceConfig>;
+    dependentOfServiceContext: ServiceContext<ServiceConfig>;
 }
 
 export function isUnBindContext(obj: any | IUnBindContext): obj is IUnBindContext {
-    return !!obj && hasAppServiceInfo(obj);
+    return !!obj
+        && isServiceContext(obj.dependencyServiceContext)
+        && isServiceContext(obj.dependentOfServiceContext);
 }
 
 export interface IUnPreDeployContext {
@@ -571,16 +580,14 @@ export class UnDeployContext implements IUnDeployContext {
 }
 
 export class UnBindContext implements IUnBindContext {
-    public appName: string;
-    public environmentName: string;
-    public serviceName: string;
-    public serviceType: ServiceType;
+    public dependencyServiceContext: ServiceContext<ServiceConfig>;
+    public dependentOfServiceContext: ServiceContext<ServiceConfig>;
 
-    constructor(serviceContext: ServiceContext<ServiceConfig>) {
-        this.appName = serviceContext.appName;
-        this.environmentName = serviceContext.environmentName;
-        this.serviceName = serviceContext.serviceName;
-        this.serviceType = serviceContext.serviceType;
+    constructor(dependencyServiceContext: ServiceContext<ServiceConfig>,
+                dependentOfServiceContext: ServiceContext<ServiceConfig>) {
+        this.dependencyServiceContext = dependencyServiceContext;
+        this.dependentOfServiceContext = dependentOfServiceContext;
+        // Should anything else go here?
     }
 }
 

@@ -27,8 +27,11 @@ import * as handlebarsUtils from '../util/handlebars-utils';
 import * as deployPhase from './deploy-phase';
 import { getTags } from './tagging';
 
-async function createSecurityGroupForService(stackName: string, sshBastionIngressPort: number | null, serviceContext: ServiceContext<ServiceConfig>, tags: Tags) {
-    const sgName = `${stackName}-sg`;
+function getSgStackName(ownServiceContext: ServiceContext<ServiceConfig>) {
+    return `${ownServiceContext.stackName()}-sg`;
+}
+
+async function createSecurityGroupForService(sgName: string, sshBastionIngressPort: number | null, serviceContext: ServiceContext<ServiceConfig>, tags: Tags) {
     const accountConfig = serviceContext.accountConfig;
     const handlebarsParams: any = {
         groupName: sgName,
@@ -56,11 +59,32 @@ async function createSecurityGroupForService(stackName: string, sshBastionIngres
     return ec2Calls.getSecurityGroupById(groupId!, accountConfig.vpc);
 }
 
-export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string) {
-    const sgName = serviceContext.stackName();
-
+export async function preDeployCreateSecurityGroup(serviceContext: ServiceContext<ServiceConfig>, sshBastionIngressPort: number | null, serviceName: string): Promise<PreDeployContext> {
+    const sgName = getSgStackName(serviceContext);
     const securityGroup = await createSecurityGroupForService(sgName, sshBastionIngressPort, serviceContext, getTags(serviceContext));
+    if(!securityGroup) {
+        throw new Error(`Did not get back security group '${sgName}' after creating it`);
+    }
     const preDeployContext = new PreDeployContext(serviceContext);
-    preDeployContext.securityGroups.push(securityGroup!);
+    preDeployContext.securityGroups.push(securityGroup);
+    return preDeployContext;
+}
+
+export async function getSecurityGroup(serviceContext: ServiceContext<ServiceConfig>): Promise<PreDeployContext> {
+    const preDeployContext = new PreDeployContext(serviceContext);
+    const accountConfig = serviceContext.accountConfig;
+    const sgName = getSgStackName(serviceContext);
+    const stack = await cloudformationCalls.getStack(sgName);
+    if(stack) {
+        const groupId = cloudformationCalls.getOutput('GroupId', stack);
+        if(!groupId) {
+            throw new Error('CloudFormation stack didnt return security group id');
+        }
+        const securityGroup = await ec2Calls.getSecurityGroupById(groupId, accountConfig.vpc);
+        if(!securityGroup) {
+            throw new Error('Could not find security group referenced in CloudFormation stack. Was it deleted manually outside of CloudFormation?');
+        }
+        preDeployContext.securityGroups.push(securityGroup);
+    }
     return preDeployContext;
 }

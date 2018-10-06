@@ -6,13 +6,13 @@
             "type": "string",
             "description": "The service type (should always be 'efs')",
             "pattern": "^efs$",
-            "errorMessage": "The 'type' field must equal 'efs'"
+            "errorMessage": "Must equal 'efs'"
         },
         "performance_mode": {
             "type": "string",
             "description": "The performance_mode (should always be 'general_purpose' or 'max_io')",
             "pattern": "^(general_purpose|max_io)$",
-            "errorMessage": "The performance_mode' parameter must be either 'general_purpose' or 'max_io'"
+            "errorMessage": "Must be either 'general_purpose' or 'max_io'"
         },
         "tags": {
             "type": "object",
@@ -25,7 +25,7 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },

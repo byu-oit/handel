@@ -83,12 +83,15 @@ export class Service implements ServiceDeployer {
     public readonly supportsTagging = true;
 
     public check(serviceContext: ServiceContext<CodeDeployServiceConfig>): string[] {
-        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     }
 
     public async preDeploy(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, 22, SERVICE_NAME);
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<CodeDeployServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
     }
 
     public async deploy(ownServiceContext: ServiceContext<CodeDeployServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

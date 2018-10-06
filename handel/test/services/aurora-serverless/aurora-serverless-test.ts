@@ -20,6 +20,7 @@ import {
     BindContext,
     DeployContext,
     PreDeployContext,
+    ServiceConfig,
     ServiceContext,
     ServiceDeployer,
     ServiceType,
@@ -27,31 +28,34 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, deletePhases, preDeployPhase } from 'handel-extension-support';
+import { awsCalls, bindPhase, deletePhases, deployPhase, preDeployPhase } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
-import { Service } from '../../../src/services/neptune';
-import { NeptuneConfig } from '../../../src/services/neptune/config-types';
+import { Service } from '../../../src/services/aurora-serverless';
+import { AuroraServerlessConfig, AuroraServerlessEngine } from '../../../src/services/aurora-serverless/config-types';
 import { STDLIB_PREFIX } from '../../../src/services/stdlib';
 
-describe('neptune deployer', () => {
+describe('aurora-serverless deployer', () => {
     let sandbox: sinon.SinonSandbox;
     const appName = 'FakeApp';
     const envName = 'FakeEnv';
-    let serviceContext: ServiceContext<NeptuneConfig>;
-    let serviceParams: NeptuneConfig;
+    let serviceContext: ServiceContext<AuroraServerlessConfig>;
+    let serviceParams: AuroraServerlessConfig;
     let accountConfig: AccountConfig;
-    let neptune: ServiceDeployer;
+    let aurora: ServiceDeployer;
 
     beforeEach(async () => {
-        neptune = new Service();
+        aurora = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         sandbox = sinon.sandbox.create();
         serviceParams = {
-            type: 'neptune'
+            type: 'aurora',
+            engine: AuroraServerlessEngine.mysql,
+            version: '5.6.10a',
+            database_name: 'mydb'
         };
-        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'neptune'), serviceParams, accountConfig);
+        serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'aurora-serverless'), serviceParams, accountConfig);
     });
 
     afterEach(() => {
@@ -61,16 +65,22 @@ describe('neptune deployer', () => {
     // At the moment, check only validates the JSON schema, so no tests here for that phase at the moment
 
     describe('preDeploy', () => {
-        it('should create a security group', async () => {
-            const groupId = 'FakeSgGroupId';
-            const preDeployContext = new PreDeployContext(serviceContext);
+        const groupId = 'FakeSgGroupId';
+        let preDeployContext: PreDeployContext;
+        let createSgStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            preDeployContext = new PreDeployContext(serviceContext);
             preDeployContext.securityGroups.push({
                 GroupId: groupId
             });
-            const createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
+            createSgStub = sandbox.stub(preDeployPhase, 'preDeployCreateSecurityGroup')
                 .resolves(preDeployContext);
+        });
 
-            const retPreDeployContext = await neptune.preDeploy!(serviceContext);
+        it('should create a security group when using MySQL', async () => {
+            const retPreDeployContext = await aurora.preDeploy!(serviceContext);
+            expect(createSgStub.getCall(0).args[1]).to.equal(3306);
             expect(retPreDeployContext).to.be.instanceof(PreDeployContext);
             expect(retPreDeployContext.securityGroups.length).to.equal(1);
             expect(retPreDeployContext.securityGroups[0].GroupId).to.equal(groupId);
@@ -79,26 +89,36 @@ describe('neptune deployer', () => {
     });
 
     describe('bind', () => {
-        it('should add the source sg to its own sg as an ingress rule', async () => {
-            const dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'neptune'), serviceParams, accountConfig);
-            const dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
-            const dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
-            const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
-            const bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
-                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
+        let dependencyServiceContext: ServiceContext<AuroraServerlessConfig>;
+        let dependencyPreDeployContext: PreDeployContext;
+        let dependentOfServiceContext: ServiceContext<ServiceConfig>;
+        let dependentOfPreDeployContext: PreDeployContext;
+        let bindSgStub: sinon.SinonStub;
 
-            const bindContext = await neptune.bind!(dependencyServiceContext, dependencyPreDeployContext,
+        beforeEach(() => {
+            dependencyServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'aurora'), serviceParams, accountConfig);
+            dependencyPreDeployContext = new PreDeployContext(dependencyServiceContext);
+            dependentOfServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'beanstalk'), {type: 'beanstalk'}, accountConfig);
+            dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
+            bindSgStub = sandbox.stub(bindPhase, 'bindDependentSecurityGroup')
+                .resolves(new BindContext(dependencyServiceContext, dependentOfServiceContext));
+        });
+
+        it('should add the source sg to its own sg as an ingress rule when using MySQL', async () => {
+            const bindContext = await aurora.bind!(dependencyServiceContext, dependencyPreDeployContext,
                 dependentOfServiceContext, dependentOfPreDeployContext);
             expect(bindContext).to.be.instanceof(BindContext);
             expect(bindSgStub.callCount).to.equal(1);
+            expect(bindSgStub.getCall(0).args[5]).to.equal(3306);
         });
+
     });
 
     describe('deploy', () => {
         const envPrefix = 'FAKESERVICE';
         const clusterEndpoint = 'fakeaddress.amazonaws.com';
         const databasePort = 3306;
-        const readEndpoint = 'fakeaddress2.amazonaws.com';
+        const databaseName = 'mydb';
         let ownPreDeployContext: PreDeployContext;
         let dependenciesDeployContexts: DeployContext[];
         const deployedStack = {
@@ -113,11 +133,11 @@ describe('neptune deployer', () => {
                 },
                 {
                     OutputKey: 'ClusterReadEndpoint',
-                    OutputValue: readEndpoint
+                    OutputValue: clusterEndpoint
                 },
                 {
-                    OutputKey: 'ClusterId',
-                    OutputValue: 'FakeClusterId'
+                    OutputKey: 'DatabaseName',
+                    OutputValue: databaseName
                 }
             ]
         };
@@ -135,27 +155,32 @@ describe('neptune deployer', () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack')
                 .resolves(deployedStack);
+            const addCredentialsStub = sandbox.stub(deployPhase, 'addItemToSSMParameterStore')
+                .resolves(deployedStack);
 
-            const deployContext = await neptune.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await aurora.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(createStackStub.callCount).to.equal(1);
+            expect(addCredentialsStub.callCount).to.equal(2);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_CLUSTER_ENDPOINT`]).to.equal(clusterEndpoint);
             expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-            expect(deployContext.environmentVariables[`${envPrefix}_READ_ENDPOINT`]).to.equal(readEndpoint);
+            expect(deployContext.environmentVariables[`${envPrefix}_READ_ENDPOINT`]).to.equal(clusterEndpoint);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
 
         it('should not update the database if it already exists', async () => {
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(deployedStack);
             const updateStackStub = sandbox.stub(awsCalls.cloudFormation, 'updateStack').resolves(null);
 
-            const deployContext = await neptune.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            const deployContext = await aurora.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
             expect(getStackStub.callCount).to.equal(1);
             expect(updateStackStub.callCount).to.equal(0);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(deployContext.environmentVariables[`${envPrefix}_CLUSTER_ENDPOINT`]).to.equal(clusterEndpoint);
             expect(deployContext.environmentVariables[`${envPrefix}_PORT`]).to.equal(databasePort);
-            expect(deployContext.environmentVariables[`${envPrefix}_READ_ENDPOINT`]).to.equal(readEndpoint);
+            expect(deployContext.environmentVariables[`${envPrefix}_READ_ENDPOINT`]).to.equal(clusterEndpoint);
+            expect(deployContext.environmentVariables[`${envPrefix}_DATABASE_NAME`]).to.equal(databaseName);
         });
     });
 
@@ -164,7 +189,7 @@ describe('neptune deployer', () => {
             const unPreDeployStub = sandbox.stub(deletePhases, 'unPreDeploySecurityGroup')
                 .resolves(new UnPreDeployContext(serviceContext));
 
-            const unPreDeployContext = await neptune.unPreDeploy!(serviceContext);
+            const unPreDeployContext = await aurora.unPreDeploy!(serviceContext);
             expect(unPreDeployContext).to.be.instanceof(UnPreDeployContext);
             expect(unPreDeployStub.callCount).to.equal(1);
         });
@@ -177,7 +202,7 @@ describe('neptune deployer', () => {
             const dependentOfPreDeployContext = new PreDeployContext(dependentOfServiceContext);
             const unBindStub = sandbox.stub(deletePhases, 'unBindService').resolves(new UnBindContext(serviceContext, dependentOfServiceContext));
 
-            const unBindContext = await neptune.unBind!(serviceContext, dependencyPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext);
+            const unBindContext = await aurora.unBind!(serviceContext, dependencyPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext);
             expect(unBindContext).to.be.instanceof(UnBindContext);
             expect(unBindStub.callCount).to.equal(1);
         });
@@ -187,10 +212,12 @@ describe('neptune deployer', () => {
         it('should undeploy the stack', async () => {
             const unDeployStackStub = sandbox.stub(deletePhases, 'unDeployService')
                 .resolves(new UnDeployContext(serviceContext));
+            const deleteParametersStub = sandbox.stub(deletePhases, 'deleteServiceItemsFromSSMParameterStore').resolves({});
 
-            const unDeployContext = await neptune.unDeploy!(serviceContext);
+            const unDeployContext = await aurora.unDeploy!(serviceContext);
             expect(unDeployContext).to.be.instanceof(UnDeployContext);
             expect(unDeployStackStub.callCount).to.equal(1);
+            expect(deleteParametersStub.callCount).to.equal(1);
         });
     });
 });

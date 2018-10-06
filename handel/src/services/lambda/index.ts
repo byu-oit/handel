@@ -174,12 +174,20 @@ export class Service implements ServiceDeployer {
                 }
             });
         }
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return errors;
     }
 
     public async preDeploy(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
         if (serviceContext.params.vpc) {
             return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        } else {
+            return lifecyclesCommon.preDeployNotRequired(serviceContext);
+        }
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<LambdaServiceConfig>): Promise<PreDeployContext> {
+        if (serviceContext.params.vpc) {
+            return preDeployPhase.getSecurityGroup(serviceContext);
         } else {
             return lifecyclesCommon.preDeployNotRequired(serviceContext);
         }

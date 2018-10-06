@@ -33,6 +33,7 @@ export interface CloudFrontConfig {
     min_ttl?: string;
     max_ttl?: string;
     default_ttl?: string;
+    minimum_https_protocol?: string;
 }
 
 export interface HandlebarsS3StaticSiteTemplate {
@@ -54,6 +55,7 @@ export interface HandlebarsCloudFrontParams {
     priceClass: string;
     httpsCertificateId?: string;
     dnsNames?: HandlebarsCloudFrontDnsName[];
+    minimumHttpsProtocol: string;
 }
 
 export interface HandlebarsCloudFrontDnsName {

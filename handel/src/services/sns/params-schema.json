@@ -6,33 +6,33 @@
             "type": "string",
             "description": "The service type (should always be SNS)",
             "pattern": "^sns$",
-            "errorMessage": "The 'type' field must equal 'sns'"
+            "errorMessage": "Must equal 'sns'"
         },
         "subscriptions": {
             "type": "array",
             "description": "An optional list of one or more topic subscriptions to add",
-            "errorMessage": "The 'subscriptions' parameter must contain one or more subscription objects", 
+            "errorMessage": "Must contain one or more subscription objects", 
             "items": {
                 "type": "object",
                 "properties": {
                     "endpoint": {
                         "type": "string",
-                        "errorMessage": "The 'endpoint' parameter must be a string"
+                        "errorMessage": "Must be a string"
                     },
                     "protocol": {
                         "type": "string",
                         "pattern": "^(http|https|email|email-json|sms)$",
-                        "errorMessage": "The 'protocol' field must be one of the following values: http, https, email, email-json, sms"
+                        "errorMessage": "Must be one of the following values: http, https, email, email-json, sms"
                     }
                 },
                 "additionalProperties": false,
                 "required": ["endpoint", "protocol"],
                 "errorMessage": {
                     "type": "Each subscription must be an object containing the 'endpoint' and 'protocol' properties",
-                    "additionalProperties": "Invalid property specified in subscription object",
+                    "additionalProperties": "Invalid property specified",
                     "required": {
-                        "endpoint": "The 'endpoint' parameter is required in SNS subscriptions",
-                        "protocol": "The 'protocol' parameter is required in SNS subscriptions"
+                        "endpoint": "The 'endpoint' parameter is required",
+                        "protocol": "The 'protocol' parameter is required"
                     }
                 }
             }
@@ -44,10 +44,10 @@
                 "properties": {
                     "service_name": {
                         "type": "string",
-                        "errorMessage": "The 'service_name' field must be a string"
+                        "errorMessage": "Must be a string"
                     }
                 },
-                "errorMessage": "The 'event_consumers' field must contain an array of objects with the 'service_name' and 'event_input' properties",
+                "errorMessage": "Must contain an array of objects with the 'service_name' and 'event_input' properties",
                 "additionalProperties": false
             }
         },
@@ -62,14 +62,14 @@
                     ]
                 }
             },
-            "errorMessage": "The 'tags' element must contain 1 or more simple key/value pairs where the values are strings or numbers",
+            "errorMessage": "Must contain 1 or more simple key/value pairs where the values are strings or numbers",
             "additionalProperties": false
         }
     },
     "required": ["type"],
     "additionalProperties": false,
     "errorMessage": {
-        "additionalProperties": "Invalid/unknown property specified in SNS service type",
+        "additionalProperties": "Invalid/unknown property specified",
         "required": {
             "type": "The top-level 'type' field is required"
         }

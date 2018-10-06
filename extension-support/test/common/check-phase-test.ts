@@ -15,13 +15,17 @@
  *
  */
 import { expect } from 'chai';
-import { AccountConfig, ServiceConfig, ServiceContext, ServiceType, UnBindContext, UnDeployContext, UnPreDeployContext } from 'handel-extension-api';
+import {
+    ServiceConfig,
+    ServiceContext,
+    ServiceType,
+} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as checkPhase from '../../src/common/check-phase';
 import accountConfig from '../fake-account-config';
 
-describe('Delete phases common module', () => {
+describe('check phases common module', () => {
     let sandbox: sinon.SinonSandbox;
     let serviceContext: ServiceContext<ServiceConfig>;
 
@@ -46,7 +50,8 @@ describe('Delete phases common module', () => {
                 'fake': 'tag'
             };
             const response = checkPhase.checkJsonSchema(`${__dirname}/test-json-schema.json`, serviceContext);
-            expect(response).to.deep.equal([`Invalid/unknown property specified in 'fakeservice' service type`]);
+            expect(response.length).to.equal(1);
+            expect(response[0]).to.include(`Invalid property '/tags' specified`);
         });
 
         it('should return an error when the schema fails to load', () => {

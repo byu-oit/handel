@@ -27,7 +27,16 @@ import {
     UnDeployContext,
     UnPreDeployContext
 } from 'handel-extension-api';
-import { awsCalls, bindPhase, checkPhase, deletePhases, deployPhase, handlebars, preDeployPhase, tagging } from 'handel-extension-support';
+import {
+    awsCalls,
+    bindPhase,
+    checkPhase,
+    deletePhases,
+    deployPhase,
+    handlebars,
+    preDeployPhase,
+    tagging
+} from 'handel-extension-support';
 import * as winston from 'winston';
 import * as iamCalls from '../../aws/iam-calls';
 import { ElasticsearchConfig, HandlebarsDedicatedMasterNode, HandlebarsEbs, HandlebarsElasticsearchTemplate } from './config-types';
@@ -123,12 +132,15 @@ export class Service implements ServiceDeployer {
 
     public check(serviceContext: ServiceContext<ElasticsearchConfig>,
         dependenciesServiceContext: Array<ServiceContext<ServiceConfig>>): string[] {
-        const errors: string[] = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
-        return errors.map(error => `${SERVICE_NAME} - ${error}`);
+        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
     }
 
     public async preDeploy(serviceContext: ServiceContext<ElasticsearchConfig>): Promise<PreDeployContext> {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, ES_PORT, SERVICE_NAME);
+    }
+
+    public async getPreDeployContext(serviceContext: ServiceContext<ElasticsearchConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
     }
 
     public async bind(ownServiceContext: ServiceContext<ElasticsearchConfig>,
@@ -140,8 +152,7 @@ export class Service implements ServiceDeployer {
             dependentOfServiceContext,
             dependentOfPreDeployContext,
             ES_PROTOCOL,
-            ES_PORT,
-            SERVICE_NAME);
+            ES_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<ElasticsearchConfig>,
@@ -161,8 +172,8 @@ export class Service implements ServiceDeployer {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    public async unBind(ownServiceContext: ServiceContext<ElasticsearchConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, ES_PROTOCOL, ES_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<ElasticsearchConfig>): Promise<UnDeployContext> {

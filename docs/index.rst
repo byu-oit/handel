@@ -69,6 +69,7 @@ including taking care of all the tricky security bits to make the services be ab
    supported-services/apiaccess
    supported-services/apigateway
    supported-services/aurora
+   supported-services/aurora-serverless
    supported-services/codedeploy
    supported-services/beanstalk
    supported-services/cloudwatchevents

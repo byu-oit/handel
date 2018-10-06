@@ -24,17 +24,19 @@ export function checkServices(serviceRegistry: ServiceRegistry, environmentConte
     winston.info(`Executing Check phase in environment '${environmentContext.environmentName}'`);
     // Run check on all services in environment to make sure params are valid
     const requiredTags = environmentContext.accountConfig.required_tags || [];
-    let errors: string[] = [];
+    let envErrors: string[] = [];
     _.forEach(environmentContext.serviceContexts, (serviceContext: ServiceContext<ServiceConfig>) => {
         const serviceDeployer = serviceRegistry.getService(serviceContext.serviceType);
+        let serviceErrors: string[] = [];
         if(serviceDeployer.check) {
             const dependenciesServiceContexts = getDependenciesServiceContexts(serviceContext, environmentContext);
-            const checkErrors = serviceDeployer.check(serviceContext, dependenciesServiceContexts);
-            errors = errors.concat(checkErrors);
+            serviceErrors = serviceDeployer.check(serviceContext, dependenciesServiceContexts);
         }
-        errors = errors.concat(checkRequiredTags(serviceDeployer, serviceContext, requiredTags));
+        serviceErrors = serviceErrors.concat(checkRequiredTags(serviceDeployer, serviceContext, requiredTags));
+        serviceErrors = serviceErrors.map(error => `Service '${serviceContext.serviceName}' - ${error}`);
+        envErrors = envErrors.concat(serviceErrors);
     });
-    return errors;
+    return envErrors;
 }
 
 function getDependenciesServiceContexts(serviceContext: ServiceContext<ServiceConfig>, environmentContext: EnvironmentContext): Array<ServiceContext<ServiceConfig>> {

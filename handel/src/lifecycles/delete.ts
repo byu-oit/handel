@@ -24,15 +24,17 @@ import {
     EnvironmentDeleteResult,
     HandelFile,
     HandelFileParser,
+    PreDeployContexts,
     UnBindContexts,
     UnDeployContexts
 } from '../datatypes';
 import * as deployOrderCalc from '../deploy/deploy-order-calc';
+import * as preDeployPhase from '../phases/pre-deploy';
 import * as unBindPhase from '../phases/un-bind';
 import * as unDeployPhase from '../phases/un-deploy';
 import * as unPreDeployPhase from '../phases/un-pre-deploy';
 
-async function unDeployAndUnBindServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, deployOrder: DeployOrder) {
+async function unDeployAndUnBindServices(serviceRegistry: ServiceRegistry, environmentContext: EnvironmentContext, preDeployContexts: PreDeployContexts, deployOrder: DeployOrder) {
     const unBindContexts: UnBindContexts = {};
     const unDeployContexts: UnDeployContexts = {};
     for (let currentLevel = deployOrder.length - 1; deployOrder[currentLevel]; currentLevel--) {
@@ -45,7 +47,7 @@ async function unDeployAndUnBindServices(serviceRegistry: ServiceRegistry, envir
         }
 
         // Un-bind all services in the current level
-        const levelUnBindResults = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, deployOrder, currentLevel);
+        const levelUnBindResults = await unBindPhase.unBindServicesInLevel(serviceRegistry, environmentContext, preDeployContexts, deployOrder, currentLevel);
         for (const serviceName in levelUnBindResults) {
             if (levelUnBindResults.hasOwnProperty(serviceName)) {
                 unBindContexts[serviceName] = levelUnBindResults[serviceName];
@@ -70,8 +72,11 @@ async function deleteEnvironment(accountConfig: AccountConfig, serviceRegistry: 
         winston.info(`Starting delete for environment ${environmentContext.environmentName}`);
 
         try {
+            // First get PreDeploy information to give to UnBind
+            const preDeployResults = await preDeployPhase.getPreDeployContexts(serviceRegistry, environmentContext);
+
             const deployOrder = deployOrderCalc.getDeployOrder(environmentContext);
-            const unDeployAndUnBindResults = await unDeployAndUnBindServices(serviceRegistry, environmentContext, deployOrder);
+            const unDeployAndUnBindResults = await unDeployAndUnBindServices(serviceRegistry, environmentContext, preDeployResults, deployOrder);
             const unPreDeployResults = await unPreDeployPhase.unPreDeployServices(serviceRegistry, environmentContext);
             return new EnvironmentDeleteResult(environmentContext.environmentName, startTime, 'success', 'Success');
         }

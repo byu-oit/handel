@@ -118,7 +118,7 @@ describe('fargate deployer', () => {
             const errors = ecsFargate.check!(serviceContext, []);
 
             expect(errors.length).to.equal(1);
-            expect(errors[0]).to.contain('The \'health_check_grace_period\' parameter must be an integer');
+            expect(errors[0]).to.contain('Must be an integer');
         });
     });
 
