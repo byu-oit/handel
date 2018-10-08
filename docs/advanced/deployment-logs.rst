@@ -62,14 +62,17 @@ Here's an example deployment entry:
 
     {
         "AppName": "test-app",
-        "EnvAction": "dev:deploy:1536357426736"
+        "EnvAction": "dev:deploy:1536357426736",
         "Lifecycle": "deploy",
         "EnvironmentName": "dev",
         "DeploymentStartTime": 1536357268101,
         "DeploymentEndTime": 1536357426736,
         "DeploymentStatus": "success",
         "DeploymentMessage": "Success",
-        "ApplicationTags": {},
+        "ApplicationTags": {
+            "app": "test-app",
+            "team": "The-Cool-Team"
+        },
         "EnvironmentContents": {
             "my-lambda": {
                 "type": "lambda",
