@@ -1,0 +1,22 @@
+{
+  "name": "random-secret-handel-extension",
+  "version": "0.1.0",
+  "description": "An example extension that generates random secrets and puts them in Parameter Store",
+  "main": "extension.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "handel": "*"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.218.1",
+    "constant-case": "^2.0.0",
+    "handel-extension-api": "^0.26.0",
+    "randomstring": "^1.1.5",
+    "winston": "^2.4.1"
+  }
+}

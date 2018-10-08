@@ -19,12 +19,15 @@ import { AccountConfig, ServiceContext, ServiceRegistry, ServiceType } from 'han
 import * as _ from 'lodash';
 import * as util from '../common/util';
 import {
+    allScmProviders,
     EnvironmentContext,
     ExtensionList,
+    ExtensionSource,
     HandelCoreOptions,
     HandelFile,
 } from '../datatypes';
 import { STDLIB_PREFIX } from '../services/stdlib';
+import { parseExtensionSpec } from './extension-parser';
 
 const APP_ENV_SERVICE_NAME_REGEX = /^[a-zA-Z0-9-]+$/;
 
@@ -244,17 +247,7 @@ export async function listExtensions(handelFile: HandelFile): Promise<ExtensionL
     if (!handelFile.extensions) {
         return [];
     }
-    return _.entries(handelFile.extensions).map(([prefix, spec]) => {
-        let toParse = spec;
-        let namePrefix = '';
-        if (spec.startsWith('@')) { // Handle scoped NPM packages (https://github.com/byu-oit/handel/issues/438)
-            toParse = spec.substring(1);
-            namePrefix = '@';
-        }
-        const [parsedName, versionSpec = '*'] = toParse.split('@', 2);
-        const name = namePrefix + parsedName;
-        return {prefix, name, versionSpec};
-    });
+    return _.entries(handelFile.extensions).map(([prefix, spec]) => parseExtensionSpec(prefix, spec));
 }
 
 function parseServiceType(typeString: string): ServiceType {

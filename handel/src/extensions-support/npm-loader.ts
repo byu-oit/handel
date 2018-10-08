@@ -20,13 +20,15 @@ import { Extension } from 'handel-extension-api';
 import * as path from 'path';
 import * as log from 'winston';
 import {
-    ExtensionDefinition,
-    ExtensionInstallationError,
+    ExtensionDefinition, ExtensionInstallationError,
     ExtensionLoadingError,
     HandelCoreOptions,
+    InvalidExtensionSpecificationError,
+    isFileExtension, isGitExtension,
+    isNpmExtension,
     LoadedExtension
 } from '../datatypes';
-import { CliNpmClient, NpmClient } from './npm';
+import { CliNpmClient, InstalledPackage, LinkedPackage, NpmClient } from './npm';
 import { ExtensionLoader } from './types';
 
 export class NpmLoader implements ExtensionLoader {
@@ -37,32 +39,21 @@ export class NpmLoader implements ExtensionLoader {
     public async loadExtensions(
         definitions: ExtensionDefinition[],
         options: HandelCoreOptions,
-        directory: string = path.join(process.cwd(), '.handel-extensions')): Promise<LoadedExtension[]> {
+        workingDirectory: string = process.cwd(),
+        extensionsDirectory: string = path.join(workingDirectory, '.handel-extensions')): Promise<LoadedExtension[]> {
         if (definitions.length === 0) {
             return [];
         }
         log.info('Loading Handel Extensions');
 
-        await fs.ensureDir(directory);
+        await this.initExtensionsDir(workingDirectory, extensionsDirectory);
 
-        const packageJson = assemblePackageJson(definitions);
+        const specs = await this.getInstallSpecs(definitions, workingDirectory, extensionsDirectory, options.linkExtensions);
 
-        if (options.linkExtensions) {
-            log.info('Linking Local Extensions');
-            const linkables = await this.client.listLinkedPackages();
-            linkables.filter(({name}) => !!packageJson.dependencies[name])
-                .forEach(({name, path: linkPath}) => {
-                    log.warn(`Linking Extension '${name}' to '${linkPath}'`);
-                    return packageJson.dependencies[name] = 'file:' + linkPath;
-                });
-        }
-
-        await fs.writeJSON(path.join(directory, 'package.json'), packageJson, {spaces: 2});
-
-        log.info('Installing extensions from NPM');
+        let installed: InstalledPackage[];
 
         try {
-            await this.client.installAll(directory);
+            installed = await this.client.installAll(extensionsDirectory, specs.map(it => it.spec), true);
         } catch (err) {
             throw new ExtensionInstallationError(
                 definitions,
@@ -70,9 +61,18 @@ export class NpmLoader implements ExtensionLoader {
             );
         }
 
-        return Promise.all(definitions.map(async (defn) => {
+        specs.forEach(it => {
+            if (it.name) { return; }
+            const found = installed.find(i => i.version === it.spec);
+            if (!found) {
+                throw new InvalidExtensionSpecificationError(it.spec, `Unable to find name for extension ${it.prefix}`);
+            }
+            it.name = found.name;
+        });
+
+        return Promise.all(specs.map(async (defn) => {
             log.debug(`Loading extension '${defn.name}'`);
-            const extensionDir = path.join(directory, 'node_modules', defn.name);
+            const extensionDir = path.join(extensionsDirectory, 'node_modules', defn.name);
             let instance: Extension;
             try {
                 instance = await this.importer(extensionDir);
@@ -88,19 +88,80 @@ export class NpmLoader implements ExtensionLoader {
             };
         }));
     }
+
+    private async getInstallSpecs(definitions: ExtensionDefinition[], workingDirectory: string, extensionsDirectory: string, linkExtensions: boolean) {
+        let linkables: LinkedPackage[] = [];
+        if (linkExtensions) {
+            linkables = await this.client.listLinkedPackages();
+        }
+
+        const specs = [];
+        for (const defn of definitions) {
+            let spec: string;
+            let name: string = '';
+            if (isNpmExtension(defn)) {
+                const linked = linkables.find(it => it.name === defn.name);
+                if (linked) {
+                    log.warn(`Linking extension ${defn.name} to ${linked.path}`);
+                    spec = 'file:' + linked.path;
+                } else {
+                    spec = defn.name + '@' + defn.versionSpec;
+                }
+                name = defn.name;
+            } else if (isFileExtension(defn)) {
+                spec = 'file:' + await processFileVersionPath(defn.spec, defn.path, workingDirectory, extensionsDirectory);
+            } else if (isGitExtension(defn)) {
+                spec = defn.url;
+            } else {
+                spec = defn.spec;
+            }
+
+            specs.push({
+                spec,
+                name,
+                prefix: defn.prefix,
+            });
+        }
+
+        return specs;
+    }
+
+    private async initExtensionsDir(workingDirectory: string, extensionsDirectory: string) {
+        await fs.ensureDir(extensionsDirectory);
+
+        const packageJson = path.join(extensionsDirectory, 'package.json');
+
+        await fs.writeJSON(packageJson, {
+            name: 'handel-extensions-aggregator',
+            description: '!!! Internal Handel use only !!!',
+            private: true
+        }, {spaces: 2});
+    }
 }
 
 export type ModuleImporter = (path: string) => Promise<Extension>;
 
-function assemblePackageJson(definitions: ExtensionDefinition[]) {
-    const deps: any = definitions.reduce((agg, each) => {
-        agg[each.name] = each.versionSpec;
-        return agg;
-    }, {} as any);
+async function processFileVersionPath(spec: string, filePath: string, workingDir: string, extensionsDir: string): Promise<string> {
+    const resolved = path.resolve(workingDir, filePath);
 
-    return {
-        dependencies: deps,
-    };
+    if (path.posix.isAbsolute(filePath) || path.win32.isAbsolute(filePath)) {
+        throw new InvalidExtensionSpecificationError(spec, `'file:' versions cannot specify an absolute path.`);
+    }
+
+    if (!resolved.startsWith(path.resolve(workingDir))) {
+        throw new InvalidExtensionSpecificationError(spec, `'file:' versions cannot specify a path outside of the project root.`);
+    }
+
+    if (!(await fs.pathExists(resolved))) {
+        throw new InvalidExtensionSpecificationError(spec, 'The specified path does not exist or is not readable by Handel.');
+    }
+
+    const stat = await fs.stat(resolved);
+    if (!stat.isDirectory()) {
+        throw new InvalidExtensionSpecificationError(spec, `'file:' version paths must resolve to a directory.`);
+    }
+
+    return path.relative(extensionsDir, resolved);
 }
 
 export function initNpmLoader(npmClient: NpmClient = new CliNpmClient(), moduleImporter: ModuleImporter = defaultModuleImporter) {

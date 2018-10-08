@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import { Extension } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
-import { ExtensionList, HandelCoreOptions } from '../../src/datatypes';
+import { ExtensionList, ExtensionSource, HandelCoreOptions, NpmExtensionDefinition } from '../../src/datatypes';
 import * as npmLoader from '../../src/extensions-support/npm-loader';
 import { resolveExtensions } from '../../src/extensions-support/resolve-extensions';
 import { STDLIB_PREFIX } from '../../src/services/stdlib';
@@ -33,10 +33,12 @@ describe('resolve-extensions', () => {
     });
 
     const fooDefinition: ExtensionList = [{
+        source: ExtensionSource.NPM,
+        spec: 'fake',
         prefix: 'foo',
         name: 'foo-extension',
         versionSpec: '*'
-    }];
+    } as NpmExtensionDefinition];
 
     const basicOptions: HandelCoreOptions = {
         linkExtensions: false,

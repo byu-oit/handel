@@ -1,0 +1,22 @@
+version: 1
+
+name: using-extensions
+
+extensions:
+  random: file:./.local-handel-extensions/random-secret
+  sns: sns-handel-extension
+
+environments:
+  dev:
+    function:
+      type: lambda
+      path_to_code: .
+      handler: index.handler
+      runtime: python3.6
+      dependencies:
+      - parameter
+    parameter:
+      type: random::randomsecret
+      length: 128
+      alphabet: abcdefg
+
