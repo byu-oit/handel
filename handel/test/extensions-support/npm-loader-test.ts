@@ -32,6 +32,7 @@ import {
     FileExtensionDefinition,
     GitExtensionDefinition,
     HandelCoreOptions,
+    InvalidExtensionSpecificationError,
     NpmExtensionDefinition,
     ScmExtensionDefinition,
     ScmProvider
@@ -219,110 +220,115 @@ describe('npm-loader', () => {
             await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
                 .to.be.rejectedWith(ExtensionLoadingError);
         });
-        // describe('\'file:\' extensions', () => {
-        //     it('can handle local \'file:\' extensions', async () => {
-        //         const definitions = [{
-        //             source: ExtensionSource.NPM,
-        //             spec: 'fake',
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:test'
-        //         }];
-        //
-        //         await fs.ensureDir(path.join(baseDir, 'test'));
-        //
-        //         const expectedInstance = {};
-        //
-        //         importer.resolves(expectedInstance);
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         const loaded = await loader.loadExtensions(definitions, {linkExtensions: false}, baseDir);
-        //
-        //         expect(loaded).to.have.lengthOf(1);
-        //         expect(loaded).to.deep.include({name: 'fake', prefix: 'fake', instance: expectedInstance});
-        //
-        //         expect(client.installAll).to.have.been.calledOnce;
-        //
-        //         await expectModuleInPackage(extDir, 'fake', 'file:../test');
-        //     });
-        //     it('handles ./ - style paths', async () => {
-        //         const definitions = [{
-        //             source: ExtensionSource.NPM,
-        //             spec: 'fake',
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:./test'
-        //         }];
-        //
-        //         await fs.ensureDir(path.join(baseDir, 'test'));
-        //
-        //         const expectedInstance = {};
-        //
-        //         importer.resolves(expectedInstance);
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         const loaded = await loader.loadExtensions(definitions, {linkExtensions: false}, baseDir);
-        //
-        //         await expectModuleInPackage(extDir, 'fake', 'file:../test');
-        //     });
-        //     it('fails if the path is a relative path outside of the project root', async () => {
-        //         const definitions = [{
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:../bad',
-        //         }];
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
-        //             .to.be.rejectedWith(InvalidExtensionSpecificationError, /path outside of the project root/);
-        //     });
-        //     it('fails if the path is an absolute path', async () => {
-        //         const definitions = [{
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:/etc/passwd',
-        //         }];
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
-        //             .to.be.rejectedWith(InvalidExtensionSpecificationError, /absolute path/);
-        //     });
-        //     it('fails if the path is a Windows-style absolute path', async () => {
-        //         const definitions = [{
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:C:\\\\etc\\passwd',
-        //         }];
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
-        //             .to.be.rejectedWith(InvalidExtensionSpecificationError, /absolute path/);
-        //     });
-        //     it('fails if the path does not exist', async () => {
-        //         const definitions = [{
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:does-not-exist',
-        //         }];
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
-        //             .to.be.rejectedWith(InvalidExtensionSpecificationError, /path does not exist or is not readable/);
-        //     });
-        //     it('fails if the path is not a directory', async () => {
-        //         const definitions = [{
-        //             name: 'fake',
-        //             prefix: 'fake',
-        //             versionSpec: 'file:is-a-file',
-        //         }];
-        //
-        //         await fs.ensureFile(path.join(baseDir, 'is-a-file'));
-        //
-        //         const loader = initNpmLoader(client, importer);
-        //         await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
-        //             .to.be.rejectedWith(InvalidExtensionSpecificationError, /must resolve to a directory/);
-        //     });
-        // });
+        describe('\'file:\' extensions', () => {
+            it('can handle local \'file:\' extensions', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'test',
+                    spec: 'file:test',
+                    path: 'test'
+                }];
+
+                await fs.ensureDir(path.join(baseDir, 'test'));
+
+                const expectedInstance = {};
+
+                client.installAll.resolves([{name: 'test-extension', version: 'file:../test'}]);
+                importer.resolves(expectedInstance);
+
+                const loader = initNpmLoader(client, importer);
+                const loaded = await loader.loadExtensions(definitions, {linkExtensions: false}, baseDir);
+
+                expect(loaded).to.have.lengthOf(1);
+                expect(loaded).to.deep.include({name: 'test-extension', prefix: 'test', instance: expectedInstance});
+
+                expect(client.installAll).to.have.been.calledOnce;
+            });
+            it('handles ./ - style paths', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'test',
+                    spec: 'file:./test',
+                    path: './test'
+                }];
+
+                await fs.ensureDir(path.join(baseDir, 'test'));
+
+                const expectedInstance = {};
+
+                client.installAll.resolves([{name: 'test-extension', version: 'file:../test'}]);
+                importer.resolves(expectedInstance);
+
+                const loader = initNpmLoader(client, importer);
+                const loaded = await loader.loadExtensions(definitions, {linkExtensions: false}, baseDir);
+
+                expect(loaded).to.have.lengthOf(1);
+                expect(loaded).to.deep.include({name: 'test-extension', prefix: 'test', instance: expectedInstance});
+            });
+            it('fails if the path is a relative path outside of the project root', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'fake',
+                    spec: 'file:../bad',
+                    path: '../bad',
+                }];
+
+                const loader = initNpmLoader(client, importer);
+                await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
+                    .to.be.rejectedWith(InvalidExtensionSpecificationError, /path outside of the project root/);
+            });
+            it('fails if the path is an absolute path', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    name: 'fake',
+                    prefix: 'fake',
+                    spec: 'file:/etc/passwd',
+                    path: '/etc/passwd',
+                }];
+
+                const loader = initNpmLoader(client, importer);
+                await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
+                    .to.be.rejectedWith(InvalidExtensionSpecificationError, /absolute path/);
+            });
+            it('fails if the path is a Windows-style absolute path', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'fake',
+                    spec: 'file:C:\\\\etc\\passwd',
+                    path: 'C:\\\\etc\\passwd',
+                }];
+
+                const loader = initNpmLoader(client, importer);
+                await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
+                    .to.be.rejectedWith(InvalidExtensionSpecificationError, /absolute path/);
+            });
+            it('fails if the path does not exist', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'fake',
+                    spec: 'file:does-not-exist',
+                    path: 'does-not-exist',
+                }];
+
+                const loader = initNpmLoader(client, importer);
+                await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
+                    .to.be.rejectedWith(InvalidExtensionSpecificationError, /path does not exist or is not readable/);
+            });
+            it('fails if the path is not a directory', async () => {
+                const definitions = [{
+                    source: ExtensionSource.FILE,
+                    prefix: 'fake',
+                    spec: 'file:is-a-file',
+                    path: 'is-a-file',
+                }];
+
+                await fs.ensureFile(path.join(baseDir, 'is-a-file'));
+
+                const loader = initNpmLoader(client, importer);
+                await expect(loader.loadExtensions(definitions, {linkExtensions: false}, baseDir))
+                    .to.be.rejectedWith(InvalidExtensionSpecificationError, /must resolve to a directory/);
+            });
+        });
     });
 
 });
