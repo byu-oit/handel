@@ -120,7 +120,7 @@ export async function logHandelAction(lifecycleName: string, envResult: Environm
         EnvironmentName: envResult.environmentName,
         DeploymentStatus: envResult.status,
         DeploymentMessage: envResult.message,
-        ApplicationTags: handelFile.tags,
+        ApplicationTags: handelFile.tags || {},
         EnvironmentContents: handelFile.environments[envResult.environmentName]
     });
     // TODO find a way to insert the GIT commit hash and/or pipeline name
