@@ -40,7 +40,18 @@ Parameters
      - boolean
      - No
      - false
-     - Whether or not you want to deploy your Broker in multi-AZ high availability mode.
+     - Whether or not you want to deploy your broker in multi-AZ high availability mode.
+   * - general_logging
+     - boolean
+     - No
+     - false
+     - Whether or not you want general logging to be enabled for your broker.
+   * - audit_logging
+     - boolean
+     - No
+     - false
+     - Whether or not you want audit logging to be enabled for your broker.
+
 
 Depending on this service
 -------------------------

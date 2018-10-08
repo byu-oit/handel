@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import * as fs from 'fs';
 import {
     BindContext,
     DeployContext,
@@ -44,14 +45,29 @@ const SERVICE_NAME = 'AmazonMQ';
 const AMAZON_MQ_PROTOCOL = 'tcp';
 const AMAZON_MQ_PORT = 5671;
 
-// This is somewhat hacky...
+// This is pretty hacky...better add a good crypto random string soon
 function getNewBrokerUsername() {
     return uuid();
 }
 
-// This is somewhat hacky...
+// This is somewhat hacky...better add a good crypto random string soon
 function getNewBrokerPassword() {
     return uuid();
+}
+
+function getConfiguration(serviceParams: AmazonMQServiceConfig): string | undefined {
+    const configPath = serviceParams.configuration;
+    if(configPath) {
+        if (fs.existsSync(configPath)) {
+            try {
+                const configuration = fs.readFileSync(configPath, 'utf8');
+                return Buffer.from(configuration).toString('base64');
+            }
+            catch (err) {
+                throw new Error(`Couldn't load your ActiveMQ XML configuration file at: ${configPath}.`);
+            }
+        }
+    }
 }
 
 async function getDeployContext(serviceContext: ServiceContext<AmazonMQServiceConfig>, deployedStack: AWS.CloudFormation.Stack): Promise<DeployContext> {
@@ -79,7 +95,10 @@ async function getCompiledTemplate(ownServiceContext: ServiceContext<AmazonMQSer
         engineVersion: '5.15.0', // Only currently supported value by AmazonMQ
         instanceType: serviceParams.instance_type || 'mq.t2.micro',
         securityGroupId: ownPreDeployContext.securityGroups[0].GroupId!,
-        subnetId1: accountConfig.data_subnets[0]
+        subnetId1: accountConfig.data_subnets[0],
+        generalLogging: serviceParams.general_logging || false,
+        auditLogging: serviceParams.audit_logging || false,
+        configurationBase64EncodedXml: getConfiguration(serviceParams)
     };
     if(serviceParams.multi_az === true) {
         if(!(accountConfig.data_subnets.length > 0)) {
@@ -109,41 +128,53 @@ export class Service implements ServiceDeployer {
         return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
     }
 
-    // TODO - Add getPreDeployContext after my other PR is merged
+    public async getPreDeployContext(serviceContext: ServiceContext<AmazonMQServiceConfig>): Promise<PreDeployContext> {
+        return preDeployPhase.getSecurityGroup(serviceContext);
+    }
 
     public async bind(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORT, SERVICE_NAME);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORT);
     }
 
     public async deploy(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
         const stackName = ownServiceContext.stackName();
         winston.info(`${SERVICE_NAME} - Deploying broker '${stackName}'`);
-        const brokerUsername = getNewBrokerUsername();
-        const brokerPassword = getNewBrokerPassword();
-        const compiledTemplate = await getCompiledTemplate(ownServiceContext, ownPreDeployContext);
-        const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
-            BrokerUsername: brokerUsername,
-            BrokerPassword: brokerPassword
-        });
-        const stackTags = tagging.getTags(ownServiceContext);
-        const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, cfParameters, false, 30, stackTags);
+        const stack = await awsCalls.cloudFormation.getStack(stackName);
+        if(!stack) {
+            const brokerUsername = getNewBrokerUsername();
+            const brokerPassword = getNewBrokerPassword();
+            const compiledTemplate = await getCompiledTemplate(ownServiceContext, ownPreDeployContext);
+            const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
+                BrokerUsername: brokerUsername,
+                BrokerPassword: brokerPassword
+            });
+            const stackTags = tagging.getTags(ownServiceContext);
+            const deployedStack = await awsCalls.cloudFormation.createStack(stackName,
+                compiledTemplate,
+                cfParameters,
+                30,
+                stackTags);
 
-        // Add broker credentials to the Parameter Store
-        await Promise.all([
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'broker_username', brokerUsername),
-            deployPhase.addItemToSSMParameterStore(ownServiceContext, 'broker_password', brokerPassword)
-        ]);
-
-        winston.info(`${SERVICE_NAME} - Finished deploying broker '${stackName}'`);
-        return getDeployContext(ownServiceContext, deployedStack);
+            // Add broker credentials to the Parameter Store
+            await Promise.all([
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'broker_username', brokerUsername),
+                deployPhase.addItemToSSMParameterStore(ownServiceContext, 'broker_password', brokerPassword)
+            ]);
+            winston.info(`${SERVICE_NAME} - Finished deploying broker '${stackName}'`);
+            return getDeployContext(ownServiceContext, deployedStack);
+        }
+        else {
+            winston.info(`${SERVICE_NAME} - Updates are not supported for this service.`);
+            return getDeployContext(ownServiceContext, stack);
+        }
     }
 
     public async unPreDeploy(ownServiceContext: ServiceContext<AmazonMQServiceConfig>): Promise<UnPreDeployContext> {
         return deletePhases.unPreDeploySecurityGroup(ownServiceContext, SERVICE_NAME);
     }
 
-    public async unBind(ownServiceContext: ServiceContext<AmazonMQServiceConfig>): Promise<UnBindContext> {
-        return deletePhases.unBindSecurityGroups(ownServiceContext, SERVICE_NAME);
+    public async unBind(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORT);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<AmazonMQServiceConfig>): Promise<UnDeployContext> {

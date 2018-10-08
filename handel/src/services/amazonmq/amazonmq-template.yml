@@ -22,7 +22,9 @@ Resources:
       - ConsoleAccess: true
         Username: !Ref BrokerUsername
         Password: !Ref BrokerPassword
-      # TODO - Add configuration later
+      Logs:
+        General: {{generalLogging}}
+        Audit: {{auditLogging}}
       {{#if subnetId2}}
       DeploymentMode: ACTIVE_STANDBY_MULTI_AZ
       {{else}}
@@ -31,7 +33,9 @@ Resources:
       EngineType: {{engineType}}
       EngineVersion: {{engineVersion}}
       HostInstanceType: {{instanceType}}
-      # TODO - Figure out logs
+      Configuration:
+        Id: !Ref Configuration
+        Revision: !GetAtt Configuration.Revision
       PubliclyAccessible: false              
       SecurityGroups: 
       - {{securityGroupId}}
@@ -40,6 +44,15 @@ Resources:
       {{#if subnetId2}}
       - {{subnetId2}}
       {{/if}}
+  {{#if configurationBase64EncodedXml}}
+  Configuration: 
+    Type: "AWS::AmazonMQ::Configuration"
+    Properties: 
+      Name: {{brokerName}}
+      EngineType: {{engineType}}
+      EngineVersion: {{engineVersion}}
+      Data: {{configurationBase64EncodedXml}}
+  {{/if}}
 
 Outputs:
   BrokerId:

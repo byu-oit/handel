@@ -18,13 +18,19 @@ import { ServiceConfig } from 'handel-extension-api';
  export interface AmazonMQServiceConfig extends ServiceConfig {
     instance_type?: string;
     multi_az?: boolean;
+    general_logging?: boolean;
+    audit_logging?: boolean;
+    configuration?: string;
 }
  export interface HandlebarsAmazonMQTemplate {
     brokerName: string;
     engineType: string;
     engineVersion: string;
     instanceType: string;
+    generalLogging: boolean;
+    auditLogging: boolean;
     securityGroupId: string;
     subnetId1: string;
     subnetId2?: string;
+    configurationBase64EncodedXml?: string;
 }

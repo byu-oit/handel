@@ -6,16 +6,28 @@
             "type": "string",
             "description": "The service type (should always be 'amazonmq')",
             "pattern": "amazonmq",
-            "errorMessage": "The 'type' field must equal 'amazonmq'"
+            "errorMessage": "Must equal 'amazonmq'"
         },
         "instance_type": {
             "type": "string",
             "description": "The EC2 instance type to use for the queue",
-            "errorMessage": "The 'instance_type' field must be a string"
+            "errorMessage": "Must be a string"
         },
         "multi_az": {
             "type": "boolean",
-            "errorMessage": "The 'multi_az' field must be a boolean"
+            "errorMessage": "Must be a boolean"
+        },
+        "general_logging": {
+            "type": "boolean",
+            "errorMessage": "Must be a boolean"
+        },
+        "audit_logging": {
+            "type": "boolean",
+            "errorMessage": "Must be a boolean"
+        },
+        "configuration": {
+            "type": "string",
+            "errorMessage": "Must be a string"
         }
     },
     "required": [
