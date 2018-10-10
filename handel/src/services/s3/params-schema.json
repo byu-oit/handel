@@ -43,7 +43,7 @@
                         "type": "string",
                         "errorMessage": "Must be a string"
                     },
-                    "transistions": {
+                    "transitions": {
                         "type": "array",
                         "items": {
                             "type": "object",
@@ -76,7 +76,7 @@
                             }
                         }
                     },
-                    "version_transistions": {
+                    "version_transitions": {
                         "type": "array",
                         "items": {
                             "type": "object",
