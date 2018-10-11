@@ -43,7 +43,14 @@ import { AmazonMQServiceConfig, HandlebarsAmazonMQTemplate } from './config-type
 
 const SERVICE_NAME = 'AmazonMQ';
 const AMAZON_MQ_PROTOCOL = 'tcp';
-const AMAZON_MQ_PORT = 5671;
+const AMAZON_MQ_WEB_PORT = 8162;
+const AMAZON_MQ_PORTS = [
+    5671, // AMQP
+    8883, // MQTT
+    61614, // STOMP
+    61617, // OpenWire
+    61619 // WSS
+];
 
 // This is pretty hacky...better add a good crypto random string soon
 function getNewBrokerUsername() {
@@ -125,7 +132,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async preDeploy(serviceContext: ServiceContext<AmazonMQServiceConfig>): Promise<PreDeployContext> {
-        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, null, SERVICE_NAME);
+        return preDeployPhase.preDeployCreateSecurityGroup(serviceContext, AMAZON_MQ_WEB_PORT, SERVICE_NAME);
     }
 
     public async getPreDeployContext(serviceContext: ServiceContext<AmazonMQServiceConfig>): Promise<PreDeployContext> {
@@ -133,7 +140,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async bind(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<BindContext> {
-        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORT);
+        return bindPhase.bindDependentSecurityGroup(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORTS);
     }
 
     public async deploy(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {
@@ -174,7 +181,7 @@ export class Service implements ServiceDeployer {
     }
 
     public async unBind(ownServiceContext: ServiceContext<AmazonMQServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext): Promise<UnBindContext> {
-        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORT);
+        return deletePhases.unBindService(ownServiceContext, ownPreDeployContext, dependentOfServiceContext, dependentOfPreDeployContext, AMAZON_MQ_PROTOCOL, AMAZON_MQ_PORTS);
     }
 
     public async unDeploy(ownServiceContext: ServiceContext<AmazonMQServiceConfig>): Promise<UnDeployContext> {
