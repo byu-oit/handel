@@ -240,9 +240,61 @@ export interface LoadedExtension {
 }
 
 export interface ExtensionDefinition {
-    name: string;
+    source: ExtensionSource;
     prefix: string;
+    spec: string;
+}
+
+export enum ExtensionSource {
+    NPM = 'npm', FILE = 'file', SCM = 'scm', GIT = 'git'
+}
+
+export interface NpmExtensionDefinition extends ExtensionDefinition {
+    source: ExtensionSource.NPM;
+    name: string;
     versionSpec: string;
+}
+
+export function isNpmExtension(defn: ExtensionDefinition): defn is NpmExtensionDefinition {
+    return defn.source === ExtensionSource.NPM;
+}
+
+export function isFileExtension(defn: ExtensionDefinition): defn is FileExtensionDefinition {
+    return defn.source === ExtensionSource.FILE;
+}
+
+export function isGitExtension(defn: ExtensionDefinition): defn is GitExtensionDefinition {
+    return defn.source === ExtensionSource.GIT;
+}
+
+export function isScmExtension(defn: ExtensionDefinition): defn is ScmExtensionDefinition {
+    return defn.source === ExtensionSource.SCM;
+}
+
+export interface FileExtensionDefinition extends ExtensionDefinition {
+    source: ExtensionSource.FILE;
+    path: string;
+}
+
+export interface ScmExtensionDefinition extends ExtensionDefinition {
+    source: ExtensionSource.SCM;
+    provider: ScmProvider;
+    owner: string;
+    repo: string;
+    commitish?: string;
+}
+
+export enum ScmProvider {
+    GITHUB = 'github',
+    GITLAB = 'gitlab',
+    BITBUCKET = 'bitbucket'
+}
+
+export const allScmProviders = [ScmProvider.GITHUB, ScmProvider.GITLAB, ScmProvider.BITBUCKET];
+
+export interface GitExtensionDefinition extends ExtensionDefinition {
+    source: ExtensionSource.GIT;
+    url: string;
 }
 
 export class ExtensionLoadingError extends Error {
@@ -253,7 +305,7 @@ export class ExtensionLoadingError extends Error {
         !!! THIS IS MOST LIKELY A PROBLEM WITH THE EXTENSION, NOT WITH HANDEL !!!
 
         Please check that the extension name and version are correct in your handel.yml.
-        If problems perist, contact the maintainer of the extension.
+        If problems persist, contact the maintainer of the extension.
 
         To help debug, here's the full stack trace of the error:
         ` + '\n' + cause.stack);
@@ -267,6 +319,17 @@ export class DontBlameHandelError extends Error {
 
         !!! THIS IS MOST LIKELY A PROBLEM AN EXTENSION, NOT WITH HANDEL !!!
         ${!serviceType ? '' : `The error was caused by the '${serviceType.name}' service in extension '${serviceType.prefix}'`}
+        `);
+    }
+}
+
+export class InvalidExtensionSpecificationError extends Error {
+    constructor(public readonly spec: string, message: string) {
+        super(stripIndent`
+        Invalid extension specification: ${spec}.
+        ${message}
+
+        Please correct your handel.yml file and try again.
         `);
     }
 }
@@ -310,7 +373,7 @@ export class ExtensionInstallationError extends Error {
             Error installing Handel extensions
 
             The following extensions were requested to be installed:
-             - ${extensions.map(e => e.name + ' @ ' + e.versionSpec).join('\n - ')}
+             - ${extensions.map(e => e.spec).join('\n - ')}
 
             Check your handel.yml to make sure that you haven't misspelled the extension name and that
             the version range (if specified) is valid (https://docs.npmjs.com/misc/semver#ranges).

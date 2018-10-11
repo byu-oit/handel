@@ -16,19 +16,35 @@
  */
 import { spawn } from 'child-process-es6-promise';
 import { SpawnOptions } from 'child_process';
+import * as fs from 'fs-extra';
 import * as _ from 'lodash';
+import * as path from 'path';
 import * as log from 'winston';
 
 export interface NpmClient {
     listLinkedPackages(): Promise<LinkedPackage[]>;
 
-    installAll(cwd: string): Promise<void>;
+    installAll(cwd: string, specs: string[], save: boolean): Promise<InstalledPackage[]>;
+}
+
+export interface InstalledPackage {
+    name: string;
+    version: string;
 }
 
 export class CliNpmClient implements NpmClient {
 
-    public async installAll(cwd: string): Promise<void> {
-        await run('install all', ['install'], false, {cwd});
+    public async installAll(cwd: string, specs: string[], save: boolean): Promise<InstalledPackage[]> {
+        const args = ['install', ...specs];
+        if (save) {
+            args.push('--save');
+        }
+        await run('install all', args, false, {cwd});
+
+        const pack: any = await fs.readJSON(path.join(cwd, 'package.json'));
+        return _.entries(pack.dependencies).map(([name, version]) => {
+            return {name, version} as InstalledPackage;
+        });
     }
 
     public async listLinkedPackages(): Promise<LinkedPackage[]> {
@@ -45,7 +61,6 @@ export class CliNpmClient implements NpmClient {
             };
         });
     }
-
 }
 
 export interface LinkedPackage {

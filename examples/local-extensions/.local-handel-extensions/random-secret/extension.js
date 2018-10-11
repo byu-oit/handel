@@ -14,14 +14,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+"use strict";
 
-import { ExtensionDefinition, HandelCoreOptions, LoadedExtension } from '../datatypes';
-
-export interface ExtensionLoader {
-    loadExtensions(
-        definitions: ExtensionDefinition[],
-        options: HandelCoreOptions,
-        workingDirectory?: string,
-        extensionsDirectory?: string
-    ): Promise<LoadedExtension[]>;
+const service = require("./service");
+function loadHandelExtension(context) {
+    context.service('randomsecret', new service.RandomSecretService());
 }
+exports.loadHandelExtension = loadHandelExtension;
