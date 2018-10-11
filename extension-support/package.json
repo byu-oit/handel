@@ -1,6 +1,6 @@
 {
   "name": "handel-extension-support",
-  "version": "0.33.2",
+  "version": "0.34.0",
   "description": "Orchestrates your AWS deployments so you don't have to.",
   "main": "dist/extension-support.js",
   "types": "dist/extension-support.d.ts",
@@ -19,7 +19,7 @@
     "ajv": "^5.2.3",
     "ajv-errors": "^1.0.0",
     "archiver": "^1.3.0",
-    "handel-extension-api": "^0.33.2",
+    "handel-extension-api": "^0.34.0",
     "handlebars": "^4.0.6",
     "pascal-case": "^2.0.1",
     "uuid": "^3.0.1",
