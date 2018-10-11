@@ -64,11 +64,20 @@ export async function unPreDeploySecurityGroup(ownServiceContext: ServiceContext
     return new UnPreDeployContext(ownServiceContext);
 }
 
-export async function unBindService(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext, protocol: string, port: number): Promise<UnBindContext> {
+export async function unBindService(ownServiceContext: ServiceContext<ServiceConfig>, ownPreDeployContext: PreDeployContext, dependentOfServiceContext: ServiceContext<ServiceConfig>, dependentOfPreDeployContext: PreDeployContext, protocol: string, port: number | number[]): Promise<UnBindContext> {
     if(ownPreDeployContext.securityGroups.length > 0 && dependentOfPreDeployContext.securityGroups.length > 0) { // Only try to remove ingress if it hasn't been deleted yet
         const ownSg = ownPreDeployContext.securityGroups[0];
         const sourceSg = dependentOfPreDeployContext.securityGroups[0];
-        await ec2Calls.removeIngressFromSg(sourceSg, ownSg, protocol, port, port, ownServiceContext.accountConfig.vpc);
+        let portsToUnBind: number[];
+        if(port instanceof Array) {
+            portsToUnBind = port;
+        }
+        else {
+            portsToUnBind = [port];
+        }
+        for(const portToUnBind of portsToUnBind) {
+            await ec2Calls.removeIngressFromSg(sourceSg, ownSg, protocol, portToUnBind, portToUnBind, ownServiceContext.accountConfig.vpc);
+        }
     }
     return new UnBindContext(ownServiceContext, dependentOfServiceContext);
 }
