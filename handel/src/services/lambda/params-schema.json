@@ -30,7 +30,7 @@
         },
         "timeout": {
             "type": "number",
-            "maximum": 300,
+            "maximum": 900,
             "errorMessage": "Must be a number"
         },
         "vpc": {
