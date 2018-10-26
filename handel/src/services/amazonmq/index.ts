@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import cryptoRandomString = require('crypto-random-string');
 import * as fs from 'fs';
 import {
     BindContext,
@@ -37,7 +38,6 @@ import {
     preDeployPhase,
     tagging
 } from 'handel-extension-support';
-import * as uuid from 'uuid/v4';
 import * as winston from 'winston';
 import { AmazonMQServiceConfig, HandlebarsAmazonMQTemplate } from './config-types';
 
@@ -52,14 +52,14 @@ const AMAZON_MQ_PORTS = [
     61619 // WSS
 ];
 
-// This is pretty hacky...better add a good crypto random string soon
+// There are 36 charatcers because the uuid in the old code returned a 36 character username
 function getNewBrokerUsername() {
-    return uuid();
+    return cryptoRandomString(36);
 }
 
-// This is somewhat hacky...better add a good crypto random string soon
+// There are 36 charatcers because the uuid in the old code returned a 36 character password
 function getNewBrokerPassword() {
-    return uuid();
+    return cryptoRandomString(36);
 }
 
 function getConfiguration(serviceParams: AmazonMQServiceConfig): string | undefined {

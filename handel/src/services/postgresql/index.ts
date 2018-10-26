@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+import cryptoRandomString = require('crypto-random-string');
 import {
     BindContext,
     DeployContext,
@@ -161,7 +162,7 @@ export class Service implements ServiceDeployer {
         const stack = await awsCalls.cloudFormation.getStack(stackName);
         if (!stack) {
             const dbUsername = rdsDeployersCommon.getNewDbUsername();
-            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const dbPassword = cryptoRandomString(30);
             const compiledTemplate = await getCompiledPostgresTemplate(stackName,
                 ownServiceContext,
                 ownPreDeployContext);

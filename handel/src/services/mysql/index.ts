@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-import {
+import cryptoRandomString = require('crypto-random-string');import {
     BindContext,
     DeployContext,
     DeployOutputType,
@@ -136,7 +136,7 @@ export class Service implements ServiceDeployer {
         const stack = await awsCalls.cloudFormation.getStack(stackName);
         if (!stack) {
             const dbUsername = rdsDeployersCommon.getNewDbUsername();
-            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const dbPassword = cryptoRandomString(30);
             const compiledTemplate = await getCompiledMysqlTemplate(stackName, ownServiceContext, ownPreDeployContext);
             const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
                 DBUsername: dbUsername,

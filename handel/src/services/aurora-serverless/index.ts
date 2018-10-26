@@ -14,7 +14,8 @@
  * limitations under the License.
  *
  */
-import {
+import cryptoRandomString = require('crypto-random-string');
+ import {
     BindContext,
     DeployContext,
     DeployOutputType,
@@ -172,7 +173,7 @@ export class Service implements ServiceDeployer {
         const stack = await awsCalls.cloudFormation.getStack(stackName);
         if (!stack) {
             const dbUsername = rdsDeployersCommon.getNewDbUsername();
-            const dbPassword = rdsDeployersCommon.getNewDbPassword();
+            const dbPassword = cryptoRandomString(30);
             const tags = tagging.getTags(ownServiceContext);
             const compiledTemplate = await getCompiledAuroraTemplate(stackName, ownServiceContext, ownPreDeployContext, tags);
             const cfParameters = awsCalls.cloudFormation.getCfStyleStackParameters({
