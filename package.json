@@ -1,16 +1,15 @@
 {
-	"scripts": {
-		"postinstall": "lerna bootstrap",
-		"lint": "lerna run lint",
-		"build": "lerna run build",
-		"test": "lerna run build && lerna run test",
-		"publish-modules": "lerna publish --cd-version=$cdVersion --force-publish=*"
-	},
-	"devDependencies": {
-		"eslint": "^4.19.1",
-		"lerna": "^2.11.0",
-		"tslint": "^5.11.0",
-		"typescript": "^2.9.2"
-	},
-	"dependencies": {}
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "lint": "lerna run lint",
+    "build": "lerna run build",
+    "test": "lerna run build && lerna run test",
+    "publish-modules": "lerna publish --cd-version=$cdVersion --force-publish=*"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "lerna": "^2.11.0",
+    "tslint": "^5.11.0",
+    "typescript": "^2.9.2"
+  }
 }
