@@ -52,12 +52,10 @@ const AMAZON_MQ_PORTS = [
     61619 // WSS
 ];
 
-// There are 36 charatcers because the uuid in the old code returned a 36 character username
 function getNewBrokerUsername() {
-    return cryptoRandomString(36);
+    return cryptoRandomString(12);
 }
 
-// There are 36 charatcers because the uuid in the old code returned a 36 character password
 function getNewBrokerPassword() {
     return cryptoRandomString(36);
 }
