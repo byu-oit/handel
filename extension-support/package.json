@@ -19,6 +19,7 @@
     "ajv": "^5.2.3",
     "ajv-errors": "^1.0.0",
     "archiver": "^1.3.0",
+    "extract-zip": "^1.6.7",
     "handel-extension-api": "^0.34.1",
     "handlebars": "^4.0.6",
     "pascal-case": "^2.0.1",
