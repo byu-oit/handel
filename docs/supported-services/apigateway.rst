@@ -166,7 +166,7 @@ The Proxy Passthrough section is defined by the following schema:
 
     proxy:
       path_to_code: <string> # The path to the directory or artifact where your code resides.
-      runtime: <string> # The Lambda runtime (such as nodejs6.10) to use for your handler function.
+      runtime: <string> # The `Lambda runtime <http://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime>`_ to use for your handler function.
       handler: <string> # The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your ‘main’ method.
       memory: <number> # The amount of memory (in MB) to provision for the runtime. Default: 128
       timeout: <number> # The timeout to use for your Lambda function. Any functions that go over this timeout will be killed. Default: 5
