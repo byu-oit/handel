@@ -417,7 +417,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: 60
+        Value: 60 # have this be the value from the handel file if specidfied
       Subnets:
       {{#each publicSubnetIds}}
       - {{this}}
