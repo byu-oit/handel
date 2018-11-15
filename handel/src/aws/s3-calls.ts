@@ -19,6 +19,24 @@ import * as childProcess from 'child_process';
 import { ServiceEventType } from 'handel-extension-api';
 import awsWrapper from './aws-wrapper';
 
+function awsCliExists() {
+    return new Promise((resolve, reject) => {
+        childProcess.exec('aws configure list', (err, stdout, stderr) => {
+            if (!err) {
+                resolve(true);
+            }
+            else {
+                if (err.message.includes('command not found')) {
+                    resolve(false);
+                }
+                else {
+                    reject(new Error(`Unknown error occurred while trying to find the AWS CLI on your system: ${err}`));
+                }
+            }
+        });
+    });
+}
+
 /**
  * Uploads an entire directory to an S3 bucket with the given key prefix
  *
@@ -29,20 +47,36 @@ import awsWrapper from './aws-wrapper';
  */
 export function uploadDirectory(bucketName: string, keyPrefix: string, dirToUpload: string) {
     return new Promise((resolve, reject) => {
-        const cmd = `aws s3 sync ${dirToUpload} s3://${bucketName}/${keyPrefix} --delete`;
-        childProcess.exec(cmd, (err, stdout, stderr) => {
-            if (!err) {
-                resolve(true);
-            }
-            else {
-                if (err.message.includes('command not found')) {
-                    reject(new Error(`You are using the S3 Static Site service, which requires you to have the Python AWS CLI installed. Please go to https://aws.amazon.com/cli/ for help installing it.`));
+        awsCliExists()
+            .then(exists => {
+                if(exists) {
+                    const child = childProcess.spawn('aws', ['s3', 'sync', dirToUpload, `s3://${bucketName}/${keyPrefix}`, '--delete']);
+                    child.stdout.on('data', (data) => {
+                        // console.log('AWS CLI stderr: ' + data);
+                    });
+                    child.stderr.on('data', (data) => {
+                        console.log('AWS CLI stderr: ' + data);
+                    });
+
+                    child.on('close', (code) => {
+                        if(code !== 0) {
+                            reject(new Error(`Error in AWS CLI when uploading files to S3 bucket`));
+                        }
+                        else {
+                            resolve(true);
+                        }
+                    });
+                    child.on('error', (err) => {
+                        reject(err);
+                    });
                 }
                 else {
-                    reject(err);
+                    reject(new Error(`You are using the S3 Static Site service, which requires you to have the Python AWS CLI installed. Please go to https://aws.amazon.com/cli/ for help installing it.`));
                 }
-            }
-        });
+            })
+            .catch(err => {
+                reject(err);
+            });
     });
 }
 
