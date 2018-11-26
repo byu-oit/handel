@@ -71,8 +71,9 @@ async function logFinalResult(lifecycleName: string, envResults: EnvironmentResu
     }
 }
 
-async function validateLoggedIn(accountId: null|string): Promise<void> {
+async function validateLoggedIn(): Promise<void> {
     winston.debug('Checking that the user is logged in');
+    const accountId = await stsCalls.getAccountId();
     if (!accountId) {
         winston.error(`You are not logged into an AWS account`);
         process.exit(1);
@@ -83,7 +84,11 @@ async function validateCredentials(accountConfig: AccountConfig) {
     const deployAccount = accountConfig.account_id;
     winston.debug(`Checking that current credentials match account ${deployAccount}`);
     const discoveredId = await stsCalls.getAccountId();
-    await validateLoggedIn(discoveredId);
+    // we have this as its own function so that validateLoggedIn does not need a parameter
+    if (!discoveredId) {
+        winston.error(`You are not logged into an AWS account`);
+        process.exit(1);
+    }
 
     winston.debug(`Currently logged in under account ${discoveredId}`);
     // tslint:disable-next-line:triple-equals
@@ -222,6 +227,7 @@ export function validateDeleteArgs(handelFile: HandelFile, opts: DeleteOptions):
 export async function deployAction(handelFile: HandelFile, options: DeployOptions): Promise<void> {
     const environmentsToDeploy = options.environments;
     try {
+        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
         const { handelFileParser, serviceRegistry } = await init(handelFile, options);
@@ -277,6 +283,7 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
  */
 export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
     try {
+        await validateLoggedIn();
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
         const environmentToDelete = options.environment;
