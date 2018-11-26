@@ -71,9 +71,8 @@ async function logFinalResult(lifecycleName: string, envResults: EnvironmentResu
     }
 }
 
-async function validateLoggedIn(): Promise<void> {
+async function validateLoggedIn(accountId: null|string): Promise<void> {
     winston.debug('Checking that the user is logged in');
-    const accountId = await stsCalls.getAccountId();
     if (!accountId) {
         winston.error(`You are not logged into an AWS account`);
         process.exit(1);
@@ -84,10 +83,7 @@ async function validateCredentials(accountConfig: AccountConfig) {
     const deployAccount = accountConfig.account_id;
     winston.debug(`Checking that current credentials match account ${deployAccount}`);
     const discoveredId = await stsCalls.getAccountId();
-    if (!discoveredId) {
-        winston.error(`You are not logged into an AWS account`);
-        process.exit(1);
-    }
+    await validateLoggedIn(discoveredId);
 
     winston.debug(`Currently logged in under account ${discoveredId}`);
     // tslint:disable-next-line:triple-equals
@@ -228,7 +224,6 @@ export async function deployAction(handelFile: HandelFile, options: DeployOption
     try {
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
         await validateCredentials(accountConfig);
-        await validateLoggedIn();
         const { handelFileParser, serviceRegistry } = await init(handelFile, options);
 
         // Command-line tags override handelfile tags.
@@ -283,7 +278,6 @@ export async function checkAction(handelFile: HandelFile, options: CheckOptions)
 export async function deleteAction(handelFile: HandelFile, options: DeleteOptions): Promise<void> {
     try {
         const accountConfig = await config(options.accountConfig); // Load account config to be consumed by the library
-        await validateLoggedIn();
         await validateCredentials(accountConfig);
         const environmentToDelete = options.environment;
 
