@@ -418,7 +418,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: 60 # have this be the value from the handel file if specidfied
+        Value: {{loadBalancer.timeout}} #should take the timeout parameter from loadBalancer, it is added to the handlebars params...
       Subnets:
       {{#each publicSubnetIds}}
       - {{this}}
