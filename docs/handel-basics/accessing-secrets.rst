@@ -14,11 +14,11 @@ Application Secrets in Handel
 -----------------------------
 Handel uses the `EC2 Systems Manager Parameter Store <https://aws.amazon.com/ec2/systems-manager/parameter-store/>`_ for secrets storage. This service provides a key/value store where you can securely store secrets in a named parameter. You can then call the AWS API from your application to obtain these secrets.
 
-Handel automatically wires up access to the Parameter Store in your applications, granting you access to get parameters whose names start with a particular prefix. Handel wires up permissions for parameters with the following prefix:
+Handel automatically wires up access to the Parameter Store in your applications, granting you access to get parameters whose names start with a particular path. Handel wires up permissions for parameters with the following path:
 
 .. code-block:: none
 
-    <appName>.<environmentName>
+    /<appName>/<environmentName>/
 
 To see a concrete illustration of this, consider the following example Handel file, which defines a single Lambda:
 
@@ -36,11 +36,15 @@ To see a concrete illustration of this, consider the following example Handel fi
           handler: app.handler
           runtime: nodejs6.10
 
-This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters that start with "my-lambda-app.dev". Thus, the parameter ``my-lambda-app.dev.somesecret`` would be available to this application, but the ``some-other-app.dev.somesecret`` parameter would not, because it does not start with the proper prefix of *<appName>.<environmentName>* in the Handel file.
+This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters under the path "/my-lambda-app/dev/". Thus, the parameter ``/my-lambda-app/dev/somesecret`` would be available to this application, but the ``/some-other-app/dev/somesecret`` parameter would not, because it is not included in the same path.
 
 .. NOTE::
 
-    As a convenience, Handel injects an environment variable called ``HANDEL_PARAMETER_STORE_PREFIX`` into your application. This variable contains the pre-built ``<appName>.<environmentName>`` prefix so that you don't have to build it yourself.
+    As a convenience, Handel injects an environment variable called ``HANDEL_PARAMETER_STORE_PATH`` into your application. This variable contains the pre-built ``/<appName>/<environmentName>/`` path so that you don't have to build it yourself.
+
+.. WARNING::
+
+    Previously Handel wired permmissions based on a prefix like: ``<appName>.<environmentName>`` This functionality is being deprecated in favor of paths. As a convenience, Handel still wires the permissions and injects an environment variable called ``HANDEL_PARAMETER_STORE_PREFIX`` into your application. This variable contains the pre-built ``<appName>.<environmentName>`` prefix so that you don't have to build it yourself. Please only use prefix if required. Otherwise Path is preferred. More info can be found `Here <https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-su-organize.html>`_
 
 Global Parameters
 ~~~~~~~~~~~~~~~~~

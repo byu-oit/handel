@@ -445,7 +445,9 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
         envVars.HANDEL_APP_NAME = this.appName;
         envVars.HANDEL_ENVIRONMENT_NAME = this.environmentName;
         envVars.HANDEL_SERVICE_NAME = this.serviceName;
+        // HANDEL_PARAMETER_STORE_PREFIX is legacy method for parameter store and is being deprecated
         envVars.HANDEL_PARAMETER_STORE_PREFIX = this.ssmApplicationPrefix();
+        // HANDEL_PARAMETER_STORE_PATH is the new recommended method for organizing parameters
         envVars.HANDEL_PARAMETER_STORE_PATH = this.ssmApplicationPath();
         envVars.HANDEL_REGION_NAME = this.accountConfig.region;
         return envVars;
