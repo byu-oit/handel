@@ -66,7 +66,8 @@ export function getRoutingInformationForContainer(container: ContainerConfig, al
 }
 
 export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, containerConfigs: HandlebarsEcsTemplateContainer[], clusterName: string, hostedZones: AWS.Route53.HostedZone[], accountConfig: AccountConfig): HandlebarsEcsTemplateLoadBalancer {
-    const loadBalancerConfig: HandlebarsEcsTemplateLoadBalancer = { // Default values for load balancer
+    const loadBalancerConfig: HandlebarsEcsTemplateLoadBalancer = {
+        // Default values for load balancer
         timeout: 60,
         type: 'http',
         defaultRouteContainer: getDefaultRouteContainer(containerConfigs),
@@ -75,6 +76,7 @@ export function getLoadBalancerConfig(serviceParams: EcsServiceConfig, container
 
     const loadBalancer = serviceParams.load_balancer;
     if (loadBalancer) {
+        // injects specified values from your handel.yml file
         if (loadBalancer.timeout) {
             loadBalancerConfig.timeout = loadBalancer.timeout;
         }
