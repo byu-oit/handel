@@ -43,6 +43,7 @@ Resources:
   TaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
+      Path: "/services/"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -270,7 +271,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: 60
+        Value: 60 #have this be the timeout value from the handel file
       Subnets:
       {{#each publicSubnetIds}}
       - {{this}}
