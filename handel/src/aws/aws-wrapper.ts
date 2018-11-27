@@ -85,7 +85,7 @@ const awsWrapper = {
     },
     s3: {
         putBucketNotificationConfiguration: (params: AWS.S3.PutBucketNotificationConfigurationRequest): Promise<{}> => {
-            const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+            const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
             return s3.putBucketNotificationConfiguration(params).promise();
         }
     },
@@ -101,37 +101,43 @@ const awsWrapper = {
     },
     ec2: {
         describeSecurityGroups: (params: AWS.EC2.DescribeSecurityGroupsRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.describeSecurityGroups(params).promise();
         },
         revokeSecurityGroupIngress: (params: AWS.EC2.RevokeSecurityGroupIngressRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.revokeSecurityGroupIngress(params).promise();
         },
         authorizeSecurityGroupIngress: (params: AWS.EC2.AuthorizeSecurityGroupIngressRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.authorizeSecurityGroupIngress(params).promise();
         },
         describeImages: (params: AWS.EC2.DescribeImagesRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.describeImages(params).promise();
         },
         describeRegions: (params: AWS.EC2.DescribeRegionsRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.describeRegions(params).promise();
         },
         describeSubnets: (params: AWS.EC2.DescribeSubnetsRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.describeSubnets(params).promise();
         },
         describeVpcs: (params: AWS.EC2.DescribeVpcsRequest) => {
-            const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+            const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
             return ec2.describeVpcs(params).promise();
         }
     },
     sts: {
         getCallerIdentity: (params: AWS.STS.GetCallerIdentityRequest) => {
-            const sts = new AWS.STS({apiVersion: '2011-06-15'});
+            const sts = new AWS.STS({
+                apiVersion: '2011-06-15',
+                maxRetries: 1,
+                retryDelayOptions: {
+                    base: 50
+                }
+            });
             return sts.getCallerIdentity(params).promise();
         }
     },
@@ -221,7 +227,7 @@ const awsWrapper = {
     },
     route53: {
         listHostedZones: (params: AWS.Route53.ListHostedZonesRequest) => {
-            const route53 = new AWS.Route53({apiVersion: '2013-04-01'});
+            const route53 = new AWS.Route53({ apiVersion: '2013-04-01' });
             return route53.listHostedZones(params).promise();
         }
     },
@@ -237,25 +243,25 @@ const awsWrapper = {
     },
     sns: {
         getTopicAttributes: (params: AWS.SNS.GetTopicAttributesInput) => {
-            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
             return sns.getTopicAttributes(params).promise();
         },
         setTopicAttributes: (params: AWS.SNS.SetTopicAttributesInput) => {
-            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
             return sns.setTopicAttributes(params).promise();
         },
         subscribe: (params: AWS.SNS.SubscribeInput) => {
-            const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+            const sns = new AWS.SNS({ apiVersion: '2010-03-31' });
             return sns.subscribe(params).promise();
         }
     },
     dynamodb: {
         describeTable: (params: AWS.DynamoDB.DescribeTableInput) => {
-            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+            const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-10-08' });
             return dynamodb.describeTable(params).promise();
         },
         createTable: (params: AWS.DynamoDB.CreateTableInput) => {
-            const dynamodb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+            const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-10-08' });
             return dynamodb.createTable(params).promise();
         },
         putItem: (params: AWS.DynamoDB.DocumentClient.PutItemInput) => {
@@ -265,7 +271,7 @@ const awsWrapper = {
     },
     pricing: {
         getProducts: (params: AWS.Pricing.GetProductsRequest) => {
-            const pricing = new AWS.Pricing({apiVersion: '2017-10-15', region: 'us-east-1' });
+            const pricing = new AWS.Pricing({ apiVersion: '2017-10-15', region: 'us-east-1' });
             return pricing.getProducts(params).promise();
         }
     }
