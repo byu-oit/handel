@@ -446,6 +446,7 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
         envVars.HANDEL_ENVIRONMENT_NAME = this.environmentName;
         envVars.HANDEL_SERVICE_NAME = this.serviceName;
         envVars.HANDEL_PARAMETER_STORE_PREFIX = this.ssmApplicationPrefix();
+        envVars.HANDEL_PARAMETER_STORE_PATH = this.ssmApplicationPath();
         envVars.HANDEL_REGION_NAME = this.accountConfig.region;
         return envVars;
     }
@@ -457,6 +458,10 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
 
     public ssmApplicationPrefix(): string {
         return `${this.appName}.${this.environmentName}`;
+    }
+
+    public ssmApplicationPath(): string {
+        return `/${this.appName}/${this.environmentName}/`;
     }
 }
 
