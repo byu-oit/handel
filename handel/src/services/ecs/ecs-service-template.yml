@@ -418,7 +418,7 @@ Resources:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
-        Value: 60 # have this be the value from the handel file if specidfied
+        Value: {{loadBalancer.timeout}} #should take the timeout parameter from loadBalancer, it is added to the handlebars params...
       Subnets:
       {{#each publicSubnetIds}}
       - {{this}}
@@ -440,14 +440,15 @@ Resources:
       GroupDescription: Security group for ALB
       VpcId: {{vpcId}}
       SecurityGroupIngress:
+      {{#if loadBalancer.httpsCertificate}}
       - IpProtocol: tcp
-        {{#if loadBalancer.httpsCertificate}}
         FromPort: '443'
         ToPort: '443'
-        {{else}}
+        CidrIp: 0.0.0.0/0
+      {{/if}}
+      - IpProtocol: tcp
         FromPort: '80'
         ToPort: '80'
-        {{/if}}
         CidrIp: 0.0.0.0/0
       Tags:
       {{#if tags}}
@@ -493,6 +494,23 @@ Resources:
       Port: '80'
       Protocol: HTTP
       {{/if}}
+  {{#if loadBalancer.httpsCertificate}}
+  RedirectToHttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - Alb
+    Properties:
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            StatusCode: HTTP_301
+            Port: 443
+      Port: '80'
+      Protocol: HTTP
+      LoadBalancerArn:
+        Ref: Alb
+  {{/if}}
   {{#each containerConfigs}}
   {{#if routingInfo}}
   AlbListenerRule{{name}}:

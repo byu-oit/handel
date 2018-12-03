@@ -107,7 +107,7 @@ async function getCompiledEcsTemplate(stackName: string, clusterName: string, ow
         logRetentionInDays: logRetention !== 0 ? logRetention! : null
     };
 
-    // Configure routing if present in any of hte containers
+    // Configure routing if present in any of the containers
     if (oneOrMoreTasksHasRouting) {
         handlebarsParams.loadBalancer = routingSection.getLoadBalancerConfig(serviceParams, containerConfigs, clusterName, hostedZones, accountConfig);
     }

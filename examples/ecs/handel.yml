@@ -39,3 +39,4 @@ environments:
       load_balancer:
         type: http
         health_check_grace_period: 15
+        timeout: 90

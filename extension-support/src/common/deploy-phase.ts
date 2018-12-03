@@ -134,6 +134,7 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
 
     if (includeAppSecretsStatements) {
         const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}.${serviceContext.environmentName}*`;
+        const applicationParametersPath = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.appName}/${serviceContext.environmentName}/*`;
         const appSecretsAcessStatements = [
             {
                 Effect: 'Allow',
@@ -148,10 +149,12 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
                 Effect: 'Allow',
                 Action: [
                     'ssm:GetParameters',
-                    'ssm:GetParameter'
+                    'ssm:GetParameter',
+                    'ssm:GetParametersByPath'
                 ],
                 Resource: [
                     applicationParameters,
+                    applicationParametersPath,
                     `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
                 ]
             },

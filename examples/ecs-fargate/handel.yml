@@ -37,7 +37,8 @@ environments:
             threshold: 30
       load_balancer:
         type: http
-        health_check_grace_period: 15     
+        health_check_grace_period: 15
+        timeout: 90
       log_retention_in_days: 1
       tags:
         mytag: myvalue 

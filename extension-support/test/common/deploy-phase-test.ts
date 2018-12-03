@@ -199,7 +199,8 @@ describe('Deploy phase common module', () => {
             const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownServicePolicyStatements, dependenciesDeployContexts, true);
             expect(policyStatements.length).to.equal(5); // 2 of our own, plus 3 for the app secrets
             expect(policyStatements[3].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
-            expect(policyStatements[3].Resource[1]).to.contain(`parameter/handel.global*`);
+            expect(policyStatements[3].Resource[1]).to.contain(`parameter/${appName}/${envName}/*`);
+            expect(policyStatements[3].Resource[2]).to.contain(`parameter/handel.global*`);
         });
     });
 
