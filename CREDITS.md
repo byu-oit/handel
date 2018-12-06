@@ -14,4 +14,4 @@ The following individuals have provided contributions to Handel, implementing fe
 * [Nate Peterson](https://github.com/ndpete)
 * [Jamie Visker](https://github.com/jvisker)
 * [David Woodruff](https://github.com/dsw88)
-* [John Woodrufff](https://github.com/jbw91)
+* [John Woodruff](https://github.com/jbw91)
