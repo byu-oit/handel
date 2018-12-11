@@ -19,9 +19,9 @@
             "errorMessage": "Must be a string"
         },
         "event_pattern": {
-            "type": "string",
+            "type": "object",
             "description": "The list of event patterns on which to fire the event",
-            "errorMessage": "Must be a string"
+            "errorMessage": "Must be an object"
         },
         "state": {
             "type": "string",

@@ -36,7 +36,7 @@ Parameters
      - 
      - The cron or rate string specifying the schedule on which to fire the event. See the `Scheduled Events <http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html>`_ document for information on the syntax of these schedule expressions.
    * - event_pattern
-     - string
+     - object
      - No
      - 
      - The list of event patterns on which to fire the event. In this field you just specify an `Event Pattern <http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html>`_ in YAML syntax.
