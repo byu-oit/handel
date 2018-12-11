@@ -21,15 +21,6 @@
         "event_pattern": {
             "type": "object",
             "description": "The list of event patterns on which to fire the event",
-            "patternProperties": {
-                "^.*$": {
-                    "anyOf": [
-                        {"type": "string"},
-                        {"type": "number"},
-                        {"type": "boolean"}
-                    ]
-                }
-            },
             "errorMessage": "Must be an object"
         },
         "state": {
