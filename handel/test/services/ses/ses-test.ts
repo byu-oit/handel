@@ -94,7 +94,7 @@ describe('ses deployer', () => {
             expect(deployContext.environmentVariables).to.have.property(`${envPrefix}_IDENTITY_ARN`, identityArn);
 
             // Should have exported 1 policy
-            expect(deployContext.policies.length).to.equal(1); // Should have exported one policy
+            expect(deployContext.policies.length).to.equal(3); // Should have exported three policies
             expect(deployContext.policies[0].Resource[0]).to.equal(identityArn);
         });
     });

@@ -47,10 +47,33 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
     deployContext.policies.push({
         'Effect': 'Allow',
         'Action': [
-            'ses:SendEmail'
+            'ses:SendEmail',
+            'ses:SendTemplatedEmail',
+            'ses:SendBulkTemplatedEmail'
         ],
         'Resource': [
             identityArn
+        ]
+    });
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            'ses:ListTemplates'
+        ],
+        'Resource': [
+            '*'
+        ]
+    });
+    deployContext.policies.push({
+        'Effect': 'Allow',
+        'Action': [
+            'ses:CreateTemplate',
+            'ses:UpdateTemplate',
+            'ses:DeleteTemplate',
+            'ses:GetTemplate'
+        ],
+        'Resource': [
+            `arn:aws:ses:${region}:${account}:template/${serviceContext.appName}-${serviceContext.environmentName}*`
         ]
     });
 
