@@ -58,22 +58,14 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
     deployContext.policies.push({
         'Effect': 'Allow',
         'Action': [
-            'ses:ListTemplates'
-        ],
-        'Resource': [
-            '*'
-        ]
-    });
-    deployContext.policies.push({
-        'Effect': 'Allow',
-        'Action': [
+            'ses:ListTemplates',
             'ses:CreateTemplate',
             'ses:UpdateTemplate',
             'ses:DeleteTemplate',
             'ses:GetTemplate'
         ],
         'Resource': [
-            `arn:aws:ses:${region}:${account}:template/${serviceContext.appName}-${serviceContext.environmentName}*`
+            '*'
         ]
     });
 
