@@ -17,6 +17,7 @@
 import { Tags } from 'handel-extension-api';
 import { awsCalls, deployPhase, handlebars, util } from 'handel-extension-support';
 import * as types from './config-types';
+import { CapacityMode, DEFAULT_CAPACITY_MODE } from './config-types';
 
 /* tslint:disable:max-classes-per-file */
 
@@ -75,8 +76,10 @@ export async function undeployAutoscaling(ownServiceContext: types.DynamoDBConte
     }
 }
 
-export function getThroughputConfig(throughputConfig: types.ProvisionedThroughput | undefined,
-    defaultConfig: ThroughputConfig | null): ThroughputConfig {
+export function getThroughputConfig(
+    throughputConfig: types.ProvisionedThroughput | undefined,
+    defaultConfig: ThroughputConfig | null
+): ThroughputConfig {
     const throughput = throughputConfig || {};
     const defaults = defaultConfig || {} as ThroughputConfig;
     const defaultRead = defaults.read || {};
@@ -103,6 +106,9 @@ function isValidTargetUtilization(target: number): boolean {
 
 function tableOrIndexesHaveAutoscaling(ownServiceContext: types.DynamoDBContext): boolean {
     const params = ownServiceContext.params;
+    if ((params.capacity_mode || DEFAULT_CAPACITY_MODE) === CapacityMode.ON_DEMAND) {
+        return false;
+    }
     if (params.provisioned_throughput) {
         if (provisionedThroughputHasAutoscaling(params.provisioned_throughput)) {
             return true;

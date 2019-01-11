@@ -28,17 +28,10 @@ import {
     ServiceEventType,
     UnDeployContext
 } from 'handel-extension-api';
-import {
-    awsCalls,
-    checkPhase,
-    deletePhases,
-    deployPhase,
-    handlebars,
-    tagging
-} from 'handel-extension-support';
+import { awsCalls, checkPhase, deletePhases, deployPhase, handlebars, tagging } from 'handel-extension-support';
 import * as winston from 'winston';
 import * as autoscaling from './autoscaling';
-import {DynamoDBConfig} from './config-types';
+import { CapacityMode, DEFAULT_CAPACITY_MODE, DynamoDBConfig } from './config-types';
 
 const KEY_TYPE_TO_ATTRIBUTE_TYPE: any = {
     String: 'S',
@@ -85,7 +78,7 @@ function buildTableARN(tableName: string, accountConfig: AccountConfig) {
 function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStack: AWS.CloudFormation.Stack): DeployContext {
     const deployContext = new DeployContext(serviceContext);
     const tableName = getTableNameFrom(cfStack);
-    if(!tableName) {
+    if (!tableName) {
         throw new Error('Expected to receive TableName back from DynamoDB service');
     }
 
@@ -95,7 +88,7 @@ function getDeployContext(serviceContext: ServiceContext<DynamoDBConfig>, cfStac
     // Get values for createEventSourceMapping
     if (serviceContext.params.event_consumers) {
         const tableStreamArn = awsCalls.cloudFormation.getOutput('StreamArn', cfStack);
-        if(!tableStreamArn) {
+        if (!tableStreamArn) {
             throw new Error('Expected to receive StreamArn back from DynamoDB service');
         }
         deployContext.eventOutputs = {
@@ -167,7 +160,7 @@ function getDefinedAttributes(ownServiceContext: ServiceContext<DynamoDBConfig>)
     return definedAttributes;
 }
 
-function getGlobalIndexConfig(ownServiceContext: ServiceContext<DynamoDBConfig>, tableThroughputConfig: autoscaling.ThroughputConfig) {
+function getGlobalIndexConfig(ownServiceContext: ServiceContext<DynamoDBConfig>, capacityMode: CapacityMode, tableThroughputConfig: autoscaling.ThroughputConfig) {
     const serviceParams = ownServiceContext.params;
 
     const handlebarsGlobalIndexes = [];
@@ -178,11 +171,16 @@ function getGlobalIndexConfig(ownServiceContext: ServiceContext<DynamoDBConfig>,
 
             const handlebarsGlobalIndex: any = {
                 indexName: globalIndexConfig.name,
-                indexReadCapacityUnits: throughput.read.initial,
-                indexWriteCapacityUnits: throughput.write.initial,
                 indexPartitionKeyName: globalIndexConfig.partition_key.name,
                 indexProjectionAttributes: globalIndexConfig.attributes_to_copy
             };
+
+            if (capacityMode === CapacityMode.PROVISIONED) {
+                handlebarsGlobalIndex.throughput = {
+                    readUnits: throughput.read.initial,
+                    writeUnits: throughput.write.initial,
+                };
+            }
 
             // Add sort key if provided
             if (globalIndexConfig.sort_key) {
@@ -217,8 +215,15 @@ function getLocalIndexConfig(ownServiceContext: ServiceContext<DynamoDBConfig>) 
     return handlebarsLocalIndexes;
 }
 
+const capacityToBillingMode = {
+    [CapacityMode.PROVISIONED]: 'PROVISIONED',
+    [CapacityMode.ON_DEMAND]: 'PAY_PER_REQUEST'
+};
+
 async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: ServiceContext<DynamoDBConfig>): Promise<string> {
     const serviceParams = ownServiceContext.params;
+
+    const capacityMode = serviceParams.capacity_mode || DEFAULT_CAPACITY_MODE;
 
     const throughputConfig = autoscaling.getThroughputConfig(serviceParams.provisioned_throughput, null);
 
@@ -226,11 +231,19 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
         tableName: serviceParams.table_name || stackName,
         attributeDefinitions: getDefinedAttributes(ownServiceContext),
         tablePartitionKeyName: serviceParams.partition_key.name,
+        billingMode: capacityToBillingMode[capacityMode],
         tableReadCapacityUnits: throughputConfig.read.initial,
         tableWriteCapacityUnits: throughputConfig.write.initial,
         ttlAttribute: serviceParams.ttl_attribute,
         tags: tagging.getTags(ownServiceContext)
     };
+
+    if (capacityMode === CapacityMode.PROVISIONED) {
+        handlebarsParams.throughput = {
+            readUnits: throughputConfig.read.initial,
+            writeUnits: throughputConfig.write.initial,
+        };
+    }
 
     // Add sort key if provided
     if (serviceParams.sort_key) {
@@ -238,7 +251,7 @@ async function getCompiledDynamoTemplate(stackName: string, ownServiceContext: S
     }
 
     if (serviceParams.global_indexes) {
-        handlebarsParams.globalIndexes = getGlobalIndexConfig(ownServiceContext, throughputConfig);
+        handlebarsParams.globalIndexes = getGlobalIndexConfig(ownServiceContext, capacityMode, throughputConfig);
     }
     if (serviceParams.local_indexes) {
         handlebarsParams.localIndexes = getLocalIndexConfig(ownServiceContext);
@@ -262,7 +275,20 @@ export class Service implements ServiceDeployer {
     ];
 
     public check(serviceContext: ServiceContext<DynamoDBConfig>, dependenciesServiceContexts: Array<ServiceContext<ServiceConfig>>): string[] {
-        return checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+        const errors = checkPhase.checkJsonSchema(`${__dirname}/params-schema.json`, serviceContext);
+
+        const params = serviceContext.params;
+
+        if ((params.capacity_mode || DEFAULT_CAPACITY_MODE) === CapacityMode.ON_DEMAND) {
+            if (params.provisioned_throughput) {
+                errors.push(`[${SERVICE_NAME}] 'provisioned_throughput' must not be set if 'capacity_mode' is set to '${CapacityMode.ON_DEMAND}'.`);
+            }
+            if (params.global_indexes && params.global_indexes.find(it => !!it.provisioned_throughput)) {
+                errors.push(`[${SERVICE_NAME}] 'global_indexes.provisioned_throughput' must not be set if 'capacity_mode' is set to '${CapacityMode.ON_DEMAND}'.`);
+            }
+        }
+
+        return errors;
     }
 
     public async deploy(ownServiceContext: ServiceContext<DynamoDBConfig>, ownPreDeployContext: PreDeployContext, dependenciesDeployContexts: DeployContext[]): Promise<DeployContext> {

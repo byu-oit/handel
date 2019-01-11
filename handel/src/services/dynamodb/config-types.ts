@@ -26,6 +26,7 @@ export interface DynamoDBConfig extends ServiceConfig {
     table_name?: string;
     partition_key: KeyDefinition;
     sort_key?: KeyDefinition;
+    capacity_mode?: CapacityMode;
     provisioned_throughput?: ProvisionedThroughput;
     ttl_attribute?: string;
     stream_view_type?: StreamViewType;
@@ -41,6 +42,13 @@ export enum StreamViewType {
     OLD_IMAGE = 'OLD_IMAGE',
     NEW_AND_OLD_IMAGES = 'NEW_AND_OLD_IMAGES'
 }
+
+export enum CapacityMode {
+    PROVISIONED = 'provisioned',
+    ON_DEMAND = 'on-demand'
+}
+
+export const DEFAULT_CAPACITY_MODE = CapacityMode.PROVISIONED;
 
 export interface ProvisionedThroughput {
     read_capacity_units?: string | number;

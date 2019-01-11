@@ -18,9 +18,12 @@ Resources:
       - AttributeName: {{tableSortKeyName}}
         KeyType: RANGE
       {{/if}}
+      BillingMode: {{billingMode}}
+      {{#if throughput}}
       ProvisionedThroughput:
-        ReadCapacityUnits: {{tableReadCapacityUnits}}
-        WriteCapacityUnits: {{tableWriteCapacityUnits}}
+        ReadCapacityUnits: {{throughput.readUnits}}
+        WriteCapacityUnits: {{throughput.writeUnits}}
+      {{/if}}
       {{#if globalIndexes}}
       GlobalSecondaryIndexes:
       {{#each globalIndexes}}
@@ -42,9 +45,11 @@ Resources:
           {{else}}
           ProjectionType: ALL
           {{/if}}
+        {{#if throughput}}
         ProvisionedThroughput:
-          ReadCapacityUnits: {{indexReadCapacityUnits}}
-          WriteCapacityUnits: {{indexWriteCapacityUnits}}
+          ReadCapacityUnits: {{throughput.readUnits}}
+          WriteCapacityUnits: {{throughput.writeUnits}}
+        {{/if}}
       {{/each}}
       {{/if}}
       {{#if localIndexes}}
