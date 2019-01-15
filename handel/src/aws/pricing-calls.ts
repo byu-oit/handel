@@ -32,7 +32,7 @@ const AWS_REGION_MAP: AWSRegionMap = {
     'us-west-2': 'US West (Oregon)',
     'us-west-1': 'US West (N. California)',
     'us-east-2': 'US East (Ohio)',
-    'es-east-1': 'US East (N. Virginia)',
+    'us-east-1': 'US East (N. Virginia)',
     'ap-south-1': 'Asia Pacific (Mumbai)',
     'ap-northeast-2': 'Asia Pacific (Seoul)',
     'ap-northeast-1': 'Asia Pacific (Tokyo)',
