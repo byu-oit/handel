@@ -5,7 +5,7 @@ environments:
     cache:
       type: redis
       instance_type: cache.m3.medium
-      redis_version: 4.0.10
+      redis_version: 5.0.3
       description: example description
       read_replicas: 1
       cache_parameters:
