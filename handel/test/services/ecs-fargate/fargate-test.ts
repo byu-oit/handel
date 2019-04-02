@@ -91,7 +91,7 @@ describe('fargate deployer', () => {
     beforeEach(async () => {
         ecsFargate = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = clone(VALID_FARGATE_CONFIG);
         serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecs-fargate'), serviceParams, accountConfig);
 

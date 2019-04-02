@@ -52,7 +52,7 @@ describe('s3 deployer', () => {
             type: 's3'
         };
         ownServiceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 's3'), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(() => {

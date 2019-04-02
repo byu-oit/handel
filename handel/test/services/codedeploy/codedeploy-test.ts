@@ -62,7 +62,7 @@ describe('codedeploy deployer', () => {
             os: 'linux'
         };
         serviceContext = new ServiceContext(app, env, service, new ServiceType(STDLIB_PREFIX, 'codedeploy'), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(() => {

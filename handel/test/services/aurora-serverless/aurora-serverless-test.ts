@@ -48,7 +48,7 @@ describe('aurora-serverless deployer', () => {
     beforeEach(async () => {
         aurora = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'aurora',
             engine: AuroraServerlessEngine.mysql,

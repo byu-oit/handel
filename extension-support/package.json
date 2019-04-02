@@ -17,10 +17,10 @@
   "license": "Apache-2.0",
   "dependencies": {
     "ajv": "^5.2.3",
-    "ajv-errors": "^1.0.0",
-    "archiver": "^1.3.0",
+    "ajv-errors": "^1.0.1",
+    "archiver": "^3.0.0",
     "handel-extension-api": "^0.34.6",
-    "handlebars": "^4.0.6",
+    "handlebars": "^4.1.1",
     "pascal-case": "^2.0.1",
     "uuid": "^3.0.1",
     "winston": "2.3.1"
@@ -29,23 +29,23 @@
     "aws-sdk": "^2.274.1"
   },
   "devDependencies": {
-    "@types/archiver": "^2.0.1",
-    "@types/chai": "^4.0.4",
-    "@types/handlebars": "^4.0.36",
+    "@types/archiver": "^2.1.3",
+    "@types/chai": "^4.1.7",
+    "@types/handlebars": "^4.1.0",
     "@types/mocha": "^2.2.44",
-    "@types/node": "^9.4.0",
+    "@types/node": "^9.6.47",
     "@types/sinon": "^2.3.7",
-    "@types/uuid": "^3.4.3",
+    "@types/uuid": "^3.4.4",
     "@types/winston": "2.3.1",
-    "aws-sdk": "^2.188.0",
-    "chai": "^4.1.2",
+    "aws-sdk": "^2.433.0",
+    "chai": "^4.2.0",
     "cpy-cli": "^2.0.0",
     "del-cli": "^1.1.0",
     "make-dir-cli": "^1.0.0",
     "mocha": "^5.0.5",
-    "sinon": "^4.1.3",
+    "sinon": "^7.3.1",
     "ts-node": "^3.3.0",
-    "tslint": "^5.8.0",
+    "tslint": "^5.15.0",
     "typescript": "^2.8.1"
   }
 }

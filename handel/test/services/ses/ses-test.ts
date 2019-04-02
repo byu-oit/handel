@@ -49,7 +49,7 @@ describe('ses deployer', () => {
             address: 'user@example.com'
         };
         serviceContext = new ServiceContext(app, env, service, new ServiceType(STDLIB_PREFIX, 'ses'), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(() => {

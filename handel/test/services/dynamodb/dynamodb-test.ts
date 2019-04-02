@@ -111,7 +111,7 @@ describe('dynamodb deployer', () => {
     beforeEach(async () => {
         dynamodb = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = clone(VALID_DYNAMODB_CONFIG);
         serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, serviceType), serviceParams, accountConfig);
     });

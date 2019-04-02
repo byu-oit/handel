@@ -47,7 +47,7 @@ describe('cloudwatchevent deployer', () => {
     beforeEach(async () => {
         cloudWatchEvent = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'cloudwatchevents'
         };

@@ -29,7 +29,7 @@ describe('Tagging common module', () => {
     const serviceName = 'FakeService';
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType('someExtension', 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 

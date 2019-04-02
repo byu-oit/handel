@@ -40,7 +40,7 @@ describe('aiservices deployer', () => {
     beforeEach(async () => {
         aiservices = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'aiservices',
             ai_services: [
