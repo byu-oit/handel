@@ -97,7 +97,7 @@ The `cloudfront` section is defined by the following schema:
      - string
      - No
      -
-     - The ID of an Amazon Certificate Manager certificate to use for this site
+     - The ID of an Amazon Certificate Manager certificate to use for this site. Must be in us-east-1. See `Here <https://aws.amazon.com/premiumsupport/knowledge-center/install-ssl-cloudfront/>`_ for more information
    * - minimum_https_protocol
      - string
      - No
