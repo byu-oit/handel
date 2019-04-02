@@ -29,7 +29,7 @@ describe('unDeploy', () => {
     let accountConfig: AccountConfig;
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
     });
 

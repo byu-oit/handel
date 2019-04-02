@@ -35,7 +35,7 @@ describe('bind phases common module', () => {
     const envName = 'FakeEnv';
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType('extensionPrefix', 'mysql'), {type: 'mysql'}, accountConfig);
     });
 

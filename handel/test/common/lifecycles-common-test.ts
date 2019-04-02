@@ -41,7 +41,7 @@ describe('lifecycles common module', () => {
     const envName = 'FakeEnv';
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), {type: 'FakeType'}, accountConfig);
     });

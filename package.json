@@ -9,7 +9,7 @@
   "devDependencies": {
     "eslint": "^4.19.1",
     "lerna": "^2.11.0",
-    "tslint": "^5.11.0",
+    "tslint": "^5.15.0",
     "typescript": "^2.9.2"
   }
 }

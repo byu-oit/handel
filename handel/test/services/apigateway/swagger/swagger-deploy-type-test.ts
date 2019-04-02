@@ -39,7 +39,7 @@ describe('apigateway swagger deploy type', () => {
 
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'apigateway',
             swagger: `${__dirname}/test-swagger.json`

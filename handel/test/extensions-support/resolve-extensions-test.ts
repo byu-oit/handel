@@ -26,7 +26,7 @@ import * as stdlib from '../../src/services/stdlib';
 
 describe('resolve-extensions', () => {
 
-    const sandbox = sinon.sandbox.create();
+    const sandbox = sinon.createSandbox();
 
     afterEach(() => {
         sandbox.restore();

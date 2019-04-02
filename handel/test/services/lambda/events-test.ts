@@ -42,7 +42,7 @@ describe('lambdaCalls', () => {
     let ownDeployContext: DeployContext;
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         const serviceParams: LambdaServiceConfig = {
             type: 'lambda',

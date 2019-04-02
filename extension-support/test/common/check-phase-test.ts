@@ -30,7 +30,7 @@ describe('check phases common module', () => {
     let serviceContext: ServiceContext<ServiceConfig>;
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService',
             new ServiceType('someExtension', 'fakeservice'), {type: 'fakeservice'}, accountConfig);
     });

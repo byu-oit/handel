@@ -40,7 +40,7 @@ describe('alexaskillkit deployer', () => {
     beforeEach(async () => {
         alexaSkillKit = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceContext = new ServiceContext('Fakepp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'alexaskillkit'), {type: 'alexaskillkit'}, accountConfig);
     });
 

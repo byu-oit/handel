@@ -66,7 +66,7 @@ describe('sqs deployer', () => {
             }
         };
         serviceContext = new ServiceContext(appName, envName, serviceName, new ServiceType(STDLIB_PREFIX, serviceType), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(() => {

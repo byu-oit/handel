@@ -46,7 +46,7 @@ describe('stepfunctions deployer', () => {
 
     beforeEach(async () => {
         stepfunctions = new Service();
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
         serviceParams = {
             type: 'stepfunctions',

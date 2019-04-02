@@ -34,7 +34,7 @@ describe('ecs containers common module', () => {
     const envName = 'FakeEnv';
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         accountConfig = await config(`${__dirname}/../test-account-config.yml`);
         serviceParams = {
             type: 'ecs',

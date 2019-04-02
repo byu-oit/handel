@@ -34,7 +34,7 @@ describe('apigateway proxy deploy type', () => {
 
     beforeEach(async () => {
         accountConfig = await config(`${__dirname}/../../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'apigateway',
             proxy: {

@@ -97,7 +97,7 @@ describe('ecs deployer', () => {
     beforeEach(async () => {
         ecs = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = clone(VALID_ECS_CONFIG);
         serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'ecs'), serviceParams, accountConfig);
     });
