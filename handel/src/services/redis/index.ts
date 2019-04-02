@@ -74,6 +74,9 @@ function getCacheParameterGroupFamily(redisVersion: string): string {
     else if (redisVersion.startsWith('4.0')) {
         return 'redis4.0';
     }
+    else if (redisVersion.startsWith('5.0')) {
+        return 'redis5.0';
+    }
     else {
         throw new Error(`Unsupported Redis major/minor version: '${redisVersion}'`);
     }
@@ -94,6 +97,9 @@ function getDefaultCacheParameterGroup(redisVersion: string): string {
     }
     else if (redisVersion.startsWith('4.0')) {
         return 'default.redis4.0';
+    }
+    else if (redisVersion.startsWith('5.0')) {
+        return 'default.redis5.0';
     }
     else {
         throw new Error(`Unsupported Redis major/minor version: '${redisVersion}'`);

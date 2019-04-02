@@ -50,7 +50,7 @@ describe('redis deployer', () => {
         sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'redis',
-            redis_version: '3.2.4',
+            redis_version: '5.0.3',
             instance_type: 'cache.t2.micro'
         };
         serviceContext = new ServiceContext(appName, envName, 'FakeService', new ServiceType(STDLIB_PREFIX, 'redis'), serviceParams, accountConfig);
