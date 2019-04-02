@@ -83,6 +83,10 @@ This service takes the following parameters:
 CloudFront Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. NOTE::
+
+    ACM https certificate must be in us-east-1. See this `AWS support article <https://aws.amazon.com/premiumsupport/knowledge-center/install-ssl-cloudfront/>`_ for more information.
+
 The `cloudfront` section is defined by the following schema:
 
 .. list-table::
@@ -97,7 +101,7 @@ The `cloudfront` section is defined by the following schema:
      - string
      - No
      -
-     - The ID of an Amazon Certificate Manager certificate to use for this site
+     - The ID of an Amazon Certificate Manager certificate to use for this site.
    * - minimum_https_protocol
      - string
      - No

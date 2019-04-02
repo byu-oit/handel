@@ -94,7 +94,7 @@ There are no restrictions on the comprehend service.
 
 If you want to use objects from a S3 bucket, see :ref:`S3 Object Access <aiservices-S3-Object-Access>`
 
-.. aiservices-translate:
+.. _aiservices-translate:
 
 Translate
 ---------
@@ -126,7 +126,7 @@ Turkish
 
 AWS Translate does not currently have support for S3 or file uploads
 
-.. _aiservices-transcribe
+.. _aiservices-transcribe:
 
 Transcribe
 ----------
