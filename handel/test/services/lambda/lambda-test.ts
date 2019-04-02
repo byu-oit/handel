@@ -53,7 +53,7 @@ describe('lambda deployer', () => {
     beforeEach(async () => {
         lambda = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'lambda',
             memory: 256,

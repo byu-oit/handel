@@ -48,7 +48,7 @@ describe('s3 lifecycle helper', () => {
             ]
         };
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 's3'), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
 
     });
 

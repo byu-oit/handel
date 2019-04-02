@@ -40,7 +40,7 @@ describe('apiaccess deployer', () => {
     beforeEach(async () => {
         apiaccess = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'apiaccess',
             aws_services: [

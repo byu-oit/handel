@@ -46,7 +46,7 @@ extendChai(chaiPromised);
 // tslint:disable:no-unused-expression
 
 describe('npm-loader', () => {
-    const sandbox = sinon.sandbox.create();
+    const sandbox = sinon.createSandbox();
 
     let baseDir: string;
     let extDir: string;

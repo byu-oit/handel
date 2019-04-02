@@ -44,7 +44,7 @@ describe('route53zone deployer', () => {
     beforeEach(async () => {
         route53 = new Service();
         accountConfig = await config(`${__dirname}/../../test-account-config.yml`);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceParams = {
             type: 'route53zone',
             name: 'somename.byu.edu'

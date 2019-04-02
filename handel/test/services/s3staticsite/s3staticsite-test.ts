@@ -50,7 +50,7 @@ describe('s3staticsite deployer', () => {
             path_to_code: '.',
         };
         ownServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 's3staticsite'), serviceParams, accountConfig);
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     });
 
     afterEach(() => {

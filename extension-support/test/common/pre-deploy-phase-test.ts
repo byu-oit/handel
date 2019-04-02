@@ -29,7 +29,7 @@ describe('PreDeploy Phase Common module', () => {
     let serviceContext: ServiceContext<ServiceConfig>;
 
     beforeEach(async () => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType('someExtension', 'FakeType'), {type: 'FakeType'}, accountConfig);
     });
 
