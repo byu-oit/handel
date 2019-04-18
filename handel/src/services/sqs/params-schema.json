@@ -34,7 +34,7 @@
             "maximum": 1209600,
             "errorMessage": "Must be a number between 60 and 1209600"
         },
-        "received_message_wait_time": {
+        "receive_message_wait_time_seconds": {
             "type": "number",
             "minimum": 0,
             "maximum": 20,
