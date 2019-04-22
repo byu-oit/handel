@@ -56,7 +56,7 @@ function generateDefinitionString(filename: string, dependenciesDeployContexts: 
 
 function getCompiledStepFunctionsTemplate(stackName: string, ownServiceContext: ServiceContext<StepFunctionsConfig>, dependenciesDeployContexts: DeployContext[]): Promise<string> {
     const definitionString = generateDefinitionString(ownServiceContext.params.definition, dependenciesDeployContexts);
-    const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(ownServiceContext, [], dependenciesDeployContexts, false);
+    const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(ownServiceContext, [], dependenciesDeployContexts, false, false);
     const handlebarsParams: HandlebarsStepFunctionsTemplate = {
         stateMachineName: stackName,
         definitionString,

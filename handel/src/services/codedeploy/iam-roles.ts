@@ -27,5 +27,5 @@ export async function getStatementsForInstanceRole(ownServiceContext: ServiceCon
     };
     const compiledPolicyStatements = await handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
     const ownPolicyStatements = JSON.parse(compiledPolicyStatements);
-    return deployPhase.getAllPolicyStatementsForServiceRole(ownServiceContext, ownPolicyStatements, dependenciesDeployContexts, true);
+    return deployPhase.getAllPolicyStatementsForServiceRole(ownServiceContext, ownPolicyStatements, dependenciesDeployContexts, true, true);
 }

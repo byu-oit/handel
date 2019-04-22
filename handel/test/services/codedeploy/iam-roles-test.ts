@@ -50,7 +50,7 @@ describe('codedeploy asg-launchconfig config module', () => {
             const compileTemplateStub = sandbox.stub(handlebars, 'compileTemplate').resolves('[]');
 
             const statements = await iamRoles.getStatementsForInstanceRole(serviceContext, []);
-            expect(statements.length).to.equal(3);
+            expect(statements.length).to.equal(4);
             expect(compileTemplateStub.callCount).to.equal(1);
         });
     });

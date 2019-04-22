@@ -202,6 +202,32 @@ describe('Deploy phase common module', () => {
             expect(policyStatements[3].Resource[1]).to.contain(`parameter/${appName}/${envName}/*`);
             expect(policyStatements[3].Resource[2]).to.contain(`parameter/handel.global*`);
         });
+        it('should optionally include permissions to put and get cloudwatch metrics', async () => {
+            const ownServicePolicyStatements = [{
+                'Effect': 'Allow',
+                'Action': [
+                    'logs:CreateLogGroup',
+                    'logs:CreateLogStream',
+                    'logs:PutLogEvents'
+                ],
+                'Resource': [
+                    'arn:aws:logs:*:*:*'
+                ]
+            }];
+
+            const dependenciesDeployContexts = [];
+            const dependencyServiceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType('someExtension', 'sqs'), {type: 'sqs'}, serviceContext.accountConfig);
+            const dependencyDeployContext = new DeployContext(dependencyServiceContext);
+            dependenciesDeployContexts.push(dependencyDeployContext);
+
+            const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownServicePolicyStatements, dependenciesDeployContexts, false, true);
+            expect(policyStatements.length).to.equal(2); // 1 for logs, 1 for metrics
+            expect(policyStatements).to.deep.include({
+                Effect: 'Allow',
+                Action: ['cloudwatch:GetMetricData', 'cloudwatch:GetMetricStatistics', 'cloudwatch:PutMetricData'],
+                Resource: '*'
+            });
+        });
     });
 
     describe('addDbCredentialToParameterStore', () => {
