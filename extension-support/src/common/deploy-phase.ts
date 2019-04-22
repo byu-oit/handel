@@ -177,8 +177,6 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
             {
                 Effect: 'Allow',
                 Action: [
-                    'cloudwatch:GetMetricData',
-                    'cloudwatch:GetMetricStatistics',
                     'cloudwatch:PutMetricData'
                 ],
                 Resource: '*' // CloudWatch only allows '*' for metric permissions 🤷

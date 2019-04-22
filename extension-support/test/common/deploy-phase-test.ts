@@ -224,7 +224,7 @@ describe('Deploy phase common module', () => {
             expect(policyStatements.length).to.equal(2); // 1 for logs, 1 for metrics
             expect(policyStatements).to.deep.include({
                 Effect: 'Allow',
-                Action: ['cloudwatch:GetMetricData', 'cloudwatch:GetMetricStatistics', 'cloudwatch:PutMetricData'],
+                Action: ['cloudwatch:PutMetricData'],
                 Resource: '*'
             });
         });
