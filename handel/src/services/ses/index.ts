@@ -49,7 +49,8 @@ function getDeployContext(serviceContext: ServiceContext<SesServiceConfig>): Dep
         'Action': [
             'ses:SendEmail',
             'ses:SendTemplatedEmail',
-            'ses:SendBulkTemplatedEmail'
+            'ses:SendBulkTemplatedEmail',
+            'ses:SendRawEmail'
         ],
         'Resource': [
             identityArn
