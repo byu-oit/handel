@@ -49,7 +49,7 @@ const SERVICE_NAME = 'ECS';
 const DEFAULT_INSTANCE_TYPE = 't2.micro';
 
 function getTaskRoleStatements(serviceContext: ServiceContext<EcsServiceConfig>, dependenciesDeployContexts: DeployContext[]) {
-    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, [], dependenciesDeployContexts, true);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, [], dependenciesDeployContexts, true, true);
 }
 
 function getLatestEcsAmiId() {

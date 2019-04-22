@@ -49,7 +49,7 @@ export function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<
         ownPolicyStatements = JSON.parse(util.readFileSync(`${__dirname}/lambda-role-statements.json`));
     }
 
-    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true, true);
 }
 
 export async function getCustomDomainHandlebarsParams(serviceContext: ServiceContext<any>, customDomains?: CustomDomain[]): Promise<any[]> {

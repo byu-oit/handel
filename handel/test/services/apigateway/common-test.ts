@@ -65,7 +65,7 @@ describe('apigateway common module', () => {
     describe('getPolicyStatementsForLambdaRole', () => {
         it('should return the list of policy statements for the service role', async () => {
             const statements = await common.getPolicyStatementsForLambdaRole(serviceContext, []);
-            expect(statements.length).to.equal(4);
+            expect(statements.length).to.equal(5);
         });
     });
 

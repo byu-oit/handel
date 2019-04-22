@@ -117,7 +117,7 @@ export async function uploadDeployableArtifactToHandelBucket(serviceContext: Ser
     }
 }
 
-export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceContext<ServiceConfig>, ownServicePolicyStatements: any[], dependenciesDeployContexts: any[], includeAppSecretsStatements: boolean): any[] {
+export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceContext<ServiceConfig>, ownServicePolicyStatements: any[], dependenciesDeployContexts: any[], includeAppSecretsStatements: boolean, includePutMetricStatements: boolean = false): any[] {
     const policyStatementsToConsume = [];
 
     // Add policies from dependencies that have them
@@ -171,6 +171,18 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
             }
         ];
         policyStatementsToConsume.push(...appSecretsAcessStatements);
+    }
+    if (includePutMetricStatements) {
+        const putMetricStatements = [
+            {
+                Effect: 'Allow',
+                Action: [
+                    'cloudwatch:PutMetricData'
+                ],
+                Resource: '*' // CloudWatch only allows '*' for metric permissions 🤷
+            }
+        ];
+        policyStatementsToConsume.push(...putMetricStatements);
     }
 
     return policyStatementsToConsume;

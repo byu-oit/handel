@@ -148,7 +148,7 @@ async function getPolicyStatementsForLambdaRole(serviceContext: ServiceContext<L
     }
     const ownPolicyStatements = JSON.parse(compiledTemplate);
 
-    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true, true);
 }
 
 export class Service implements ServiceDeployer {

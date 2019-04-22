@@ -183,7 +183,7 @@ async function getPolicyStatementsForInstanceRole(serviceContext: ServiceContext
     };
     const compiledPolicyStatements = await handlebars.compileTemplate(ownPolicyStatementsTemplate, handlebarsParams);
     const ownPolicyStatements = JSON.parse(compiledPolicyStatements);
-    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true);
+    return deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownPolicyStatements, dependenciesDeployContexts, true, true);
 }
 
 function getAutoScalingEbExtension(stackName: string, ownServiceContext: ServiceContext<BeanstalkServiceConfig>): Promise<string> {
