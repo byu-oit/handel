@@ -179,7 +179,9 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
                 Action: [
                     'cloudwatch:PutMetricData'
                 ],
-                Resource: '*' // CloudWatch only allows '*' for metric permissions 🤷
+                Resource: [
+                    '*' // CloudWatch only allows '*' for metric permissions 🤷
+                ]
             }
         ];
         policyStatementsToConsume.push(...putMetricStatements);
