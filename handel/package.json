@@ -21,7 +21,7 @@
     "ajv": "^5.2.3",
     "ajv-errors": "^1.0.1",
     "aws-sdk": "^2.433.0",
-    "caporal": "^1.1.0",
+    "caporal": "1.1.0",
     "child-process-es6-promise": "^1.2.1",
     "common-tags": "^1.7.2",
     "crypto-random-string": "^1.0.0",
