@@ -15,8 +15,8 @@
  *
  */
 import * as AWS from 'aws-sdk';
-import {Tags} from 'handel-extension-api';
-import {toAWSTagStyle} from './aws-tags';
+import { Tags } from 'handel-extension-api';
+import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
 async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
@@ -32,7 +32,7 @@ async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
             failEvents.push(`${resStatus} : ${stackEvent.ResourceType} : ${stackEvent.ResourceStatusReason}`);
         }
         else if (stackEvent.ResourceType === 'AWS::CloudFormation::Stack' &&
-                 (resStatus === 'CREATE_COMPLETE' || resStatus === 'UPDATE_COMPLETE')) {
+            (resStatus === 'CREATE_COMPLETE' || resStatus === 'UPDATE_COMPLETE')) {
             break;
         }
     }
@@ -87,7 +87,7 @@ export async function createStack(stackName: string, templateBodyOrUrl: string, 
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
         TimeoutInMinutes: timeoutInMinutes
     };
-    if(templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
+    if (templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
         params.TemplateURL = templateBodyOrUrl;
     } else {
         params.TemplateBody = templateBodyOrUrl;
@@ -122,7 +122,7 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
         Parameters: parameters,
         Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
     };
-    if(templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
+    if (templateBodyOrUrl.startsWith('s3://') || templateBodyOrUrl.startsWith('https://')) {
         params.TemplateURL = templateBodyOrUrl;
     } else {
         params.TemplateBody = templateBodyOrUrl;
@@ -142,6 +142,9 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
         }
         catch (err) {
             const errors = await getErrorsForFailedStack(stackId!);
+            if (errors.length === 0) {
+                throw new Error('Error while waiting for stackUpdateComplete state: ' + err);
+            }
             throw new Error(getCfErrorMessage(stackName, errors));
         }
     }
@@ -212,7 +215,7 @@ export function getCfStyleStackParameters(parametersObj: any): AWS.CloudFormatio
  * @param {Object} cfStack - The CF stack object returned from the CloudFormation API
  * @returns {string} - Returns either the output if it is present, or null if it isn't
  */
-export function getOutput(outputKey: string, cfStack: AWS.CloudFormation.Stack): string|null {
+export function getOutput(outputKey: string, cfStack: AWS.CloudFormation.Stack): string | null {
     for (const output of cfStack.Outputs!) {
         if (output.OutputKey === outputKey) {
             return output.OutputValue!;
