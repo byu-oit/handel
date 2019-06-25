@@ -143,7 +143,7 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
         catch (err) {
             const errors = await getErrorsForFailedStack(stackId!);
             if (errors.length === 0) {
-                throw new Error('Error while waiting for stackUpdateComplete state: ' + err);
+                throw new Error('Error while waiting for stackUpdateComplete state: ' + JSON.stringify(err));
             }
             throw new Error(getCfErrorMessage(stackName, errors));
         }
