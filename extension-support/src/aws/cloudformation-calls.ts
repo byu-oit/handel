@@ -149,6 +149,8 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
             if (err.originalError.code === 'Throttling') {
                 winston.info(`Throttled. Sleeping ${err.retryDelay}ms`);
                 await delay(err.retryDelay);
+                const updatedStack = await waitForStack(stackName, 'stackUpdateComplete');
+                return updatedStack;
             }
             const errors = await getErrorsForFailedStack(stackId!);
             if (errors.length === 0) {
