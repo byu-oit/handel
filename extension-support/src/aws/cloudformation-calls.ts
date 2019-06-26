@@ -85,9 +85,8 @@ export async function waitForStack(stackName: string, stackState: string): Promi
             await delay(err.retryDelay);
             const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
             return waitResponse.Stacks![0];
-        } else {
-            throw(err);
         }
+        throw(err);
     }
 }
 
