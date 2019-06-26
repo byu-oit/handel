@@ -80,6 +80,7 @@ export async function waitForStack(stackName: string, stackState: string): Promi
     }
     catch(err) {
         if (err.originalError.code === 'Throttling') {
+            winston.cli();
             winston.info(`Throttled. Sleeping ${err.retryDelay}ms`);
             await delay(err.retryDelay);
             const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
