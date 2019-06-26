@@ -16,7 +16,7 @@
  */
 import * as AWS from 'aws-sdk';
 import { Tags } from 'handel-extension-api';
-import winston = require('winston');
+import * as winston from 'winston';
 import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
@@ -74,8 +74,20 @@ export async function waitForStack(stackName: string, stackState: string): Promi
     const waitParams: AWS.CloudFormation.DescribeStacksInput = {
         StackName: stackName
     };
-    const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
-    return waitResponse.Stacks![0];
+    try {
+        const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
+        return waitResponse.Stacks![0];
+    }
+    catch(err) {
+        if (err.originalError.code === 'Throttling') {
+            winston.warn(`Throttled. Sleeping ${err.retryDelay}ms`);
+            await delay(err.retryDelay);
+            const waitResponse = await awsWrapper.cloudFormation.waitFor(stackState, waitParams);
+            return waitResponse.Stacks![0];
+        } else {
+            throw(err);
+        }
+    }
 }
 
 /**
@@ -146,12 +158,6 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
             return updatedStack;
         }
         catch (err) {
-            if (err.originalError.code === 'Throttling') {
-                winston.info(`Throttled. Sleeping ${err.retryDelay}ms`);
-                await delay(err.retryDelay);
-                const updatedStack = await waitForStack(stackName, 'stackUpdateComplete');
-                return updatedStack;
-            }
             const errors = await getErrorsForFailedStack(stackId!);
             if (errors.length === 0) {
                 throw new Error('Error while waiting for stackUpdateComplete state on stack ' + stackName + ':\n ' + JSON.stringify(err));
