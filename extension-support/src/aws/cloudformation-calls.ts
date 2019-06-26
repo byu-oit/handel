@@ -16,6 +16,7 @@
  */
 import * as AWS from 'aws-sdk';
 import { Tags } from 'handel-extension-api';
+import winston = require('winston');
 import { toAWSTagStyle } from './aws-tags';
 import awsWrapper from './aws-wrapper';
 
@@ -41,6 +42,10 @@ async function getErrorsForFailedStack(stackId: string): Promise<string[]> {
 
 function getCfErrorMessage(stackName: string, errors: string[]) {
     return `Errors while creating stack '${stackName}': \n${errors.join('\n')}`;
+}
+
+async function delay(ms: number) {
+    await new Promise(resolve => setTimeout(() => resolve(), ms)).then();
 }
 
 /**
@@ -141,6 +146,10 @@ export async function updateStack(stackName: string, templateBodyOrUrl: string, 
             return updatedStack;
         }
         catch (err) {
+            if (err.originalError.code === 'Throttling') {
+                winston.info(`Throttled. Sleeping ${err.retryDelay}ms`);
+                await delay(err.retryDelay);
+            }
             const errors = await getErrorsForFailedStack(stackId!);
             if (errors.length === 0) {
                 throw new Error('Error while waiting for stackUpdateComplete state on stack ' + stackName + ':\n ' + JSON.stringify(err));
