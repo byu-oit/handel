@@ -8,8 +8,8 @@
   },
   "devDependencies": {
     "eslint": "^5.16.0",
-    "lerna": "^3.14.1",
-    "tslint": "^5.17.0",
-    "typescript": "^3.5.1"
+    "lerna": "^3.16.4",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3"
   }
 }
