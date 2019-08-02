@@ -14,8 +14,8 @@
     "aws-sdk": "^2.188.0"
   },
   "devDependencies": {
-    "@types/node": "^9.4.0",
-    "aws-sdk": "^2.188.0",
+    "@types/node": "^9.6.50",
+    "aws-sdk": "^2.503.0",
     "ts-node": "^3.3.0",
     "tslint": "^5.17.0",
     "typescript": "^2.8.1"
