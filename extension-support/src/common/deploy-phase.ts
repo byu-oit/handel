@@ -166,7 +166,8 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
                     'ssm:DeleteParameters'
                 ],
                 Resource: [
-                    applicationParameters
+                    applicationParameters,
+                    applicationParametersPath
                 ]
             }
         ];
