@@ -119,6 +119,11 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     // Configure rolling updates
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:autoscaling:updatepolicy:rollingupdate', 'RollingUpdateEnabled', true));
 
+    // Configure rolling deploys
+    handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'DeploymentPolicy', 'Rolling'));
+    handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSizeType', 'Percentage'));
+    handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSize', '25'));
+
     // Configure VPC
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'VPCId', accountConfig.vpc));
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'Subnets', accountConfig.private_subnets.join(',')));
