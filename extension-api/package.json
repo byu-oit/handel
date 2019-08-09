@@ -1,6 +1,6 @@
 {
   "name": "handel-extension-api",
-  "version": "0.35.7",
+  "version": "0.36.0",
   "description": "API types and classes for Handel extensions",
   "main": "dist/extension-api.js",
   "types": "dist/extension-api.d.ts",
