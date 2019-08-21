@@ -230,6 +230,10 @@ export interface IServiceContext<Config extends ServiceConfig> extends HasAppSer
     injectedEnvVars(outputs: any): any;
     ssmApplicationPrefix(): string;
     ssmParamName(suffix: string): string;
+    ssmParamPath(suffix: string): string;
+    allSsmParamNames(suffix: string): string[];
+    ssmServicePath(): string;
+    ssmServicePrefix(): string;
 }
 
 export function isServiceContext(obj: any): obj is ServiceContext<ServiceConfig> {
@@ -312,6 +316,9 @@ export interface IDeployContext extends HasAppServiceInfo {
     scripts: string[];
 
     addEnvironmentVariables(envVars: EnvironmentVariables): void;
+
+    ssmServicePath: string;
+    ssmServicePrefix: string;
 }
 
 export function isDeployContext(obj: any | IDeployContext): obj is IDeployContext {
@@ -453,9 +460,24 @@ export class ServiceContext<Config extends ServiceConfig> implements IServiceCon
         return envVars;
     }
 
+    public allSsmParamNames(suffix: string): string[] {
+        return [this.ssmParamName(suffix), this.ssmParamPath(suffix)];
+    }
+
+    public ssmServicePath(): string {
+        return `${this.ssmApplicationPath()}${this.serviceName}/`;
+    }
+
+    public ssmServicePrefix(): string {
+        return `${this.ssmApplicationPrefix()}.${this.serviceName}`;
+    }
+
     public ssmParamName(suffix: string) {
-        const prefix = `${this.ssmApplicationPrefix()}.${this.serviceName}`;
-        return `${prefix}.${suffix}`;
+        return `${this.ssmServicePrefix()}.${suffix}`;
+    }
+
+    public ssmParamPath(suffix: string) {
+        return `${this.ssmServicePath()}${suffix.replace(/\./, '/')}`;
     }
 
     public ssmApplicationPrefix(): string {
@@ -518,11 +540,16 @@ export class DeployContext implements IDeployContext {
     // Scripts intended to be run on startup by the consuming resource.
     public scripts: string[];
 
+    public ssmServicePrefix: string;
+    public ssmServicePath: string;
+
     constructor(serviceContext: ServiceContext<ServiceConfig>) {
         this.appName = serviceContext.appName;
         this.environmentName = serviceContext.environmentName;
         this.serviceName = serviceContext.serviceName;
         this.serviceType = serviceContext.serviceType;
+        this.ssmServicePath = serviceContext.ssmServicePath();
+        this.ssmServicePrefix = serviceContext.ssmServicePrefix();
         this.eventOutputs = null;
         this.policies = [];
         this.environmentVariables = {};

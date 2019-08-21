@@ -112,6 +112,10 @@ const awsWrapper = {
         deleteParameters: (params: AWS.SSM.DeleteParametersRequest): Promise<AWS.SSM.DeleteParametersResult> => {
             const ssm = new AWS.SSM({ apiVersion: '2014-11-06' });
             return ssm.deleteParameters(params).promise();
+        },
+        describeParameters: (params: AWS.SSM.DescribeParametersRequest): Promise<AWS.SSM.DescribeParametersResult> => {
+            const ssm = new AWS.SSM({ apiVersion: '2014-11-06' });
+            return ssm.describeParameters(params).promise();
         }
     }
 };

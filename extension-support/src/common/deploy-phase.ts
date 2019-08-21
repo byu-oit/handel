@@ -192,9 +192,20 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
 }
 
 export async function addItemToSSMParameterStore(ownServiceContext: ServiceContext<ServiceConfig>, paramName: string, paramValue: string): Promise<boolean> {
-    const fullParamName = ownServiceContext.ssmParamName(paramName);
-    await ssmCalls.storeParameter(fullParamName, 'SecureString', paramValue);
+    const promises = ownServiceContext.allSsmParamNames(paramName)
+        .map(it => {
+            ssmCalls.storeParameter(it, 'SecureString', paramValue);
+        });
+
+    await Promise.all(promises);
+
     return true;
+}
+
+export async function getSSMParameterNamesFor(deployContext: DeployContext): Promise<string[]> {
+    return ssmCalls.listParameterNamesStartingWith(
+        deployContext.ssmServicePath, deployContext.ssmServicePrefix + '.'
+    );
 }
 
 // ------------------------------------------------------------------------------

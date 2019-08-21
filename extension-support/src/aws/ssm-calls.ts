@@ -27,6 +27,33 @@ export function storeParameter(paramName: string, paramType: string, paramValue:
     return awsWrapper.ssm.putParameter(putParams);
 }
 
+export async function listParameterNamesStartingWith(...prefixes: string[]): Promise<string[]> {
+    return makeCall(undefined, []);
+
+    async function makeCall(marker: string | undefined, previousResult: string[]): Promise<string[]> {
+        const listParams: AWS.SSM.DescribeParametersRequest = {
+            ParameterFilters: [
+                {
+                    Key: 'Name',
+                    Option: 'BeginsWith',
+                    Values: prefixes
+                }
+            ],
+            NextToken: marker,
+            MaxResults: 100
+        };
+        const listResponse = await awsWrapper.ssm.describeParameters(listParams);
+        const params = listResponse.Parameters || [];
+        const names = params.map(it => it.Name!);
+        const result = previousResult.concat(names);
+        if (listResponse.NextToken) {
+            return makeCall(listResponse.NextToken, result);
+        } else {
+            return result;
+        }
+    }
+}
+
 /**
  * Given a list of parameter names, deletes those parameters
  */

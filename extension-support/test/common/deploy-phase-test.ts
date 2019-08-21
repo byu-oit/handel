@@ -16,13 +16,7 @@
  */
 import {expect} from 'chai';
 import * as fs from 'fs';
-import {
-    AccountConfig,
-    DeployContext,
-    ServiceConfig,
-    ServiceContext,
-    ServiceType
-} from 'handel-extension-api';
+import {DeployContext, ServiceConfig, ServiceContext, ServiceType} from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
 import * as cloudFormationCalls from '../../src/aws/cloudformation-calls';
@@ -232,12 +226,50 @@ describe('Deploy phase common module', () => {
         });
     });
 
-    describe('addDbCredentialToParameterStore', () => {
+    describe('addItemToSSMParameterStore', () => {
         it('should store the database password to the parameter store', async () => {
             const storeParamStub = sandbox.stub(ssmCalls, 'storeParameter').resolves(true);
             const result = await deployPhase.addItemToSSMParameterStore(serviceContext, 'db_username', 'FakeUsername');
+
             expect(result).to.equal(true);
-            expect(storeParamStub.callCount).to.equal(1);
+            expect(storeParamStub.callCount).to.equal(2);
+
+            const actualNames = storeParamStub.getCalls().map(it => it.args[0]);
+            const actualTypes = storeParamStub.getCalls().map(it => it.args[1]);
+            const actualValues = storeParamStub.getCalls().map(it => it.args[2]);
+
+            expect(actualNames).to.include(
+                'FakeApp.FakeEnv.FakeService.db_username'
+            );
+            expect(actualNames).to.include(
+                '/FakeApp/FakeEnv/FakeService/db_username'
+            );
+            expect(actualTypes).to.eql(['SecureString', 'SecureString']);
+            expect(actualValues).to.eql(['FakeUsername', 'FakeUsername']);
+        });
+    });
+
+    describe('getSSMParameterNamesFor', () => {
+        const dependencyServiceContext = new ServiceContext<ServiceConfig>('fakeApp', 'fakeEnv', 'fakeService', new ServiceType('someExtension', 'db'), {type: 'db'}, accountConfig);
+        const dependencyDeployContext = new DeployContext(dependencyServiceContext);
+        it('Tries to get both path and \'.\' - style params', async () => {
+            const listStub = sandbox.stub(ssmCalls, 'listParameterNamesStartingWith')
+                .resolves([]);
+
+            await deployPhase.getSSMParameterNamesFor(dependencyDeployContext);
+
+            expect(listStub.firstCall.args).has.members([
+                'fakeApp.fakeEnv.fakeService.',
+                '/fakeApp/fakeEnv/fakeService/'
+            ]);
+        });
+        it('Returns the results of the SSM lookup', async () => {
+            sandbox.stub(ssmCalls, 'listParameterNamesStartingWith')
+                .resolves(['/fakeApp/fakeEnv/fakeService/foo', 'fakeApp.fakeEnv.fakeService.foo']);
+
+            const result = await deployPhase.getSSMParameterNamesFor(dependencyDeployContext);
+
+            expect(result).has.members(['/fakeApp/fakeEnv/fakeService/foo', 'fakeApp.fakeEnv.fakeService.foo']);
         });
     });
 
