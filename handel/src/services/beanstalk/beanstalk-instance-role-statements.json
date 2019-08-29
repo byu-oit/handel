@@ -23,12 +23,14 @@
     },
     {
         "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
             "logs:PutLogEvents",
-            "logs:CreateLogStream"
+            "logs:DescribeLogStreams"
         ],
         "Effect": "Allow",
         "Resource": [
-            "arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk*"
+            "arn:aws:logs:*:*:*"
         ]
     },
     {
