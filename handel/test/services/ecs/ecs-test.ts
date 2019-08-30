@@ -292,9 +292,7 @@ describe('ecs deployer', () => {
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
-            console.log('starting deploy');
             const deployContext = await ecs.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
-            console.log('finished deploy');
             expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);
