@@ -93,7 +93,7 @@ export class Service implements ServiceDeployer {
         const compiledTemplate = await getCompiledRoute53Template(ownServiceContext);
         const stackTags = tagging.getTags(ownServiceContext);
         const deployedStack = await deployPhase.deployCloudFormationStack(ownServiceContext, stackName, compiledTemplate, [], true, 30, stackTags);
-        winston.info(`${SERVICE_NAME} - Finished deploying S3 bucket ${stackName}`);
+        winston.info(`${SERVICE_NAME} - Finished deploying Route53 Zone ${stackName}`);
         return getDeployContext(ownServiceContext, deployedStack);
     }
 
