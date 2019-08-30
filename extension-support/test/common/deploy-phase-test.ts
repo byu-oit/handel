@@ -192,9 +192,10 @@ describe('Deploy phase common module', () => {
 
             const policyStatements = deployPhase.getAllPolicyStatementsForServiceRole(serviceContext, ownServicePolicyStatements, dependenciesDeployContexts, true);
             expect(policyStatements.length).to.equal(5); // 2 of our own, plus 3 for the app secrets
-            expect(policyStatements[3].Resource[0]).to.contain(`parameter/${appName}.${envName}*`);
+            expect(policyStatements[3].Resource[0]).to.contain(`parameter/${appName}.${envName}.*`);
             expect(policyStatements[3].Resource[1]).to.contain(`parameter/${appName}/${envName}/*`);
-            expect(policyStatements[3].Resource[2]).to.contain(`parameter/handel.global*`);
+            expect(policyStatements[3].Resource[2]).to.contain(`parameter/handel/global/*`);
+            expect(policyStatements[3].Resource[3]).to.contain(`parameter/handel.global.*`);
         });
         it('should optionally include permissions to put and get cloudwatch metrics', async () => {
             const ownServicePolicyStatements = [{
@@ -246,30 +247,6 @@ describe('Deploy phase common module', () => {
             );
             expect(actualTypes).to.eql(['SecureString', 'SecureString']);
             expect(actualValues).to.eql(['FakeUsername', 'FakeUsername']);
-        });
-    });
-
-    describe('getSSMParameterNamesFor', () => {
-        const dependencyServiceContext = new ServiceContext<ServiceConfig>('fakeApp', 'fakeEnv', 'fakeService', new ServiceType('someExtension', 'db'), {type: 'db'}, accountConfig);
-        const dependencyDeployContext = new DeployContext(dependencyServiceContext);
-        it('Tries to get both path and \'.\' - style params', async () => {
-            const listStub = sandbox.stub(ssmCalls, 'listParameterNamesStartingWith')
-                .resolves([]);
-
-            await deployPhase.getSSMParameterNamesFor(dependencyDeployContext);
-
-            expect(listStub.firstCall.args).has.members([
-                'fakeApp.fakeEnv.fakeService.',
-                '/fakeApp/fakeEnv/fakeService/'
-            ]);
-        });
-        it('Returns the results of the SSM lookup', async () => {
-            sandbox.stub(ssmCalls, 'listParameterNamesStartingWith')
-                .resolves(['/fakeApp/fakeEnv/fakeService/foo', 'fakeApp.fakeEnv.fakeService.foo']);
-
-            const result = await deployPhase.getSSMParameterNamesFor(dependencyDeployContext);
-
-            expect(result).has.members(['/fakeApp/fakeEnv/fakeService/foo', 'fakeApp.fakeEnv.fakeService.foo']);
         });
     });
 

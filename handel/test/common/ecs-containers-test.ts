@@ -115,8 +115,8 @@ describe('ecs containers common module', () => {
             let dep2: DeployContext;
 
             beforeEach(() => {
-                dep1 = new DeployContext(new ServiceContext(appName, envName, 'Dep1', new ServiceType(STDLIB_PREFIX, 'rds'), {type: 'rds'}, accountConfig));
-                dep2 = new DeployContext(new ServiceContext(appName, envName, 'Dep2', new ServiceType(STDLIB_PREFIX, 'rds'), {type: 'rds'}, accountConfig));
+                dep1 = new DeployContext(new ServiceContext(appName, envName, 'dep1', new ServiceType(STDLIB_PREFIX, 'rds'), {type: 'rds'}, accountConfig));
+                dep2 = new DeployContext(new ServiceContext(appName, envName, 'dep2', new ServiceType(STDLIB_PREFIX, 'rds'), {type: 'rds'}, accountConfig));
             });
 
             it('detects dependency secrets and injects them', async () => {

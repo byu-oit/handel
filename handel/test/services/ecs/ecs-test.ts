@@ -237,6 +237,7 @@ describe('ecs deployer', () => {
                 Name: 'myapp.internal.'
             }]);
             const getStackStub = sandbox.stub(awsCalls.cloudFormation, 'getStack').resolves(null);
+            const ssmStub = sandbox.stub(awsCalls.ssm, 'listParameterNamesStartingWith').resolves([]);
             const uploadDirStub = sandbox.stub(deployPhase, 'uploadDirectoryToHandelBucket').resolves({});
             const createStackStub = sandbox.stub(awsCalls.cloudFormation, 'createStack').resolves({});
             const deployStackStub = sandbox.stub(deployPhase, 'deployCloudFormationStack').resolves({});
@@ -291,7 +292,9 @@ describe('ecs deployer', () => {
             const cycleInstancesStub = sandbox.stub(asgCycling, 'cycleInstances').resolves({});
 
             // Run the test
+            console.log('starting deploy');
             const deployContext = await ecs.deploy!(serviceContext, ownPreDeployContext, dependenciesDeployContexts);
+            console.log('finished deploy');
             expect(clusterAutoScalingStub.callCount).to.equal(1);
             expect(deployContext).to.be.instanceof(DeployContext);
             expect(getStackStub.callCount).to.equal(2);

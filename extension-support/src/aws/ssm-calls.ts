@@ -38,7 +38,8 @@ export async function listParameterNamesStartingWith(...prefixes: string[]): Pro
             }
         ]
     };
-    return (await awsWrapper.ssm.describeParameters(params)).map(p => p.Name!);
+    const results = await awsWrapper.ssm.describeParameters(params);
+    return results.map(p => p.Name!);
 }
 
 export interface NameAndArn {

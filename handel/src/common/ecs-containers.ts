@@ -248,7 +248,7 @@ async function getDependencySecretMappings(dependencies: DeployContext[]): Promi
 
     async function getForPrefix(dependency: DeployContext, prefix: string) {
         const names = await awsCalls.ssm.listParameterNamesStartingWith(prefix);
-        if (names.length === 0) {
+        if (!names || names.length === 0) {
             return {};
         }
         const r = await awsCalls.ssm.getArnsForNames(names);

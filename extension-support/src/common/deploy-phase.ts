@@ -131,7 +131,8 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
 
     if (includeAppSecretsStatements) {
         const applicationParameters = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.ssmApplicationPrefix()}.*`;
-        const applicationParametersPath = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.ssmApplicationPath()}*`;
+        const applicationParametersPath = `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/${serviceContext.ssmApplicationPath()}*`
+            .replace(/\/+/g, '/');
         const appSecretsAcessStatements = [
             {
                 Effect: 'Allow',
@@ -153,7 +154,7 @@ export function getAllPolicyStatementsForServiceRole(serviceContext: ServiceCont
                     applicationParameters,
                     applicationParametersPath,
                     `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel/global/*`,
-                    `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global*`
+                    `arn:aws:ssm:${serviceContext.accountConfig.region}:${serviceContext.accountConfig.account_id}:parameter/handel.global.*`
                 ]
             },
             {

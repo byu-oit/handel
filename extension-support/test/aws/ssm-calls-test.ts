@@ -53,7 +53,7 @@ describe('ssmCalls module', () => {
 
     describe('listParameterNamesStartingWith', () => {
         it('makes a request to SSM with the correct filters', async () => {
-            const stub = sandbox.stub(awsWrapper.ssm, 'describeParameters').resolves({});
+            const stub = sandbox.stub(awsWrapper.ssm, 'describeParameters').resolves([]);
 
             await ssmCalls.listParameterNamesStartingWith('/foobar/', 'foo.bar.');
 
@@ -67,36 +67,14 @@ describe('ssmCalls module', () => {
             }]);
         });
         it('extracts the names from the results', async () => {
-            const stub = sandbox.stub(awsWrapper.ssm, 'describeParameters').resolves({
-                Parameters: [
-                    {Name: '/foo/bar/baz'},
-                    {Name: 'foo.bar.baz'}
-                ]
-            });
+            const stub = sandbox.stub(awsWrapper.ssm, 'describeParameters').resolves([
+                {Name: '/foo/bar/baz'},
+                {Name: 'foo.bar.baz'}
+            ]);
 
             const result = await ssmCalls.listParameterNamesStartingWith('/foo/bar/', 'foo.bar.');
 
             expect(result).to.have.members(['/foo/bar/baz', 'foo.bar.baz']);
-        });
-        it('handles paged results properly', async () => {
-            const stub = sandbox.stub(awsWrapper.ssm, 'describeParameters')
-                .onFirstCall().resolves({
-                    Parameters: [
-                        {Name: '/foo/bar/baz'},
-                        {Name: 'foo.bar.baz'}
-                    ],
-                    NextToken: 'aabbcc'
-                })
-                .onSecondCall().resolves({
-                    Parameters: [
-                        {Name: '/foo/bar/baz2'},
-                        {Name: 'foo.bar.baz2'}
-                    ]
-                });
-
-            const result = await ssmCalls.listParameterNamesStartingWith('/foo/bar/', 'foo.bar.');
-
-            expect(result).to.have.members(['/foo/bar/baz', 'foo.bar.baz', '/foo/bar/baz2', 'foo.bar.baz2']);
         });
     });
 });
