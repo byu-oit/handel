@@ -11,7 +11,7 @@
         "declaration": true,
         "moduleResolution": "node",
         "lib": [
-            "es7", "es2017.object", "esnext.asynciterable"
+            "es7", "es2017.object"
         ]
     },
     "compileOnSave": false
