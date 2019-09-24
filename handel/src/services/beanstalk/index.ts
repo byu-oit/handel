@@ -88,6 +88,10 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         tags: tagging.getTags(serviceContext)
     };
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary;
+    }
+
     // Configure min and max size of ASG
     let minInstances;
     let maxInstances;
