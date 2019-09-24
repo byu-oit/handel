@@ -47,7 +47,7 @@ export interface HandlebarsLambdaTemplate {
     vpc?: boolean;
     vpcSecurityGroupIds?: string[];
     vpcSubnetIds?: string[];
-    permissionsBoundary?: string[];
+    permissionsBoundary?: string;
 }
 
 export interface LambdaEventSourceConfig extends ServiceEventConsumer {
