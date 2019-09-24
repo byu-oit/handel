@@ -81,6 +81,10 @@ async function getCompiledLambdaTemplate(stackName: string, ownServiceContext: S
         handlebarsParams.vpcSecurityGroupIds = securityGroups;
         handlebarsParams.vpcSubnetIds = accountConfig.private_subnets;
     }
+
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
     return handlebars.compileTemplate(`${__dirname}/lambda-template.yml`, handlebarsParams);
 }
 
