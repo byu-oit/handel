@@ -18,6 +18,9 @@ Resources:
               - "lambda.amazonaws.com"
             Action:
             - "sts:AssumeRole"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   LambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:

@@ -57,6 +57,10 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         tags: tagging.getTags(ownServiceContext)
     };
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
+
     // Add binary media types if specified
     const binaryMediaTypes = serviceParams.binary_media_types;
     if (binaryMediaTypes) {
