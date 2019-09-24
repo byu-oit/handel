@@ -62,6 +62,10 @@ function getCompiledStepFunctionsTemplate(stackName: string, ownServiceContext: 
         definitionString,
         policyStatements
     };
+    const accountConfig = ownServiceContext.accountConfig;
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
     return handlebars.compileTemplate(`${__dirname}/stepfunctions-template.yml`, handlebarsParams);
 }
 

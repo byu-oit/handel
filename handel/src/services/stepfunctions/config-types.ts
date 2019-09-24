@@ -20,6 +20,7 @@ export interface HandlebarsStepFunctionsTemplate {
     stateMachineName: string;
     definitionString: string;
     policyStatements: any[];
+    permissionsBoundary?: string;
 }
 
 export interface StepFunctionsConfig extends ServiceConfig {
