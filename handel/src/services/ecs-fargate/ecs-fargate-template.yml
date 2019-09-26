@@ -67,6 +67,7 @@ Resources:
     {{/if}}
     Properties:
       LaunchType: FARGATE
+      Cluster: default
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
