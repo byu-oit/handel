@@ -20,6 +20,9 @@ Resources:
               - "ecs-tasks.amazonaws.com"
             Action:
             - "sts:AssumeRole"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   TaskRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -55,6 +58,9 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
 
   #
   # Configure ECS Service that runs on the cluster
@@ -180,6 +186,9 @@ Resources:
             - application-autoscaling.amazonaws.com
           Action:
           - 'sts:AssumeRole'
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   ServiceAutoScalingPolicy:
     Type: AWS::IAM::Policy
     Properties:
