@@ -55,7 +55,20 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-
+  #
+  # Configure ECS cluster to run the service
+  #
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties: 
+      ClusterName: {{serviceName}}
+      {{#if tags}}
+      Tags:
+      {{#each tags}}
+      - Key: {{@key}}
+        Value: {{this}}
+      {{/each}}
+      {{/if}}
   #
   # Configure ECS Service that runs on the cluster
   #
@@ -64,10 +77,11 @@ Resources:
     {{#if oneOrMoreTasksHasRouting}}
     DependsOn:
     - AlbListener
+    - EcsCluster
     {{/if}}
     Properties:
       LaunchType: FARGATE
-      Cluster: default
+      Cluster: !Ref EcsCluster
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: {{minimumHealthyPercentDeployment}}
@@ -204,7 +218,7 @@ Resources:
     Properties:
       MaxCapacity: {{autoScaling.maxTasks}}
       MinCapacity: {{autoScaling.minTasks}}
-      ResourceId: !Join ["", [ "service/default/", !GetAtt EcsService.Name]]
+      ResourceId: !Join ["", [ "service/{{serviceName}}/", !GetAtt EcsService.Name]]
       RoleARN: !GetAtt ServiceAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -243,7 +257,7 @@ Resources:
       {{/each}}
       {{else}}
       - Name: ClusterName
-        Value: default
+        Value: {{../serviceName}}
       - Name: ServiceName
         Value: !GetAtt EcsService.Name
       {{/if}}
