@@ -123,11 +123,16 @@ function getAutoscalingStackName(ownServiceContext: types.DynamoDBContext) {
 
 function getCompiledAutoscalingTemplate(tableName: string, ownServiceContext: types.DynamoDBContext): Promise<string> {
     const serviceParams = ownServiceContext.params;
+    const accountConfig = ownServiceContext.accountConfig;
 
-    const handlebarsParams = {
+    const handlebarsParams: any = {
         tableName,
         targets: getScalingTargets(serviceParams, tableName)
     };
+
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
 
     return handlebars.compileTemplate(`${__dirname}/dynamodb-autoscaling-template.yml`, handlebarsParams);
 }
