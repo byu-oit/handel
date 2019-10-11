@@ -45,6 +45,19 @@ describe('iam calls', () => {
         });
     });
 
+    describe('createRoleWithPermissionsBoundary', () => {
+        it('should create the role with a permissions boundary', async () => {
+            const roleName = 'FakeRole';
+            const createRoleStub = sandbox.stub(awsWrapper.iam, 'createRole').resolves({
+                Role: {}
+            });
+
+            const role = await iamCalls.createRole(roleName, 'SomeTrustedService', 'arn:aws:iam::111111111111:policy/SomePermissionsBoundary');
+            expect(createRoleStub.callCount).to.equal(1);
+            expect(role).to.deep.equal({});
+        });
+    });
+
     describe('getRole', () => {
         it('should return the role when it exists', async () => {
             const getRoleStub = sandbox.stub(awsWrapper.iam, 'getRole').resolves({
