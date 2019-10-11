@@ -26,7 +26,7 @@ import awsWrapper from './aws-wrapper';
  * if you provide 'ec2.amazonaws.com' as the trusted service, only EC2 instances
  * will be able to assume that role.
  */
-export async function createRole(roleName: string, trustedService: string): Promise<AWS.IAM.Role> {
+export async function createRole(roleName: string, trustedService: string, permissionsBoundary?: string): Promise<AWS.IAM.Role> {
     const assumeRolePolicyDoc = {
         'Version': '2012-10-17',
         'Statement': [
@@ -39,11 +39,14 @@ export async function createRole(roleName: string, trustedService: string): Prom
             }
         ]
     };
-    const createParams = {
+    const createParams: any = {
         AssumeRolePolicyDocument: JSON.stringify(assumeRolePolicyDoc),
         Path: '/services/',
         RoleName: roleName
     };
+    if (permissionsBoundary) {
+        createParams.PermissionsBoundary = permissionsBoundary
+    }
     winston.verbose(`Creating role ${roleName}`);
     const createResponse = await awsWrapper.iam.createRole(createParams);
     winston.verbose(`Created role ${roleName}`);
