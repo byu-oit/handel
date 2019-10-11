@@ -36,6 +36,9 @@ Resources:
             - "elasticloadbalancing:RegisterTargets"
             Resource:
             - "*"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
 
   #
   # Configure IAM resources for ECS resources
@@ -54,6 +57,9 @@ Resources:
               - "ecs-tasks.amazonaws.com"
             Action:
             - "sts:AssumeRole"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   TaskRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -89,6 +95,9 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   EcsInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -327,6 +336,9 @@ Resources:
             - application-autoscaling.amazonaws.com
           Action: 
           - 'sts:AssumeRole'
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   ServiceAutoScalingPolicy:
     Type: AWS::IAM::Policy
     Properties:

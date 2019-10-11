@@ -120,6 +120,10 @@ async function getCompiledEcsTemplate(stackName: string, clusterName: string, ow
     // Add volumes if present (these are consumed by one or more container mount points)
     handlebarsParams.volumes = volumesSection.getVolumes(dependenciesDeployContexts);
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
+
     return handlebars.compileTemplate(`${__dirname}/ecs-service-template.yml`, handlebarsParams);
 }
 
