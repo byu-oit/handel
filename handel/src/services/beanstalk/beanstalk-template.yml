@@ -21,6 +21,9 @@ Resources:
               - "elasticbeanstalk.amazonaws.com"
             Action:
             - "sts:AssumeRole"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   ServiceRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -171,6 +174,9 @@ Resources:
               - "ec2.amazonaws.com"
             Action:
             - "sts:AssumeRole"
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   Policy:
     Type: AWS::IAM::Policy
     Properties:

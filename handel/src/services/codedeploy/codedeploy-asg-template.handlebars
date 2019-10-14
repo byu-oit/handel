@@ -68,6 +68,9 @@ Resources:
             - elasticloadbalancing:DeregisterTargets
             Resource:
             - "*" # This is the role used by the AWS service itself, so it doesn't really need to have a granular resource like those used by our applications 
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
 
   #
   # Role used by CodeDeploy
@@ -86,6 +89,9 @@ Resources:
             - ec2.amazonaws.com
           Action:
           - sts:AssumeRole
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   Policy:
     Type: AWS::IAM::Policy
     Properties:

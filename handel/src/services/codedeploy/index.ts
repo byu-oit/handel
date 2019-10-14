@@ -61,6 +61,10 @@ async function getCompiledCodeDeployTemplate(stackName: string, ownServiceContex
         assignPublicIp: await ec2Calls.shouldAssignPublicIp(accountConfig.private_subnets)
     };
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
+
     // Add ssh key name if present
     if (params.key_name) {
         handlebarsParams.sshKeyName = params.key_name;

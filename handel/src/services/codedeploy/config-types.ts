@@ -61,6 +61,7 @@ export interface HandlebarsCodeDeployTemplate {
     serviceRoleName: string;
     sshKeyName?: string;
     assignPublicIp: boolean;
+    permissionsBoundary?: string;
 }
 
 export interface HandlebarsCodeDeployAutoScalingConfig {

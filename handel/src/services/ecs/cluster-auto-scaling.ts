@@ -39,10 +39,15 @@ export async function createAutoScalingLambdaIfNotExists(accountConfig: AccountC
     const stack = await awsCalls.cloudFormation.getStack(stackName);
     if (!stack) {
         const s3ObjectInfo = await deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-scaling-lambda/`, 'handel/ecs-cluster-auto-scaling-lambda', 'lambda-code', accountConfig);
-        const handlebarsParams = {
+        const handlebarsParams: any = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key
         };
+
+        if (accountConfig.permissions_boundary) {
+            handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+        }
+
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/cluster-scaling-lambda/scaling-lambda-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS auto-scaling`);
         return awsCalls.cloudFormation.createStack(stackName, compiledTemplate, [], 30, accountConfig.handel_resource_tags);
@@ -64,10 +69,14 @@ export async function createDrainingLambdaIfNotExists(accountConfig: AccountConf
     if (!stack) {
         // Stack doesn't exist, create it
         const s3ObjectInfo = await deployPhase.uploadDirectoryToHandelBucket(`${__dirname}/cluster-draining-lambda/`, 'handel/ecs-cluster-draining-lambda', 'lambda-code', accountConfig);
-        const handlebarsParams = {
+        const handlebarsParams: any = {
             s3Bucket: s3ObjectInfo.Bucket,
             s3Key: s3ObjectInfo.Key
         };
+
+        if (accountConfig.permissions_boundary) {
+            handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+        }
 
         const compiledTemplate = await handlebars.compileTemplate(`${__dirname}/cluster-draining-lambda/cluster-draining-template.yml`, handlebarsParams);
         winston.info(`Creating Lambda for ECS draining`);

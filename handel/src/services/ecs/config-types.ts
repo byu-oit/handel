@@ -67,4 +67,5 @@ export interface HandlebarsEcsTemplateConfig {
     loadBalancer?: HandlebarsEcsTemplateLoadBalancer;
     sshKeyName?: string;
     volumes?: HandlebarsEcsTemplateVolume[];
+    permissionsBoundary?: string;
 }

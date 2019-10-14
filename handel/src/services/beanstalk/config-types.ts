@@ -57,6 +57,7 @@ export interface HandlebarsBeanstalkTemplate {
     policyStatements: any[];
     serviceRoleName: string;
     tags: Tags;
+    permissionsBoundary?: string;
 }
 
 export interface HandlebarsBeanstalkOptionSetting {

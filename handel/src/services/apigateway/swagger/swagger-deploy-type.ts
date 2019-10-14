@@ -120,6 +120,10 @@ async function getCompiledApiGatewayTemplate(stackName: string, ownServiceContex
         deploymentIdSuffix: Math.floor(Math.random() * 10000) // This is required because CF won't update an API deployment unless the resource has a different name
     };
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
+
     // Add binary media types if specified
     const binaryMediaTypes = params.binary_media_types;
     if (binaryMediaTypes) {

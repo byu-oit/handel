@@ -38,6 +38,9 @@ Resources:
                   - "dynamodb:UpdateTable"
                 Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/{{tableName}}"
 
+      {{#if permissionsBoundary}}
+      PermissionsBoundary: {{permissionsBoundary}}
+      {{/if}}
   {{#each targets}}
   {{logicalIdPrefix}}CapacityScalableTarget:
     Type: "AWS::ApplicationAutoScaling::ScalableTarget"

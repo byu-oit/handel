@@ -102,6 +102,10 @@ async function getCompiledEcsFargateTemplate(serviceName: string, ownServiceCont
         assignPublicIp: shouldAssignPublicIp ? 'ENABLED' : 'DISABLED'
     };
 
+    if (accountConfig.permissions_boundary) {
+        handlebarsParams.permissionsBoundary = accountConfig.permissions_boundary
+    }
+
     // Configure routing if present in any of the containers
     if (oneOrMoreTasksHasRouting) {
         const hostedZones = await route53.listHostedZones();

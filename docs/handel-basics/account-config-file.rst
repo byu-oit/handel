@@ -63,6 +63,7 @@ The account config file is a YAML file that must contain the following informati
   handel_resource_tags: # Optional. Sets tags to be applied to any generic resources, such as lambda functions, that Handel uses internally.
     <key>: <value>
     <key>: <value>
+  permissions_boundary: # Optional. The arn of an IAM Policy that should be added as a permissions boundary to any IAM Roles created by Handel.
 
 .. IMPORTANT::
 

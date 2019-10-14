@@ -56,4 +56,5 @@ export interface HandlebarsFargateTemplateConfig {
     logRetentionInDays: number | null;
     loadBalancer?: HandlebarsEcsTemplateLoadBalancer;
     volumes?: HandlebarsEcsTemplateVolume[];
+    permissionsBoundary?: string;
 }
