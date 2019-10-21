@@ -67,7 +67,7 @@ describe('apigateway deployer', () => {
                     proxy: {
                         path_to_code: '.',
                         handler: 'index.handler',
-                        runtime: 'nodejs6.10'
+                        runtime: 'nodejs10.x'
                     }
                 };
                 const errors = await apigateway.check!(serviceContext, []);

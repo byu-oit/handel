@@ -80,7 +80,7 @@ This Handel file shows an API Gateway service being configured with API access t
         app:
           type: apigateway
           path_to_code: .
-          lambda_runtime: nodejs6.10
+          lambda_runtime: nodejs10.x
           handler_function: index.handler
         orgsaccess:
           type: apiaccess

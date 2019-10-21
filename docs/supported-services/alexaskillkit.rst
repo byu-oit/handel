@@ -47,7 +47,7 @@ This Handel file shows a Alexa Skill kit service being configured, producing to 
           type: lambda
           path_to_code: .
           handler: app.handler
-          runtime: nodejs6.10
+          runtime: nodejs10.x
         alexaskill:
           type: alexaskillkit
           event_consumers:

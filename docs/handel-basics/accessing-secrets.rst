@@ -34,7 +34,7 @@ To see a concrete illustration of this, consider the following example Handel fi
           type: lambda
           path_to_code: .
           handler: app.handler
-          runtime: nodejs6.10
+          runtime: nodejs10.x
 
 This Lambda, when deployed, will be able to access any EC2 Parameter Store parameters under the path "/my-lambda-app/dev/". Thus, the parameter ``/my-lambda-app/dev/somesecret`` would be available to this application, but the ``/some-other-app/dev/somesecret`` parameter would not, because it is not included in the same path.
 

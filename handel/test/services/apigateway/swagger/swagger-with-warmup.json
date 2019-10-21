@@ -42,7 +42,7 @@
     "x-lambda-functions": {
         "my-function-1": {
             "description": "test lambda",
-            "runtime": "nodejs6.10",
+            "runtime": "nodejs10.x",
             "handler": "index.handler",
             "memory": "128",
             "path_to_code": "./function1",
@@ -52,7 +52,7 @@
         },
         "my-function-2": {
             "description": "test lambda",
-            "runtime": "nodejs6.10",
+            "runtime": "nodejs10.x",
             "handler": "index.handler",
             "memory": "256",
             "path_to_code": "./function2",

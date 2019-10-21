@@ -78,7 +78,7 @@ Here's an example deployment entry:
                 "type": "lambda",
                 "path_to_code": ".",
                 "handler": "index.handler",
-                "runtime": "nodejs6.10"
+                "runtime": "nodejs10.x"
                 "dependencies": [
                     "my-db"
                 ]
