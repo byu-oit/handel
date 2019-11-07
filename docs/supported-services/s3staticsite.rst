@@ -195,7 +195,7 @@ This Handel file shows an S3 Static Site service being configured:
           versioning: enabled
           index_document: index.html
           error_document: error.html
-          cdn:
+          cloudfront:
             price_class: all
             https_certificate: 6afbc85f-de0c-4ee9-b7d7-28b961eca135
           tags:
