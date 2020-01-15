@@ -40,7 +40,7 @@ describe('apigateway proxy deploy type', () => {
             proxy: {
                 path_to_code: '.',
                 handler: 'index.handler',
-                runtime: 'nodejs10.x'
+                runtime: 'nodejs12.x'
             }
         };
         serviceContext = new ServiceContext('FakeApp', 'FakeEnv', 'FakeService', new ServiceType(STDLIB_PREFIX, 'FakeType'), serviceParams, accountConfig);

@@ -48,7 +48,7 @@ describe('lambdaCalls', () => {
             type: 'lambda',
             path_to_code: '.',
             handler: 'index.handler',
-            runtime: 'nodejs10.x'
+            runtime: 'nodejs12.x'
         };
         ownServiceContext = new ServiceContext(appName, envName, 'consumerService', new ServiceType(STDLIB_PREFIX, 'lambda'), serviceParams, accountConfig);
         ownDeployContext = new DeployContext(ownServiceContext);

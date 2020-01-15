@@ -64,7 +64,7 @@ The following example shows setting up an IoT topic rule to produce to a Lambda:
           type: lambda
           path_to_code: .
           handler: index.handler
-          runtime: nodejs10.x
+          runtime: nodejs12.x
 
 Depending on this service
 -------------------------

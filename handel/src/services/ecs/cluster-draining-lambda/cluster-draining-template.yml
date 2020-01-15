@@ -64,7 +64,7 @@ Resources:
       Handler: index.handler
       MemorySize: 128
       Role: !GetAtt Role.Arn
-      Runtime: nodejs10.x
+      Runtime: nodejs12.x
       Timeout: 300
   Event:
     Type: AWS::Events::Rule

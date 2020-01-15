@@ -60,7 +60,7 @@ describe('lambda deployer', () => {
             timeout: 5,
             path_to_code: '.',
             handler: 'index.handler',
-            runtime: 'nodejs10.x',
+            runtime: 'nodejs12.x',
             environment_variables: {
                 MY_FIRST_VAR: 'my_first_value'
             }

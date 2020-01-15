@@ -223,7 +223,7 @@ Consider the following Swagger document:
       },
       "x-lambda-functions": {
         "my-function-1": {
-          "runtime": "nodejs10.x",
+          "runtime": "nodejs12.x",
           "handler": "index.handler",
           "memory": "128",
           "path_to_code": "./function1"
@@ -243,7 +243,7 @@ For each item in this list, Handel will create a Lambda function for you. These 
 
     {
       "path_to_code": <string>, // The path to the directory or artifact where your code resides.
-      "runtime": <string>, // The Lambda runtime (such as nodejs10.x) to use for your handler function.
+      "runtime": <string>, // The Lambda runtime (such as nodejs12.x) to use for your handler function.
       "handler": <string>, // The function to call (such as index.handler) in your deployable code when invoking the Lambda. This is the Lambda-equivalent of your ‘main’ method.
       "memory": <number>, // The amount of memory (in MB) to provision for the runtime. Default: 128,
       "timeout": <number>, // The timeout to use for your Lambda function. Any functions that go over this timeout will be killed. Default: 5
@@ -324,7 +324,7 @@ functionality to have more complex transformations before sending requests to yo
       }
       "x-lambda-functions": {
         "my-function-1": {
-          "runtime": "nodejs10.x",
+          "runtime": "nodejs12.x",
           "handler": "index.handler",
           "memory": "128",
           "path_to_code": "./function1"
@@ -409,7 +409,7 @@ This Handel file shows an API Gateway service being configured, where all your r
           type: apigateway
           proxy:
             path_to_code: .
-            runtime: nodejs10.x
+            runtime: nodejs12.x
             handler: index.handler
             memory: 256
             timeout: 5
@@ -464,13 +464,13 @@ The above file assumes a Swagger file called *swagger.json* is present in the sa
       },
       "x-lambda-functions": {
         "my-function-1": {
-          "runtime": "nodejs10.x",
+          "runtime": "nodejs12.x",
           "handler": "index.handler",
           "memory": "128",
           "path_to_code": "./function1"
         },
         "my-function-2": {
-          "runtime": "nodejs10.x",
+          "runtime": "nodejs12.x",
           "handler": "index.handler",
           "memory": "256",
           "path_to_code": "./function2"

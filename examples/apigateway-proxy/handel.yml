@@ -9,7 +9,7 @@ environments:
       description: My Description
       proxy:
         path_to_code: ./
-        runtime: nodejs10.x
+        runtime: nodejs12.x
         memory: 128
         handler: index.handler
         environment_variables:

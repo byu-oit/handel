@@ -167,7 +167,7 @@ This Handel file shows an SQS service configured with events to Lambda enabled:
           type: lambda
           path_to_code: .
           handler: index.handler
-          runtime: nodejs10.x
+          runtime: nodejs12.x
 
 Depending on this service
 -------------------------

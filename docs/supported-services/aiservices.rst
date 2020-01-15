@@ -163,7 +163,7 @@ Here is an example Handel file showing what is required to make this happen:
         app:
           type: apigateway
           path_to_code: .
-          lambda_runtime: nodejs10.x
+          lambda_runtime: nodejs12.x
           handler_function: index.handler
           dependencies:
           - aiaccess

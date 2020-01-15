@@ -9,7 +9,7 @@ environments:
       proxy:
         path_to_code: ./lambda
         handler: index.handler
-        runtime: nodejs10.x
+        runtime: nodejs12.x
         timeout: 60
       vpc: true
       dependencies:

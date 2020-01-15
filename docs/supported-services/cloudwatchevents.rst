@@ -72,7 +72,7 @@ This Handel file shows a CloudWatch Events service being configured, producing t
           type: lambda
           path_to_code: .
           handler: app.handler
-          runtime: nodejs10.x
+          runtime: nodejs12.x
         schedule:
           type: cloudwatchevent
           schedule: rate(1 minute)
@@ -96,7 +96,7 @@ This Handel file shows a CloudWatch Events service being configured, producing t
           type: lambda
           path_to_code: .
           handler: app.handler
-          runtime: nodejs10.x
+          runtime: nodejs12.x
         schedule:
           type: cloudwatchevent
           event_pattern:
