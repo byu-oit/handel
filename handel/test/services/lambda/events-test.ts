@@ -19,10 +19,10 @@ import {
     AccountConfig,
     ConsumeEventsContext,
     DeployContext,
+    ServiceConfig,
     ServiceContext,
     ServiceEventType,
-    ServiceType,
-    ServiceConfig
+    ServiceType
 } from 'handel-extension-api';
 import 'mocha';
 import * as sinon from 'sinon';
@@ -48,7 +48,7 @@ describe('lambdaCalls', () => {
             type: 'lambda',
             path_to_code: '.',
             handler: 'index.handler',
-            runtime: 'nodejs8.10'
+            runtime: 'nodejs12.x'
         };
         ownServiceContext = new ServiceContext(appName, envName, 'consumerService', new ServiceType(STDLIB_PREFIX, 'lambda'), serviceParams, accountConfig);
         ownDeployContext = new DeployContext(ownServiceContext);

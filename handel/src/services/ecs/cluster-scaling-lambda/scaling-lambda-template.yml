@@ -73,7 +73,7 @@ Resources:
       Handler: index.handler
       MemorySize: 128
       Role: !GetAtt Role.Arn
-      Runtime: nodejs8.10
+      Runtime: nodejs12.x
       Timeout: 300
   PermissionForEventsToInvokeLambda:
     Type: "AWS::Lambda::Permission"

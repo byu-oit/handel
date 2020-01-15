@@ -18,7 +18,7 @@ environments:
     #   proxy:
     #     path_to_code: ./gremlin-js
     #     handler: index.handler
-    #     runtime: nodejs8.10
+    #     runtime: nodejs12.x
     #   vpc: true
     #   dependencies:
     #   - db

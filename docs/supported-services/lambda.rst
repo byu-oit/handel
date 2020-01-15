@@ -99,7 +99,7 @@ Example Handel File
           type: lambda
           path_to_code: .
           handler: index.handler
-          runtime: nodejs6.10
+          runtime: nodejs12.x
           environment_variables:
             MY_ENV: myEnvValue
           tags:
