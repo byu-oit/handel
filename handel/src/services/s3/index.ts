@@ -67,7 +67,8 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
     deployContext.policies.push({
         'Effect': 'Allow',
         'Action': [
-            's3:ListBucket'
+            's3:ListBucket',
+            's3:ListBucketVersions'
         ],
         'Resource': [
             `arn:aws:s3:::${bucketName}`
@@ -76,12 +77,7 @@ function getDeployContext(serviceContext: ServiceContext<S3ServiceConfig>, cfSta
     deployContext.policies.push({
         'Effect': 'Allow',
         'Action': [
-            's3:PutObject',
-            's3:GetObject',
-            's3:DeleteObject',
-            's3:GetObjectAcl',
-            's3:PutObjectAcl',
-            's3:DeleteObjectAcl'
+            '*'
         ],
         'Resource': [
             `arn:aws:s3:::${bucketName}/*`
