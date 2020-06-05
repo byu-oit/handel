@@ -134,7 +134,7 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
         handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'PreferredStartTime', serviceParams.patching.start_time));
         handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions:platformupdate', 'UpdateLevel', serviceParams.patching.level));
         if (serviceParams.patching.instance_replacement){
-            handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'InstanceRefreshEnabled', serviceParams.patching.instance_replacement));
+            handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions:platformupdate', 'InstanceRefreshEnabled', serviceParams.patching.instance_replacement));
         }
     }
     // Configure VPC
