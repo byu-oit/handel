@@ -125,7 +125,7 @@ The `patching` section is defined by the following schema:
 
     patching: # Optional
       level: <string> # Required.
-      max_instances: <integer> # Required.
+      start_time: <string> # Required.
       instance_replacement: <boolean> # Optional.
 
 .. _beanstalk-auto-scaling:
