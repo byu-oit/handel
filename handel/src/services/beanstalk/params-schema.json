@@ -152,6 +152,35 @@
                 }
             }
         },
+        "patching": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "errorMessage": "Must be a string"
+                },
+                "start_time": {
+                    "type": "string",
+                    "errorMessage": "Must be a string"
+                },
+                "instance_replacement": {
+                    "type": "boolean",
+                    "errorMessage": "Must be boolean"
+                }
+            },
+            "required": [
+                "level",
+                "start_time"
+            ],
+            "additionalProperties": false,
+            "errorMessage": {
+                "additionalProperties": "Invalid/unknown property specified",
+                "required": {
+                    "level": "The 'level' field is required",
+                    "start_time": "The 'start_time' field is required"
+                }
+            }
+        },
         "instance_type": {
             "type": "string",
             "errorMessage": "Must be a string"

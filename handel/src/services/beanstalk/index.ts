@@ -128,6 +128,15 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSizeType', 'Percentage'));
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSize', '25'));
 
+    // Configure AutoPatching
+    if (serviceParams.patching) {
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'ManagedActionsEnabled', true));
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'PreferredStartTime', serviceParams.patching.start_time));
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions:platformupdate', 'UpdateLevel', serviceParams.patching.level));
+        if (serviceParams.patching.instance_replacement){
+            handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'InstanceRefreshEnabled', serviceParams.patching.instance_replacement));
+        }
+    }
     // Configure VPC
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'VPCId', accountConfig.vpc));
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'Subnets', accountConfig.private_subnets.join(',')));
