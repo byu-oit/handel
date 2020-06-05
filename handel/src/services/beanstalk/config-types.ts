@@ -40,7 +40,7 @@ export interface BeanstalkServiceConfig extends ServiceConfig {
 export interface BeanstalkPatchingConfig {
     level: string;
     start_time: string;
-    instance_replacment?: boolean;
+    instance_replacement?: boolean;
 }
 
 export interface BeanstalkRoutingConfig {
