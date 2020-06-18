@@ -38,9 +38,10 @@ export interface BeanstalkServiceConfig extends ServiceConfig {
 }
 
 export interface BeanstalkPatchingConfig {
-    level: string;
-    start_time: string;
-    instance_replacement?: boolean;
+    enabled?: boolean;
+    level?: string;
+    start_time?: string;
+    automatic_weekly_replacement?: boolean;
 }
 
 export interface BeanstalkRoutingConfig {
