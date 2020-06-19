@@ -152,6 +152,31 @@
                 }
             }
         },
+        "patching": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "errorMessage": "Must be a boolean"
+                },
+                "level": {
+                    "type": "string",
+                    "errorMessage": "Must be a string"
+                },
+                "start_time": {
+                    "type": "string",
+                    "errorMessage": "Must be a string, with the format day:hour:minute (Ex: 'Sun:10:00' for 10am UTC on Sundays)"
+                },
+                "automatic_weekly_replacement": {
+                    "type": "boolean",
+                    "errorMessage": "Must be boolean"
+                }
+            },
+            "additionalProperties": false,
+            "errorMessage": {
+                "additionalProperties": "Invalid/unknown property specified"
+            }
+        },
         "instance_type": {
             "type": "string",
             "errorMessage": "Must be a string"

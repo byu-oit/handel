@@ -128,6 +128,18 @@ async function getCompiledBeanstalkTemplate(stackName: string, preDeployContext:
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSizeType', 'Percentage'));
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:command', 'BatchSize', '25'));
 
+    // Configure AutoPatching
+    const patchingEnabled = (serviceParams.patching && serviceParams.patching.enabled != null) ? serviceParams.patching.enabled : true;
+    if (patchingEnabled) {
+        const patchingStartTime = (serviceParams.patching && serviceParams.patching.start_time != null) ? serviceParams.patching.start_time : 'Sun:10:00'; // 10am UTC is 3am/4am in Utah, depending on daylight savings
+        const patchingLevel = (serviceParams.patching && serviceParams.patching.level != null) ? serviceParams.patching.level : 'patch';
+        const automaticWeeklyReplacement = (serviceParams.patching && serviceParams.patching.automatic_weekly_replacement != null) ? serviceParams.patching.automatic_weekly_replacement : false;
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'ManagedActionsEnabled', patchingEnabled));
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions', 'PreferredStartTime', patchingStartTime));
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions:platformupdate', 'UpdateLevel', patchingLevel));
+        handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:elasticbeanstalk:managedactions:platformupdate', 'InstanceRefreshEnabled', automaticWeeklyReplacement));
+    }
+
     // Configure VPC
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'VPCId', accountConfig.vpc));
     handlebarsParams.optionSettings.push(getEbConfigurationOption('aws:ec2:vpc', 'Subnets', accountConfig.private_subnets.join(',')));

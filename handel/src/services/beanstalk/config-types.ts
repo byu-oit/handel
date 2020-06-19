@@ -32,8 +32,16 @@ export interface BeanstalkServiceConfig extends ServiceConfig {
     instance_type?: string;
     health_check_url?: string;
     routing?: BeanstalkRoutingConfig;
+    patching?: BeanstalkPatchingConfig;
     environment_variables?: EnvironmentVariables;
     tags?: Tags;
+}
+
+export interface BeanstalkPatchingConfig {
+    enabled?: boolean;
+    level?: string;
+    start_time?: string;
+    automatic_weekly_replacement?: boolean;
 }
 
 export interface BeanstalkRoutingConfig {

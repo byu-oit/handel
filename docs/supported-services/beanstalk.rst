@@ -58,6 +58,11 @@ Parameters
      - No
      - None
      - The name of the EC2 keypair to use for SSH access to the instance.
+   * - patching
+     - :ref:`beanstalk-patching`
+     - No
+     - 
+     - The configuration to use for automated patching
    * - auto_scaling
      - :ref:`beanstalk-auto-scaling`
      - No
@@ -109,6 +114,22 @@ Dockerrun.aws.json Replacement Tags
      - The name of the Handel environment that the deployed service is contained in.
    * - <handel_service_name>
      - The name of the Handel service being deployed.
+
+.. _beanstalk-patching:
+
+Patching
+~~~~~~~~~~~
+Configures `managed platform updates <https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-platform-update-managed.html>`_.
+
+The `patching` section is defined by the following schema:
+
+.. code-block:: yaml
+
+    patching: # Optional
+      enabled: <boolean> # Optional. Default: true. Set this to false to opt out of automatic patching.
+      level: <string> # Optional. Default: 'patch'
+      start_time: <string> # Optional. Default: 'Sun:10:00' (10am UTC, which is 3am/4am in Utah, depending on daylight savings)
+      automatic_weekly_replacement: <boolean> # Optional. Default: false
 
 .. _beanstalk-auto-scaling:
 
