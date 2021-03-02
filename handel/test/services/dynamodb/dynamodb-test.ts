@@ -26,17 +26,13 @@ import {
     ServiceType,
     UnDeployContext
 } from 'handel-extension-api';
-import {
-    awsCalls,
-    deletePhases,
-    deployPhase,
-    handlebars
-} from 'handel-extension-support';
+import { awsCalls, deletePhases, deployPhase, handlebars } from 'handel-extension-support';
 import 'mocha';
 import * as sinon from 'sinon';
 import config from '../../../src/account-config/account-config';
 import { Service } from '../../../src/services/dynamodb';
 import {
+    CapacityMode,
     DynamoDBConfig,
     DynamoDBServiceEventConsumer,
     KeyDataType,
@@ -263,6 +259,25 @@ describe('dynamodb deployer', () => {
                 expect(errors.length).to.equal(0);
             });
         });
+
+        describe('capacity_mode', () => {
+            it('should validate the capacity_mode', () => {
+                serviceParams.capacity_mode = 'invalid' as CapacityMode;
+
+                const errors = dynamodb.check!(serviceContext, []);
+                expect(errors).to.have.lengthOf(1);
+                expect(errors[0]).to.include(`Must be 'provisioned' or 'on-demand'`);
+            });
+
+            it(`should fail if set to 'on-demand' and 'provisioned_throughput' is set`, () => {
+                serviceParams.capacity_mode = CapacityMode.ON_DEMAND;
+
+                const errors = dynamodb.check!(serviceContext, []);
+                expect(errors).to.have.lengthOf(2);
+                expect(errors[0]).to.include(`provisioned_throughput' must not be set if 'capacity_mode' is set to 'on-demand'`);
+                expect(errors[1]).to.include(`provisioned_throughput' must not be set if 'capacity_mode' is set to 'on-demand'`);
+            });
+        });
     });
 
     describe('deploy', () => {
@@ -417,9 +432,8 @@ describe('dynamodb deployer', () => {
                 const autoscaleParams = templateSpy.lastCall.args[1];
 
                 expect(tableParams).to.have.property('globalIndexes').which.has.lengthOf(1);
-                expect(tableParams.globalIndexes[0]).to.have.property('indexReadCapacityUnits', 1);
-                expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', 2);
-                expect(tableParams).to.have.property('tableWriteCapacityUnits', 2);
+                expect(tableParams.globalIndexes[0]).to.have.deep.property('throughput', {readUnits: 1, writeUnits: 2});
+                expect(tableParams).to.have.deep.property('throughput', {readUnits: 1, writeUnits: 2});
 
                 expect(autoscaleParams).to.have.property('targets')
                     .with.lengthOf(4);
@@ -463,13 +477,11 @@ describe('dynamodb deployer', () => {
                 const tableParams = templateSpy.firstCall.args[1];
                 const autoscaleParams = templateSpy.lastCall.args[1];
 
-                expect(tableParams).to.have.property('tableReadCapacityUnits', 3);
-                expect(tableParams).to.have.property('tableWriteCapacityUnits', 3);
+                expect(tableParams).to.have.deep.property('throughput', {readUnits: 3, writeUnits: 3});
 
                 expect(tableParams).to.have.property('globalIndexes').which.has.lengthOf(1);
-                expect(tableParams.globalIndexes[0]).to.have.property('indexReadCapacityUnits', 1);
-                expect(tableParams.globalIndexes[0]).to.have.property('indexWriteCapacityUnits', 2);
-                expect(tableParams).to.have.property('tableWriteCapacityUnits', 3);
+
+                expect(tableParams.globalIndexes[0]).to.have.deep.property('throughput', {readUnits: 1, writeUnits: 2});
 
                 expect(autoscaleParams).to.have.property('targets').which.has.lengthOf(2);
 

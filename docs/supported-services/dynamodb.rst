@@ -42,6 +42,11 @@ Parameters
      - No
      - None
      - The SortKey element details how you want your sort key specified. Unlike partition_key, sort_key is not required.
+   * - capacity_mode
+     - :ref:`dynamodb-capacity-mode`
+     - No
+     - 'provisioned'
+     - The capacity provisioning mode. Either 'provisioned' or 'on-demand'. See `The Dynamo docs <https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadWriteCapacityMode.html>`_ for more.
    * - provisioned_throughput
      - :ref:`dynamodb-provisioned-throughput`
      - No
@@ -96,6 +101,21 @@ The SortKey element tells how to configure your sort key in DynamoDB. It has the
     sort_key:
       name: <key_name> 
       type: <String|Number>
+
+
+.. _dynamodb-capacity-mode:
+
+CapacityMode
+~~~~~~~~~~~~
+The value of `capacity_mode` must be either `provisioned` or `on-demand`. If set to `provisioned`, Read/Write capacity
+is provisioned using `provisioned_throughput`. If set to `on-demand`, you are charged a flat fee per request, and AWS
+automatically scales the underlying datastore to meet demand.
+
+For non-production, new, or unpredictable workloads, `on-demand` is a good choice. For workloads with predictable usage,
+`provisioned` is usually the best choice. For more information, read
+`the Dynamo docs <https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadWriteCapacityMode.html>`_.
+
+If `capacity_mode` is set to `on-demand`, the `provisioned_throughput` element must not be set.
 
 .. _dynamodb-provisioned-throughput:
 
@@ -170,6 +190,8 @@ The GlobalIndexes element allows you to configure global secondary indexes on yo
 
 The provisioned throughput configuration for Global Secondary Indexes matches that for the table. If the provisioned
 throughput is not configured for the index, the table's configuration will be used, including any autoscaling configuration.
+
+If the table's `capacity_mode` is set to `on-demand`, the `provisioned_throughput` element must not be set.
 
 .. WARNING::
 

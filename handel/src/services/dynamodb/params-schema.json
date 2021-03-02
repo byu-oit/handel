@@ -69,6 +69,12 @@
                 "additionalProperties": "Invalid/Unknown property specified"
             }
         },
+        "capacity_mode": {
+            "type": "string",
+            "description": "The capacity provisioning mode",
+            "enum": ["provisioned", "on-demand"],
+            "errorMessage": "Must be 'provisioned' or 'on-demand'"
+        },
         "provisioned_throughput": {
             "type": "object",
             "properties": {
